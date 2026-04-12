@@ -12,6 +12,8 @@ Each phase has a checklist of deliverables. Do not advance to the next phase unt
 
 Phases are sequential. Within a phase, items marked "parallel-safe" can be worked on simultaneously.
 
+`PROMPTS.md` is the companion source of truth for prompt construction, the program/run prompt library, and the mandatory self-test -> independent review -> fix-audit loop. Use it alongside this plan whenever prompts, review logic, or testing cadence are being defined.
+
 ---
 
 ## Prerequisites
@@ -20,8 +22,8 @@ Before any phase begins, confirm the following:
 
 - [ ] You have a target repo to automate (a real project with frontend + backend, not a toy)
 - [ ] The target repo builds and runs locally on your machine today (manually)
-- [ ] You have working API keys: `OPENAI_API_KEY` (for Codex) and `ANTHROPIC_API_KEY` (for Claude)
-- [ ] Codex CLI is installed and functional (`codex --version` returns a version)
+- [ ] Codex CLI is installed, authenticated, and functional (`codex --version` returns a version and the intended local auth path works)
+- [ ] Claude access is configured and functional through the intended integration path (for example API access)
 - [ ] Node.js and npm/pnpm are installed
 - [ ] Python 3.10+ is installed
 - [ ] Git is installed and configured with credentials
@@ -748,6 +750,8 @@ Log changes in CHANGELOG.md.
 6. **StrategyDecision schema** — JSON schema defining exactly what the strategy layer returns for each phase, using only typed domain actions.
 
 All prompts will be designed to produce structured output compatible with the typed action graph. No raw shell commands.
+
+Use `PROMPTS.md` as the canonical prompt-writing and review-cadence reference when producing these deliverables.
 
 ### 4.2 Claude Strategy Integration
 

@@ -58,6 +58,8 @@ The next implementation work should align with the phased plan in `canonical-arc
 - When in doubt, reduce ambiguity rather than adding optionality.
 
 ## Global Mandatory Markers
+The policy and playbook filenames referenced below are global Codex resources, not repo-local files. Resolve them under `/Users/gillettes/.codex/` and `/Users/gillettes/.codex/policies/` unless a specific instruction says otherwise. Do not assume they exist inside this repository.
+
 - [MANDATORY_STACK_RUNTIME] stack/runtime profile, risk areas, release gates, boundaries, rollback/ops checks
 - [MANDATORY_OPERATING_PRINCIPLES] operating principles aligned to `OPERATING_PRINCIPLES.md`
 - [MANDATORY_PROJECT_INTENT] canonical project intent documentation + behavior aligned to `PROJECT_INTENT_ALIGNMENT.md`

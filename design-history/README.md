@@ -23,4 +23,5 @@ Some archived documents intentionally preserve superseded terminology, layout as
 - `feedback-reconciliation-2026-04-14.md`: April 14 feedback and repo-audit reconciliation record.
 - `AUDIT-2026-04-14.md`: Phase 0 cleanup verification report.
 - `ADR-0001-terminal-state-normalization.md`: current ADR for run-state/readiness vocabulary.
+- `ADR-0006-linear-authority-boundary.md`: Linear authority boundary audit and governance decision.
 - `codex-cleanup-prompts.md`: archived prompt batch that drove the initial Phase 0 cleanup wave.

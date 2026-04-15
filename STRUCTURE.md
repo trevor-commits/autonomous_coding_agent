@@ -1,6 +1,6 @@
 # Structure
 
-**Date:** April 14, 2026  
+**Date:** April 15, 2026  
 **Authority:** `canonical-architecture.md`
 
 ## 1. Boundary
@@ -10,9 +10,9 @@ The boundary is fixed. The target repo owns only its `.agent/` contract surface,
 ## 2. Control-Plane Repo Contents
 
 - `schemas/` holds the canonical machine-crossing schemas that define stable shapes for contracts, decisions, defects, and reports.
-- `supervisor/` holds the deterministic runtime code that enforces legality, phase ordering, ownership boundaries, and artifact production once implementation starts.
-- `fixtures/` holds control-plane-owned benchmark inputs and other reusable validation fixtures.
-- `tests/` holds automated tests for supervisor behavior, contracts, policies, and other control-plane code.
+- `supervisor/` will hold the deterministic runtime code that enforces legality, phase ordering, ownership boundaries, and artifact production once implementation starts.
+- `fixtures/` will hold control-plane-owned benchmark inputs and other reusable validation fixtures.
+- `tests/` will hold automated tests for supervisor behavior, contracts, policies, and other control-plane code.
 - `prompts/` holds version-controlled prompt templates if the prompt system is extracted into its own folder.
 - `policies/` holds repo-local policy assets if the project adopts a dedicated policy folder beyond the root rules documents.
 - `design-history/` holds ADRs, archived architecture drafts, old reconciliations, and audit reports that preserve how decisions were reached without becoming active source of truth.

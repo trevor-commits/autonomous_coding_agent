@@ -1,6 +1,6 @@
 # Document Guide
 
-**Date:** April 14, 2026
+**Date:** April 15, 2026
 **Purpose:** Explain how the repo is organized now that active source-of-truth docs and archived history are separated.
 
 ## Quick Reference — Where to Find Things

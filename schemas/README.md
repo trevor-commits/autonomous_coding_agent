@@ -8,4 +8,4 @@ To validate a JSON instance locally with the `ajv` CLI, use a command in this sh
 npx ajv validate --spec=draft2020 -s schemas/run-contract.schema.json -d /path/to/instance.json
 ```
 
-Any schema change must be logged in `WORK-LOG.md`. If a change is breaking, bump the schema's `$id` minor suffix as part of that change instead of silently reusing the previous identifier.
+Any schema change must be logged in `todo.md`, with verification evidence added there when the change affects validation behavior. If a change is breaking, bump the schema's `$id` minor suffix as part of that change instead of silently reusing the previous identifier.

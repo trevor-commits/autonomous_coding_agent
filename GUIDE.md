@@ -3,9 +3,37 @@
 **Date:** April 14, 2026
 **Purpose:** Explain how the repo is organized now that active source-of-truth docs and archived history are separated.
 
-## Fastest Paths
+## Quick Reference — Where to Find Things
 
-If you are trying to find a file quickly, start with [REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md). If you want the recommended reading order and document roles, stay here. If you are an agent beginning a session, read [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md) first and then use `REPO_MAP.md` for lookup.
+If you are an agent beginning a session, read [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md) first. If you are orienting as a human, start with [README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/README.md) and then use this guide for reading order and lookup.
+
+Use these files for current truth:
+
+- [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md): repo purpose, primary users, non-goals, success criteria.
+- [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md): authoritative architecture.
+- [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md): conceptual behavior and control flow.
+- [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md): enforceable constraints and stop conditions.
+- [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md): file placement, repo boundary, runtime-state placement.
+- [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md): prompt-system source of truth.
+- [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
+
+Use `todo.md` for durable working records:
+
+- `Active Next Steps`: execution-ready work
+- `Suggested Recommendation Log`: deferred or optional ideas
+- `Audit Record Log`: audits and findings
+- `Test Evidence Log`: verification runs and results
+- `Feedback Decision Log`: plan refinements, accepted guidance, rejected guidance
+- `Completed`: durable record of landed milestones and repo changes
+
+Where does X go:
+
+- New schema or machine boundary: `schemas/`
+- New benchmark fixture: `fixtures/`
+- New supervisor test: `tests/`
+- New runtime artifact: `.autoclaw/runs/<run-id>/`
+- New policy rule or placement decision: `RULES.md` or `STRUCTURE.md`
+- New ADR or archived reconciliation: `design-history/`
 
 ## How The Repo Is Organized
 
@@ -55,19 +83,11 @@ Repo-local working instructions for agents. Read this at the start of an agent s
 
 The front page. Read this first when landing in the repo without context.
 
-### [REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md)
-
-The fastest lookup reference. Read this when you know what you want and need the right file immediately.
-
 ## Working Governance Records
 
 ### [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
 
 This is the durable working record for the project. It holds the active queue, completed work trail, suggested ideas, audit log, test evidence, and feedback decisions.
-
-### [WORK-LOG.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/WORK-LOG.md)
-
-This is the dated record of what landed in the repo. Use it to see which documentation or structure changes were actually made.
 
 ## Design History
 
@@ -90,7 +110,7 @@ Key historical records:
 When the repo changes because of an audit, user feedback, or plan refinement, the durable record should go in one of two places:
 
 - Use `todo.md` for the decision trail: active work, suggested ideas, audit outcomes, test evidence, and feedback decisions.
-- Use `WORK-LOG.md` for the change trail: what documentation or structure edits actually landed and when.
+- Use `todo.md`'s `Completed` section for the landed change trail: what documentation or structure edits actually landed and when.
 
 That split prevents chat-only memory and keeps the repo explainable to both people and agents.
 
@@ -106,7 +126,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | How do prompts and audits work? | `PROMPTS.md` |
 | What should be built next? | `IMPLEMENTATION-PLAN.md` |
 | What should an agent read first? | `AGENTS.md` |
-| How do I find the right file fast? | `REPO_MAP.md` |
+| How do I find the right file fast? | `GUIDE.md` section `Quick Reference — Where to Find Things` |
 | Where are audits, ideas, and feedback decisions recorded? | `todo.md` |
-| What changed recently in the repo? | `WORK-LOG.md` |
+| What changed recently in the repo? | `todo.md` section `Completed` |
 | Where is the old material? | `design-history/` |

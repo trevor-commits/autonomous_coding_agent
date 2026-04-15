@@ -4,8 +4,7 @@ This repository holds the active source-of-truth documentation, planning artifac
 
 ## Start Here
 
-- Need the fastest file lookup: [REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md)
-- Need reading order and document roles: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md)
+- Need reading order, document roles, and file lookup: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
 - Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
 
 ## Active Docs
@@ -36,9 +35,6 @@ Read these when working on the current system:
 8. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
-9. [WORK-LOG.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/WORK-LOG.md)
-   Dated record of concrete changes landed in the repo.
-
 ## Design History
 
 Archived drafts, reconciliation docs, old architecture summaries, and audit records now live under [design-history/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history). Start with [design-history/README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/README.md) before opening historical documents.
@@ -51,7 +47,7 @@ This repo keeps durable governance records instead of leaving them in chat:
 - `todo.md` `Suggested Recommendation Log`: deferred or optional ideas
 - `todo.md` `Audit Record Log`: audits and review outcomes
 - `todo.md` `Feedback Decision Log`: requests, plan refinements, accepted/rejected guidance
-- `WORK-LOG.md`: what changed in the repo itself
+- `todo.md` `Completed`: what changed in the repo itself
 
 ## Current Direction
 

@@ -22,7 +22,7 @@ Older architecture documents now live under `design-history/` and are historical
 
 This repository currently holds architecture, planning, and source-of-truth documentation for an autonomous coding system.
 
-For quick file lookup, use `REPO_MAP.md`. For reading order, use `GUIDE.md`.
+For quick file lookup and reading order, use `GUIDE.md`, especially the `Quick Reference — Where to Find Things` section.
 
 It is not yet the implementation repository for the supervisor/runtime itself unless and until code is added for that purpose.
 

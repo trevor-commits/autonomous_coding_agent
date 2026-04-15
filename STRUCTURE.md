@@ -32,4 +32,4 @@ A new schema goes in `schemas/` because it defines a reusable contract shape tha
 
 ## 6. Governance Records
 
-Use `todo.md` for durable planning, suggestions, audit logs, test evidence, and feedback decisions. Use `WORK-LOG.md` for a dated record of what actually changed in the repo. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.
+Use `todo.md` for durable planning, suggestions, audit logs, test evidence, feedback decisions, and the `Completed` trail of landed repo changes. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.

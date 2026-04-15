@@ -8,7 +8,7 @@ These files are useful for context, but they are not the implementation authorit
 - [../canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
 - [../RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
 - [../STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
-- [../REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md)
+- [../GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
 
 Some archived documents intentionally preserve superseded terminology, layout assumptions, or intermediate design states. That is expected. Treat them as historical evidence, not current operating instructions.
 

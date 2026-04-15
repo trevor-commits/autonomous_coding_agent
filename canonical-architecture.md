@@ -394,6 +394,7 @@ This is stable, version-controlled repo truth.
 - define supported stack/repo type
 - declare setup/build/test/launch commands
 - declare app health mechanism
+- declare the deterministic verification commands that local runs and CI must share
 - optionally declare UI smoke command and test data seed command
 - declare critical UI flows and breakpoints where relevant
 - declare required environment variables or templates
@@ -455,6 +456,40 @@ env:
     - "JWT_SECRET"
   template: ".env.example"
 ```
+
+### CI Integration Principle
+
+GitHub Actions or any other CI system is an external validator, not a workflow owner.
+
+That means:
+
+- CI may rerun contract-defined gates and publish artifacts
+- CI may block merges through required status checks
+- CI may trigger a supervisor run or report results to an orchestrator
+- CI may not redefine repo behavior that belongs in the repo contract
+- CI may not become the authority for phase legality or completion semantics
+
+The repo contract remains the source of truth for what a supported repo must run.
+CI should call the same contract-defined commands the supervisor uses rather than
+hardcoding repo-specific behavior into workflow YAML.
+
+For the first implementation repo, the preferred CI shape is:
+
+- Gate A: fast sanity (`format`, `lint`, `typecheck`, minimal smoke where applicable)
+- Gate B: unit tests plus coverage
+- Gate C: fast smoke integration / UI verification subset
+
+Each gate should emit structured artifacts that the orchestrator and reviewer lanes
+can consume without scraping raw logs. Preferred artifact set:
+
+- `junit.xml`
+- `coverage.xml`
+- `lint-report.json` when supported by the toolchain
+- `smoke-results.json` or an equivalent normalized summary
+
+This architecture repo should document that pattern now, but actual GitHub Actions
+implementation belongs in the first real implementation repo or shared CI-template
+repo after the local contract-driven flow is proven manually.
 
 ## 8.2 Run Contract
 

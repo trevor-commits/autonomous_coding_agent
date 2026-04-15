@@ -67,3 +67,4 @@ The next implementation work should follow the phased plan in `canonical-archite
 3. single-writer builder loop
 4. app supervisor and UI verification
 5. bounded strategy-layer integration
+6. contract-driven CI integration in the first implementation repo after the local flow is proven

@@ -94,6 +94,7 @@ env:
 - [ ] Every `commands.*` entry is a real command that works when you run it manually
 - [ ] `commands.app_health` returns 200 when the app is running
 - [ ] If `ui.critical_flows` are defined, you can manually verify each assertion is true
+- [ ] The contract commands are suitable for both local supervisor execution and later CI reuse
 
 **If it fails:** Fix the repo. Add missing scripts. Add a health endpoint. Create `.env.example`. The contract is not aspirational — it documents what already works.
 
@@ -135,6 +136,37 @@ kill %1                              # commands.app_down
 - [ ] Clean checkout works (no hidden state dependencies)
 
 **If it fails:** The repo is not automation-ready. Fix the scripts, add missing dependencies to `package.json`, fix flaky tests, add the health endpoint. Do not proceed until this works cleanly.
+
+### 0.2.1 Define CI Parity Before CI Exists
+
+**Owner:** Trevor
+**Deliverable:** A short CI-parity note for the first target repo, stored alongside the repo contract or in its onboarding docs
+
+Before adding any GitHub Actions workflow, write down how CI will mirror the repo contract instead of inventing new behavior.
+
+Minimum expectation:
+
+- CI reuses the same contract-defined commands used by manual validation and the supervisor
+- CI is split into three deterministic gates:
+  - fast sanity
+  - unit plus coverage
+  - smoke integration / UI subset
+- CI publishes structured artifacts instead of only raw logs
+- CI stays intentionally small in pull-request paths; heavy end-to-end coverage stays outside the fast PR loop
+
+Required artifacts for the first CI rollout:
+
+- `junit.xml`
+- `coverage.xml`
+- normalized smoke summary
+- lint/typecheck summary when practical
+
+**Verification:**
+- [ ] The target repo has a documented mapping from contract commands to CI gates
+- [ ] The documented CI gates do not introduce commands that are absent from the repo contract
+- [ ] Required CI artifacts are named and their producers are known
+
+**If it fails:** Fix the repo contract or the target repo scripts first. Do not create GitHub Actions YAML that papers over missing contract discipline.
 
 ### 0.3 Write Benchmark Run Contracts
 
@@ -901,8 +933,21 @@ These are recorded here for completeness. Do not start any of these until Phases
 - **Zep memory:** Semantic search over operational memory (only if file-based becomes a bottleneck)
 - **Specialized test-fixer agent:** Separate Codex instance for targeted test repair
 - **Auto-PR creation:** `gh pr create` after READY state
-- **CI integration:** Trigger runs from GitHub Actions or webhooks
+- **CI integration:** Add contract-driven GitHub Actions only after Phases 0-5 are stable in a real implementation repo. CI should run fast/unit/smoke gates, publish structured artifacts, and enforce branch protection without becoming the workflow owner.
 - **Cost dashboard:** Track spend per task, per agent, over time
+
+### Future Expansion Note: Contract-Driven CI Rollout
+
+When CI is implemented, do it in this order:
+
+1. Add CI to the first implementation repo, not this docs-only repository.
+2. Reuse repo-contract commands instead of hardcoding stack behavior in workflow YAML.
+3. Keep pull-request CI to fast sanity, unit plus coverage, and a very small smoke subset.
+4. Export parseable artifacts for orchestrator ingestion.
+5. Only after the pattern is proven, extract a reusable workflow or shared CI-template repo for other projects.
+
+Do not start with a generic multi-language matrix unless the target repo truly needs it.
+The first success criterion is deterministic parity with the contract, not maximum cross-repo abstraction.
 
 ---
 

@@ -26,6 +26,7 @@ Current goal: keep the repo implementation-ready by finishing the remaining Phas
 
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
+- [x] 2026-04-15: resolved the `AGENTS.md` Linear/todo landing-step deadlock by switching `## Linear Workflow` to a create-or-reference model, carving landing-step access into `## Reading Scope`, adding `## Completion Authority`, and softening `## Prompt And Commit Discipline` so the `Completed` entry is a normal landing step instead of a contradictory precondition. Linear issue: `GIL-16`. Landing commit: see final handoff SHA.
 - [x] 2026-04-12: established the documentation baseline for the project, including `canonical-architecture.md` as source of truth, companion docs, README/guide/indexing, and historical-design separation.
 - [x] 2026-04-12: added `PROMPTS.md` as the prompt-system source of truth, including prompt-writing rules, build/run prompt libraries, mandatory self-test -> independent review -> fix-audit loops, and explicit testing/audit cadence guidance.
 - [x] 2026-04-14: completed Phase 0A.1 through Phase 0A.4 by filling `PROJECT_INTENT.md`, clarifying the repo boundary, adding standalone schemas, normalizing terminal-state vocabulary, and recording a follow-up audit.

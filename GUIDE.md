@@ -163,6 +163,10 @@ Point-by-point Claude vs. Codex reconciliation. Documents where they agreed, whe
 
 The three-model merge with scorecard. Documents how Claude, Codex, and ChatGPT Pro's reviews were compared and reconciled. Historical reference for the convergence process.
 
+### `feedback-reconciliation-2026-04-14.md`
+
+The April 14, 2026 multi-AI repo-audit reconciliation record. Captures what ChatGPT Pro, Claude, Claude Code, Claude Cowork, and Codex each said about the repository, which parts were stale versus repo-grounded, what Trevor was optimizing for, and which recommendations were accepted, deferred, corrected, or rejected. Read this when you need the reasoning history behind the current Phase 0 reprioritization without reconstructing the original chat thread.
+
 ---
 
 ## Quick Reference: Which Document Answers Which Question

@@ -42,6 +42,7 @@ These remain useful for context, but they are not the implementation authority:
 - `autonomous-agent-system-architecture-review.md`
 - `agent-delegation-architecture-v2.md`
 - `codex-audit-and-reconciliation.md`
+- `feedback-reconciliation-2026-04-14.md`
 - `three-way-reconciliation-final.md`
 
 Use them as history, not as the final architectural target.

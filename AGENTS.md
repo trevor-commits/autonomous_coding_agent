@@ -77,18 +77,18 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 ## Completion Authority
 
-- **Codex may:** create Linear issues, append `todo.md` `Completed` entries, commit and push on the current branch, and report completion to Cowork.
-- **Only Cowork may:** move Linear issue state through `Building -> AI Audit -> Human Verify`, check off audit or review checklist items, and manage `todo.md` `Active Next Steps` state.
-- **Only Trevor may:** move issues to `Done`, override any state, and grant final signoff.
+- **Codex may:** create a Linear issue if none exists, append `todo.md` `Completed` with the landing commit reference, post a completion comment on the Linear issue, and commit and push on the current branch.
+- **Codex may not:** move Linear state, check off any checklist item in the Linear issue body, mark a task `Done`, or edit other agents' audit writeups.
+- **Cowork may:** move Linear state through `Building -> AI Audit -> Human Verify`, check off audit checklist items, draft sub-issues for repair loops, and manage `todo.md` `Active Next Steps` state.
+- **Trevor may:** move an issue to `Done`, override any of the above, and resolve disagreements.
 
 ## Linear Workflow
 
-- Every task corresponds to a Linear issue in team `GIL`.
+- Every bounded task must have a Linear issue in team `GIL` before Codex begins work.
 - If Cowork provides an existing `GIL-N` issue for the task, reference that issue before starting work.
 - If no issue exists yet, Codex creates one before starting work using the `Standard issue` template defined in `LINEAR.md`, with the task title and initial state `Building`.
-- Codex never moves Linear issue state after creation.
-- When a bounded task is complete, report it as done so Cowork can move the issue to `AI Audit`.
-- Codex never moves an issue to `Human Verify`, `Done`, or `Canceled`.
+- Codex never moves Linear state, never checks off checklist items in the issue body, and never marks a task `Done`. See `## Completion Authority`.
+- When a bounded task is complete, Codex may append the `todo.md` `Completed` landing entry and post the completion comment, then Cowork moves the issue to `AI Audit`.
 - Never store acceptance criteria, decisions, or audit conclusions in Linear. Keep them in repository docs.
 - When referencing pull requests, use `ref GIL-N`. Do not use `Fixes`, `Fixed`, `Closes`, or `Closed`.
 
@@ -96,19 +96,21 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 - Read only the files explicitly listed in the task's read-scope.
 - Do not browse beyond that read-scope for research, implementation decisions, or cross-file context.
-- Landing-step exception: appending to `todo.md` `Completed` and creating a Linear issue are always in scope and do not need to be listed separately.
+- Landing-step exception: reading and writing `todo.md` `Completed`, creating a Linear issue through the Linear MCP when one is missing, and posting the completion comment through the Linear MCP are always in scope and do not need to be listed separately.
 - If a file outside the listed read-scope is required to complete the task correctly, stop and ask instead of widening scope silently.
-- If `todo.md` must be read for context beyond appending the landing entry, it must be included in the read-scope.
+- If `todo.md` must be read for context beyond the landing-step exception, it must be included in the read-scope.
 
 ## Prompt And Commit Discipline
 
 - Follow `PROMPTS.md` for task framing.
 - Use the required four-part prompt framing.
 - Maintain scope honesty: files listed in framing must match the files actually touched by the task body.
+- Run any verification commands named in the task brief before commit.
 - Do not add filler stubs.
+- Use `ref GIL-N` for pull request references. Never use `Fixes`, `Fixed`, `Closes`, or `Closed`.
 - Commit and push on the current branch.
 - Never create a branch for repo work in this repository.
-- As a normal landing step, append a `todo.md` `Completed` entry and record the landing commit SHA when it is available as part of closeout.
+- The landing commit should include the implementation changes and the `todo.md` `Completed` entry for the same task as one closeout package; when the exact commit SHA cannot be embedded pre-commit, record the landing commit reference in the immediate closeout update instead of widening scope.
 
 ## Authoritative Documents
 

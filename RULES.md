@@ -70,8 +70,8 @@
 
 - The supervisor owns checkpoint commits, not the builder.
 - The builder edits files but does not have commit authority.
-- Commit message format: `[autobot/<run_id>] <type>: <description>`
-- Checkpoint tags follow the pattern: `autobot/<run_id>/start`, `autobot/<run_id>/last-green`, `autobot/<run_id>/cp-NN`
+- Commit message format: `[autoclaw/<run_id>] <type>: <description>`
+- Checkpoint tags follow the pattern: `autoclaw/<run_id>/start`, `autoclaw/<run_id>/last-green`, `autoclaw/<run_id>/cp-NN`
 - Rollback restores the worktree to the last known-good checkpoint rather than relying on ad hoc cleanup.
 
 ---

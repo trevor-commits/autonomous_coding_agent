@@ -348,7 +348,7 @@ Create these modules inside a `supervisor/` directory:
    - Create worktree for a run: worktrees/<run_id>/builder
    - Create run branch: run/<task-slug>/<run_id>
    - Acquire and release single-writer lease
-   - Create checkpoint tags: autobot/<run_id>/start, autobot/<run_id>/last-green, autobot/<run_id>/cp-NN
+   - Create checkpoint tags: autoclaw/<run_id>/start, autoclaw/<run_id>/last-green, autoclaw/<run_id>/cp-NN
    - Rollback to checkpoint
 
 5. verifier.py
@@ -372,7 +372,7 @@ Create these modules inside a `supervisor/` directory:
 
 8. checkpoints.py
    - Create checkpoint commit (supervisor owns commits, not builder)
-   - Structured commit message format: [autobot/<run_id>] <type>: <description>
+   - Structured commit message format: [autoclaw/<run_id>] <type>: <description>
    - Tag checkpoints
    - Track last-green checkpoint
 

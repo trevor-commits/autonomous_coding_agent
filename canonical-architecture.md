@@ -850,9 +850,9 @@ This ensures:
 
 Use checkpoint tags or equivalent references such as:
 
-- `autobot/<run-id>/start`
-- `autobot/<run-id>/last-green`
-- `autobot/<run-id>/cp-01`
+- `autoclaw/<run-id>/start`
+- `autoclaw/<run-id>/last-green`
+- `autoclaw/<run-id>/cp-01`
 
 Rollback should restore the run worktree to the last known-good checkpoint rather than relying on destructive ad hoc cleanup.
 

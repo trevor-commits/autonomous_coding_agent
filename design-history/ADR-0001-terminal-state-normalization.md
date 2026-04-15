@@ -20,3 +20,7 @@ The canonical source of truth for this vocabulary is `canonical-architecture.md`
 - Schemas must use these exact enum values.
 - Supervisor tests must assert the `run_state = COMPLETE` legality rule.
 - Companion docs should reference the canonical section and this ADR instead of redefining the vocabulary again.
+
+## Naming convention
+
+`autoclaw` is the canonical system prefix for runtime directories, git tags, commit-message prefixes, and tool identifiers. `autobot` was an earlier working name and is now retired; future docs and implementation surfaces should use `autoclaw` consistently.

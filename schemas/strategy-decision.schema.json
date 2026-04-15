@@ -66,6 +66,7 @@
   },
   "oneOf": [
     {
+      "description": "checkpoint_candidate mirrors the canonical example in canonical-architecture.md Section 5.2, where the strategy layer nominates a candidate checkpoint with a reason but does not carry a terminal run_state.",
       "properties": {
         "action": {
           "const": "checkpoint_candidate"
@@ -73,7 +74,6 @@
       },
       "required": [
         "action",
-        "run_state",
         "reason"
       ]
     },
@@ -111,6 +111,7 @@
       ]
     },
     {
+      "description": "propose_terminal_state is the typed action family from canonical-architecture.md Section 9.3 that proposes a terminal run_state and therefore must include both the reason and the named run_state.",
       "properties": {
         "action": {
           "const": "propose_terminal_state"
@@ -118,7 +119,8 @@
       },
       "required": [
         "action",
-        "reason"
+        "reason",
+        "run_state"
       ]
     },
     {

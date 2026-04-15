@@ -18,7 +18,7 @@ v1 is done when the system can be run as the narrow, reliable harness described 
 
 ## Relationship to other docs
 
-Use this file as the entry-point statement of intent, then go to `canonical-architecture.md` for the authoritative architecture, `RULES.md` for enforceable constraints, `LOGIC.md` for the control-flow explanation, `STRUCTURE.md` for where implementation pieces belong, and `GUIDE.md` for the recommended reading order across the repo. This document names what the project is for; the other documents explain how that purpose is constrained, structured, and implemented.
+Use this file as the entry-point statement of intent, then go to `canonical-architecture.md` for the authoritative architecture, `RULES.md` for enforceable constraints, `LOGIC.md` for the control-flow explanation, `STRUCTURE.md` for where implementation pieces belong, `REPO_MAP.md` for fast lookup, and `GUIDE.md` for the recommended reading order across the repo. This document names what the project is for; the other documents explain how that purpose is constrained, structured, and implemented.
 
 ## Open questions
 

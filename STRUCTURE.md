@@ -1,22 +1,22 @@
 # Structure
 
 **Date:** April 14, 2026  
-**Authority:** `canonical-architecture.md`, with boundary alignment notes propagated below.
+**Authority:** `canonical-architecture.md`
 
 ## 1. Boundary
 
-The boundary is fixed. The target repo owns only its `.agent/` contract surface, beginning with `.agent/contract.yml` and any target-repo-specific contract companions that the canonical architecture explicitly names. This control-plane repo owns the version-controlled implementation and governance surfaces for the system itself: `schemas/`, `supervisor/`, `fixtures/`, `tests/`, `prompts/` if adopted, `policies/` if adopted, and historical records under `design-history/`, plus the root documentation set. Runtime state is supervisor-owned on disk under `.autoclaw/runs/<run-id>/` and related `.autoclaw/` runtime paths, is gitignored everywhere, and is never treated as committed source in either repo. Codex CLI is a hard runtime dependency, `acpx` is the adapter, and Phase 0 stops at entry if Codex is unavailable.
+The boundary is fixed. The target repo owns only its `.agent/` contract surface, beginning with `.agent/contract.yml` and any target-repo-specific contract companions that the canonical architecture explicitly names. This control-plane repo owns the version-controlled implementation and governance surfaces for the system itself: `schemas/`, `supervisor/`, `fixtures/`, `tests/`, `prompts/` if adopted, `policies/` if adopted, the active root documentation set, and historical records under `design-history/`. Runtime state is supervisor-owned on disk under `.autoclaw/runs/<run-id>/` and related `.autoclaw/` runtime paths, is gitignored everywhere, and is never treated as committed source in either repo. Codex CLI is a hard runtime dependency, `acpx` is the adapter, and Phase 0 stops at entry if Codex is unavailable.
 
 ## 2. Control-Plane Repo Contents
 
 - `schemas/` holds the canonical machine-crossing schemas that define stable shapes for contracts, decisions, defects, and reports.
-- `supervisor/` holds the deterministic runtime code that enforces legality, phase ordering, ownership boundaries, and artifact production.
-- `fixtures/` holds control-plane-owned benchmark inputs and other reusable test fixtures used to exercise the system.
+- `supervisor/` holds the deterministic runtime code that enforces legality, phase ordering, ownership boundaries, and artifact production once implementation starts.
+- `fixtures/` holds control-plane-owned benchmark inputs and other reusable validation fixtures.
 - `tests/` holds automated tests for supervisor behavior, contracts, policies, and other control-plane code.
-- `prompts/` holds version-controlled prompt templates if the project chooses to split prompt assets into their own folder rather than embedding them elsewhere.
+- `prompts/` holds version-controlled prompt templates if the prompt system is extracted into its own folder.
 - `policies/` holds repo-local policy assets if the project adopts a dedicated policy folder beyond the root rules documents.
-- `design-history/` holds ADRs and other historical records that explain how settled decisions were reached without becoming the active source of truth.
-- Root doc files hold the canonical architecture, companion docs, onboarding material, and other source-of-truth markdown entry points for the repo.
+- `design-history/` holds ADRs, archived architecture drafts, old reconciliations, and audit reports that preserve how decisions were reached without becoming active source of truth.
+- Root doc files hold the current onboarding, navigation, architecture, rules, planning, and governance records that explain the repo as it exists now.
 
 ## 3. Target-Repo Surface
 
@@ -28,11 +28,8 @@ Runtime state is supervisor-owned and lives under `.autoclaw/` only while the sy
 
 ## 5. Where Does X Go?
 
-A new schema goes in `schemas/` because it defines a reusable contract shape that multiple lanes or tools must interpret the same way. A new benchmark fixture goes in `fixtures/` because fixtures are control-plane-owned inputs for validating the system, not target-repo source or runtime residue. A new supervisor test goes in `tests/` because tests must live with the control-plane code they verify. A new run artifact goes under `.autoclaw/runs/<run-id>/` because artifacts are evidence produced by a specific run and should not be promoted into version-controlled truth. A new policy rule goes in `policies/` if that folder is adopted, otherwise in the root rules documents, because policy belongs to the control plane rather than the target repo. A new ADR goes in `design-history/` because it records decision history without replacing the canonical architecture. A new prompt template goes in `prompts/` if that folder is adopted, because prompt assets are part of the control-plane implementation surface and should not be mixed into runtime artifact storage.
+A new schema goes in `schemas/` because it defines a reusable contract shape that multiple lanes or tools must interpret the same way. A new benchmark fixture goes in `fixtures/` because fixtures are control-plane-owned inputs for validating the system, not target-repo source or runtime residue. A new supervisor test goes in `tests/` because tests must live with the control-plane code they verify. A new run artifact goes under `.autoclaw/runs/<run-id>/` because artifacts are evidence produced by a specific run and should not be promoted into version-controlled truth. A new policy rule goes in `policies/` if that folder is adopted, otherwise in the root rules documents, because policy belongs to the control plane rather than the target repo. A new ADR, reconciliation note, or archived audit goes in `design-history/` because historical reasoning belongs behind the active source-of-truth boundary. A new prompt template goes in `prompts/` if that folder is adopted, because prompt assets are part of the control-plane implementation surface and should not be mixed into runtime artifact storage. A new navigation or onboarding document belongs at the repo root if it describes current truth for both humans and agents.
 
-## Changes Propagated
+## 6. Governance Records
 
-- `canonical-architecture.md:390,980,1003`
-- `LOGIC.md:132,174,176`
-- `RULES.md:153,268-269`
-- `IMPLEMENTATION-PLAN.md:175,269-281,289,461,583`
+Use `todo.md` for durable planning, suggestions, audit logs, test evidence, and feedback decisions. Use `WORK-LOG.md` for a dated record of what actually changed in the repo. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.

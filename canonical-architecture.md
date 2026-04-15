@@ -3,7 +3,7 @@
 **Date:** April 12, 2026  
 **Status:** Source of truth  
 **Supersedes as implementation authority:** design-history and reconciliation documents  
-**Companion history document:** `canonical-architecture-synthesis.md`
+**Companion history document:** `design-history/canonical-architecture-synthesis.md`
 
 ## 1. Purpose
 

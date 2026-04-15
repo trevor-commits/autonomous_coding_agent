@@ -1,5 +1,7 @@
 # Feedback Reconciliation
 
+> Historical archive note: this document preserves the April 2026 feedback thread as decision history. Use `../todo.md`, `../WORK-LOG.md`, `../canonical-architecture.md`, and `../REPO_MAP.md` for the current repo state.
+
 **Date:** April 14, 2026  
 **Status:** Historical decision record and audit-memory document  
 **Authority:** This document is not the architectural source of truth. `canonical-architecture.md` remains the implementation authority.  

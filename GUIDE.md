@@ -1,187 +1,112 @@
 # Document Guide
 
-**Date:** April 12, 2026
-**Purpose:** This document explains what every core document in this repo is, why it exists, how it relates to the others, and when to read it. If you're new to this repo — human or agent — start here.
+**Date:** April 14, 2026
+**Purpose:** Explain how the repo is organized now that active source-of-truth docs and archived history are separated.
 
----
+## Fastest Paths
 
-## How the Documents Fit Together
+If you are trying to find a file quickly, start with [REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md). If you want the recommended reading order and document roles, stay here. If you are an agent beginning a session, read [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md) first and then use `REPO_MAP.md` for lookup.
 
-The documents in this repo form three layers: a source of truth for building, a set of companion docs that make the source of truth easier to understand and apply, and a set of historical docs that record how we got here.
+## How The Repo Is Organized
 
-```
-                    ┌─────────────────────────┐
-                    │  canonical-architecture  │  ← Build from this
-                    │     (source of truth)    │
-                    └────────────┬────────────┘
-                                 │
-    ┌────────┬────────┬──────────┬────────────┬──────────┬──────────────────────┐
-    │        │        │          │            │          │                      │
- LOGIC.md RULES.md PROMPTS.md STRUCTURE.md AGENTS.md IMPLEMENTATION-PLAN.md
- (how it  (what's   (how AI    (where      (agent    (what to build,
-  works)  allowed)  should     things go)  rules)    in what order)
-                    work)
-                                 │
-                    ┌────────────┴────────────┐
-                    │  canonical-architecture  │
-                    │      -synthesis.md       │  ← How we got here
-                    └────────────┬────────────┘
-                                 │
-          ┌──────────┬───────────┼───────────┬──────────┐
-          │          │           │           │          │
-      original    v2 deleg.  codex-audit  three-way  FINAL-ARCH
-      review      arch.      reconcil.    reconcil.  DECISION
-```
+The repo now has three clear layers:
 
----
+1. Active source-of-truth documents at the root.
+2. Working governance records at the root.
+3. Historical material under `design-history/`.
 
-## Core Documents
+That split is intentional. Root files should answer "what is true now?" Historical files should answer "how did we get here?"
 
-These are the documents that matter for building and operating the system. Read them in this order for human onboarding and architectural understanding. Agent startup order is different: agents should read `AGENTS.md` at the start of the session, then use the order below as needed for deeper context.
+## Active Source-Of-Truth Docs
 
-### 1. `canonical-architecture.md`
+### [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
 
-**What it is:** The single source of truth for the entire system architecture. Every architectural decision, component spec, contract schema, phase machine definition, permission model, memory tier, and verification strategy is defined here.
+The canonical intent statement for the repository. Read this when you need the repo's purpose, primary users, non-goals, and success criteria in one place.
 
-**Why it exists:** Three independent AI architecture reviews (Claude, Codex, ChatGPT Pro) were reconciled into one converged design. This document is the output of that convergence — not a debate log, not a compromise, but the canonical implementation target.
+### [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
 
-**When to read it:** Before building anything. Before making any architectural decision. Before questioning whether a rule is real. If any other document in this repo conflicts with this one, this one wins.
+The single authoritative design for the system. If any other document conflicts with it, this one wins.
 
-**Who maintains it:** Trevor approves changes. Codex or Claude may propose updates, but changes to the canonical architecture require Trevor's sign-off.
+### [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md)
 
-### 2. `LOGIC.md`
+The conceptual explanation of how the system behaves. Read this when you need the narrative of the control flow rather than the full spec.
 
-**What it is:** A conceptual explanation of how the system works — the run lifecycle, the delegation model, the failure handling flow, the verification sequence, the memory tiers, and how all the pieces connect end to end.
+### [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
 
-**Why it exists:** The canonical architecture is comprehensive but dense (23 sections, 1200+ lines). LOGIC.md explains the same system in narrative form so you can understand the *why* without parsing every section of spec. It introduces no new decisions — everything in it is derived from canonical-architecture.md.
+The enforceable rule index. Read this when the question is whether something is allowed, required, or terminal.
 
-**When to read it:** When you need to understand the system's behavior conceptually. When onboarding. When you're about to build a module and want to understand how it fits into the whole before reading the spec for your specific section.
+### [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
 
-**Relationship to canonical-architecture.md:** LOGIC.md is a lens on the canonical architecture. If they ever conflict, canonical-architecture.md is correct and LOGIC.md should be updated.
+The file-placement and boundary reference. Read this before creating new files or folders or when you need to know whether something belongs in this repo, a target repo, or runtime storage.
 
-### 3. `RULES.md`
+### [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md)
 
-**What it is:** Every enforceable rule in the system, organized by category — ownership boundaries, single-writer rules, commit rules, forbidden git operations, typed action rules, shell policy, contract requirements, phase transition rules, stop conditions, permission rules per agent, verification rules, memory rules, reporting rules, and v1 exclusions.
+The prompt-system source of truth. Read this before changing strategy prompts, review prompts, or audit loops.
 
-**Why it exists:** The canonical architecture embeds rules throughout 23 sections. RULES.md extracts them into one flat reference so you can quickly answer "is this allowed?" without searching the full spec. It introduces no new rules — everything in it traces back to canonical-architecture.md.
+### [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
 
-**When to read it:** When building a module that enforces constraints (policy engine, action validator, shell filter). When auditing whether a module correctly implements a rule. When an agent asks "can I do X?" — check RULES.md first.
+The execution roadmap. Read this when deciding what phase comes next or how a milestone is verified.
 
-**Relationship to canonical-architecture.md:** RULES.md is a derived index. If they conflict, canonical-architecture.md is correct.
+### [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
 
-### 4. `PROMPTS.md`
+Repo-local working instructions for agents. Read this at the start of an agent session.
 
-**What it is:** The prompt operating system for this project. It explains how prompts should be constructed, what every production prompt must contain, the mandatory self-test -> independent review -> fix audit loop, and the concrete prompt library for both building the platform and operating a real run.
+### [README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/README.md)
 
-**Why it exists:** The canonical architecture says the supervisor owns legality and prompts own strategy, implementation shaping, diagnosis, review, and audit. Without a prompt source of truth, those roles drift into ad hoc mega-prompts, weak review discipline, and inconsistent testing cadence. This document prevents that.
+The front page. Read this first when landing in the repo without context.
 
-**When to read it:** Before authoring new strategy prompts. Before changing review or audit behavior. Before deciding how often testing, peer review, and re-audit should run.
+### [REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md)
 
-**Relationship to canonical-architecture.md:** PROMPTS.md is the companion for prompt behavior, not architectural authority. If a prompt rule conflicts with the canonical role boundaries, the canonical architecture wins and PROMPTS.md should be updated.
+The fastest lookup reference. Read this when you know what you want and need the right file immediately.
 
-### 5. `STRUCTURE.md`
+## Working Governance Records
 
-**What it is:** A map of every folder in this repo and the target repo — what belongs in each, who manages it, when it gets created, and what does not belong there.
+### [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
 
-**Why it exists:** Once implementation starts, Codex will be creating directories and files across multiple phases. Without a clear structure doc, files end up in random places and the repo becomes disorganized. This document prevents that by defining the layout before code exists.
+This is the durable working record for the project. It holds the active queue, completed work trail, suggested ideas, audit log, test evidence, and feedback decisions.
 
-**When to read it:** Before creating any new directory or file. Before asking "where does this go?" If you add a new top-level folder, update this document.
+### [WORK-LOG.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/WORK-LOG.md)
 
-**Relationship to canonical-architecture.md:** The run directory layout comes from Section 15. The worktree layout comes from Section 12. The supervisor module list comes from the implementation plan. STRUCTURE.md compiles these into one reference.
+This is the dated record of what landed in the repo. Use it to see which documentation or structure changes were actually made.
 
-### 6. `AGENTS.md`
+## Design History
 
-**What it is:** Operating instructions for any agent (AI or human) working in this repo. Points to the source of truth, lists working rules (preserve source-of-truth distinction, don't re-open settled decisions, keep runtime consistent with canonical doc), and states the current implementation priority.
+Everything historical now lives under [design-history/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history). Start with [design-history/README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/README.md) before reading archived material. Those files preserve prior reasoning and may contain superseded terminology or file-layout assumptions by design.
 
-**Why it exists:** Agents start conversations without context. AGENTS.md gives them the minimum orientation to avoid making mistakes — which doc is authoritative, what the settled decisions are, and what not to touch casually.
+Key historical records:
 
-**When to read it:** At the start of every agent session that touches this repo. It's short — read the whole thing. For humans reading the repo for the first time, it makes more sense after the canonical architecture and companion docs establish the system context.
+- [design-history/canonical-architecture-synthesis.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/canonical-architecture-synthesis.md)
+- [design-history/FINAL-ARCHITECTURE-DECISION.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/FINAL-ARCHITECTURE-DECISION.md)
+- [design-history/autonomous-agent-system-architecture-review.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/autonomous-agent-system-architecture-review.md)
+- [design-history/agent-delegation-architecture-v2.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/agent-delegation-architecture-v2.md)
+- [design-history/codex-audit-and-reconciliation.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/codex-audit-and-reconciliation.md)
+- [design-history/three-way-reconciliation-final.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/three-way-reconciliation-final.md)
+- [design-history/feedback-reconciliation-2026-04-14.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/feedback-reconciliation-2026-04-14.md)
+- [design-history/AUDIT-2026-04-14.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/AUDIT-2026-04-14.md)
+- [design-history/ADR-0001-terminal-state-normalization.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0001-terminal-state-normalization.md)
 
-**Relationship to canonical-architecture.md:** AGENTS.md points to it as the authority and summarizes the key operating constraints. It does not redefine any architecture.
+## Where Feedback, Audits, And Plan Refinements Live
 
-### 7. `IMPLEMENTATION-PLAN.md`
+When the repo changes because of an audit, user feedback, or plan refinement, the durable record should go in one of two places:
 
-**What it is:** The step-by-step execution plan — what to build, in what order, who builds it, how to verify each step, and what the exit criteria are for each phase. Covers Phase 0 (repo prep) through Phase 5 (operational memory hardening), with exact Codex prompts, verification checklists, baseline metrics, and risk mitigation.
+- Use `todo.md` for the decision trail: active work, suggested ideas, audit outcomes, test evidence, and feedback decisions.
+- Use `WORK-LOG.md` for the change trail: what documentation or structure edits actually landed and when.
 
-**Why it exists:** The canonical architecture says *what* to build. The implementation plan says *how* to build it, in what sequence, with what tooling, and how to know each step is done.
+That split prevents chat-only memory and keeps the repo explainable to both people and agents.
 
-**When to read it:** When starting a new phase. When writing a Codex prompt. When deciding whether the current phase is complete. When comparing metrics across phases.
-
-**Relationship to canonical-architecture.md:** The implementation plan is derived from the architecture. Every module it tells Codex to build maps to a component or section in the canonical architecture. If the plan and the architecture conflict on a design point, the architecture wins.
-
-### 8. `GUIDE.md` (this document)
-
-**What it is:** The meta-document you're reading now. Explains what every document is, why it exists, and how they relate.
-
-**Why it exists:** The repo has grown to include 12+ documents. Without a guide, it's not obvious which ones matter, which are historical, and what order to read them in. This document solves the "where do I start?" problem.
-
-**When to read it:** When you're new to the repo. When you're not sure which document to consult for a specific question.
-
-### 9. `README.md`
-
-**What it is:** The repo's front page. Lists the recommended reading order, the design-history documents, the current architectural direction, and the next build focus.
-
-**Why it exists:** Standard repo orientation. The first thing anyone sees.
-
-**When to read it:** First. It points you to everything else, including this guide.
-
-### 10. `CHANGELOG.md` (does not exist yet — created in Phase 1)
-
-**What it is:** A running log of what was built, when, and by whom.
-
-**Why it exists:** The implementation plan tells Codex to log changes here after every module. This creates an audit trail of what was built in what order.
-
-**When to read it:** When you want to know what's been built so far or when a specific module was added.
-
----
-
-## Design-History Documents
-
-These documents record the architectural debate that produced the canonical architecture. They are not the implementation authority — `canonical-architecture.md` supersedes all of them. But they remain useful for understanding *why* decisions were made.
-
-### `canonical-architecture-synthesis.md`
-
-The narrative history of how the architecture evolved through four stages: component thinking → AI manager thinking → delivery harness thinking → final responsibility split. Accurately records what each AI (Claude, Codex, ChatGPT Pro) got right and wrong, including Claude's control-path inversion in v2 and the subsequent concession. This is the most useful historical doc because it explains the *reasoning* behind the settled decisions.
-
-### `FINAL-ARCHITECTURE-DECISION.md`
-
-An executive summary of the converged architecture, written during the convergence. Marked as "Historical summary, superseded as implementation authority." Still useful as a quick-reference overview of the key design decisions and their sources (which AI proposed each one and why).
-
-### `autonomous-agent-system-architecture-review.md`
-
-Claude's original 17-section architecture review — the foundation document. Covers the full stack audit, agent roles, branch strategy, auth, cost, failure modes, MVP scope, and roadmap. Historical context for where the project started.
-
-### `agent-delegation-architecture-v2.md`
-
-Claude's delegation model that put Claude as the autonomous manager. The orchestration model is superseded (the canonical architecture inverts the control relationship), but the prompt library and delegation patterns remain valid reference material for the Phase 4 strategy layer design.
-
-### `codex-audit-and-reconciliation.md`
-
-Point-by-point Claude vs. Codex reconciliation. Documents where they agreed, where they disagreed, and what the merged position was at that stage. The adopted schemas (run contract, defect packet) originated here.
-
-### `three-way-reconciliation-final.md`
-
-The three-model merge with scorecard. Documents how Claude, Codex, and ChatGPT Pro's reviews were compared and reconciled. Historical reference for the convergence process.
-
-### `feedback-reconciliation-2026-04-14.md`
-
-The April 14, 2026 multi-AI repo-audit reconciliation record. Captures what ChatGPT Pro, Claude, Claude Code, Claude Cowork, and Codex each said about the repository, which parts were stale versus repo-grounded, what Trevor was optimizing for, and which recommendations were accepted, deferred, corrected, or rejected. Read this when you need the reasoning history behind the current Phase 0 reprioritization without reconstructing the original chat thread.
-
----
-
-## Quick Reference: Which Document Answers Which Question
+## Quick Reference
 
 | Question | Document |
 |----------|----------|
+| What is the repo for? | `PROJECT_INTENT.md` |
 | What is the architecture? | `canonical-architecture.md` |
-| How does the system work conceptually? | `LOGIC.md` |
-| Is this action allowed? | `RULES.md` |
-| How should prompts, reviews, and re-audits work? | `PROMPTS.md` |
+| How does it work conceptually? | `LOGIC.md` |
+| What is allowed or forbidden? | `RULES.md` |
 | Where does this file go? | `STRUCTURE.md` |
-| What should an agent know before working here? | `AGENTS.md` |
-| What do I build next? | `IMPLEMENTATION-PLAN.md` |
-| What are all these documents? | `GUIDE.md` (this file) |
-| Where do I start? | `README.md` |
-| What's been built so far? | `CHANGELOG.md` |
-| Why was this decision made? | `canonical-architecture-synthesis.md` |
-| What did the original reviews say? | Design-history documents |
+| How do prompts and audits work? | `PROMPTS.md` |
+| What should be built next? | `IMPLEMENTATION-PLAN.md` |
+| What should an agent read first? | `AGENTS.md` |
+| How do I find the right file fast? | `REPO_MAP.md` |
+| Where are audits, ideas, and feedback decisions recorded? | `todo.md` |
+| What changed recently in the repo? | `WORK-LOG.md` |
+| Where is the old material? | `design-history/` |

@@ -1,71 +1,68 @@
 # Autonomous Coding Agent
 
-This repository currently contains the architecture and implementation-planning documents for an autonomous multi-agent coding system.
+This repository holds the active source-of-truth documentation, planning artifacts, schemas, and governance records for an autonomous coding system. Historical drafts and reconciliation material are archived under `design-history/` so the root stays focused on current guidance.
 
-## Document Order
+## Start Here
 
-New here? Start with `GUIDE.md` — it explains what every document is and when to read it.
+- Need the fastest file lookup: [REPO_MAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/REPO_MAP.md)
+- Need reading order and document roles: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md)
+- Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
 
-Agents: read `AGENTS.md` immediately after this file. The numbered order below is the human onboarding path for understanding the architecture and its companion docs.
+## Active Docs
 
-Otherwise, read these in this order:
+Read these when working on the current system:
 
-1. `canonical-architecture.md`
+1. [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
+   What the repo is for, who it serves, what is out of scope, and how success is judged.
+
+2. [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
    Source of truth. Build from this.
 
-2. `LOGIC.md`
-   Conceptual explanation of how the system works — the run lifecycle, delegation model, failure handling, verification logic, memory tiers, and how all the pieces connect. Read this to understand the *why* behind the architecture.
+3. [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md)
+   Conceptual explanation of how the system behaves.
 
-3. `RULES.md`
-   Every enforceable rule in the system — ownership boundaries, forbidden operations, shell policy, contract requirements, phase transition rules, stop conditions, permission model, and v1 exclusions. Read this to know what is and is not allowed.
+4. [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
+   Enforceable constraints and stop conditions.
 
-4. `PROMPTS.md`
-   The prompt operating system — how prompts should be designed, sequenced, reviewed, re-audited, and tied to deterministic testing. Includes the prompt library for both building the platform and operating it.
+5. [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
+   File placement, repo boundary, runtime-state placement, and archive boundary.
 
-5. `STRUCTURE.md`
-   Where things go and where to find them. Explains every folder in the repo and the target repo, what belongs in each, who manages it, and when it gets created. Keep this updated as folders are added.
+6. [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md)
+   Prompt-system source of truth.
 
-6. `AGENTS.md`
-   Repo-local instructions for future agents working in this repository.
+7. [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
+   Build order, verification expectations, and phase exits.
 
-7. `IMPLEMENTATION-PLAN.md`
-   What to build, in what order, who builds it, how to verify each step. The execution roadmap.
+8. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+   Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
-8. `canonical-architecture-synthesis.md`
-   Design history and explanation of how the architecture converged.
+9. [WORK-LOG.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/WORK-LOG.md)
+   Dated record of concrete changes landed in the repo.
 
-## Design-History Documents
+## Design History
 
-These remain useful for context, but they are not the implementation authority:
+Archived drafts, reconciliation docs, old architecture summaries, and audit records now live under [design-history/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history). Start with [design-history/README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/README.md) before opening historical documents.
 
-- `FINAL-ARCHITECTURE-DECISION.md`
-- `autonomous-agent-system-architecture-review.md`
-- `agent-delegation-architecture-v2.md`
-- `codex-audit-and-reconciliation.md`
-- `feedback-reconciliation-2026-04-14.md`
-- `three-way-reconciliation-final.md`
+## Feedback, Audits, And Idea Tracking
 
-Use them as history, not as the final architectural target.
+This repo keeps durable governance records instead of leaving them in chat:
+
+- `todo.md` `Active Next Steps`: execution-ready work
+- `todo.md` `Suggested Recommendation Log`: deferred or optional ideas
+- `todo.md` `Audit Record Log`: audits and review outcomes
+- `todo.md` `Feedback Decision Log`: requests, plan refinements, accepted/rejected guidance
+- `WORK-LOG.md`: what changed in the repo itself
 
 ## Current Direction
 
-The settled architecture is:
-
-- deterministic supervisor at the center
-- bounded AI strategy layer
-- Codex as sole writer
-- Claude as planner / stall diagnoser / auditor
-- Playwright as sole browser owner
-- repo contract + run contract as the automation interface
-- structured artifacts and defect packets as the evidence model
+The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, and structured evidence for readiness decisions.
 
 ## Next Build Focus
 
 The next implementation work should follow the phased plan in `canonical-architecture.md`, starting with:
 
-1. repo contract for the first supported repo
-2. deterministic supervisor foundation
-3. single-writer builder loop
-4. app supervisor and UI verification
-5. bounded strategy-layer integration
-6. contract-driven CI integration in the first implementation repo after the local flow is proven
+1. deterministic supervisor foundation
+2. single-writer builder loop
+3. app supervisor and UI verification
+4. bounded strategy-layer integration
+5. contract-driven CI integration in the first implementation repo after the local flow is proven

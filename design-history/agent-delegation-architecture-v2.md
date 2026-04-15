@@ -1,5 +1,7 @@
 # Agent Delegation Architecture v2: AI-Driven Orchestration
 
+> Historical archive note: this document records a superseded orchestration proposal. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
+
 **Revision of:** autonomous-agent-system-architecture-review.md
 **Date:** April 12, 2026
 **Change:** Replace deterministic script orchestrator with Claude as autonomous manager agent that dynamically delegates to worker agents.

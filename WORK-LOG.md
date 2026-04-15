@@ -27,6 +27,14 @@
 
 ## 2026-04-14 — Self-audit of Phase 0 cleanup
 
-- Report: `AUDIT-2026-04-14.md`.
+- Report: `design-history/AUDIT-2026-04-14.md`.
 - Overall: RED.
 - Highest-severity finding: repo-wide cleanup is incomplete because historical markdown files still carry conflicting boundary and terminal-state vocabulary.
+
+## 2026-04-14 — Repo docs reorganized
+
+- Moved historical architecture, reconciliation, feedback, and audit records under `design-history/` to reduce root clutter and separate archive material from active source-of-truth docs.
+- Moved the cleanup prompt batch under `design-history/` as archived process history instead of leaving it as root clutter.
+- Added `REPO_MAP.md` as the fastest lookup document for both humans and agents.
+- Added `design-history/README.md` and updated `README.md`, `GUIDE.md`, `AGENTS.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, and `todo.md` to reflect the new layout and the governance-record locations.
+- Preserved `todo.md` as the durable location for ideas, feedback decisions, and audit records; preserved `WORK-LOG.md` as the dated change log for landed repo updates.

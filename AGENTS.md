@@ -14,13 +14,15 @@ If another document conflicts with it, follow `canonical-architecture.md`.
 
 The design-history narrative lives in:
 
-- `canonical-architecture-synthesis.md`
+- `design-history/canonical-architecture-synthesis.md`
 
-Older architecture documents in this repo are historical context only unless explicitly referenced for a specific comparison task.
+Older architecture documents now live under `design-history/` and are historical context only unless explicitly referenced for a specific comparison task.
 
 ## What This Repository Is
 
 This repository currently holds architecture, planning, and source-of-truth documentation for an autonomous coding system.
+
+For quick file lookup, use `REPO_MAP.md`. For reading order, use `GUIDE.md`.
 
 It is not yet the implementation repository for the supervisor/runtime itself unless and until code is added for that purpose.
 
@@ -31,14 +33,14 @@ It is not yet the implementation repository for the supervisor/runtime itself un
    - design-history docs
 2. Do not re-open settled architecture decisions casually.
 3. Prefer updating `canonical-architecture.md` when the source-of-truth design changes.
-4. Prefer updating `canonical-architecture-synthesis.md` only when recording meaningful design-history evolution.
+4. Prefer updating `design-history/canonical-architecture-synthesis.md` only when recording meaningful design-history evolution.
 5. If adding new docs, update `README.md` so future sessions can orient quickly.
 6. If implementation starts in this repo, keep the runtime architecture consistent with the canonical document:
    - deterministic supervisor owns workflow correctness
    - bounded AI strategy layer owns planning/strategy only
    - Codex is sole writer
    - Playwright is sole browser owner
-7. Do not treat old “final” or reconciliation docs as authoritative unless the user explicitly asks for historical comparison.
+7. Do not treat anything under `design-history/` as authoritative unless the user explicitly asks for historical comparison.
 
 ## Current Priority
 

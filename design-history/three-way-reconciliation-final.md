@@ -1,5 +1,7 @@
 # Three-Way Architecture Reconciliation: Final Decisions
 
+> Historical archive note: this document preserves the final reconciliation record from the convergence phase and may contain superseded boundary or state terminology. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
+
 **Date:** April 12, 2026
 **Models Audited:** Claude (me), Codex, ChatGPT Pro
 **Purpose:** You now have three independent architecture reviews. This document reconciles all three, identifies where they converge, where they diverge, who is right on each point, and what your final architecture should be.

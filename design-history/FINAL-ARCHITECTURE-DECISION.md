@@ -1,5 +1,7 @@
 # Final Architecture Decision — Archived Summary
 
+> Historical archive note: this document preserves the terminology and structure assumptions in force when it was written. Do not implement from it directly; use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
+
 **Date:** April 12, 2026
 **Status:** Historical summary, superseded as implementation authority
 **Current authority:** `canonical-architecture.md`

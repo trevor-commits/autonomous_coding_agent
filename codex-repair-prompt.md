@@ -68,22 +68,22 @@ git push
 
 ---
 
-## Fix 3 — Resolve `autobot/` vs `autoclaw/` naming split
+## Fix 3 — Resolve legacy prefix split
 
-**Bug:** Git checkpoint tags use the prefix `autobot/<run-id>/...`; runtime directories use `.autoclaw/runs/...`; commit messages, STRUCTURE.md, and IMPLEMENTATION-PLAN.md use `autoclaw`. No file explains the split or makes a decision.
+**Bug:** Git checkpoint tags use a legacy prefix while runtime directories, commit messages, STRUCTURE.md, and IMPLEMENTATION-PLAN.md use `autoclaw`. No file explains the split or makes a decision.
 
-**Decision:** `autoclaw` is the canonical prefix everywhere. Git tags, runtime dirs, commit message scopes, and all prose use `autoclaw`. `autobot` is retired.
+**Decision:** `autoclaw` is the canonical prefix everywhere. Git tags, runtime dirs, commit message scopes, and all prose use `autoclaw`. The older prefix is retired.
 
 **Fix:**
-- Search `canonical-architecture.md`, `RULES.md`, `STRUCTURE.md`, `IMPLEMENTATION-PLAN.md`, and `design-history/ADR-0001-terminal-state-normalization.md` for `autobot`. Replace every occurrence with `autoclaw`.
-- Search the same files plus `LOGIC.md` and `PROMPTS.md` for the git-tag format `autobot/<run-id>/...` and replace with `autoclaw/<run-id>/...`.
-- In `design-history/ADR-0001-terminal-state-normalization.md`, add a one-paragraph appendix titled "Naming convention" that records this decision: `autoclaw` is the canonical system prefix for all runtime directories, git tags, and tool identifiers; `autobot` was the prior working name and is now retired.
+- Search `canonical-architecture.md`, `RULES.md`, `STRUCTURE.md`, `IMPLEMENTATION-PLAN.md`, and `design-history/ADR-0001-terminal-state-normalization.md` for the legacy prefix. Replace every occurrence with `autoclaw`.
+- Search the same files plus `LOGIC.md` and `PROMPTS.md` for the legacy git-tag format and replace it with `autoclaw/<run-id>/...`.
+- In `design-history/ADR-0001-terminal-state-normalization.md`, add a one-paragraph appendix titled "Naming convention" that records this decision: `autoclaw` is the canonical system prefix for all runtime directories, git tags, and tool identifiers; the older working name is now retired.
 - Do not create a separate ADR for this — the ADR-0001 appendix is sufficient.
 
 **Commit:**
 ```
 git add canonical-architecture.md RULES.md STRUCTURE.md IMPLEMENTATION-PLAN.md LOGIC.md PROMPTS.md design-history/ADR-0001-terminal-state-normalization.md
-git commit -m "fix(naming): retire autobot/ prefix; autoclaw is canonical everywhere"
+git commit -m "fix(naming): retire legacy prefix; autoclaw is canonical everywhere"
 git push
 ```
 
@@ -199,14 +199,14 @@ git push
 After all 7 fixes are committed, append one entry to `todo.md` Completed:
 
 ```
-- [x] 2026-04-15: closed Phase 0A punch list — schema field inversion, defect evidence constraints, autobot/autoclaw naming, Codex auth UNSUPPORTED exit, AGENTS.md markers, REPO_MAP/WORK-LOG merge-and-delete, AUDIT-2026-04-14 findings. Commits: <list SHAs>.
+- [x] 2026-04-15: closed Phase 0A punch list — schema field inversion, defect evidence constraints, naming normalization, Codex auth UNSUPPORTED exit, AGENTS.md markers, REPO_MAP/WORK-LOG merge-and-delete, AUDIT-2026-04-14 findings. Commits: <list SHAs>.
 ```
 
 And append one entry to `todo.md` Test Evidence Log:
 
 ```
 - 2026-04-15 | command(s):
-  (1) grep -r autobot . --include="*.md" --include="*.json" --include="*.yml" (must return zero hits outside design-history/);
+  (1) grep -r legacy-prefix-check . --include="*.md" --include="*.json" --include="*.yml" (replace with the actual retired prefix check when running verification);
   (2) grep -rn "MANDATORY_" AGENTS.md (must return zero hits);
   (3) pip install jsonschema --quiet && python3 -c "
 import json, jsonschema

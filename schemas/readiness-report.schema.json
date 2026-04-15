@@ -152,7 +152,7 @@
         "tests/users.test.ts"
       ],
       "checkpoint_refs": [
-        "[autobot/benchmark-001] feat: add user endpoint"
+        "[autoclaw/benchmark-001] feat: add user endpoint"
       ],
       "artifact_manifest": [
         "artifacts/logs/test.txt",
@@ -190,7 +190,7 @@
         "src/components/SettingsForm.tsx"
       ],
       "checkpoint_refs": [
-        "[autobot/benchmark-004] fix: attempt settings save repair"
+        "[autoclaw/benchmark-004] fix: attempt settings save repair"
       ],
       "artifact_manifest": [
         "artifacts/screenshots/settings-save-disabled.png",

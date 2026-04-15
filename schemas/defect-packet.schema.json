@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/defect-packet.schema.json",
+  "title": "Defect Packet Schema",
+  "description": "Schema for structured defect packets emitted by the UI verifier or readiness flow. This shape is derived from canonical-architecture.md Section 16 \"Defect Packet Standard\" and IMPLEMENTATION-PLAN.md Phase 3.1. Open question: Phase 3.1 mentions network error capture, but the docs do not yet name a canonical evidence field for network artifacts beyond the existing screenshot, console_log, and trace references.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "defect_id",
+    "severity",
+    "type",
+    "summary",
+    "repro_steps",
+    "expected",
+    "observed",
+    "evidence",
+    "suspected_scope",
+    "failure_fingerprint"
+  ],
+  "properties": {
+    "defect_id": {
+      "type": "string",
+      "description": "Defect identifier from canonical-architecture.md Section 16."
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "description": "Severity level used across PROMPTS.md and the defect packet examples in canonical-architecture.md Section 16."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ui-functional",
+        "ui-visual",
+        "ui-console",
+        "ui-network"
+      ],
+      "description": "UI defect category from canonical-architecture.md Section 16 and IMPLEMENTATION-PLAN.md Phase 3.1."
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line defect summary from canonical-architecture.md Section 16."
+    },
+    "repro_steps": {
+      "type": "array",
+      "description": "Reproduction steps for the defect, from canonical-architecture.md Section 16.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expected": {
+      "type": "string",
+      "description": "Expected behavior from canonical-architecture.md Section 16."
+    },
+    "observed": {
+      "type": "string",
+      "description": "Observed behavior from canonical-architecture.md Section 16."
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Artifact links that support the defect, from canonical-architecture.md Section 16.",
+      "additionalProperties": false,
+      "required": [
+        "screenshot",
+        "console_log",
+        "trace"
+      ],
+      "properties": {
+        "screenshot": {
+          "type": "string",
+          "description": "Screenshot artifact path from canonical-architecture.md Section 16."
+        },
+        "console_log": {
+          "type": "string",
+          "description": "Console log artifact path from canonical-architecture.md Section 16."
+        },
+        "trace": {
+          "type": "string",
+          "description": "Trace artifact path from canonical-architecture.md Section 16."
+        }
+      }
+    },
+    "suspected_scope": {
+      "type": "array",
+      "description": "Likely affected files or paths, from canonical-architecture.md Section 16 and PROMPTS.md repair routing.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "failure_fingerprint": {
+      "type": "string",
+      "description": "Linked failure fingerprint identifier from canonical-architecture.md Section 16."
+    }
+  },
+  "examples": [
+    {
+      "defect_id": "defect-001",
+      "severity": "P1",
+      "type": "ui-functional",
+      "summary": "Save button disabled after valid form input",
+      "repro_steps": [
+        "Open /settings",
+        "Fill display name with valid input",
+        "Observe save button state"
+      ],
+      "expected": "Save button enabled",
+      "observed": "Button remains disabled",
+      "evidence": {
+        "screenshot": "artifacts/screenshots/settings-save-disabled.png",
+        "console_log": "artifacts/logs/console.txt",
+        "trace": "artifacts/traces/settings-flow.zip"
+      },
+      "suspected_scope": [
+        "src/components/SettingsForm.tsx"
+      ],
+      "failure_fingerprint": "settings-save-disabled-after-valid-input"
+    },
+    {
+      "defect_id": "defect-002",
+      "severity": "P2",
+      "type": "ui-console",
+      "summary": "Dashboard route logs an uncaught error on load",
+      "repro_steps": [
+        "Open /dashboard",
+        "Wait for the page to finish rendering",
+        "Inspect captured browser console output"
+      ],
+      "expected": "Dashboard loads without console errors",
+      "observed": "An uncaught TypeError is logged during render",
+      "evidence": {
+        "screenshot": "artifacts/screenshots/dashboard-console-error.png",
+        "console_log": "artifacts/logs/dashboard-console.txt",
+        "trace": "artifacts/traces/dashboard-load.zip"
+      },
+      "suspected_scope": [
+        "src/pages/dashboard.tsx",
+        "src/components/DashboardShell.tsx"
+      ],
+      "failure_fingerprint": "dashboard-console-typeerror-on-load"
+    }
+  ]
+}

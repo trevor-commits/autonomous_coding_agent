@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/failure-fingerprint.schema.json",
+  "title": "Failure Fingerprint Schema",
+  "description": "Schema for normalized failure fingerprints used within a run and promoted into cross-run operational memory. This shape is derived from canonical-architecture.md Sections 18 and 20 plus IMPLEMENTATION-PLAN.md Sections 1 and 5.1. Open question: canonical-architecture.md names phase, command, error signature, and relevant paths as normalization inputs, but it does not yet define a canonical field for raw stderr or other low-level payloads, so this schema keeps the normalized summary surface only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fingerprint",
+    "phase",
+    "command",
+    "error signature",
+    "relevant paths"
+  ],
+  "properties": {
+    "fingerprint": {
+      "type": "string",
+      "description": "Normalized fingerprint identifier used for deduplication and retry detection, from canonical-architecture.md Sections 18 and 19 and IMPLEMENTATION-PLAN.md Phase 5.1."
+    },
+    "phase": {
+      "type": "string",
+      "description": "Phase where the failure occurred, from IMPLEMENTATION-PLAN.md fingerprint normalization guidance."
+    },
+    "command": {
+      "type": "string",
+      "description": "Command associated with the failure, from IMPLEMENTATION-PLAN.md Phase 1 fingerprint normalization guidance."
+    },
+    "error signature": {
+      "type": "string",
+      "description": "Normalized error signature used to group equivalent failures, from IMPLEMENTATION-PLAN.md Phase 1 fingerprint normalization guidance."
+    },
+    "relevant paths": {
+      "type": "array",
+      "description": "Relevant file or artifact paths used during normalization, from IMPLEMENTATION-PLAN.md Phase 1 fingerprint normalization guidance.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "code",
+        "harness",
+        "environment",
+        "fixture",
+        "unsupported"
+      ],
+      "description": "Failure class from canonical-architecture.md Section 18 \"Failure Handling\"."
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Artifact paths that support the fingerprint, following the record_failure_signature example in canonical-architecture.md Section 3.2.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "root_cause": {
+      "type": "string",
+      "description": "Root cause from diagnosis if available, from IMPLEMENTATION-PLAN.md Phase 5.1."
+    },
+    "resolution": {
+      "type": "string",
+      "description": "Successful resolution summary if available, from IMPLEMENTATION-PLAN.md Phase 5.1."
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date",
+      "description": "Last-seen date recorded in cross-run memory, from IMPLEMENTATION-PLAN.md Phase 5.1."
+    },
+    "occurrence_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total occurrence count recorded in cross-run memory, from IMPLEMENTATION-PLAN.md Phase 5.1."
+    }
+  },
+  "examples": [
+    {
+      "fingerprint": "test-auth-empty-email",
+      "phase": "LOCAL_VERIFY",
+      "command": "test",
+      "error signature": "AssertionError: empty email rejected",
+      "relevant paths": [
+        "tests/auth.test.ts"
+      ]
+    },
+    {
+      "fingerprint": "settings-save-disabled-after-valid-input",
+      "phase": "UI_VERIFY",
+      "command": "ui_smoke",
+      "error signature": "save button disabled after valid input",
+      "relevant paths": [
+        "src/components/SettingsForm.tsx",
+        "artifacts/logs/console.txt"
+      ],
+      "type": "code",
+      "evidence_refs": [
+        "artifacts/screenshots/settings-save-disabled.png",
+        "artifacts/traces/settings-flow.zip"
+      ],
+      "root_cause": "SettingsForm validation state never transitions to valid after input change.",
+      "resolution": "Update validation state handling and add a regression test for the enabled button path.",
+      "last_seen": "2026-04-14",
+      "occurrence_count": 3
+    }
+  ]
+}

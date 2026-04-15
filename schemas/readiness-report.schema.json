@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/readiness-report.schema.json",
+  "title": "Readiness Report Schema",
+  "description": "Schema for the machine-readable final readiness report emitted at the deterministic final gate. This shape is derived from canonical-architecture.md Sections 5.8, 10.5, 19, and 20 plus IMPLEMENTATION-PLAN.md reports.py requirements. Open question: the current docs mix final_state terminology in canonical-architecture.md with readiness verdict terminology in PROMPTS.md; until terminal-state normalization lands, this schema preserves the currently named final_state field and current canonical values.",
+  "x-pending-normalization": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "final_state",
+    "phases_completed",
+    "commands_run",
+    "failures",
+    "changed_files",
+    "checkpoint_refs",
+    "artifact_manifest",
+    "unresolved_blockers"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Run identifier from canonical-architecture.md Section 20 \"Machine-readable report\"."
+    },
+    "final_state": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "BLOCKED",
+        "UNSUPPORTED"
+      ],
+      "description": "Current final readiness outcome vocabulary from canonical-architecture.md Section 5.8. This field is marked pending normalization because PROMPTS.md also uses READY, NOT_READY, and NEEDS_MORE_EVIDENCE."
+    },
+    "phases_completed": {
+      "type": "array",
+      "description": "Completed phases from canonical-architecture.md Section 20.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "commands_run": {
+      "type": "array",
+      "description": "Machine-readable command execution summaries. IMPLEMENTATION-PLAN.md Phase 1 reports.py and verifier guidance name command name, exit code, stdout, stderr, duration, and failure fingerprint as captured execution fields.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "exit code",
+          "stdout",
+          "stderr",
+          "duration"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Executed contract or verification command name, from IMPLEMENTATION-PLAN.md Phase 1."
+          },
+          "exit code": {
+            "type": "integer",
+            "description": "Process exit code, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
+          },
+          "stdout": {
+            "type": "string",
+            "description": "Captured stdout, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
+          },
+          "stderr": {
+            "type": "string",
+            "description": "Captured stderr, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
+          },
+          "duration": {
+            "type": "number",
+            "description": "Execution duration, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
+          },
+          "failure_fingerprint": {
+            "type": "string",
+            "description": "Optional linked failure fingerprint, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
+          }
+        }
+      }
+    },
+    "failures": {
+      "type": "array",
+      "description": "Failures encountered during the run, as required by canonical-architecture.md Section 20. Open question: the docs do not yet settle whether these entries should be strings, defect packet refs, or embedded fingerprint objects.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "changed_files": {
+      "type": "array",
+      "description": "Changed file paths from canonical-architecture.md Section 20.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "checkpoint_refs": {
+      "type": "array",
+      "description": "Checkpoint references from canonical-architecture.md Section 20 and IMPLEMENTATION-PLAN.md Phase 1 reports.py.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifact_manifest": {
+      "type": "array",
+      "description": "Artifact manifest entries from canonical-architecture.md Section 20. Open question: the docs name artifact_manifest but do not yet define a structured manifest entry object, so v1 stores a normalized list of artifact paths.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unresolved_blockers": {
+      "type": "array",
+      "description": "Unresolved blockers present at final gate, from canonical-architecture.md Section 20 and PROMPTS.md final readiness audit constraints.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "examples": [
+    {
+      "run_id": "benchmark-001",
+      "final_state": "READY",
+      "phases_completed": [
+        "INTAKE",
+        "PREPARE_WORKSPACE",
+        "BUILD",
+        "LOCAL_VERIFY",
+        "FINAL_GATE"
+      ],
+      "commands_run": [
+        {
+          "name": "test",
+          "exit code": 0,
+          "stdout": "all tests passed",
+          "stderr": "",
+          "duration": 12.4
+        }
+      ],
+      "failures": [],
+      "changed_files": [
+        "src/api/users.ts",
+        "tests/users.test.ts"
+      ],
+      "checkpoint_refs": [
+        "[autobot/benchmark-001] feat: add user endpoint"
+      ],
+      "artifact_manifest": [
+        "artifacts/logs/test.txt",
+        "reports/final-summary.md"
+      ],
+      "unresolved_blockers": []
+    },
+    {
+      "run_id": "benchmark-004",
+      "final_state": "BLOCKED",
+      "phases_completed": [
+        "INTAKE",
+        "PREPARE_WORKSPACE",
+        "BUILD",
+        "LOCAL_VERIFY",
+        "APP_LAUNCH",
+        "UI_VERIFY",
+        "FINAL_GATE"
+      ],
+      "commands_run": [
+        {
+          "name": "ui_smoke",
+          "exit code": 1,
+          "stdout": "",
+          "stderr": "1 test failed",
+          "duration": 44.8,
+          "failure_fingerprint": "settings-save-disabled-after-valid-input"
+        }
+      ],
+      "failures": [
+        "settings-save-disabled-after-valid-input"
+      ],
+      "changed_files": [
+        "src/components/SettingsForm.tsx"
+      ],
+      "checkpoint_refs": [
+        "[autobot/benchmark-004] fix: attempt settings save repair"
+      ],
+      "artifact_manifest": [
+        "artifacts/screenshots/settings-save-disabled.png",
+        "artifacts/traces/settings-flow.zip",
+        "reports/final-report.json"
+      ],
+      "unresolved_blockers": [
+        "Unresolved high-severity UI finding remains at final gate."
+      ]
+    }
+  ]
+}

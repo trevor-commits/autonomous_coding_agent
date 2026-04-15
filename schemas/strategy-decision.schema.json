@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/strategy-decision.schema.json",
+  "title": "Strategy Decision Schema",
+  "description": "Schema for typed StrategyDecision outputs returned by get_strategy_decision(...) in canonical-architecture.md Sections 3.2, 9.3, and 11, and consumed by IMPLEMENTATION-PLAN.md Phase 4. Open questions: canonical-architecture.md has not yet fully specified payload fields for collect_context, launch_app, stop_app, run_ui_suite, rollback_to_checkpoint, record_decision, or the concrete state-carrying field used by propose_terminal_state, so this schema stays minimal and only types field names that are explicitly present in the docs and examples.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action"
+  ],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "collect_context",
+        "request_builder_task",
+        "run_contract_command",
+        "launch_app",
+        "stop_app",
+        "run_ui_suite",
+        "checkpoint_candidate",
+        "rollback_to_checkpoint",
+        "record_failure_signature",
+        "record_decision",
+        "propose_terminal_state"
+      ],
+      "description": "Typed domain action selected by the strategy layer, from canonical-architecture.md Section 9.3 \"Typed Action Graph\"."
+    },
+    "description": {
+      "type": "string",
+      "description": "Builder task description. IMPLEMENTATION-PLAN.md uses request_builder_task with a description during manual strategy mode and automated BUILD routing."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Human-readable reason for the decision. This field is shown in the checkpoint_candidate example in canonical-architecture.md."
+    },
+    "name": {
+      "type": "string",
+      "description": "Contract-defined command name for run_contract_command, as shown in canonical-architecture.md Section 3.2 examples."
+    },
+    "scope": {
+      "type": "string",
+      "description": "Execution scope string for run_contract_command. The examples use targeted scope in canonical-architecture.md and PROMPTS.md."
+    },
+    "fingerprint": {
+      "type": "string",
+      "description": "Failure fingerprint identifier for record_failure_signature, from canonical-architecture.md Section 3.2 examples."
+    },
+    "evidence_refs": {
+      "type": "array",
+      "description": "Artifact references that support a recorded failure signature, from canonical-architecture.md Section 3.2 examples.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "action": {
+          "const": "checkpoint_candidate"
+        }
+      },
+      "required": [
+        "action",
+        "reason"
+      ]
+    },
+    {
+      "properties": {
+        "action": {
+          "const": "run_contract_command"
+        }
+      },
+      "required": [
+        "action",
+        "name"
+      ]
+    },
+    {
+      "properties": {
+        "action": {
+          "const": "record_failure_signature"
+        }
+      },
+      "required": [
+        "action",
+        "fingerprint"
+      ]
+    },
+    {
+      "properties": {
+        "action": {
+          "const": "request_builder_task"
+        }
+      },
+      "required": [
+        "action",
+        "description"
+      ]
+    },
+    {
+      "properties": {
+        "action": {
+          "const": "propose_terminal_state"
+        }
+      },
+      "required": [
+        "action",
+        "reason"
+      ]
+    },
+    {
+      "properties": {
+        "action": {
+          "enum": [
+            "collect_context",
+            "launch_app",
+            "stop_app",
+            "run_ui_suite",
+            "rollback_to_checkpoint",
+            "record_decision"
+          ]
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "action": "run_contract_command",
+      "name": "test",
+      "scope": "targeted"
+    },
+    {
+      "action": "request_builder_task",
+      "description": "Implement the current milestone, then run the targeted verification commands named in the run contract."
+    },
+    {
+      "action": "propose_terminal_state",
+      "reason": "The same failure fingerprint exceeded the retry threshold."
+    }
+  ]
+}

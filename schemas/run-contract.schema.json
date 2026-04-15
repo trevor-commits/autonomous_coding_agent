@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/run-contract.schema.json",
+  "title": "Run Contract Schema",
+  "description": "Schema for the target repo's .agent/contract.yml automation surface. This shape is derived from canonical-architecture.md Section 8.1 \"Repo Contract\" and the Phase 0 contract example in IMPLEMENTATION-PLAN.md. Open question: canonical-architecture.md names required environment variables or templates, but it does not yet define any additional env metadata beyond required_vars and template.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "stack",
+    "commands"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Contract version number. The current examples in canonical-architecture.md Section 8.1 and IMPLEMENTATION-PLAN.md Phase 0 use version 1."
+    },
+    "stack": {
+      "type": "string",
+      "description": "Supported stack or repo type declared by the repo contract, as required by canonical-architecture.md Section 8.1."
+    },
+    "commands": {
+      "type": "object",
+      "description": "Deterministic contract-defined commands and health mechanism for setup, verification, app launch, and UI smoke, from canonical-architecture.md Section 8.1.",
+      "additionalProperties": false,
+      "required": [
+        "setup",
+        "test",
+        "app_up",
+        "app_health"
+      ],
+      "properties": {
+        "setup": {
+          "type": "string",
+          "description": "Required setup command from canonical-architecture.md Section 8.1 \"Minimum v1 required fields\"."
+        },
+        "test": {
+          "type": "string",
+          "description": "Required test command from canonical-architecture.md Section 8.1 \"Minimum v1 required fields\"."
+        },
+        "app_up": {
+          "type": "string",
+          "description": "Required app launch command from canonical-architecture.md Section 8.1 \"Minimum v1 required fields\"."
+        },
+        "app_health": {
+          "type": "string",
+          "description": "Required app health mechanism from canonical-architecture.md Section 8.1. The examples use an HTTP health URL."
+        },
+        "lint": {
+          "type": "string",
+          "description": "Optional lint command named in canonical-architecture.md Section 8.1."
+        },
+        "typecheck": {
+          "type": "string",
+          "description": "Optional typecheck command named in canonical-architecture.md Section 8.1."
+        },
+        "format": {
+          "type": "string",
+          "description": "Optional format command named in canonical-architecture.md Section 8.1."
+        },
+        "app_down": {
+          "type": "string",
+          "description": "Optional app shutdown command named in canonical-architecture.md Section 8.1."
+        },
+        "ui_smoke": {
+          "type": "string",
+          "description": "Optional UI smoke command named in canonical-architecture.md Section 8.1."
+        },
+        "seed_testdata": {
+          "type": "string",
+          "description": "Optional test-data seeding command named in canonical-architecture.md Section 8.1."
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "description": "Optional UI automation configuration from canonical-architecture.md Section 8.1 and IMPLEMENTATION-PLAN.md Phase 3.1.",
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "type": "string",
+          "description": "Base URL for app launch and UI verification, from canonical-architecture.md Section 8.1."
+        },
+        "breakpoints": {
+          "type": "array",
+          "description": "Viewport breakpoints for UI verification, from canonical-architecture.md Section 8.1.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "critical_flows": {
+          "type": "array",
+          "description": "Critical UI flows and assertions for deterministic UI verification, from canonical-architecture.md Section 8.1.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "route",
+              "assertions"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Flow identifier from canonical-architecture.md Section 8.1."
+              },
+              "route": {
+                "type": "string",
+                "description": "Route to verify for the critical flow, from canonical-architecture.md Section 8.1."
+              },
+              "assertions": {
+                "type": "array",
+                "description": "Human-readable deterministic assertions attached to the critical flow, from canonical-architecture.md Section 8.1.",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "env": {
+      "type": "object",
+      "description": "Environment requirements and template hints from canonical-architecture.md Section 8.1.",
+      "additionalProperties": false,
+      "properties": {
+        "required_vars": {
+          "type": "array",
+          "description": "Required environment variable names, from canonical-architecture.md Section 8.1.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "template": {
+          "type": "string",
+          "description": "Environment template path, from canonical-architecture.md Section 8.1."
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": 1,
+      "stack": "fullstack-web",
+      "commands": {
+        "setup": "npm install",
+        "test": "npm run test -- --bail",
+        "app_up": "npm run dev",
+        "app_health": "http://127.0.0.1:3000/api/health"
+      }
+    },
+    {
+      "version": 1,
+      "stack": "fullstack-web",
+      "commands": {
+        "setup": "npm install",
+        "lint": "npm run lint -- --max-warnings 0",
+        "typecheck": "npm run typecheck",
+        "test": "npm run test -- --bail",
+        "app_up": "npm run dev",
+        "app_health": "http://127.0.0.1:3000/api/health",
+        "app_down": "npm run stop",
+        "ui_smoke": "npx playwright test",
+        "seed_testdata": "npm run seed:test"
+      },
+      "ui": {
+        "base_url": "http://127.0.0.1:3000",
+        "breakpoints": [
+          "390x844",
+          "1440x900"
+        ],
+        "critical_flows": [
+          {
+            "id": "login",
+            "route": "/login",
+            "assertions": [
+              "login form visible",
+              "submit with test credentials succeeds",
+              "redirects to dashboard",
+              "no console errors"
+            ]
+          }
+        ]
+      },
+      "env": {
+        "required_vars": [
+          "DATABASE_URL",
+          "JWT_SECRET"
+        ],
+        "template": ".env.example"
+      }
+    }
+  ]
+}

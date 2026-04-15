@@ -24,3 +24,9 @@
 - ADR-0001 created under `design-history/`.
 - Files touched: `canonical-architecture.md`, `LOGIC.md`, `RULES.md`, `PROMPTS.md`, `IMPLEMENTATION-PLAN.md`, `design-history/ADR-0001-terminal-state-normalization.md`, `WORK-LOG.md`.
 - Schemas updated: `schemas/readiness-report.schema.json`, `schemas/strategy-decision.schema.json`.
+
+## 2026-04-14 — Self-audit of Phase 0 cleanup
+
+- Report: `AUDIT-2026-04-14.md`.
+- Overall: RED.
+- Highest-severity finding: repo-wide cleanup is incomplete because historical markdown files still carry conflicting boundary and terminal-state vocabulary.

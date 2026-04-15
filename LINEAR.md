@@ -114,6 +114,44 @@ Every issue body contains:
 
 Supervisor-gated phase transitions inside a Codex run are not represented in Linear.
 
+## Standard Issue Template
+
+The Linear workspace defines one universal issue template named `Standard issue`. It is the default template for new issues and prefills the issue body shape defined in the Issue Shape section. Variants should not be created until a specific work type demonstrably needs additional fields.
+
+The template body is:
+
+```text
+**Authoritative spec path:**
+
+**Authoritative decision docs:** (if applicable)
+
+**PR:** (once opened)
+
+**Completion artifact:** (once filed)
+
+**Blocked reason artifact:** (only if status is Blocked)
+
+---
+
+**Checklist**
+
+- [ ] Claude drafts Codex prompt
+- [ ] Codex builds
+- [ ] Claude audits (or N/A with one-line reason: ____)
+- [ ] Trevor verifies
+- [ ] Completion artifact filed in repo
+
+---
+
+- [ ] **Enforcement:** No acceptance criteria, decisions, or audit conclusions in this issue body — linked to repo doc instead
+
+---
+
+_Repo docs are authoritative; this issue tracks state and links only._
+```
+
+If the template in Linear ever drifts from this block, the repo wins and the Linear template is corrected.
+
 ## AI-Strategy Role Boundary
 
 Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Claude drafts Codex prompts and may propose when review should happen.
@@ -216,6 +254,64 @@ No bare `Blocked` issues.
 Deferred. Do not configure an auto-archive rule yet.
 
 If archival is adopted later, configure it at the team level. Linear archives at the team level, not per issue. Revisit only if board noise becomes a real problem.
+
+## Deferred Capabilities
+
+Linear features that were reviewed during initial setup and consciously skipped. Recorded here so future revisits don't have to re-discover what exists. Skipping is the current decision, not a permanent rule — revisit when the listed trigger applies.
+
+Some entries in this list are also enforced as policy elsewhere in this document (Codex-in-Linear delegation, GitHub Issues Sync, commit linking, branch-copy auto-assign, auto-archive). The references below are for capability awareness, not policy duplication — the authoritative rule for those items remains where it appears earlier in this document.
+
+### Hierarchy features
+
+- **Projects** — multi-issue containers for grouped initiatives or milestones. Skipped because no current work groups under named initiatives. Revisit when an initiative spans more than ~5 related issues that need shared status, lead, and timeline.
+- **Project labels** — labels scoped to Projects rather than issues. Deferred with Projects.
+- **Project templates** — prefilled Project shapes. Deferred with Projects.
+- **Initiatives** — groups of Projects toward a strategic effort. Deferred with Projects; Initiatives have nothing to group without Projects in use.
+
+### Triage and AI features
+
+- **Triage status** — separate inbound queue distinct from `Inbox`. Not enabled in initial rollout; the Statuses section above flags this and notes that adopting Triage later requires updating this document.
+- **Linear Agent Skills** — reusable Linear-Agent prompts invoked by slash command or auto-selected. Skipped because the current flow has no repeated Linear-Agent request that justifies one. Revisit if a request pattern emerges.
+- **Triage Intelligence** (paid plan) — auto-infers team, project, labels, assignee for new issues. Skipped because triage is manual in the current flow and the plan tier does not include it.
+- **Agent automations** (paid plan) — automated workflows triggered when issues hit Triage. Skipped with Triage.
+- **AI Summaries** (paid plan) — AI-generated summaries across Linear. Skipped because the repo is the source of truth for summaries; Linear-side summaries would invite drift.
+
+### Issue intake
+
+- **Custom Form issue templates** — structured intake forms with required fields and dropdowns, intended for non-technical Asks-style submissions. Skipped because issue body shape is enforced by checklist, not form fields, and the operator pool is small. Revisit if external requesters start submitting issues.
+
+### Connected accounts and external surfaces
+
+- **Slack connected account** (per-user attribution and Slack-side notifications) — skipped unless the operator actively works in Slack. Connecting later requires no governance change.
+- **Slack workspace integration for Linear Agent** — skipped with the per-user connection.
+- **Google Calendar OOO sync** — propagates calendar OOO status into Linear. Skipped pending an OOO-driven routing need.
+- **Notion connected account** — previews Linear issues inside Notion. Skipped because Notion would become a third surface for "truth" and undermine the repo-is-authoritative premise.
+- **View pull requests in Linear** (Alpha) — surfaces PR review notifications inside Linear. Skipped because PR review lives in GitHub in this flow.
+- **Linear Agent integrations** — Slack, Microsoft Teams, Gong. Skipped pending adoption of those tools.
+
+### Coding-tool surface
+
+- **Coding tools not enabled** — Amp, Conductor, Cursor, Devin, Factory, GitHub Copilot, Lovable, Netlify Agent Runners, OpenCode, Replit, v0, Warp, Windsurf, Zed. Only Claude Code, Codex CLI, and Codex desktop are part of the flow per the Integrations section above. Adding any other tool requires updating this document first.
+- **Custom script** coding-tool entry — runs a script defined in `~/.linear/coding-tools.json` when launching an issue. Skipped because the existing Codex CLI and Claude Code launchers cover the flow. Revisit only if a per-issue launch behavior cannot be expressed by those tools.
+- **Custom link** coding-tool entry — opens a web-based tool with `{{prompt}}` injected. Skipped for the same reason.
+
+### Personal account security
+
+- **Passkeys** — passwordless sign-in for the operator's Linear account. Optional security upgrade unrelated to flow; revisit independently of governance.
+- **Personal API keys** — direct GraphQL access. Not needed because the Linear MCP server uses OAuth. Create one only if a custom script or non-MCP integration needs raw API access.
+
+### Automation referenced elsewhere as policy
+
+The following are listed here for capability awareness; the binding rule is in the section noted in parentheses, not here.
+
+- Codex-in-Linear delegation — disabled by policy (Integrations).
+- GitHub Issues Sync — disabled (GitHub Account And Sync Settings).
+- Commit linking — disabled initially (GitHub Account And Sync Settings).
+- Branch-copy auto-assign / move-to-started — disabled (GitHub Account And Sync Settings).
+- "On open in coding tool" and "On move to started, assign to self" — disabled (GitHub Account And Sync Settings).
+- Auto-archive rule — deferred (Archival).
+
+If any item in this section is later adopted, move it out of this list and update the relevant operational section above. This section should shrink over time as decisions get made, not grow into a parallel spec.
 
 ## Governance Note
 

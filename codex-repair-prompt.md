@@ -205,7 +205,20 @@ After all 7 fixes are committed, append one entry to `todo.md` Completed:
 And append one entry to `todo.md` Test Evidence Log:
 
 ```
-- 2026-04-15 | command(s): grep -r autobot . (must return zero hits); grep -rn "MANDATORY_" AGENTS.md (must return zero hits); python3 -c "import json; json.load(open('schemas/strategy-decision.schema.json'))" (must not throw); python3 -c "import json; json.load(open('schemas/defect-packet.schema.json'))" (must not throw); grep -n "REPO_MAP" README.md AGENTS.md STRUCTURE.md GUIDE.md (must return zero hits); grep -n "WORK-LOG" README.md AGENTS.md STRUCTURE.md GUIDE.md (must return zero hits) | result: <pass/fail per command> | log/PR reference: <commit SHAs>
+- 2026-04-15 | command(s):
+  (1) grep -r autobot . --include="*.md" --include="*.json" --include="*.yml" (must return zero hits outside design-history/);
+  (2) grep -rn "MANDATORY_" AGENTS.md (must return zero hits);
+  (3) pip install jsonschema --quiet && python3 -c "
+import json, jsonschema
+for name in ['strategy-decision','defect-packet','readiness-report','failure-fingerprint','run-contract']:
+    s = json.load(open(f'schemas/{name}.schema.json'))
+    for ex in s.get('examples', []):
+        jsonschema.validate(ex, s)
+        print(f'PASS: {name} example valid')
+" (all examples must pass; any ValidationError is a failure);
+  (4) grep -n "REPO_MAP" README.md AGENTS.md STRUCTURE.md GUIDE.md (must return zero hits);
+  (5) grep -n "WORK-LOG" README.md AGENTS.md STRUCTURE.md GUIDE.md (must return zero hits)
+  | result: <pass/fail per command> | log/PR reference: <commit SHAs>
 ```
 
 **Commit the log entries:**

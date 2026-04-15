@@ -15,7 +15,3 @@ All four auditors converged on the same boundary. Repo-as-truth supports AI work
 `LINEAR.md` gains an Expansion Discipline subsection citing this ADR. The Projects entry under Hierarchy features is updated to name the ADR-0005 work and Phase 0A as concrete current candidates. A new Custom fields subsection is added to Deferred Capabilities containing the Current executor field.
 
 Deferred capabilities are adopted reactively when their stated trigger fires. The Deferred Capabilities list in `LINEAR.md` should shrink over time as triggers fire, not grow speculatively.
-
-## Naming convention
-
-This ADR does not introduce or change any naming convention.

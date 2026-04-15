@@ -7,7 +7,7 @@
 
 This system takes a coding objective (a run contract), validates that the target repo is automation-ready (via a repo contract), and then autonomously plans, implements, tests, launches, verifies, and reports on the work — without human intervention between kickoff and result.
 
-While work is active, `run_state = IN_PROGRESS`. The run ends with `run_state = COMPLETE`, `run_state = BLOCKED`, or `run_state = UNSUPPORTED`. Within `FINAL_GATE`, the readiness checker separately emits `readiness_verdict = READY`, `readiness_verdict = NOT_READY`, or `readiness_verdict = NEEDS_MORE_EVIDENCE` based on evidence.
+While work is active, `run_state = IN_PROGRESS`. For the canonical `run_state` and `readiness_verdict` vocabulary and legality rules, see `canonical-architecture.md §9.1 "Terminal States and Readiness Verdict"`.
 
 ## The Central Logic: Who Owns What
 

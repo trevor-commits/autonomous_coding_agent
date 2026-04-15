@@ -33,3 +33,10 @@ A new schema goes in `schemas/` because it defines a reusable contract shape tha
 ## 6. Governance Records
 
 Use `todo.md` for durable planning, suggestions, audit logs, test evidence, feedback decisions, and the `Completed` trail of landed repo changes. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.
+
+## Appendix: Changes Propagated
+
+- `canonical-architecture.md` — `Repo Contract`, `Runtime State`, and `Terminal States and Readiness Verdict` sections: aligned the boundary, runtime-state placement, and terminal-state source of truth.
+- `LOGIC.md` — `What This System Does` section: points terminal-state vocabulary back to `canonical-architecture.md §9.1`.
+- `RULES.md` — `Contract Rules`, `Phase Transition Rules`, and `Stop Conditions` sections: aligned `UNSUPPORTED` triggers and terminal-state enforcement language.
+- `IMPLEMENTATION-PLAN.md` — `Phase 0: Repo Preparation and Manual Baseline`, `Phase 2.2 Strategy Decision API`, and `Phase 4` prompt-deliverable sections: aligned boundary expectations, naming, and canonical terminal-state references.

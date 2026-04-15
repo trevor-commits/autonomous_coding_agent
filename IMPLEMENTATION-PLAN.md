@@ -564,7 +564,7 @@ Rules:
   issue request_builder_task with failure details and ask builder to fix
 - If LOCAL_VERIFY fails (attempt >= max_repair_loops):
   propose_terminal_state with `run_state = BLOCKED`
-- After successful checkpoint: if more milestones, back to BUILD; else continue toward FINAL_GATE and only allow `run_state = COMPLETE` after `readiness_verdict = READY`
+- After successful checkpoint: if more milestones, back to BUILD; else continue toward FINAL_GATE and use `canonical-architecture.md §9.1 "Terminal States and Readiness Verdict"` for terminal-state legality.
 - Handle `run_state = UNSUPPORTED` and `run_state = BLOCKED` as terminal
 
 This is a dumb strategy — it doesn't decompose tasks into milestones, it doesn't
@@ -765,7 +765,7 @@ Log changes in CHANGELOG.md.
 
 4. **Checkpoint review prompt** — Given a diff and acceptance criteria, review for correctness, security, and plan adherence. Output: structured findings with severity, file, evidence, and fix instruction.
 
-5. **Final audit prompt** — Given the complete diff, artifacts, and acceptance criteria, produce a `readiness_verdict`. Output: `READY`, `NOT_READY`, or `NEEDS_MORE_EVIDENCE` with blocking issues or missing evidence.
+5. **Final audit prompt** — Given the complete diff, artifacts, and acceptance criteria, produce a `readiness_verdict` using the canonical vocabulary and legality rules from `canonical-architecture.md §9.1 "Terminal States and Readiness Verdict"`.
 
 6. **StrategyDecision schema** — JSON schema defining exactly what the strategy layer returns for each phase, using only typed domain actions.
 

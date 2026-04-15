@@ -1,6 +1,6 @@
 # Three-Way Architecture Reconciliation: Final Decisions
 
-> Historical archive note: this document preserves the final reconciliation record from the convergence phase and may contain superseded boundary or state terminology. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
+> **ARCHIVED — superseded.** This document predates terminal-state normalization (ADR-0001). Vocabulary such as `READY/NOT_READY/BLOCKED` used as `run_state`, and `.autoclaw/` boundary references, reflect the prior design. See `canonical-architecture.md §9.1 "Terminal States and Readiness Verdict"` and `STRUCTURE.md §1` for current truth.
 
 **Date:** April 12, 2026
 **Models Audited:** Claude (me), Codex, ChatGPT Pro

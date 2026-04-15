@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://autonomous-coding-agent.local/schemas/defect-packet.schema.json",
   "title": "Defect Packet Schema",
-  "description": "Schema for structured defect packets emitted by the UI verifier or readiness flow. This shape is derived from canonical-architecture.md Section 16 \"Defect Packet Standard\" and IMPLEMENTATION-PLAN.md Phase 3.1. Open question: Phase 3.1 mentions network error capture, but the docs do not yet name a canonical evidence field for network artifacts beyond the existing screenshot, console_log, and trace references.",
+  "description": "Schema for structured defect packets emitted by the UI verifier or readiness flow. This shape is derived from canonical-architecture.md Section 16 \"Defect Packet Standard\" and IMPLEMENTATION-PLAN.md Phase 3.1. The evidence object must carry at least one evidence field, but real defects are allowed to provide only the artifact types that actually exist for that failure mode. Open question: Phase 3.1 mentions network error capture, but the docs do not yet name a canonical evidence field for network artifacts beyond the existing screenshot, console_log, and trace references.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -63,13 +63,9 @@
     },
     "evidence": {
       "type": "object",
-      "description": "Artifact links that support the defect, from canonical-architecture.md Section 16.",
+      "description": "Artifact links that support the defect, from canonical-architecture.md Section 16. At least one of screenshot, console_log, or trace must be present, but not every defect will have all three.",
       "additionalProperties": false,
-      "required": [
-        "screenshot",
-        "console_log",
-        "trace"
-      ],
+      "minProperties": 1,
       "properties": {
         "screenshot": {
           "type": "string",
@@ -98,6 +94,26 @@
     }
   },
   "examples": [
+    {
+      "defect_id": "defect-000",
+      "severity": "P2",
+      "type": "ui-console",
+      "summary": "Login form logs a console error after submit",
+      "repro_steps": [
+        "Open /login",
+        "Submit valid credentials",
+        "Inspect captured console output"
+      ],
+      "expected": "Login completes without console errors",
+      "observed": "An uncaught error is logged after submit",
+      "evidence": {
+        "console_log": "artifacts/logs/login-console.txt"
+      },
+      "suspected_scope": [
+        "src/routes/login.tsx"
+      ],
+      "failure_fingerprint": "login-console-error-after-submit"
+    },
     {
       "defect_id": "defect-001",
       "severity": "P1",

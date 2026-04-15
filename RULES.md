@@ -201,6 +201,7 @@ The supervisor must stop or block the run when any of the following occur:
 
 - The repo contract is insufficient (missing required fields) → `run_state = UNSUPPORTED`
 - A required command is missing or unsupported → `run_state = UNSUPPORTED`
+- Codex CLI unavailable at Phase 0 entry → `run_state = UNSUPPORTED`
 - The same failure fingerprint exceeds the retry threshold → `run_state = BLOCKED`
 - App health does not stabilize within timeout → `run_state = BLOCKED`
 - Budget is exhausted (max_iterations, max_cost_dollars, or hard_timeout_seconds) → `run_state = BLOCKED`

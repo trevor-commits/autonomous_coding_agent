@@ -93,6 +93,9 @@ env:
 - [ ] `.agent/contract.yml` exists in the target repo
 - [ ] Every `commands.*` entry is a real command that works when you run it manually
 - [ ] `commands.app_health` returns 200 when the app is running
+- [ ] Codex CLI responds to `codex --version`; if absent, Phase 0 exits with `run_state = UNSUPPORTED` (`acpx` adapter deferred to v1.1)
+
+The supervisor cannot delegate builder tasks without a working Codex CLI. The `acpx` adapter path referenced in the architecture is a planned extension, not a v1 requirement.
 - [ ] If `ui.critical_flows` are defined, you can manually verify each assertion is true
 - [ ] The contract commands are suitable for both local supervisor execution and later CI reuse
 

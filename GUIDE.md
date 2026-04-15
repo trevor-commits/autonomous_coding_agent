@@ -16,6 +16,7 @@ Use these files for current truth:
 - [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md): file placement, repo boundary, runtime-state placement.
 - [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md): prompt-system source of truth.
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
+- [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
 
 Use `todo.md` for durable working records:
 
@@ -74,6 +75,10 @@ The prompt-system source of truth. Read this before changing strategy prompts, r
 ### [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
 
 The execution roadmap. Read this when deciding what phase comes next or how a milestone is verified.
+
+### [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+
+The Linear governance reference. Read this when configuring or using Linear so the board stays routing-only and repo truth stays in repo docs.
 
 ### [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
 

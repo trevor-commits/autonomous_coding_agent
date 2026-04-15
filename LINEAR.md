@@ -261,9 +261,13 @@ Linear features that were reviewed during initial setup and consciously skipped.
 
 Some entries in this list are also enforced as policy elsewhere in this document (Codex-in-Linear delegation, GitHub Issues Sync, commit linking, branch-copy auto-assign, auto-archive). The references below are for capability awareness, not policy duplication — the authoritative rule for those items remains where it appears earlier in this document.
 
+### Expansion Discipline
+
+Deferred capabilities are adopted reactively when their stated trigger fires. This list should shrink over time as triggers fire, not grow speculatively. See ADR-0006.
+
 ### Hierarchy features
 
-- **Projects** — multi-issue containers for grouped initiatives or milestones. Skipped because no current work groups under named initiatives. Revisit when an initiative spans more than ~5 related issues that need shared status, lead, and timeline.
+- **Projects** — multi-issue containers for grouped initiatives or milestones. Skipped because no current work groups under named initiatives. Revisit when an initiative spans more than ~5 related issues that need shared status, lead, and timeline. Concrete current candidates if/when adopted: the Codex conversation lifecycle work (ADR-0005) and the Phase 0A punch list.
 - **Project labels** — labels scoped to Projects rather than issues. Deferred with Projects.
 - **Project templates** — prefilled Project shapes. Deferred with Projects.
 - **Initiatives** — groups of Projects toward a strategic effort. Deferred with Projects; Initiatives have nothing to group without Projects in use.
@@ -279,6 +283,10 @@ Some entries in this list are also enforced as policy elsewhere in this document
 ### Issue intake
 
 - **Custom Form issue templates** — structured intake forms with required fields and dropdowns, intended for non-technical Asks-style submissions. Skipped because issue body shape is enforced by checklist, not form fields, and the operator pool is small. Revisit if external requesters start submitting issues.
+
+### Custom fields
+
+- **Current executor custom field** — separate from `Assignee` (which per Assignee Semantics is the accountable owner, not the current actor). Skipped because status plus checklist state currently makes it clear who is acting. Revisit if it becomes hard to tell at a glance whose turn it is on an issue.
 
 ### Connected accounts and external surfaces
 

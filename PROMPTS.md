@@ -4,6 +4,38 @@
 **Authority:** `canonical-architecture.md` remains the source of truth for architecture and role boundaries. This document is the source of truth for how prompts should be designed, sequenced, reviewed, and audited inside that architecture.  
 **Purpose:** Define a reusable prompt system for both building this autonomous coding platform and operating it safely once implemented.
 
+## Prompt framing convention
+
+Every Codex prompt issued from this repo opens with the same four-part frame so the agent knows the boundaries before reading the body.
+
+1. **Goal line.** One sentence that names what is being produced and what scope it touches. Be honest about scope: if the task creates one new file and edits two existing ones, say so. Do not undersell the scope (e.g. "single doc-only change" when three files change) — scope/intent mismatches cause agents to hesitate or comply sloppily.
+2. **Discipline line.** Explicit "No code. No branch. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit." Drop "No code" if the task is a code change.
+3. **Read scope.** A bulleted list of files Codex is allowed to read substantively, each with a one-line reason. Use the wording: "For repo content, limit substantive reads to:" followed by the list, then the trailing line: "Do not read other repo docs unless required by higher-priority agent instructions or validation." This phrasing is intentional — fully absolute "do not read" language conflicts with agents that have validator or instruction-precedence obligations.
+4. **Body.** Numbered change instructions, then a `Constraints:` block at the end covering: do not modify other docs, do not create branches, do not commit, stop and report on conflict instead of guessing, and print a one-line summary of files modified after the change.
+
+Additional rules:
+
+- **No filler stubs.** Do not add section headings whose body is "This document does not introduce X" or similar placeholder content. If a section would have no substantive content, omit the section entirely.
+- **Scope honesty.** When the prompt itself enumerates files it will touch, the goal line and discipline line must reflect the same set. Mismatches between framing and body waste an audit cycle.
+
+Example header (illustrative, not a template to copy verbatim):
+
+```text
+Goal: Record the 2026-04-15 four-way authority-boundary audit in a new ADR and apply the sanctioned doc-only follow-up edits in LINEAR.md and todo.md. No code. No branch. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit.
+
+For repo content, limit substantive reads to:
+- LINEAR.md
+- design-history/ADR-0001-terminal-state-normalization.md
+  (to match the existing ADR format exactly)
+- todo.md (to confirm ADR-0006 is unclaimed and to locate
+  the `## Completed` heading)
+
+Do not read other repo docs unless required by
+higher-priority agent instructions or validation.
+```
+
+Origin: this convention emerged from the 2026-04-15 Codex self-audit on the LINEAR authority-boundary prompt (see ADR-0006). Three specific frictions it resolves: scope undersell ("single doc-only change" applied to a 3-file edit), overly absolute read-restriction wording that conflicts with agent instruction precedence, and filler section stubs being added "for completeness" then needing a follow-up commit to remove.
+
 ## 1. Core Position
 
 Do **not** solve this with one giant master prompt.

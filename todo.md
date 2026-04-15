@@ -122,6 +122,8 @@ Each active branch entry should include:
 | Active implementation work in a target repo | Repo-contract deterministic checks for the touched scope, then full required suite for green candidates | After each milestone, after each fix, and daily on active branches | Failing check reproduced before fix when applicable; required targeted/full suites recorded with evidence |
 | Independent review / fix audit loop | Secondary-AI review, then post-fix independent audit | After every green milestone candidate and after every review-driven fix | No unresolved P0/P1 findings; fixes are re-audited until clean |
 | Release/readiness review | Full deterministic suite, UI verification when applicable, final independent audit | Pre-release / pre-READY | Acceptance criteria have direct evidence and final audit returns clean or blockers are documented |
+| Phase boundary strategic audit | ChatGPT Pro strategic/governance audit against PROJECT_INTENT, canonical-architecture, ADR record, and commit-range fingerprint; orchestrator-prepared brief | Every phase exit (0A, 0B, 0C, 1, 2, 3, 4); quarterly whole-repo review; ad hoc on drift | Pro returns GREEN, or YELLOW with accepted deferrals recorded in Feedback Decision Log |
+| Phase 1 mid-build architecture checkpoint | Paired audit: Pro (strategic) + Claude Code (file-level) against schemas, action set, and invariants | After subphase 1.2 lands, before 1.3 begins | Both auditors return clean; tiebreaker per ADR-0002 if they disagree |
 
 ## Feedback Decision Log
 Record outside feedback and the resulting reasoning once, then update the same entry as the decision evolves.

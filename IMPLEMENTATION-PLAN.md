@@ -165,6 +165,7 @@ Required artifacts for the first CI rollout:
 - [ ] The target repo has a documented mapping from contract commands to CI gates
 - [ ] The documented CI gates do not introduce commands that are absent from the repo contract
 - [ ] Required CI artifacts are named and their producers are known
+- [ ] The normalized smoke summary has a documented schema (fields, types, failure classification) so the orchestrator and reviewer lanes consume a stable shape, not ad-hoc JSON
 
 **If it fails:** Fix the repo contract or the target repo scripts first. Do not create GitHub Actions YAML that papers over missing contract discipline.
 

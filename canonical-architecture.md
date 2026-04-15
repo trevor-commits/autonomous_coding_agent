@@ -320,9 +320,9 @@ Responsibilities:
 - rerun authoritative required checks
 - confirm required artifacts exist
 - confirm unresolved high-severity findings are absent or declared
-- emit `READY`, `BLOCKED`, or `UNSUPPORTED`
+- emit a `readiness_verdict` of `READY`, `NOT_READY`, or `NEEDS_MORE_EVIDENCE`
 
-No model may unilaterally mark a run ready.
+No model may unilaterally mark a run `READY` or set `run_state = COMPLETE`.
 
 ## 6. Excluded Components in v1
 
@@ -417,7 +417,7 @@ Optional but strongly preferred:
 - `commands.ui_smoke`
 - `commands.seed_testdata`
 
-If the minimum required fields are missing, the run ends as `UNSUPPORTED`.
+If the minimum required fields are missing, the run ends with `run_state = UNSUPPORTED`.
 
 ### Example repo contract
 
@@ -550,10 +550,9 @@ This is per-run operational truth, not long-lived repo truth.
 
 The supervisor must implement a deterministic phase machine.
 
-Suggested v1 phases:
+Suggested v1 phases while `run_state = IN_PROGRESS`:
 
 - `INTAKE`
-- `UNSUPPORTED`
 - `PREPARE_WORKSPACE`
 - `BUILD`
 - `LOCAL_VERIFY`
@@ -561,20 +560,34 @@ Suggested v1 phases:
 - `UI_VERIFY`
 - `AUDIT_READY`
 - `FINAL_GATE`
-- `COMPLETE`
-- `BLOCKED`
 
-## 9.1 Phase Responsibilities
+## 9.1 Terminal States and Readiness Verdict
+
+This section is the source of truth for terminal-state vocabulary.
+
+- `run_state` (what the supervisor concludes about the run overall) ∈ { `COMPLETE`, `BLOCKED`, `UNSUPPORTED`, `IN_PROGRESS` }.
+- `readiness_verdict` (what the final readiness gate emits) ∈ { `READY`, `NOT_READY`, `NEEDS_MORE_EVIDENCE` }.
+
+`run_state = COMPLETE` is legal ONLY when:
+
+- `readiness_verdict = READY`
+- all required artifacts named in the run contract exist
+- all authoritative required checks passed on the final rerun
+- no unresolved high-severity defect packets are open
+
+Any other combination produces `run_state = BLOCKED` or `run_state = UNSUPPORTED` per stop conditions.
+
+`NEEDS_MORE_EVIDENCE` is not terminal. It causes the supervisor to run one more evidence-gathering loop up to the configured bound; after that bound it degrades to `NOT_READY` and the run goes to `BLOCKED`.
+
+Companion docs should reference this section rather than redefining the vocabulary.
+
+## 9.2 Phase Responsibilities
 
 ### `INTAKE`
 
 - validate repo contract
 - validate run contract
 - confirm run can begin
-
-### `UNSUPPORTED`
-
-- terminal state for repos that do not meet automation prerequisites
 
 ### `PREPARE_WORKSPACE`
 
@@ -613,22 +626,9 @@ Suggested v1 phases:
 
 - rerun authoritative required gates
 - verify required artifacts
-- produce readiness outcome
+- produce a `readiness_verdict`
 
-### `COMPLETE`
-
-- terminal success state
-
-### `BLOCKED`
-
-- terminal non-success state where progress stopped due to:
-  - repeated failure
-  - unsupported command
-  - missing environment
-  - budget exhaustion
-  - unresolved high-severity finding
-
-## 9.2 Mandatory Transitions
+## 9.3 Mandatory Transitions
 
 The supervisor must enforce mandatory transitions such as:
 
@@ -636,7 +636,7 @@ The supervisor must enforce mandatory transitions such as:
 - app must be healthy before Playwright runs
 - repeated same failure fingerprint beyond threshold must escalate or block
 - budget exhaustion must stop the run
-- final readiness requires final gate evidence
+- `run_state = COMPLETE` requires final gate evidence and `readiness_verdict = READY`
 
 These must not depend on model compliance.
 
@@ -787,7 +787,7 @@ Purpose:
 
 - final gate
 - final report
-- authoritative readiness decision
+- authoritative readiness verdict
 
 Permissions:
 
@@ -812,7 +812,7 @@ This system does support delegation, but bounded delegation.
 
 - models owning phase transitions
 - models deciding that required gates may be skipped
-- models declaring readiness without deterministic evidence
+- models declaring `readiness_verdict = READY` or `run_state = COMPLETE` without deterministic evidence
 - multiple writers improvising on the same worktree
 
 ## 12. Git and Worktree Strategy
@@ -1170,7 +1170,8 @@ Every run must produce:
 Containing at minimum:
 
 - run id
-- final state
+- run_state
+- readiness_verdict
 - phases completed
 - commands run
 - failures encountered

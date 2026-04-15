@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://autonomous-coding-agent.local/schemas/readiness-report.schema.json",
   "title": "Readiness Report Schema",
-  "description": "Schema for the machine-readable final readiness report emitted at the deterministic final gate. This shape is derived from canonical-architecture.md Sections 5.8, 10.5, 19, and 20 plus IMPLEMENTATION-PLAN.md reports.py requirements. Open question: the current docs mix final_state terminology in canonical-architecture.md with readiness verdict terminology in PROMPTS.md; until terminal-state normalization lands, this schema preserves the currently named final_state field and current canonical values.",
-  "x-pending-normalization": true,
+  "description": "Schema for the machine-readable final readiness report emitted at the deterministic final gate. This shape is derived from canonical-architecture.md Sections 5.8, 9.1, 10.5, 19, and 20 plus IMPLEMENTATION-PLAN.md reports.py requirements. Open question: this schema includes `run_state` directly on the readiness report for v1 normalization, but a later implementation may choose to move it into a separate supervisor run-summary object.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "run_id",
-    "final_state",
+    "run_state",
+    "readiness_verdict",
     "phases_completed",
     "commands_run",
     "failures",
@@ -22,14 +22,24 @@
       "type": "string",
       "description": "Run identifier from canonical-architecture.md Section 20 \"Machine-readable report\"."
     },
-    "final_state": {
+    "run_state": {
+      "type": "string",
+      "enum": [
+        "COMPLETE",
+        "BLOCKED",
+        "UNSUPPORTED",
+        "IN_PROGRESS"
+      ],
+      "description": "Supervisor-level run_state from canonical-architecture.md Section 9.1 \"Terminal States and Readiness Verdict\"."
+    },
+    "readiness_verdict": {
       "type": "string",
       "enum": [
         "READY",
-        "BLOCKED",
-        "UNSUPPORTED"
+        "NOT_READY",
+        "NEEDS_MORE_EVIDENCE"
       ],
-      "description": "Current final readiness outcome vocabulary from canonical-architecture.md Section 5.8. This field is marked pending normalization because PROMPTS.md also uses READY, NOT_READY, and NEEDS_MORE_EVIDENCE."
+      "description": "Final-gate readiness_verdict from canonical-architecture.md Section 9.1 \"Terminal States and Readiness Verdict\"."
     },
     "phases_completed": {
       "type": "array",
@@ -118,7 +128,8 @@
   "examples": [
     {
       "run_id": "benchmark-001",
-      "final_state": "READY",
+      "run_state": "COMPLETE",
+      "readiness_verdict": "READY",
       "phases_completed": [
         "INTAKE",
         "PREPARE_WORKSPACE",
@@ -151,7 +162,8 @@
     },
     {
       "run_id": "benchmark-004",
-      "final_state": "BLOCKED",
+      "run_state": "BLOCKED",
+      "readiness_verdict": "NOT_READY",
       "phases_completed": [
         "INTAKE",
         "PREPARE_WORKSPACE",

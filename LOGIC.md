@@ -7,7 +7,7 @@
 
 This system takes a coding objective (a run contract), validates that the target repo is automation-ready (via a repo contract), and then autonomously plans, implements, tests, launches, verifies, and reports on the work — without human intervention between kickoff and result.
 
-The run itself ends in one of three terminal phase states: **COMPLETE** (successful execution path finished), **BLOCKED** (progress stopped due to repeated failure, missing environment, budget exhaustion, or unresolved high-severity finding), or **UNSUPPORTED** (the repo does not meet automation prerequisites). Within `FINAL_GATE`, the readiness checker separately produces a readiness outcome such as **READY** or **NOT_READY** based on evidence.
+While work is active, `run_state = IN_PROGRESS`. The run ends with `run_state = COMPLETE`, `run_state = BLOCKED`, or `run_state = UNSUPPORTED`. Within `FINAL_GATE`, the readiness checker separately emits `readiness_verdict = READY`, `readiness_verdict = NOT_READY`, or `readiness_verdict = NEEDS_MORE_EVIDENCE` based on evidence.
 
 ## The Central Logic: Who Owns What
 
@@ -43,7 +43,7 @@ Every run follows the same phase machine. Phases are sequential, with repair loo
 ```
 INTAKE
   → validate repo contract + run contract
-  → if invalid: UNSUPPORTED (terminal)
+  → if invalid: `run_state = UNSUPPORTED` (terminal)
 
 PREPARE_WORKSPACE
   → create run directory, worktree, branch
@@ -59,12 +59,12 @@ LOCAL_VERIFY
   → run deterministic gates: format, lint, typecheck, test
   → if pass: checkpoint candidate
   → if fail: fingerprint the failure, route back to BUILD (within retry limit)
-  → if repeated same fingerprint beyond threshold: BLOCKED
+  → if repeated same fingerprint beyond threshold: `run_state = BLOCKED`
 
 APP_LAUNCH
   → start app from repo contract commands
   → wait for health endpoint
-  → if unhealthy after timeout: route to builder or BLOCKED
+  → if unhealthy after timeout: route to builder or `run_state = BLOCKED`
 
 UI_VERIFY
   → run Playwright against the live app
@@ -80,9 +80,10 @@ FINAL_GATE
   → rerun authoritative required gates
   → verify all required artifacts exist
   → confirm no unresolved high-severity findings
-
-COMPLETE (terminal — success)
-BLOCKED (terminal — progress stopped)
+  → emit `readiness_verdict = READY`, `readiness_verdict = NOT_READY`, or `readiness_verdict = NEEDS_MORE_EVIDENCE`
+  → if `readiness_verdict = NEEDS_MORE_EVIDENCE` and the evidence loop budget remains: gather more evidence and re-run FINAL_GATE
+  → if `readiness_verdict = READY` and the legality invariant passes: `run_state = COMPLETE` (terminal)
+  → else: `run_state = BLOCKED` (terminal)
 ```
 
 The repair loops (BUILD ↔ LOCAL_VERIFY, BUILD ↔ UI_VERIFY) are where most of the autonomous work happens. The supervisor counts retries, fingerprints failures, and enforces ceilings. If the same failure keeps recurring, the system escalates or blocks rather than spinning forever.
@@ -101,7 +102,7 @@ The delegation flow within a BUILD phase looks like this:
 6. Supervisor automatically transitions to LOCAL_VERIFY (because the phase requires it — this is not the AI's decision).
 7. Supervisor runs deterministic gates.
 8. If gates fail, supervisor asks strategy layer: "This failed. What should the builder try differently?"
-9. Strategy layer returns either a new `request_builder_task` (different approach) or `propose_terminal_state BLOCKED` (giving up).
+9. Strategy layer returns either a new `request_builder_task` (different approach) or `propose_terminal_state` with `run_state = BLOCKED` (giving up).
 10. Loop continues within retry budget.
 
 The key insight: the supervisor asks the AI questions at defined decision points. The AI never tells the supervisor "now run hooks" or "now commit." The supervisor already knows when to do those things because it owns the phase machine.
@@ -121,7 +122,7 @@ Legal action families:
 - `rollback_to_checkpoint` — revert to a known-good state
 - `record_failure_signature` — log a failure fingerprint
 - `record_decision` — log a strategic decision for audit trail
-- `propose_terminal_state` — suggest COMPLETE or BLOCKED (supervisor still validates)
+- `propose_terminal_state` — suggest a terminal `run_state` such as `COMPLETE`, `BLOCKED`, or `UNSUPPORTED` (supervisor still validates)
 
 Each action is legal only in specific phases. The supervisor rejects actions that don't belong to the current phase. Actions resolve to supervisor-controlled implementations — the AI never passes arbitrary shell strings through the action graph.
 
@@ -129,7 +130,7 @@ Each action is legal only in specific phases. The supervisor rejects actions tha
 
 The system does not improvise a repo's lifecycle. Two contracts define the automation surface:
 
-**Repo contract** (`.agent/contract.yml`) — stable, version-controlled target-repo truth in the target repo's `.agent/` surface, describing how that repo works: setup, test, lint, typecheck, app launch, health check, UI smoke, critical flows, environment variables. If the minimum required fields (setup, test, app_up, app_health) are missing, the run ends as UNSUPPORTED. This is intentional — "unsupported" is better than "improvised and wrong."
+**Repo contract** (`.agent/contract.yml`) — stable, version-controlled target-repo truth in the target repo's `.agent/` surface, describing how that repo works: setup, test, lint, typecheck, app launch, health check, UI smoke, critical flows, environment variables. If the minimum required fields (setup, test, app_up, app_health) are missing, the run ends with `run_state = UNSUPPORTED`. This is intentional — "unsupported" is better than "improvised and wrong."
 
 **Run contract** (JSON, per-task) — operational, per-run, describes what this specific task requires: objective, allowed/forbidden file paths, acceptance criteria, quality gates, UI checks, budget constraints (max iterations, max cost, hard timeout). The run contract is what makes each run scoped and auditable.
 
@@ -181,7 +182,7 @@ No raw transcript storage. No chain-of-thought preservation. No external semanti
 
 The supervisor stops or blocks when:
 
-- The repo contract is insufficient (UNSUPPORTED).
+- The repo contract is insufficient (`run_state = UNSUPPORTED`).
 - A required command is missing or unsupported.
 - The same failure fingerprint exceeds the retry threshold.
 - App health does not stabilize within timeout.
@@ -193,7 +194,7 @@ Stop conditions are enforced by the supervisor, not by the AI strategy layer. Th
 
 ## Reporting Logic
 
-Every run produces two outputs: a machine-readable JSON report (run ID, final state, phases completed, commands run, failures encountered, changed files, checkpoint refs, artifact manifest, unresolved blockers) and a human-readable markdown summary (what changed, what passed, what failed, what's unresolved, what to do next).
+Every run produces two outputs: a machine-readable JSON report (`run_id`, `run_state`, `readiness_verdict`, `phases_completed`, `commands_run`, `failures`, `changed_files`, `checkpoint_refs`, `artifact_manifest`, `unresolved_blockers`) and a human-readable markdown summary (what changed, what passed, what failed, what's unresolved, what to do next).
 
 These are generated by the supervisor's report module after the run reaches a terminal state. The report is written to the run directory and is the primary deliverable of a completed run.
 
@@ -218,7 +219,7 @@ Human writes run contract
   → If UI defects: routed to builder, re-verified
   → Supervisor runs final gate
   → Supervisor produces report
-  → Terminal state: COMPLETE, BLOCKED, or UNSUPPORTED
+  → Terminal run_state: `COMPLETE`, `BLOCKED`, or `UNSUPPORTED`
 ```
 
 The supervisor is the spine. The AI is the brain for strategy. The builder is the hands. The verifier is the eyes. The reviewer is the auditor. Each has exactly one job, bounded permissions, and no ability to override the others.

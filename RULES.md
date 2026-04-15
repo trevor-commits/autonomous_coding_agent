@@ -17,7 +17,7 @@
 - Retry ceilings and stop conditions
 - Checkpoint commits (the builder does not commit)
 - Budget enforcement (iterations, cost, wall-clock time)
-- Final completion authority (COMPLETE requires deterministic evidence)
+- Final completion authority (`run_state = COMPLETE` requires `readiness_verdict = READY` plus deterministic evidence)
 - Command policy (allow, deny, escalate)
 - Worktree creation and single-writer lease management
 - App lifecycle (launch, health check, shutdown)
@@ -114,7 +114,7 @@ The builder may use read-only git inspection commands (e.g., `git log`, `git dif
 { "action": "run_contract_command", "name": "test", "scope": "targeted" }
 { "action": "checkpoint_candidate", "reason": "targeted gates passed for milestone M2" }
 { "action": "record_failure_signature", "fingerprint": "...", "evidence_refs": [...] }
-{ "action": "propose_terminal_state", "state": "COMPLETE", "summary": "..." }
+{ "action": "propose_terminal_state", "run_state": "BLOCKED", "reason": "Retry threshold exceeded" }
 ```
 
 ---
@@ -154,7 +154,7 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 
 - Must exist before a run can begin.
 - Must define at minimum: `commands.setup`, `commands.test`, `commands.app_up`, `commands.app_health`.
-- If minimum required fields are missing, the run ends as UNSUPPORTED. No improvisation.
+- If minimum required fields are missing, the run ends with `run_state = UNSUPPORTED`. No improvisation.
 - Optional but strongly recommended: `commands.lint`, `commands.typecheck`, `commands.format`, `commands.app_down`, `commands.ui_smoke`, `commands.seed_testdata`.
 
 ### Run contract (JSON, per-task):
@@ -171,17 +171,26 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 - A build candidate must pass LOCAL_VERIFY before UI_VERIFY.
 - The app must be healthy (APP_LAUNCH passed) before Playwright runs.
 - FINAL_GATE requires rerun of authoritative gates — not a cached result from earlier.
-- COMPLETE requires: green final gate, app health proof, UI verification packet (if UI checks defined), and no unresolved high-severity findings.
+- `run_state = COMPLETE` is legal only when `readiness_verdict = READY`, all required artifacts named in the run contract exist, all authoritative required checks passed on the final rerun, and no unresolved high-severity defect packets are open.
+
+### COMPLETE legality invariant:
+
+- `run_state = COMPLETE` is legal ONLY when:
+  - `readiness_verdict = READY`
+  - all required artifacts named in the run contract exist
+  - all authoritative required checks passed on the final rerun
+  - no unresolved high-severity defect packets are open
+- `readiness_verdict = NEEDS_MORE_EVIDENCE` is not terminal. It triggers one more evidence-gathering loop up to the configured bound; after that bound it degrades to `NOT_READY` and the run goes to `BLOCKED`.
 
 ### Mandatory escalation:
 
-- Repeated same failure fingerprint beyond threshold must escalate to stall diagnosis or BLOCKED.
+- Repeated same failure fingerprint beyond threshold must escalate to stall diagnosis or `run_state = BLOCKED`.
 - Budget exhaustion must stop the run immediately.
 
 ### Illegal transitions:
 
 - No phase may be skipped by the AI or the builder.
-- The AI cannot propose COMPLETE without the supervisor's evidence checks passing.
+- The AI cannot propose `run_state = COMPLETE` without the supervisor's evidence checks passing and `readiness_verdict = READY`.
 - The supervisor rejects any transition attempt that violates the phase machine's legal transition graph.
 
 ---
@@ -190,13 +199,13 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 
 The supervisor must stop or block the run when any of the following occur:
 
-- The repo contract is insufficient (missing required fields) → UNSUPPORTED
-- A required command is missing or unsupported → UNSUPPORTED
-- The same failure fingerprint exceeds the retry threshold → BLOCKED
-- App health does not stabilize within timeout → BLOCKED
-- Budget is exhausted (max_iterations, max_cost_dollars, or hard_timeout_seconds) → BLOCKED
-- Path or command restrictions are violated → BLOCKED
-- An unresolved high-severity review finding remains at FINAL_GATE → BLOCKED
+- The repo contract is insufficient (missing required fields) → `run_state = UNSUPPORTED`
+- A required command is missing or unsupported → `run_state = UNSUPPORTED`
+- The same failure fingerprint exceeds the retry threshold → `run_state = BLOCKED`
+- App health does not stabilize within timeout → `run_state = BLOCKED`
+- Budget is exhausted (max_iterations, max_cost_dollars, or hard_timeout_seconds) → `run_state = BLOCKED`
+- Path or command restrictions are violated → `run_state = BLOCKED`
+- An unresolved high-severity review finding remains at FINAL_GATE → `run_state = BLOCKED`
 
 Stop conditions are enforced by the supervisor. The AI cannot override them.
 
@@ -281,10 +290,10 @@ Stop conditions are enforced by the supervisor. The AI cannot override them.
 
 Every run must produce both:
 
-- **Machine-readable report (JSON):** run_id, final_state, phases_completed, commands_run, failures_encountered, changed_files, checkpoint_refs, artifact_manifest, unresolved_blockers.
+- **Machine-readable report (JSON):** `run_id`, `run_state`, `readiness_verdict`, `phases_completed`, `commands_run`, `failures`, `changed_files`, `checkpoint_refs`, `artifact_manifest`, `unresolved_blockers`.
 - **Human-readable summary (Markdown):** what changed, what passed, what failed, what's unresolved, what to do next.
 
-Reports are written to the run directory upon reaching a terminal state.
+Reports are written to the run directory when the supervisor reaches a terminal `run_state`.
 
 ---
 

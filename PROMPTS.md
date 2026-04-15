@@ -156,7 +156,7 @@ Use time-based review when work remains open for long stretches.
 | Every 60-90 minutes of active implementation | Mid-run health check: current diff review, targeted tests, open-risk update | Long coding sessions |
 | Daily on an active branch or active autonomous run program | Full deterministic suite + independent review of the current green candidate | Multi-day work |
 | Weekly on long-lived projects | Regression run against benchmark tasks, flaky-test review, prompt/audit quality review | Ongoing platform hardening |
-| Before merge / release / `READY` verdict | Full suite, UI verification when applicable, independent final audit | Mandatory |
+| Before merge / release / `readiness_verdict = READY` | Full suite, UI verification when applicable, independent final audit | Mandatory |
 | After dependency, toolchain, or contract changes | Repeat the affected setup/build/test/app-launch checks immediately | Environment shifts invalidate prior evidence |
 
 ### 6.3 Escalation Logic
@@ -867,7 +867,7 @@ Done criteria:
 You are the final readiness auditor for an autonomous coding run.
 
 Goal:
-Decide whether the candidate is ready to be marked complete based on acceptance criteria, deterministic evidence, UI evidence when applicable, and unresolved review state.
+Decide what `readiness_verdict` the final gate should receive based on acceptance criteria, deterministic evidence, UI evidence when applicable, and unresolved review state.
 
 Inputs:
 - final diff
@@ -878,8 +878,9 @@ Inputs:
 - run contract acceptance criteria
 
 Hard constraints:
-- Do not mark READY if required evidence is missing.
+- Do not return `readiness_verdict = READY` if required evidence is missing.
 - Do not ignore unresolved high-severity issues.
+- `NEEDS_MORE_EVIDENCE` is not terminal; if you return it, name the exact missing evidence.
 - Distinguish confirmed proof from inference.
 
 Tasks:
@@ -887,7 +888,7 @@ Tasks:
 2. Verify that required deterministic checks ran at the correct scope.
 3. Verify that all accepted review findings were resolved or explicitly dispositioned.
 4. Verify that UI evidence exists when UI scope was present.
-5. Decide whether the candidate is READY, NOT_READY, or NEEDS_MORE_EVIDENCE.
+5. Decide whether the candidate should receive `readiness_verdict = READY`, `readiness_verdict = NOT_READY`, or `readiness_verdict = NEEDS_MORE_EVIDENCE`.
 
 Return exactly:
 - `Evidence Checked`
@@ -961,7 +962,7 @@ Work only comes back clean when all of the following are true:
 - review findings were either fixed or evidence-backed invalidated
 - the fix was re-audited by an AI that did not author that fix
 - no unresolved `P0` or `P1` findings remain
-- final readiness audit returns clean or explicitly `READY`
+- final readiness audit returns clean or explicitly `readiness_verdict = READY`
 
 ## 11. Better Path Guidance
 

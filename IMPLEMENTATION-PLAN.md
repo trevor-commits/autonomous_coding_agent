@@ -54,7 +54,7 @@ version: 1
 stack: fullstack-web   # or: backend-api, static-site, monorepo, etc.
 
 commands:
-  # REQUIRED — system returns UNSUPPORTED without these
+  # REQUIRED — system returns `run_state = UNSUPPORTED` without these
   setup: "npm install"
   test: "npm run test -- --bail"
   app_up: "npm run dev"
@@ -326,16 +326,16 @@ Create these modules inside a `supervisor/` directory:
    - Parse .agent/contract.yml (repo contract)
    - Parse run contract JSON
    - Validate required fields exist
-   - Return UNSUPPORTED with reason if minimum requirements not met
+   - Return `run_state = UNSUPPORTED` with reason if minimum requirements not met
    - Enforce allowed_paths / forbidden_paths from run contract
 
 2. state_machine.py
-   - Implement the phase machine with states:
-     INTAKE, UNSUPPORTED, PREPARE_WORKSPACE, BUILD, LOCAL_VERIFY,
-     APP_LAUNCH, UI_VERIFY, AUDIT_READY, FINAL_GATE, COMPLETE, BLOCKED
+   - Implement the phase machine with phases:
+     INTAKE, PREPARE_WORKSPACE, BUILD, LOCAL_VERIFY,
+     APP_LAUNCH, UI_VERIFY, AUDIT_READY, FINAL_GATE
    - Define legal transitions between phases
    - Reject illegal transition attempts
-   - Track current phase, phase history, and timestamps
+   - Track current phase, phase history, timestamps, and `run_state`
 
 3. policy.py
    - Three shell classes: auto_allow, auto_deny, escalate
@@ -378,7 +378,7 @@ Create these modules inside a `supervisor/` directory:
 
 9. reports.py
    - Generate machine-readable final report (JSON):
-     run_id, final_state, phases_completed, commands_run, failures, changed_files,
+     run_id, run_state, readiness_verdict, phases_completed, commands_run, failures, changed_files,
      checkpoint_refs, artifact_manifest, unresolved_blockers
    - Generate human-readable summary (Markdown):
      what changed, what passed, what failed, what's unresolved, next steps
@@ -416,7 +416,7 @@ Create these modules inside a `supervisor/` directory:
 14. Tests (in tests/ directory):
     - test_state_machine.py: phase legality, transition validation, illegal rejection
     - test_policy.py: deny list enforcement, path restrictions, budget limits
-    - test_contracts.py: valid/invalid contract parsing, UNSUPPORTED detection
+    - test_contracts.py: valid/invalid contract parsing, `run_state = UNSUPPORTED` detection
     - test_fingerprints.py: normalization, dedup, persistence
     - test_worktree.py: creation, lease, checkpoint, rollback
     - test_actions.py: phase-legal action validation, illegal action rejection
@@ -442,7 +442,7 @@ I will audit for:
 - [ ] Budget limits actually terminate the run when exceeded
 - [ ] Single-writer lock prevents concurrent worktree access
 - [ ] Checkpoint commits have correct format and tags
-- [ ] UNSUPPORTED is returned for repos missing required contract fields
+- [ ] `run_state = UNSUPPORTED` is returned for repos missing required contract fields
 - [ ] Typed actions reject raw shell payloads
 - [ ] Reports contain all required fields
 - [ ] Tests pass and cover the critical paths
@@ -462,7 +462,7 @@ python supervisor/main.py \
   --strategy manual
 ```
 
-Walk through: INTAKE → PREPARE_WORKSPACE → BUILD (you type `request_builder_task` with a description) → LOCAL_VERIFY → ... → COMPLETE or BLOCKED.
+Walk through: INTAKE → PREPARE_WORKSPACE → BUILD (you type `request_builder_task` with a description) → LOCAL_VERIFY → ... → `run_state = COMPLETE` or `run_state = BLOCKED`.
 
 **Verification:**
 - [ ] Supervisor creates worktree and run directory
@@ -560,9 +560,9 @@ Rules:
 - If LOCAL_VERIFY fails (attempt < max_repair_loops):
   issue request_builder_task with failure details and ask builder to fix
 - If LOCAL_VERIFY fails (attempt >= max_repair_loops):
-  propose_terminal_state BLOCKED
-- After successful checkpoint: if more milestones, back to BUILD; else propose COMPLETE
-- Handle UNSUPPORTED, BLOCKED as terminal
+  propose_terminal_state with `run_state = BLOCKED`
+- After successful checkpoint: if more milestones, back to BUILD; else continue toward FINAL_GATE and only allow `run_state = COMPLETE` after `readiness_verdict = READY`
+- Handle `run_state = UNSUPPORTED` and `run_state = BLOCKED` as terminal
 
 This is a dumb strategy — it doesn't decompose tasks into milestones, it doesn't
 diagnose stalls, it doesn't do anything clever. It just loops build → verify → fix.
@@ -704,7 +704,7 @@ After LOCAL_VERIFY passes:
 - Run Playwright suite
 - If defect packets exist: route defects to builder, re-run LOCAL_VERIFY then UI_VERIFY
 - If no defects: transition to FINAL_GATE
-- Max 2 UI repair cycles before BLOCKED
+- Max 2 UI repair cycles before `run_state = BLOCKED`
 
 Update builder prompts to include defect packet content when routing UI failures.
 
@@ -762,7 +762,7 @@ Log changes in CHANGELOG.md.
 
 4. **Checkpoint review prompt** — Given a diff and acceptance criteria, review for correctness, security, and plan adherence. Output: structured findings with severity, file, evidence, and fix instruction.
 
-5. **Final audit prompt** — Given the complete diff, artifacts, and acceptance criteria, produce a readiness verdict. Output: PASS/FAIL with blocking issues.
+5. **Final audit prompt** — Given the complete diff, artifacts, and acceptance criteria, produce a `readiness_verdict`. Output: `READY`, `NOT_READY`, or `NEEDS_MORE_EVIDENCE` with blocking issues or missing evidence.
 
 6. **StrategyDecision schema** — JSON schema defining exactly what the strategy layer returns for each phase, using only typed domain actions.
 
@@ -917,7 +917,7 @@ These are recorded here for completeness. Do not start any of these until Phases
 - **OpenClaw operator shell:** Chat-based status and kickoff interface
 - **Zep memory:** Semantic search over operational memory (only if file-based becomes a bottleneck)
 - **Specialized test-fixer agent:** Separate Codex instance for targeted test repair
-- **Auto-PR creation:** `gh pr create` after READY state
+- **Auto-PR creation:** `gh pr create` after `run_state = COMPLETE` with `readiness_verdict = READY`
 - **CI integration:** Add contract-driven GitHub Actions only after Phases 0-5 are stable in a real implementation repo. CI should run fast/unit/smoke gates, publish structured artifacts, and enforce branch protection without becoming the workflow owner.
 - **Cost dashboard:** Track spend per task, per agent, over time
 
@@ -944,7 +944,7 @@ The first success criterion is deterministic parity with the contract, not maxim
 | acpx alpha instability | Builder adapter has direct-CLI fallback | 2 |
 | Codex session drops | Session recovery with context summary | 5 |
 | Claude API rate limits | Exponential backoff | 5 |
-| False completion | Supervisor-enforced gates, COMPLETE requires evidence | 1 |
+| False completion | Supervisor-enforced gates, `run_state = COMPLETE` requires `readiness_verdict = READY` and evidence | 1 |
 | Builder writes to forbidden paths | Policy engine blocks at execution time | 1 |
 | Flaky tests stall the loop | Flaky test detection and quarantine | 5 |
 | Cost blowup | Budget enforcement kills the run | 1 |

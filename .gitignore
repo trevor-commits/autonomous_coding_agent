@@ -1,1 +1,10 @@
+.autoclaw/
 .claude/
+worktrees/
+node_modules/
+__pycache__/
+.venv/
+.env
+.env.*
+dist/
+build/

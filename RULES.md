@@ -150,7 +150,7 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 
 ## Contract Rules
 
-### Repo contract (`.agent/contract.yml`):
+### Repo contract (target repo `.agent/contract.yml`):
 
 - Must exist before a run can begin.
 - Must define at minimum: `commands.setup`, `commands.test`, `commands.app_up`, `commands.app_health`.
@@ -265,8 +265,8 @@ Stop conditions are enforced by the supervisor. The AI cannot override them.
 | Tier | Location | Lifecycle | Managed by |
 |------|----------|-----------|-----------|
 | Repo truth | In repo, version-controlled | Permanent, human-managed | Human + supervisor |
-| Run truth | `.autoclaw/runs/<run_id>/` | Per-run, preserved after completion | Supervisor |
-| Operational memory | `.autoclaw/memory/` | Cross-run, subject to TTL | Supervisor (post-run) |
+| Run truth | Supervisor-owned runtime `.autoclaw/runs/<run_id>/` | Per-run, preserved after completion, gitignored | Supervisor |
+| Operational memory | Supervisor-owned runtime `.autoclaw/memory/` | Cross-run, subject to TTL, gitignored | Supervisor (post-run) |
 
 ### Non-goals for memory in v1:
 

@@ -172,7 +172,7 @@ Required artifacts for the first CI rollout:
 ### 0.3 Write Benchmark Run Contracts
 
 **Owner:** Trevor
-**Deliverable:** 3-5 run contract JSON files in `.autoclaw/benchmark-tasks/`
+**Deliverable:** 3-5 run contract JSON files in `fixtures/`
 
 Create tasks of varying complexity that you will use to validate the system at each phase. These must be real tasks you would actually want done, not synthetic toy examples.
 
@@ -266,35 +266,19 @@ kill %1
 - [ ] Playwright runs tests against the local app
 - [ ] No auth errors, no timeouts, no missing dependencies
 
-### 0.5 Create the Run Directory Structure
+### 0.5 Confirm the Runtime Boundary
 
 **Owner:** Trevor or Codex
-**Deliverable:** `.autoclaw/` directory in the target repo
+**Deliverable:** Boundary confirmed: benchmark run contracts live in `fixtures/`, and `.autoclaw/` is reserved for supervisor-owned runtime state per `STRUCTURE.md`
 
-```bash
-mkdir -p .autoclaw/runs
-mkdir -p .autoclaw/memory
-mkdir -p .autoclaw/benchmark-tasks
+Place benchmark task JSONs in `fixtures/`.
 
-# Add to .gitignore (runs are ephemeral, memory is optional to track)
-echo ".autoclaw/runs/" >> .gitignore
-```
-
-Place benchmark task JSONs in `.autoclaw/benchmark-tasks/`.
-
-Create initial empty memory files:
-```bash
-echo '[]' > .autoclaw/memory/failure-signatures.json
-echo '[]' > .autoclaw/memory/flaky-tests.json
-echo '{}' > .autoclaw/memory/fix-strategies.json
-echo '# Environment Quirks' > .autoclaw/memory/environment-quirks.md
-```
+Do not commit `.autoclaw/` in either repo. The supervisor creates `.autoclaw/runs/` and any optional `.autoclaw/memory/` content at runtime in its own gitignored workspace.
 
 **Verification:**
-- [ ] `.autoclaw/` directory structure exists
-- [ ] `.autoclaw/runs/` is gitignored
-- [ ] Benchmark task files are in `.autoclaw/benchmark-tasks/`
-- [ ] Memory files exist with empty initial content
+- [ ] `.autoclaw/` is reserved for supervisor-owned runtime state and is gitignored
+- [ ] Benchmark task files are in `fixtures/`
+- [ ] No target-repo onboarding step asks for committed `.autoclaw/` contents
 
 ### Phase 0 Exit Criteria
 
@@ -302,7 +286,7 @@ All of the following must be true:
 - [ ] Repo contract exists and every command works manually
 - [ ] 3-5 benchmark run contracts exist with testable acceptance criteria
 - [ ] Codex, Claude API, and Playwright all work independently
-- [ ] `.autoclaw/` directory structure exists
+- [ ] Runtime artifact storage is defined and kept outside committed repo structure
 - [ ] A clean checkout + contract commands produces green gates and a running app
 
 **Do not proceed to Phase 1 until all Phase 0 criteria are met.**
@@ -474,7 +458,7 @@ Use the manual strategy mode. You play the AI strategy layer — the supervisor 
 cd /path/to/repo
 python supervisor/main.py \
   --repo-path . \
-  --run-contract .autoclaw/benchmark-tasks/benchmark-001.json \
+  --run-contract fixtures/benchmark-001.json \
   --strategy manual
 ```
 
@@ -596,7 +580,7 @@ Log changes in CHANGELOG.md.
 ```bash
 python supervisor/main.py \
   --repo-path /path/to/repo \
-  --run-contract .autoclaw/benchmark-tasks/benchmark-001.json \
+  --run-contract fixtures/benchmark-001.json \
   --strategy simple
 ```
 

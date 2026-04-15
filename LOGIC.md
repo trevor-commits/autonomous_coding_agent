@@ -129,7 +129,7 @@ Each action is legal only in specific phases. The supervisor rejects actions tha
 
 The system does not improvise a repo's lifecycle. Two contracts define the automation surface:
 
-**Repo contract** (`.agent/contract.yml`) — stable, version-controlled, describes how the repo works: setup, test, lint, typecheck, app launch, health check, UI smoke, critical flows, environment variables. If the minimum required fields (setup, test, app_up, app_health) are missing, the run ends as UNSUPPORTED. This is intentional — "unsupported" is better than "improvised and wrong."
+**Repo contract** (`.agent/contract.yml`) — stable, version-controlled target-repo truth in the target repo's `.agent/` surface, describing how that repo works: setup, test, lint, typecheck, app launch, health check, UI smoke, critical flows, environment variables. If the minimum required fields (setup, test, app_up, app_health) are missing, the run ends as UNSUPPORTED. This is intentional — "unsupported" is better than "improvised and wrong."
 
 **Run contract** (JSON, per-task) — operational, per-run, describes what this specific task requires: objective, allowed/forbidden file paths, acceptance criteria, quality gates, UI checks, budget constraints (max iterations, max cost, hard timeout). The run contract is what makes each run scoped and auditable.
 
@@ -171,9 +171,9 @@ The system uses three tiers of memory, each with a different lifecycle:
 
 **Repo truth** — version-controlled files in the repo (contract, ADRs, AGENTS.md, conventions). Stable, human-managed, survives across all runs.
 
-**Run truth** — per-run state and artifacts in `.autoclaw/runs/<run_id>/`. Created at run start, written throughout, preserved after completion. Contains the contract, plan, state file, defect packets, screenshots, traces, logs, and final report. Ephemeral to the run but preserved for post-mortem.
+**Run truth** — per-run state and artifacts in the supervisor-owned runtime workspace at `.autoclaw/runs/<run_id>/`. Created at run start, written throughout, preserved after completion, and gitignored rather than committed in either repo. It contains the contract, plan, state file, defect packets, screenshots, traces, logs, and final report. It is ephemeral to the run but preserved for post-mortem.
 
-**Operational memory** — cross-run learnings in `.autoclaw/memory/`. Failure signatures, flaky test registry, environment quirks, prior fix strategies. Built up automatically over time. Subject to TTL (stale entries archived after 30 days). This is what makes the system get better with repeated use — a failure that was diagnosed and fixed in run 7 can inform the builder's approach in run 12.
+**Operational memory** — cross-run learnings in the supervisor-owned runtime workspace at `.autoclaw/memory/`. Failure signatures, flaky test registry, environment quirks, and prior fix strategies are built up automatically over time and remain gitignored runtime state rather than committed repo structure. This data is subject to TTL (stale entries archived after 30 days). This is what makes the system get better with repeated use — a failure that was diagnosed and fixed in run 7 can inform the builder's approach in run 12.
 
 No raw transcript storage. No chain-of-thought preservation. No external semantic memory system in v1. File-based operational memory is sufficient until volume proves otherwise.
 

@@ -387,7 +387,7 @@ Suggested location:
 .agent/contract.yml
 ```
 
-This is stable, version-controlled repo truth.
+This is stable, version-controlled repo truth in the target repo's `.agent/` contract surface; see `STRUCTURE.md` for the control-plane versus target-repo boundary.
 
 ### Required responsibilities of the repo contract
 
@@ -977,6 +977,8 @@ Suggested location:
 .autoclaw/runs/<run_id>/
 ```
 
+This is supervisor-owned runtime storage rather than committed source in either repo; see `STRUCTURE.md` for the boundary rule.
+
 Examples:
 
 - run contract
@@ -997,6 +999,8 @@ Suggested location:
 ```text
 .autoclaw/memory/
 ```
+
+This is supervisor-owned runtime storage rather than target-repo structure; see `STRUCTURE.md` for the boundary rule.
 
 Examples:
 

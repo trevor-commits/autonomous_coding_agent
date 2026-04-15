@@ -17,6 +17,7 @@ Additional rules:
 
 - **No filler stubs.** Do not add section headings whose body is "This document does not introduce X" or similar placeholder content. If a section would have no substantive content, omit the section entirely.
 - **Scope honesty.** When the prompt itself enumerates files it will touch, the goal line and discipline line must reflect the same set. Mismatches between framing and body waste an audit cycle.
+- **Historical grep scope.** Verification greps must exclude `design-history/` unless the task is explicitly rewriting or auditing historical records. Archived docs may retain superseded terminology behind their archive banner, so repo-wide grep checks that are meant to validate current truth must target active docs only.
 
 Example header (illustrative, not a template to copy verbatim):
 

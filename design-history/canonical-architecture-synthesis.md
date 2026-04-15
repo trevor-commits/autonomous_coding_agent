@@ -1,6 +1,6 @@
 # Canonical Architecture Synthesis
 
-> Historical archive note: this document preserves prior reasoning and intermediate terminology. Do not implement from it directly; use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../GUIDE.md` for current guidance.
+> Historical archive note: this document preserves prior reasoning and intermediate terminology. Do not implement from it directly; use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
 
 **Date:** April 12, 2026  
 **Purpose:** Capture the full architecture feedback given so far by Codex, Claude, and ChatGPT Pro, explain how the design evolved, and state the current source-of-truth position for this project.

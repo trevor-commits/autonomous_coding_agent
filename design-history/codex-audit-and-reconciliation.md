@@ -1,6 +1,6 @@
 # Codex Implementation Spec Audit & Reconciliation
 
-> Historical archive note: this document preserves an intermediate reconciliation state and may contain superseded vocabulary or layout assumptions. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../GUIDE.md` for current guidance.
+> Historical archive note: this document preserves an intermediate reconciliation state and may contain superseded vocabulary or layout assumptions. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
 
 **Date:** April 12, 2026
 **Context:** Codex produced a detailed implementation spec. Claude (me) produced a delegation architecture (v2). This document audits where they agree, where they disagree, who is right, and what the final merged design should be.

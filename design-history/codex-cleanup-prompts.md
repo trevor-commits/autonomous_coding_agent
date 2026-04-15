@@ -1,6 +1,6 @@
 # Codex Cleanup Prompts — Phase 0 Unblock Pass
 
-Five prompts, run in sequence. Each prompt tells Codex exactly which files to read so it stays in repo-style. **Do not create branches.** Work on the current branch. After each prompt, commit with the suggested message. Every prompt ends by appending to the then-separate work log at the repo root under a dated entry.
+Five prompts, run in sequence. Each prompt tells Codex exactly which files to read so it stays in repo-style. **Do not create branches.** Work on the current branch. After each prompt, commit with the suggested message. Every prompt ends by appending to `WORK-LOG.md` (create if missing) under a dated entry.
 
 ---
 
@@ -32,20 +32,20 @@ STYLE RULES
 - Do not exceed ~150 lines.
 
 LOGGING
-Create the separate work log at the repo root if it does not exist. Append a dated entry:
+Create WORK-LOG.md at the repo root if it does not exist. Append a dated entry:
   ## 2026-04-14 — PROJECT_INTENT filled
   - Replaced template with real intent sourced from canonical-architecture.md §1 and README.md.
   - Open questions surfaced: <list any>.
 
 COMMIT
 Single commit at the end of this task:
-  git add PROJECT_INTENT.md <historical work-log file>
+  git add PROJECT_INTENT.md WORK-LOG.md
   git commit -m "docs(intent): replace template with real project intent"
   git push
 
 DO NOT
 - Do not create a branch.
-- Do not edit any file other than PROJECT_INTENT.md and the historical work-log file for that pass.
+- Do not edit any file other than PROJECT_INTENT.md and WORK-LOG.md.
 - Do not invent non-goals or success metrics that are not already grounded in canonical-architecture.md, RULES.md, or IMPLEMENTATION-PLAN.md.
 ```
 
@@ -88,7 +88,7 @@ CROSS-DOC UPDATES
 Add a `.gitignore` at the repo root (create if missing) that ignores at minimum: `.autoclaw/`, `.claude/`, `worktrees/`, `node_modules/`, `__pycache__/`, `.venv/`, `.env`, `.env.*`, `dist/`, `build/`. Keep it minimal; do not add ecosystem-specific rules we do not yet need.
 
 LOGGING
-Append to the separate work log:
+Append to WORK-LOG.md:
   ## 2026-04-14 — Repo boundary resolved
   - STRUCTURE.md rewritten to remove `.agent/` + `.autoclaw/` dual-location ambiguity.
   - Boundary: target owns `.agent/contract.yml`; control plane owns schemas/supervisor/fixtures/tests; run artifacts under `.autoclaw/runs/` (gitignored).
@@ -97,7 +97,7 @@ Append to the separate work log:
 
 COMMIT
 Single commit:
-  git add STRUCTURE.md .gitignore <historical work-log file> <any cross-doc files touched>
+  git add STRUCTURE.md .gitignore WORK-LOG.md <any cross-doc files touched>
   git commit -m "docs(structure): resolve control-plane vs target-repo boundary"
   git push
 
@@ -150,14 +150,14 @@ VALIDATION
 Add schemas/README.md (short) explaining:
 - Purpose of the schemas directory.
 - How to validate an instance against a schema locally (reference `ajv` CLI; do not add it as a dependency yet — just name the command).
-- A rule that any schema change requires a corresponding note in the separate work log and a bumped `$id` minor suffix if the change is breaking.
+- A rule that any schema change requires a corresponding note in WORK-LOG.md and a bumped $id minor suffix if the change is breaking.
 
 DO NOT ADD
 - Do not add supervisor code, validators, or CI yet.
 - Do not invent fields that are not named in canonical-architecture.md, PROMPTS.md, or IMPLEMENTATION-PLAN.md. If a field seems missing, list it in the schema's description as an open question. Do not silently invent it.
 
 LOGGING
-Append to the separate work log:
+Append to WORK-LOG.md:
   ## 2026-04-14 — Schemas scaffolded
   - Created schemas/{run-contract,strategy-decision,failure-fingerprint,defect-packet,readiness-report}.schema.json.
   - Source sections (by canonical-architecture.md heading): <list them>.
@@ -166,7 +166,7 @@ Append to the separate work log:
 
 COMMIT
 Single commit:
-  git add schemas/ <historical work-log file>
+  git add schemas/ WORK-LOG.md
   git commit -m "schemas: scaffold five boundary schemas (contract, strategy, fingerprint, defect, readiness)"
   git push
 
@@ -229,7 +229,7 @@ If schemas/ exists from prompt 3, update:
 - Remove any `x-pending-normalization: true` markers.
 
 LOGGING
-Append to the separate work log:
+Append to WORK-LOG.md:
   ## 2026-04-14 — Terminal-state vocabulary normalized
   - run_state ∈ {COMPLETE, BLOCKED, UNSUPPORTED, IN_PROGRESS}; readiness_verdict ∈ {READY, NOT_READY, NEEDS_MORE_EVIDENCE}.
   - COMPLETE legality rule codified in RULES.md.
@@ -260,7 +260,7 @@ GOAL
 Produce AUDIT-2026-04-14.md at the repo root containing a red/yellow/green verdict for each of the four changes, plus a consolidated punch list.
 
 REQUIRED READING
-1. The separate work log used at the time — the claims the implementer made about what was done.
+1. WORK-LOG.md — the claims the implementer made about what was done.
 2. git log for the last 5 commits — what actually landed.
 3. The four targets in full:
    a. PROJECT_INTENT.md
@@ -301,7 +301,7 @@ AUDIT CHECKS — PROMPT 4 (terminal states)
 
 CROSS-CUTTING CHECKS
 - No commits on a branch other than the one the user was on. `git log --all --oneline | head -20` should show work on the active branch only.
-- Every claim in the separate work log maps to a real file change in `git log -p`.
+- Every claim in WORK-LOG.md maps to a real file change in `git log -p`.
 - No file outside the allowed scope of its prompt was modified (e.g. Prompt 1 should not have touched RULES.md).
 
 REPORT FORMAT (AUDIT-2026-04-14.md)
@@ -324,7 +324,7 @@ Structure:
   Bullet list of the grep queries you ran and the commits you inspected, so a human can reproduce.
 
 LOGGING
-Append to the separate work log:
+Append to WORK-LOG.md:
   ## 2026-04-14 — Self-audit of Phase 0 cleanup
   - Report: AUDIT-2026-04-14.md.
   - Overall: <GREEN|YELLOW|RED>.
@@ -332,7 +332,7 @@ Append to the separate work log:
 
 COMMIT
 Single commit:
-  git add AUDIT-2026-04-14.md <historical work-log file>
+  git add AUDIT-2026-04-14.md WORK-LOG.md
   git commit -m "audit: Phase 0 cleanup pass verification report"
   git push
 
@@ -349,7 +349,7 @@ DO NOT
 
 Before you hand these to Codex, things to know:
 
-**Strengths.** Each prompt names the exact files to read, which keeps Codex from drifting into the 8,700 lines of repo prose. Scope is bounded per prompt. Logging is consistent through the then-separate work log. No branching. Audit is fully isolated from the work and tests the same specific properties the work was supposed to produce — not generic "is this good?" checks.
+**Strengths.** Each prompt names the exact files to read, which keeps Codex from drifting into the 8,700 lines of repo prose. Scope is bounded per prompt. Logging is consistent (`WORK-LOG.md` every time). No branching. Audit is fully isolated from the work and tests the same specific properties the work was supposed to produce — not generic "is this good?" checks.
 
 **Known risks you should accept or adjust.**
 

@@ -1,6 +1,6 @@
 # Autonomous Multi-Agent Coding System: Architecture Review & Redesign
 
-> Historical archive note: this document is preserved as context, not as current architecture. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../GUIDE.md` for current guidance.
+> Historical archive note: this document is preserved as context, not as current architecture. Use `../canonical-architecture.md`, `../STRUCTURE.md`, `../RULES.md`, and `../REPO_MAP.md` for current guidance.
 
 **Prepared for:** Trevor (trevor@gillettewsc.com)
 **Date:** April 12, 2026

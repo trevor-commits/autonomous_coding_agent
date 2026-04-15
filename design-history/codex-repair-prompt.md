@@ -21,9 +21,9 @@ Read only these files before beginning work. Do not browse other docs unless a s
 5. `IMPLEMENTATION-PLAN.md` — only the Phase 0 prerequisites section (search "Phase 0" and "prerequisites"; read the first match block and its checklist, approximately 30 lines).
 6. `RULES.md` — only the stop conditions section (search "UNSUPPORTED"; read the paragraph defining it, approximately 10 lines).
 7. `design-history/AUDIT-2026-04-14.md` — the full file (it is the Codex self-audit from the prior pass; you are closing its punch list here).
-8. `GUIDE.md` — full file (you will be merging content into it from the former quick-lookup helper doc).
-9. the former quick-lookup helper doc — full file (you are merging its unique content into `GUIDE.md` then deleting it).
-10. the former separate work log — full file (you are merging its unique content into `todo.md` then deleting it).
+8. `GUIDE.md` — full file (you will be merging content into it from REPO_MAP.md).
+9. `REPO_MAP.md` — full file (you are merging its unique content into GUIDE.md then deleting it).
+10. `WORK-LOG.md` — full file (you are merging its unique content into `todo.md` then deleting it).
 11. `todo.md` — the "Completed" section and the "Feedback Decision Log" (last 30 lines) only.
 
 ---
@@ -130,29 +130,29 @@ git push
 
 ---
 
-## Fix 6 — Merge and delete the helper quick-lookup doc and separate work log
+## Fix 6 — Merge and delete `REPO_MAP.md` and `WORK-LOG.md`
 
-**Why:** Both helper files were added in the repo reorganization pass. The quick-lookup doc duplicated `GUIDE.md`'s navigation purpose, and the separate work log duplicated `todo.md`'s `Completed` section and governance trail. Three sources then told readers "what's in the repo" and two told them "what's been done." The redundancy exceeded the utility.
+**Why:** Both files were added in the repo reorganization pass. Both overlap existing docs: `REPO_MAP.md` duplicates GUIDE.md's navigation purpose; `WORK-LOG.md` duplicates todo.md's Completed and governance trail. Three sources now tell readers "what's in the repo" and two tell them "what's been done." The redundancy exceeds the utility.
 
-**Fix — quick-lookup helper doc:**
-- Read the former quick-lookup helper doc in full.
+**Fix — REPO_MAP.md:**
+- Read `REPO_MAP.md` in full.
 - Read `GUIDE.md` in full.
-- Identify any content in the quick-lookup helper doc that is NOT already present in `GUIDE.md`. Specifically look for: the "Where does X go?" decision table, the governance record location list (Audit/Feedback/Test logs), and the "Active Source of Truth" file listing.
+- Identify any content in REPO_MAP.md that is NOT already present in GUIDE.md. Specifically look for: the "Where does X go?" decision table, the governance record location list (Audit/Feedback/Test logs), and the "Active Source of Truth" file listing.
 - Merge the unique content into GUIDE.md. Place navigation/lookup content in a section titled "Quick Reference — Where to Find Things" near the top of GUIDE.md (after the intro, before the reading order). Preserve the governance record location list as a brief paragraph.
-- After merging, delete the quick-lookup helper doc.
-- Update any references to the quick-lookup helper doc in `README.md`, `AGENTS.md`, `STRUCTURE.md`, `todo.md`, and `design-history/README.md`. Replace each with a reference to the appropriate `GUIDE.md` section.
+- After merging, delete `REPO_MAP.md`.
+- Update any references to `REPO_MAP.md` in `README.md`, `AGENTS.md`, `STRUCTURE.md`, `todo.md`, and `design-history/README.md`. Replace each with a reference to the appropriate GUIDE.md section.
 
-**Fix — separate work log:**
-- Read the former separate work log in full.
+**Fix — WORK-LOG.md:**
+- Read `WORK-LOG.md` in full.
 - Read the "Completed" section and the "Feedback Decision Log" tail of `todo.md`.
-- For each dated entry in the separate work log: if a corresponding entry already exists in `todo.md` `Completed` (same date, same scope), it is a duplicate — skip it. If no corresponding entry exists, append it to `todo.md` `Completed` with the same date and a note "from the former separate work log".
-- After merging, delete the separate work log.
-- Update any references to the separate work log in `README.md`, `AGENTS.md`, `STRUCTURE.md`, `GUIDE.md`, and `todo.md`'s Governance Shortcuts section. Replace them with a reference to `todo.md` `Completed`.
+- For each dated entry in WORK-LOG.md: if a corresponding entry already exists in todo.md Completed (same date, same scope), it is a duplicate — skip it. If no corresponding entry exists, append it to todo.md Completed with the same date and a note "from WORK-LOG.md".
+- After merging, delete `WORK-LOG.md`.
+- Update any references to `WORK-LOG.md` in README.md, AGENTS.md, STRUCTURE.md, GUIDE.md, and todo.md's Governance Shortcuts section. Replace with a reference to `todo.md` Completed.
 
 **Commit:**
 ```
 git add -A
-git commit -m "docs(cleanup): merge helper docs into GUIDE.md and todo.md; delete both"
+git commit -m "docs(cleanup): merge REPO_MAP into GUIDE.md; merge WORK-LOG into todo.md; delete both"
 git push
 ```
 
@@ -199,7 +199,7 @@ git push
 After all 7 fixes are committed, append one entry to `todo.md` Completed:
 
 ```
-- [x] 2026-04-15: closed Phase 0A punch list — schema field inversion, defect evidence constraints, naming normalization, Codex auth UNSUPPORTED exit, AGENTS.md markers, helper-doc merge-and-delete cleanup, and AUDIT-2026-04-14 findings. Commits: <list SHAs>.
+- [x] 2026-04-15: closed Phase 0A punch list — schema field inversion, defect evidence constraints, naming normalization, Codex auth UNSUPPORTED exit, AGENTS.md markers, REPO_MAP/WORK-LOG merge-and-delete, AUDIT-2026-04-14 findings. Commits: <list SHAs>.
 ```
 
 And append one entry to `todo.md` Test Evidence Log:
@@ -216,8 +216,8 @@ for name in ['strategy-decision','defect-packet','readiness-report','failure-fin
         jsonschema.validate(ex, s)
         print(f'PASS: {name} example valid')
 " (all examples must pass; any ValidationError is a failure);
-  (4) grep for the deleted quick-lookup helper doc name across README.md, AGENTS.md, STRUCTURE.md, and GUIDE.md (must return zero hits);
-  (5) grep for the deleted separate work-log filename across README.md, AGENTS.md, STRUCTURE.md, and GUIDE.md (must return zero hits)
+  (4) grep -n "REPO_MAP" README.md AGENTS.md STRUCTURE.md GUIDE.md (must return zero hits);
+  (5) grep -n "WORK-LOG" README.md AGENTS.md STRUCTURE.md GUIDE.md (must return zero hits)
   | result: <pass/fail per command> | log/PR reference: <commit SHAs>
 ```
 

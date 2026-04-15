@@ -93,7 +93,7 @@ If Linear later adopts an agent or delegation field, use that for tool actors. D
 Guardrail:
 
 - no issue may remain unassigned once it enters `Ready for Build`
-- no PR may use `ref <PREFIX>-123` unless the issue already has an accountable owner set
+- no PR may use `ref GIL-123` unless the issue already has an accountable owner set
 
 This prevents Linear's default behavior from auto-assigning the PR linker to an otherwise unassigned issue.
 
@@ -172,7 +172,7 @@ Enabled. This is a separate Linear launch workflow that opens Codex or Claude Co
 
 ### Codex-In-Linear Delegation
 
-Disabled by policy, not because of a capability gap. The integration exists; this repo does not use it because `RULES.md` keeps run spawning and worktree ownership under the supervisor.
+Disabled by policy, not because of a capability gap. The integration exists; this repo does not use it because `RULES.md` keeps run spawning and worktree ownership under the supervisor. On 2026-04-15 Codex was removed from Linear's Installed Agents surface to reinforce this policy at the tool level, not just in doc.
 
 ## GitHub Account And Sync Settings
 
@@ -183,9 +183,9 @@ Disabled by policy, not because of a capability gap. The integration exists; thi
 
 ## PR Linking Convention
 
-Default to `ref <PREFIX>-123` in the PR description. `<PREFIX>` is the actual Linear team prefix. If no workspace exists yet, keep `<PREFIX>` as an explicit placeholder rather than inventing one.
+Default to `ref GIL-123` in the PR description. `GIL` is the Linear team prefix for the Gillettewsc team, confirmed on 2026-04-15.
 
-Do not use `Fixes <PREFIX>-123` or `Closes <PREFIX>-123` by default. Closing magic words bypass the intended `Building -> AI Audit -> Human Verify -> Done` flow by letting Linear drive issue state from branch push and merge events.
+Do not use `Fixes GIL-123` or `Closes GIL-123` by default. Closing magic words bypass the intended `Building -> AI Audit -> Human Verify -> Done` flow by letting Linear drive issue state from branch push and merge events.
 
 Branch names may include the issue ID for navigability. Branching itself is still an operator and supervisor concern, not something Claude should instruct Codex to create.
 

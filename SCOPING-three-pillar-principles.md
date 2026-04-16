@@ -1,6 +1,6 @@
 # SCOPING — Three Repo Principles (Continuity, Coherence, Linear-Core)
 
-**Status:** staged, not yet landed.
+**Status:** landed as commit `21b8898` on 2026-04-16; Claude Code audit clean.
 **Drafted:** 2026-04-16, chat between Trevor and Claude Code.
 **Linear issue:** `GIL-32` ("Land Continuity, Coherence, and Linear-Core root principles"), filed in `Building`.
 **Retirement:** once Codex lands the commit per this document, move this file to `design-history/` as a historical artifact (or delete if the Feedback Decision Log entry captures enough on its own). Do NOT edit or rewrite after retirement — `design-history/` content is preserved as-is.

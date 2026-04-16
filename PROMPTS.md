@@ -12,7 +12,7 @@ Every Codex prompt issued from this repo opens with the same five-part header so
 2. **Discipline line.** State the execution posture explicitly: whether code is allowed, whether branches are allowed, and whether the task should leave changes staged or commit and push on the current branch. The point is to remove ambiguity before work starts.
 3. **Read-scope.** A bulleted list of files Codex is allowed to read substantively, each with a one-line reason. Use the wording: "For repo content, limit substantive reads to:" followed by the list, then the trailing line: "Do not read other repo docs unless required by higher-priority agent instructions or validation." This phrasing is intentional — fully absolute "do not read" language conflicts with agents that have validator or instruction-precedence obligations.
 4. **Body.** Numbered change instructions, then a `Constraints:` block at the end covering: do not modify other docs, do not create branches, stop and report on conflict instead of guessing, and print a one-line summary of files modified after the change.
-5. **Durable record.** The prompt must name: (a) the `todo.md` `Work Record Log` entry Codex will append, (b) the `todo.md` `Completed` index entry, (c) any `Audit Record Log`, `Feedback Decision Log`, or `Test Evidence Log` entries expected, (d) any Linear issues the task creates for surfaced follow-ups, (e) the Ripple Check the Self-audit must attest, and (f) any ADR touched or created.
+5. **Durable record.** The prompt must name: (a) the `todo.md` `Work Record Log` entry Codex will append, (b) the `todo.md` `Completed` index entry, (c) any `Audit Record Log`, `Feedback Decision Log`, or `Test Evidence Log` entries expected, (d) any Linear issues the task creates or refreshes for surfaced follow-ups, (e) any `todo.md` `Linear Issue Ledger` updates required, (f) the Ripple Check the Self-audit must attest, and (g) any ADR touched or created.
 
 Additional rules:
 
@@ -54,6 +54,7 @@ Constraints:
 Durable record:
 - Work Record Log: add the 2026-04-16 `GIL-32` landing record in `todo.md`
 - Completed: add the one-line `GIL-32` landing index entry in `todo.md`
+- Linear Issue Ledger: add or refresh any live issue entries touched by the task, including `todo home:`, `why this exists:`, and `origin source:`
 - Audit / Feedback / Test logs: only append new entries if the work surfaces findings or runs verification that belongs there
 - Linear: create or use `GIL-32`; file any surfaced follow-up in the same commit or disposition it as `no-action:` / `self-contained:`
 - Ripple Check: attest consistency across CONTINUITY.md, COHERENCE.md, AGENTS.md, CLAUDE.md, PROMPTS.md, LINEAR.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, `todo.md`, and `~/.claude/CLAUDE.md`
@@ -72,7 +73,7 @@ Every touched section is listed in the Self-audit together with the dependent do
 
 ### Linear-coverage attestation
 
-Every actionable finding surfaced during the task is dispositioned in the same closeout surface: a `GIL-N` issue is filed, or the durable record explicitly says `no-action: <reason>` or `self-contained: <reason>`. The prompt must name which outcome is expected before implementation starts.
+Every actionable finding surfaced during the task is dispositioned in the same closeout surface: a `GIL-N` issue is filed, or the durable record explicitly says `no-action: <reason>` or `self-contained: <reason>`. Every live Linear issue touched by the task also gets a `todo.md` `Linear Issue Ledger` entry or refresh with `todo home:`, `why this exists:`, and `origin source:`. The prompt must name which outcome is expected before implementation starts.
 
 ## 1. Core Position
 

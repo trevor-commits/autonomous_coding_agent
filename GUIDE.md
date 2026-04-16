@@ -25,6 +25,7 @@ Use these files for current truth:
 Use `todo.md` for durable working records:
 
 - `Active Next Steps`: execution-ready work
+- `Linear Issue Ledger`: every live Linear issue, its current status, repo-side home, why it exists, and origin source
 - `Work Record Log`: what would otherwise die with the conversation
 - `Completed`: one-line landing index
 - `Suggested Recommendation Log`: deferred or optional ideas
@@ -113,7 +114,7 @@ The front page. Read this first when landing in the repo without context.
 
 ### [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
 
-This is the durable working record for the project. It holds the active queue, completed work trail, suggested ideas, audit log, test evidence, and feedback decisions.
+This is the durable working record for the project. It holds the active queue, the live Linear issue mirror with provenance, the completed work trail, suggested ideas, audit log, test evidence, and feedback decisions.
 
 ## Design History
 
@@ -135,7 +136,7 @@ Key historical records:
 
 When the repo changes because of an audit, user feedback, or plan refinement, the durable record should go in one of two places:
 
-- Use `todo.md` for the decision trail: active work, suggested ideas, audit outcomes, test evidence, and feedback decisions.
+- Use `todo.md` for the decision trail: active work, live Linear issue coverage with provenance, suggested ideas, audit outcomes, test evidence, and feedback decisions.
 - Use `todo.md`'s `Completed` section for the landed change trail: what documentation or structure edits actually landed and when.
 
 That split prevents chat-only memory and keeps the repo explainable to both people and agents.
@@ -159,5 +160,6 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | What should an agent read first? | `AGENTS.md` |
 | How do I find the right file fast? | `GUIDE.md` section `Quick Reference — Where to Find Things` |
 | Where are audits, ideas, and feedback decisions recorded? | `todo.md` |
+| Where do all live Linear issues get mirrored with why/source? | `todo.md` section `Linear Issue Ledger` |
 | What changed recently in the repo? | `todo.md` section `Completed` (index) and `Work Record Log` (full record) |
 | Where is the old material? | `design-history/` |

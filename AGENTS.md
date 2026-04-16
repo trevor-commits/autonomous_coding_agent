@@ -10,7 +10,7 @@ Continuity lives in `CONTINUITY.md`. Conversation memory is temporary; only repo
 
 Coherence lives in `COHERENCE.md`. When one live governance surface changes, every live document that depends on it changes in the same commit, and the Ripple Check is attested before landing.
 
-Linear-Core lives in `LINEAR.md` `## Linear-at-the-core`. Repo docs hold truth; Linear holds routing and coverage. Any surfaced follow-up that implies future work must become a `GIL-N` issue or an explicit `no-action:` / `self-contained:` disposition in the durable record. All three are loaded before any task. Violating any of them is a ship-blocking failure.
+Linear-Core lives in `LINEAR.md` `## Linear-at-the-core`. Repo docs hold truth; Linear holds routing and coverage. Any surfaced follow-up that implies future work must become a `GIL-N` issue or an explicit `no-action:` / `self-contained:` disposition in the durable record, and every live Linear issue must appear in `todo.md` with a durable home, `why this exists:`, and `origin source:`. All three are loaded before any task. Violating any of them is a ship-blocking failure.
 
 ## Source Of Truth
 
@@ -71,6 +71,7 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 - Use `CONTINUITY.md`, `COHERENCE.md`, `LINEAR.md`, `PROJECT_INTENT.md`, `canonical-architecture.md`, `RULES.md`, `STRUCTURE.md`, and `GUIDE.md` as the current truth set for continuity, coherence, routing, purpose, architecture, constraints, placement, and navigation.
 - Record active work, completed work, suggested ideas, audit records, test evidence, and feedback decisions in `todo.md` rather than leaving them only in chat.
+- Keep every live Linear issue mirrored in `todo.md` `Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`; external or connected-system issues do not get a waiver.
 - Keep verification evidence in `todo.md`'s `Test Evidence Log`, keep the durable completion narrative in `todo.md`'s `Work Record Log`, and keep the fast landing index in `todo.md`'s `Completed` section.
 - Keep the current-checkout bias unless the user explicitly asks for isolation or concurrent work makes a separate branch/worktree necessary.
 - Ask focused clarifying questions when instructions conflict with the canonical architecture or the repo boundary; otherwise prefer direct execution over repeated approval prompts.
@@ -87,11 +88,11 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 ## Completion Authority
 
-- **Codex may:** create a Linear issue if none exists, append `todo.md` `Work Record Log` and `Completed` with the landing reference, post a completion comment on the Linear issue, and commit and push on the current branch. `Pre-commit gates:` `Continuity Check` (Work Record entry exists and Self-audit is non-hollow), `Ripple Check` (every affected live doc was checked and any drift was updated in the same commit, then attested in Self-audit), and `Linear-coverage` (every surfaced follow-up is filed as a `GIL-N` issue or dispositioned in the log entry).
+- **Codex may:** create a Linear issue if none exists, append `todo.md` `Work Record Log` and `Completed` with the landing reference, update `todo.md` `Linear Issue Ledger` when a live issue is created or its repo-side home changes, post a completion comment on the Linear issue, and commit and push on the current branch. `Pre-commit gates:` `Continuity Check` (Work Record entry exists and Self-audit is non-hollow), `Ripple Check` (every affected live doc was checked and any drift was updated in the same commit, then attested in Self-audit), and `Linear-coverage` (every surfaced follow-up is filed as a `GIL-N` issue or dispositioned in the log entry, and every live issue has a ledger entry with provenance).
 - **Codex may not:** move Linear state, check off any checklist item in the Linear issue body, mark a task `Done`, or edit other agents' audit writeups.
-- **Claude Code may:** perform the primary line-by-line audit, check off audit checklist items in the Linear issue body once its review is clean, write targeted fix code when appropriate, post audit findings as Linear comments, and append audit entries to `todo.md` `Audit Record Log` and `Test Evidence Log`. `Pre-audit-clean gates:` `Continuity Check` (an audit-variant Work Record exists and at least one Codex Self-audit claim was spot-checked), `Ripple Check` (Codex's diff was checked for missing dependent updates), and `Linear-coverage` (any finding Code surfaces is filed as a `GIL-N` issue or dispositioned in the durable record).
+- **Claude Code may:** perform the primary line-by-line audit, check off audit checklist items in the Linear issue body once its review is clean, write targeted fix code when appropriate, post audit findings as Linear comments, and append audit entries to `todo.md` `Audit Record Log` and `Test Evidence Log`. `Pre-audit-clean gates:` `Continuity Check` (an audit-variant Work Record exists and at least one Codex Self-audit claim was spot-checked), `Ripple Check` (Codex's diff was checked for missing dependent updates), and `Linear-coverage` (any finding Code surfaces is filed as a `GIL-N` issue or dispositioned in the durable record, and every live issue referenced in the audit has a current ledger entry).
 - **Claude Code may not:** move Linear state, mark a task `Done`, or sign off on code it authored itself — an independent auditor (second Code session, Cowork, or Trevor) must clear Code-authored changes.
-- **Cowork may:** move Linear state through `Building -> AI Audit -> Human Verify`, draft sub-issues for repair loops, manage `todo.md` `Active Next Steps` state, perform the lightweight spec-alignment pass after Code's audit is clean, and check off the spec-alignment checklist item. `Pre-state-move gates:` `Continuity Check` (required Work Record exists on disk), `Ripple Check` (attestation exists and no dependent doc was missed), and `Linear-coverage` (the task has no un-Linearized actionable follow-up). For Cowork's own direct edits, the minimum is a light Work Record (`Problem`, `Reasoning`, `Change`, `Self-audit`) plus Ripple Check plus Linear-coverage. Cowork does not perform the line-by-line review that is Code's role.
+- **Cowork may:** move Linear state through `Building -> AI Audit -> Human Verify`, draft sub-issues for repair loops, manage `todo.md` `Active Next Steps` state and `Linear Issue Ledger`, perform the lightweight spec-alignment pass after Code's audit is clean, and check off the spec-alignment checklist item. `Pre-state-move gates:` `Continuity Check` (required Work Record exists on disk), `Ripple Check` (attestation exists and no dependent doc was missed), and `Linear-coverage` (the task has no un-Linearized actionable follow-up and every live issue involved still has a current ledger entry with provenance). For Cowork's own direct edits, the minimum is a light Work Record (`Problem`, `Reasoning`, `Change`, `Self-audit`) plus Ripple Check plus Linear-coverage. Cowork does not perform the line-by-line review that is Code's role.
 - **Trevor may:** move an issue to `Done`, override any of the above, and resolve disagreements.
 
 ## Linear Workflow
@@ -99,8 +100,9 @@ The next implementation work should align with the phased plan in `canonical-arc
 - Every bounded task must have a Linear issue in team `GIL` before Codex begins work.
 - If Cowork provides an existing `GIL-N` issue for the task, reference that issue before starting work.
 - If no issue exists yet, Codex creates one before starting work using the `Standard issue` template defined in `LINEAR.md`, with the task title and initial state `Building`.
+- Every live Linear issue must also have a matching `todo.md` `Linear Issue Ledger` entry recording `todo home:`, `why this exists:`, and `origin source:`. GitHub- or integration-created issues are not exceptions.
 - Codex never moves Linear state, never checks off checklist items in the issue body, and never marks a task `Done`. See `## Completion Authority`.
-- When a bounded task is complete, Codex may append the `todo.md` `Work Record Log` entry, append the `todo.md` `Completed` landing index entry, and post the completion comment, then Cowork moves the issue to `AI Audit`.
+- When a bounded task is complete, Codex may append the `todo.md` `Work Record Log` entry, append the `todo.md` `Completed` landing index entry, refresh the issue's `todo home:` in `Linear Issue Ledger`, and post the completion comment, then Cowork moves the issue to `AI Audit`.
 - Never store acceptance criteria, decisions, or audit conclusions in Linear. Keep them in repository docs.
 - When referencing pull requests, use `ref GIL-N`. Do not use `Fixes`, `Fixed`, `Closes`, or `Closed`.
 
@@ -108,7 +110,7 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 - Read only the files explicitly listed in the task's read-scope.
 - Do not browse beyond that read-scope for research, implementation decisions, or cross-file context.
-- Landing-step exception: reading and writing `todo.md` `Work Record Log` and `Completed`, creating a Linear issue through the Linear MCP when one is missing, and posting the completion comment through the Linear MCP are always in scope and do not need to be listed separately.
+- Landing-step exception: reading and writing `todo.md` `Work Record Log`, `Completed`, and `Linear Issue Ledger`, creating a Linear issue through the Linear MCP when one is missing, and posting the completion comment through the Linear MCP are always in scope and do not need to be listed separately.
 - If a file outside the listed read-scope is required to complete the task correctly, stop and ask instead of widening scope silently.
 - If `todo.md` must be read for context beyond the landing-step exception, it must be included in the read-scope.
 
@@ -122,7 +124,7 @@ The next implementation work should align with the phased plan in `canonical-arc
 - Use `ref GIL-N` for pull request references. Never use `Fixes`, `Fixed`, `Closes`, or `Closed`.
 - Commit and push on the current branch.
 - Never create a branch for repo work in this repository.
-- The landing commit should include the implementation changes, the `todo.md` `Work Record Log` entry, and the `todo.md` `Completed` index entry for the same task as one closeout package; when the exact commit SHA cannot be embedded pre-commit, record the landing commit reference in the immediate closeout update instead of widening scope.
+- The landing commit should include the implementation changes, the `todo.md` `Work Record Log` entry, the `todo.md` `Completed` index entry, and any required `Linear Issue Ledger` updates for the same task as one closeout package; when the exact commit SHA cannot be embedded pre-commit, record the landing commit reference in the immediate closeout update instead of widening scope.
 
 ## Authoritative Documents
 

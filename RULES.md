@@ -318,11 +318,11 @@ These governance rules derive from `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.
 
 ### Linear-Core
 
-- `R-LIN-01`: Every `todo.md` `Active Next Steps` item has a matching Linear issue annotated `(GIL-N)`.
-- `R-LIN-02`: Every log entry in `todo.md` (`Audit Record`, `Feedback Decision`, `Test Evidence`, `Suggested Recommendation`, `Work Record`) has a `linear:` field populated with a `GIL-N`, `no-action: <reason>`, or `self-contained: <reason>` value.
-- `R-LIN-03`: Any surfaced follow-up implying future work is filed as a Linear issue in the same commit it is recorded, not deferred to "later."
-- `R-LIN-04`: Before any Linear state move or conversation exit, Cowork verifies Linear-coverage for findings surfaced in the interval. Un-Linearized actionable findings block the state move.
-- `R-LIN-05`: Linear holds routing, scheduling, and coverage metadata only. Acceptance criteria, decisions, audit conclusions, and reasoning stay in repo docs.
+- `R-LIN-01`: Every live Linear issue in a non-terminal state has a matching `todo.md` `Linear Issue Ledger` entry recording the issue ID, current status, `todo home:`, `why this exists:`, and `origin source:`.
+- `R-LIN-02`: Every `todo.md` `Active Next Steps` item has a matching Linear issue annotated `(GIL-N)`, and that issue also appears in `Linear Issue Ledger`.
+- `R-LIN-03`: Any surfaced follow-up implying future work is filed as a Linear issue in the same commit it is recorded, added to `Linear Issue Ledger` in the same commit, and given an explicit `origin source:` instead of being deferred to "later."
+- `R-LIN-04`: Every log entry in `todo.md` (`Audit Record`, `Feedback Decision`, `Test Evidence`, `Suggested Recommendation`, `Work Record`) has a `linear:` field populated with a `GIL-N`, `no-action: <reason>`, or `self-contained: <reason>` value.
+- `R-LIN-05`: Before any Linear state move or conversation exit, Cowork verifies Linear-coverage for findings surfaced in the interval. Missing ledger entries, missing provenance, status/home drift, or un-Linearized actionable findings block the state move. Linear still holds routing, scheduling, and coverage metadata only; acceptance criteria, decisions, audit conclusions, and reasoning stay in repo docs.
 
 ---
 

@@ -61,6 +61,7 @@ Archived drafts, reconciliation docs, old architecture summaries, and audit reco
 This repo keeps durable governance records instead of leaving them in chat:
 
 - `todo.md` `Active Next Steps`: execution-ready work
+- `todo.md` `Linear Issue Ledger`: every live Linear issue, its repo-side home, why it exists, and where it came from
 - `todo.md` `Work Record Log`: what would otherwise be lost between conversations
 - `todo.md` `Completed`: one-line landing index
 - `todo.md` `Suggested Recommendation Log`: deferred or optional ideas

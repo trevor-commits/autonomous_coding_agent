@@ -21,7 +21,7 @@ Inputs: `{REPO_PATH}`, `{TEAM_NAME}`, `{TEAM_PREFIX}`, `{AUTHORITATIVE_DOCS}`, `
 ```text
 Usage note: this template is filled in by Claude Cowork after running the §1 intake, then handed to Codex in the target repo.
 
-Goal: Port Linear governance into `{REPO_PATH}` by creating a tailored `LINEAR.md`, adding a `## Linear` pointer section in `CLAUDE.md`, adding a Linear pointer in `{AGENTS_POINTER_TARGET}`, and appending a `todo.md` `Completed` entry. One new file, three edited files.
+Goal: Port Linear governance into `{REPO_PATH}` by creating a tailored `LINEAR.md`, adding a `## Linear` pointer section in `CLAUDE.md`, adding a Linear pointer in `{AGENTS_POINTER_TARGET}`, and updating `todo.md` so it can mirror every live Linear issue with provenance before appending a `Completed` entry. One new file, three edited files.
 
 Discipline: No code. No branch. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit. If the target repo documents a different commit convention for doc-only work, follow that target-repo policy instead.
 
@@ -33,7 +33,7 @@ For repo content, limit substantive reads to:
 - `{AGENTS_POINTER_TARGET}`
   (to place the Linear pointer in the authoritative AGENTS surface resolved during intake)
 - `todo.md`
-  (to locate the `## Completed` heading and append the completion entry)
+  (to locate or create the `## Linear Issue Ledger` convention block, then append the completion entry)
 
 Do not read other repo docs unless required by higher-priority agent instructions or validation.
 
@@ -43,7 +43,8 @@ Body:
 3. If the target repo uses a decision-record convention other than ADRs, map every ADR reference to that convention while preserving the same governance meaning.
 4. Add a `## Linear` pointer section in `CLAUDE.md` that points readers to `LINEAR.md` for the repo's Linear workflow rules.
 5. Add a Linear pointer in `{AGENTS_POINTER_TARGET}`. If the root `AGENTS.md` is only a thin stub that defers to another authoritative overlay, keep the stub minimal and put the pointer in the overlay instead.
-6. Append a `todo.md` `Completed` entry dated today with one line describing the Linear bootstrap addition.
+6. Update `todo.md` so it has a `## Linear Issue Ledger` section or convention block that mirrors every live issue with `todo home:`, `why this exists:`, and `origin source:`.
+7. Append a `todo.md` `Completed` entry dated today with one line describing the Linear bootstrap addition.
 
 Constraints:
 - Do not modify docs other than `LINEAR.md`, `CLAUDE.md`, `{AGENTS_POINTER_TARGET}`, and `todo.md`.

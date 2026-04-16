@@ -21,6 +21,8 @@ Routing metadata only:
 - issue title
 - status
 - assignee
+- `Why this exists:` one-line reason the issue exists at all
+- `Origin source:` where the issue came from (manual operator request, audit finding, GitHub/PR automation, or another connected system)
 - authoritative spec link
 - authoritative decision-docs link
 - PR link
@@ -43,25 +45,31 @@ Authoritative and never duplicated in Linear:
 
 ## Linear-at-the-core
 
-Linear holds scheduling; repo docs hold truth. Together with `CONTINUITY.md` and `COHERENCE.md`, this is a root repo principle. Any audit finding, feedback decision, suggestion, or surfaced follow-up that implies future work gets a Linear issue in the same commit, or is dispositioned `no-action: <reason>` or `self-contained: <reason>` in the log entry. Nothing actionable sits un-Linearized.
+Linear holds scheduling; repo docs hold truth. Together with `CONTINUITY.md` and `COHERENCE.md`, this is a root repo principle. Any audit finding, feedback decision, suggestion, or surfaced follow-up that implies future work gets a Linear issue in the same commit, or is dispositioned `no-action: <reason>` or `self-contained: <reason>` in the log entry. Nothing actionable sits un-Linearized, and no live Linear issue is allowed to float without a durable `todo.md` home that explains why it exists and where it came from.
 
 ## Coverage Invariant
 
-Every `todo.md` `Active Next Steps` item must have a matching Linear issue in team `GIL` before the item is considered actionable. The Linear issue ID is annotated inline in `todo.md` as `(GIL-N)`.
+Every live Linear issue in team `GIL` except terminal states (`Done`, `Canceled`) must appear in `todo.md` `## Linear Issue Ledger`. Each ledger entry records the issue ID, current status, `todo home:`, `why this exists:`, and `origin source:`.
+
+Every `todo.md` `Active Next Steps` item must also have a matching Linear issue in team `GIL` before the item is considered actionable. The Linear issue ID is annotated inline in `todo.md` as `(GIL-N)`.
 
 This is bidirectional:
 
 - Adding an item to `Active Next Steps` without creating a Linear issue is a violation.
-- Creating a Linear issue for planned work without a corresponding `todo.md` entry is permitted only for reactive or interrupt work that does not map to a planned phase step.
+- Creating or leaving a live Linear issue without a `Linear Issue Ledger` entry is a violation, even when the issue came from GitHub or another connected system instead of manual creation.
+- Creating a live Linear issue for planned, reactive, interrupt, or externally generated work requires a matching `todo.md` ledger entry immediately, even if the item is not yet execution-ready.
 - Any log entry whose content implies future action must resolve its `linear:` field in the same commit. A missing or unresolved `linear:` field is a coverage violation.
+- When GitHub or another connected system creates or reopens a Linear issue, the first repo-side action is to add or refresh the matching `Linear Issue Ledger` entry with the exact trigger named in `origin source:`.
 
-When an item moves from `Active Next Steps` to `Completed`, the Linear issue moves to `Done` in the same logical commit. When an item is removed or deferred, the Linear issue is moved to `Canceled` or returned to `Inbox`.
+When an item moves from `Active Next Steps` to `Completed`, the Linear issue moves to `Done` in the same logical commit and the ledger entry's `todo home:` is updated. When an item is removed or deferred, the Linear issue is moved to `Canceled` or returned to `Inbox`, and the ledger entry is updated to show the new home or removed only after the issue is terminal.
 
 Invariant introduced 2026-04-16 after a gap was discovered where 9 of 14 Active Next Steps items had no Linear issue.
 
-`Linear-coverage` is clean only when both of these are true:
+`Linear-coverage` is clean only when all of these are true:
 
+- every live Linear issue has a `Linear Issue Ledger` entry with `todo home:`, `why this exists:`, and `origin source:`
 - every `Active Next Steps` item has its `GIL-N`
+- every live Linear issue's current status and repo-side home agree
 - every durable log entry that implies future work has a resolved `linear:` value (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 
 ## Statuses
@@ -141,6 +149,8 @@ Every issue body contains:
 
 - `Authoritative spec path:`
 - `Authoritative decision docs:` if applicable
+- `Why this exists:`
+- `Origin source:`
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
@@ -184,6 +194,10 @@ The template body is:
 **Authoritative spec path:**
 
 **Authoritative decision docs:** (if applicable)
+
+**Why this exists:**
+
+**Origin source:**
 
 **PR:** (once opened)
 
@@ -262,6 +276,7 @@ Disabled by policy, not because of a capability gap. The integration exists; thi
 - keep GitHub Issues Sync disabled to avoid dual truth across title, description, status, assignee, labels, and comments
 - keep commit linking disabled initially; only PR references should participate when automation is enabled later
 - keep the "Copy branch name -> auto-assign / move to Started" preference disabled while statuses are still manually controlled
+- if any connected system still creates an issue, the repo-side response is not "leave it in Linear"; add or refresh the matching `todo.md` `Linear Issue Ledger` entry immediately with a concrete `origin source:`
 
 ## PR Linking Convention
 

@@ -41,6 +41,19 @@ Authoritative and never duplicated in Linear:
 - ChatGPT audit findings
 - recurring-audit cadence schedule
 
+## Coverage Invariant
+
+Every `todo.md` `Active Next Steps` item must have a matching Linear issue in team `GIL` before the item is considered actionable. The Linear issue ID is annotated inline in `todo.md` as `(GIL-N)`.
+
+This is bidirectional:
+
+- Adding an item to `Active Next Steps` without creating a Linear issue is a violation.
+- Creating a Linear issue for planned work without a corresponding `todo.md` entry is permitted only for reactive or interrupt work that does not map to a planned phase step.
+
+When an item moves from `Active Next Steps` to `Completed`, the Linear issue moves to `Done` in the same logical commit. When an item is removed or deferred, the Linear issue is moved to `Canceled` or returned to `Inbox`.
+
+Invariant introduced 2026-04-16 after a gap was discovered where 9 of 14 Active Next Steps items had no Linear issue.
+
 ## Statuses
 
 | Status | Linear category | Notes |

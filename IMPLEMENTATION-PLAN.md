@@ -175,7 +175,7 @@ Required artifacts for the first CI rollout:
 ### 0.3 Write Benchmark Run Contracts
 
 **Owner:** Trevor
-**Deliverable:** 3-5 run contract JSON files in `fixtures/`
+**Deliverable:** 6-8 run contract JSON files in `fixtures/` (updated from original 3-5; see `todo.md` Phase 0.3 for the current floor and required invariant-coverage fixtures)
 
 Create tasks of varying complexity that you will use to validate the system at each phase. These must be real tasks you would actually want done, not synthetic toy examples.
 

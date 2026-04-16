@@ -26,13 +26,14 @@ State flow — orchestrator-owned, Codex never moves state:
 
 Linear holds routing metadata only. Acceptance criteria, decisions, audit findings, and completion artifacts live in repo docs. PR refs use `ref GIL-N`, never `Fixes`/`Closes`.
 
-Every `todo.md` `Active Next Steps` item has a matching Linear issue. Other `todo.md` sections (`Completed`, audit/feedback/test logs, suggestion log) are records, not tasks, and are not mirrored.
+Every `todo.md` `Active Next Steps` item has a matching Linear issue, annotated inline as `(GIL-N)`. Adding an item without its Linear issue ID violates the coverage invariant (see `LINEAR.md` § Coverage Invariant). Other `todo.md` sections (`Completed`, audit/feedback/test logs, suggestion log) are records, not tasks, and are not mirrored.
 
 Full rules: `LINEAR.md`.
+For adding Linear to a new project, use `LINEAR-BOOTSTRAP.md`.
 
 ## Codex Handoff
 
-Prompts follow `PROMPTS.md`: four-part header (goal, discipline, read-scope, body), scope honesty, no filler stubs, verification commands, `todo.md` `Completed` entry with commit SHA, commit + push on current branch, no new branches. Fresh Codex conversation per bounded task.
+Prompts follow `PROMPTS.md`: four-part header (goal, discipline, read-scope, body), scope honesty, no filler stubs, verification commands, `todo.md` `Completed` entry with commit SHA, commit + push on current branch, no new branches. Fresh Codex conversation per bounded task. Prompts are drafted in the scoping Linear issue's description under the `prompt-review` label, reviewed by Codex and Claude Code via Linear comments, and revised by Cowork before handoff. See `LINEAR.md` `## Prompt Drafting Surface`.
 
 Codex is expected to create its own Linear issue if none exists for the task, append `todo.md` `Completed` as a landing step, and report completion to me. It does not move Linear state or check off audit items — that is my role. See `AGENTS.md` `## Completion Authority`.
 

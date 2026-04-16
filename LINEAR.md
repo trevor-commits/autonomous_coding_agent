@@ -162,6 +162,8 @@ Every issue body contains:
 
 Supervisor-gated phase transitions inside a Codex run are not represented in Linear.
 
+Queue-mode issues deliberately do not carry free-form command text. The issue nominates the bounded work through repo links and routing metadata; the supervisor derives the executable run contract from the repo truth.
+
 ## Labels
 
 Labels are scoped to two groups and applied at issue creation. The taxonomy is small by design — labels are for filtering and routing, not for tracking state (state lives in the status) or acceptance criteria (those live in the authoritative repo spec linked from the issue).
@@ -248,6 +250,13 @@ Codex queue eligibility requires all of the following:
 - valid `Authoritative spec path`
 - no `prompt-review` label
 - no `Blocked-external` label
+
+Queue runs also enforce these guardrails:
+
+- the supervisor snapshots the issue and authoritative inputs at claim time
+- Codex works only inside the supervisor-derived allowed paths for that run
+- off-scope discoveries are absorbed only when they are direct adjacent blockers that still fit the same allowed paths, verification pack, and decision ownership
+- everything else becomes a separate issue or an explicit `no-action:` / `self-contained:` disposition
 
 Issues for later Claude Code audit or deeper test work must explicitly set:
 

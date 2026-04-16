@@ -81,8 +81,11 @@ Unattended queue runs use the versioned Codex template in `QUEUE-RUNS.md`, not a
 
 - name the claimed issue and authoritative spec path
 - state that the supervisor, not Codex, owns queue claim, commit, push, and Linear state moves
+- name the queue contract version, prompt template version, and allowed-path boundary for the run
 - require frequent self-testing during implementation plus the full required pack before handoff
 - forbid Codex from absorbing issues whose `Execution lane` is not `Codex`
+- require the adjacent-blocker test before Codex repairs any unspecced discovery inside the same run
+- require Codex to stop when the claim snapshot or authoritative inputs drift materially
 - require separate Claude Code follow-up issues for later audit or deeper test work instead of folding them into the current issue
 
 ## 1. Core Position

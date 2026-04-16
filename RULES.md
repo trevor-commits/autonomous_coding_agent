@@ -161,15 +161,19 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 ### Run contract (JSON, per-task):
 
 - Must define: `run_id`, `repo_path`, `objective`, `scope` (allowed_paths, forbidden_paths), `acceptance` (functional, quality_gates, ui_checks), `constraints` (single_writer, max_repair_loops, max_iterations, max_cost_dollars, hard_timeout_seconds).
+- Queue-mode runs must also record `queue_contract_version`, `prompt_template_version`, `issue_snapshot_hash`, and `follow_up_policy`.
 - Scope paths are enforced by the supervisor — the builder cannot write outside allowed_paths or inside forbidden_paths.
 
 ## Issue Queue Rules
 
 - Linear issue metadata is routing input only. It may nominate work, but it may not issue arbitrary commands or replace the repo contract or run contract.
 - The supervisor may claim only issues that satisfy the eligibility contract in `QUEUE-RUNS.md`.
+- The supervisor must freeze an issue snapshot and normalized run contract at claim time before Codex starts mutating files.
 - Non-Codex or manual-mode issues are skipped without mutation by the Codex queue.
+- Codex may absorb an unspecced discovery only when it passes the adjacent-blocker test in `QUEUE-RUNS.md`; otherwise the work is split into a follow-up issue or explicit disposition.
 - Queue-generated Claude Code audit or test follow-up issues must be filed as separate issues and do not block the queue from continuing once the current Codex issue has either landed or blocked cleanly.
 - Codex self-testing is mandatory during queue runs: narrow deterministic checks after each material edit cluster, then the full required verification pack before handoff.
+- Material post-claim drift in the issue, authoritative spec, or repo contract invalidates the active run until the supervisor re-normalizes or blocks it cleanly.
 - The supervisor, not Codex, owns queue claim, queue release, landing commit, push, and any Linear issue-state move performed by queue automation.
 
 ---
@@ -216,6 +220,7 @@ The supervisor must stop or block the run when any of the following occur:
 - App health does not stabilize within timeout → `run_state = BLOCKED`
 - Budget is exhausted (max_iterations, max_cost_dollars, or hard_timeout_seconds) → `run_state = BLOCKED`
 - Path or command restrictions are violated → `run_state = BLOCKED`
+- Material post-claim authority drift invalidates the frozen run contract → `run_state = BLOCKED`
 - An unresolved high-severity review finding remains at FINAL_GATE → `run_state = BLOCKED`
 - A landing commit is prepared but push fails → `run_state = BLOCKED` and the queue controller stops before claiming another issue
 

@@ -32,6 +32,16 @@ Required fields for any issue the Codex queue may claim:
 - `Execution lane: Codex`
 - `Execution mode: Queue`
 
+The supervisor derives, freezes, and records these run-contract fields at claim time before Codex starts:
+
+- `queue_contract_version`
+- `prompt_template_version`
+- `issue_snapshot_hash`
+- `allowed_paths`
+- `forbidden_paths`
+- `verification_pack`
+- `follow_up_policy`
+
 Codex queue eligibility predicate:
 
 1. The status is `Ready for Build`.
@@ -43,6 +53,8 @@ Codex queue eligibility predicate:
 7. The issue is not already claimed by another live run.
 8. No unresolved `Blocked reason artifact` is recorded for the current attempt.
 9. The target repo exposes the required repo contract and queue-closeout surfaces.
+
+The queue must reject or block any issue whose authoritative inputs cannot be normalized into a bounded run contract. "Good enough, start anyway" is illegal in queue mode.
 
 Issues are handled by lane as follows:
 
@@ -59,27 +71,56 @@ When Codex surfaces later audit or deeper test work that belongs to Claude Code,
 
 Codex does not pull that issue back into the same queue pass.
 
+## Drift And Scope Guardrails
+
+Queue mode is allowed to discover problems. It is not allowed to drift.
+
+The supervisor and Codex enforce these guardrails together:
+
+1. **Snapshot before execution.** At claim time, the supervisor snapshots the issue body, labels, linked authoritative docs, and normalized run contract. Codex works against that snapshot, not a moving target.
+2. **Version-pin the run.** Every issue-run records the exact `queue_contract_version` and `prompt_template_version` used for that attempt so later queue runs can detect behavioral drift instead of silently changing semantics mid-stream.
+3. **Freeze allowed paths.** Codex may read and write only within the supervisor-derived `allowed_paths`, except for required queue closeout surfaces such as `todo.md` and runtime artifact locations already named by the run contract.
+4. **No opportunistic backlog absorption.** A nearby weakness, cleanup, or unrelated correctness improvement is not part of the current run unless it passes the adjacent-blocker test below.
+5. **No silent authority swap.** If Linear metadata, the authoritative spec, or the repo contract changes materially after claim, the current run does not improvise against the new state. It stops for supervisor re-normalization or blocks cleanly.
+
+Codex may repair an unspecced discovery inside the current issue-run only when all of the following are true:
+
+1. The discovery is a direct blocker for the current issue's acceptance or required verification pack.
+2. The repair stays inside the already-derived `allowed_paths`.
+3. The repair does not require a new decision owner, new lane, or broader architectural choice.
+4. The repair can be verified by the same issue-run verification pack without inventing new acceptance criteria.
+5. The repair is small enough to describe in the current Work Record as part of the same bounded outcome.
+
+If any one of those tests fails, the discovery is not absorbed. It becomes one of:
+
+- a separate Linear follow-up issue with a refreshed `Linear Issue Ledger` entry
+- a `no-action: <reason>` disposition
+- a `self-contained: <reason>` disposition
+
+If the off-scope discovery prevents truthful completion of the current issue and cannot be split cleanly, the current issue blocks and the queue continues with the next eligible item.
+
 ## Supervisor Loop
 
 1. Discover candidates. Query Linear for `Ready for Build` issues and sort deterministically by priority, then oldest `updatedAt`, then issue ID.
 2. Validate eligibility. Apply the queue predicate above. Lane mismatches and manual-mode issues are skipped silently in runtime logs. Queue-schema failures on Codex-targeted issues become `Blocked`.
 3. Claim the issue. Create a new `run_id`, acquire the single-writer lease, move the issue to `Building`, and post a claim comment with the `run_id`, the authoritative spec path, and the run branch or worktree.
-4. Normalize inputs. Read the authoritative repo docs, repo contract, and queue metadata; derive the run contract and allowed path scope. If normalization fails, write the blocked artifact, comment, move the issue to `Blocked`, release the claim, and continue.
+4. Normalize inputs. Read the authoritative repo docs, repo contract, and queue metadata; derive the run contract, allowed path scope, verification pack, and issue snapshot. If normalization fails, write the blocked artifact, comment, move the issue to `Blocked`, release the claim, and continue.
 5. Launch a fresh Codex session. Use the queue prompt template in this document together with `PROMPTS.md`. The prompt is issue-scoped and does not mention any other queue items.
 6. Enforce self-test cadence. Codex runs the narrowest deterministic check after each material edit cluster and the full required verification pack before handoff. Self-testing is mandatory, not discretionary.
-7. Land successful work. If the final deterministic pack passes, the supervisor writes or verifies the repo closeout artifacts, creates the landing commit, pushes it, posts the completion comment, moves the issue to `AI Audit`, releases the claim, and continues to the next eligible Codex issue.
-8. Handle blocked work. If retries are exhausted or verification remains red, the supervisor writes the blocked reason artifact, posts the blocker comment, moves the issue to `Blocked`, releases the claim, and continues unless a global stop rule has triggered.
-9. Ignore Claude-lane follow-up issues. Claude-owned audit or test tickets created during the run remain out of scope for the Codex queue and do not block the queue from continuing once the current issue has either landed or blocked cleanly.
-10. Exit cleanly. The queue ends when no eligible Codex issues remain or a global stop rule fires. The queue process then writes its final report and stops.
+7. Check for authority drift before land. Before commit, the supervisor compares the current issue state and authoritative inputs against the claim snapshot. Material drift requires re-normalization or a clean block; it never widens scope silently.
+8. Land successful work. If the final deterministic pack passes and the snapshot is still valid, the supervisor writes or verifies the repo closeout artifacts, creates the landing commit, pushes it, posts the completion comment, moves the issue to `AI Audit`, releases the claim, and continues to the next eligible Codex issue.
+9. Handle blocked work. If retries are exhausted, verification remains red, or authority drift invalidates the current run, the supervisor writes the blocked reason artifact, posts the blocker comment, moves the issue to `Blocked`, releases the claim, and continues unless a global stop rule has triggered.
+10. Ignore Claude-lane follow-up issues. Claude-owned audit or test tickets created during the run remain out of scope for the Codex queue and do not block the queue from continuing once the current issue has either landed or blocked cleanly.
+11. Exit cleanly. The queue ends when no eligible Codex issues remain or a global stop rule fires. The queue process then writes its final report and stops.
 
 ## Codex Prompt Template Per Issue
 
 Queue-mode Codex runs use a versioned template. The supervisor fills the placeholders exactly; it does not improvise a bespoke per-issue command surface.
 
 ```text
-Goal: Implement {issue_id} in {repo_path} using the authoritative spec at {spec_path}. One issue-run only. Touch only the scope justified by the named spec and decision docs.
+Goal: Implement {issue_id} in {repo_path} using the authoritative spec at {spec_path}. One issue-run only. Touch only the scope justified by the named spec and decision docs and bounded by the supervisor-derived allowed paths.
 
-Discipline: Code is allowed. Use only the supervisor-provided branch or worktree. Do not move Linear state, do not edit Linear checklists, and do not commit or push; the supervisor owns queue claim, landing commit, and push. Self-test frequently. If the issue metadata conflicts with the authoritative repo docs, stop and report the conflict instead of guessing.
+Discipline: Code is allowed. Use only the supervisor-provided branch or worktree. Do not move Linear state, do not edit Linear checklists, and do not commit or push; the supervisor owns queue claim, landing commit, and push. Self-test frequently. If the issue metadata conflicts with the authoritative repo docs, stop and report the conflict instead of guessing. Treat the provided issue snapshot, queue contract version, prompt template version, and allowed paths as frozen for this run.
 
 For repo content, limit substantive reads to:
 - {spec_path} ({spec_reason})
@@ -87,6 +128,7 @@ For repo content, limit substantive reads to:
 - {decision_doc_2} ({decision_reason_2})
 - {.agent/contract.yml or equivalent repo contract path} (required verification and runtime commands)
 - {known_target_files_or_directories} (expected touch surface)
+- {allowed_paths_summary} (hard write boundary for this run)
 - todo.md (only if the repo governance bundle requires Work Record / Completed / Test Evidence closeout)
 
 Do not read other repo docs unless required by higher-priority agent instructions or validation.
@@ -96,13 +138,15 @@ Body:
 2. For fixes, capture baseline failure evidence before changing code. For features or refactors, capture the pre-change baseline for the touched area.
 3. Implement only the bounded scope required for this issue. Do not absorb adjacent backlog items or other queue issues.
 4. After each material edit cluster, run the narrowest deterministic check that can falsify the latest change. Record failures honestly and adapt.
-5. Before handoff, run the required issue verification pack exactly as named by the repo contract and authoritative spec.
-6. If you surface follow-up work outside this issue, create a separate Linear issue or record an explicit `no-action:` or `self-contained:` disposition. Any later audit or deeper test work for Claude Code must be filed as a separate issue with `Execution lane: Claude Code` and `Execution mode: Manual`.
-7. Report blockers with concrete evidence. Do not invent missing facts, hidden decisions, or acceptance criteria.
+5. If you find an unspecced problem, apply the adjacent-blocker test from `QUEUE-RUNS.md`. Repair it only when every criterion passes; otherwise split it into a follow-up issue or disposition instead of widening scope.
+6. Before handoff, run the required issue verification pack exactly as named by the repo contract and authoritative spec.
+7. If you surface follow-up work outside this issue, create a separate Linear issue or record an explicit `no-action:` or `self-contained:` disposition. Any later audit or deeper test work for Claude Code must be filed as a separate issue with `Execution lane: Claude Code` and `Execution mode: Manual`.
+8. Report blockers with concrete evidence. Do not invent missing facts, hidden decisions, or acceptance criteria.
 
 Constraints:
 - Ignore every other queue item completely.
 - Do not widen scope beyond the authoritative spec and allowed paths.
+- Do not continue if the authoritative inputs drift materially from the provided claim snapshot.
 - Do not claim or complete Claude-owned audit or test work.
 - Do not leave the issue without a truthful self-audit or verification evidence.
 - Print a one-line summary of files modified.
@@ -136,11 +180,12 @@ These conditions block the claimed issue but do not stop the whole queue:
 
 - The authoritative spec path is missing, unreadable, or contradicts the Linear routing metadata.
 - The repo contract or required queue-closeout surfaces are missing for this repo.
+- Material post-claim drift invalidates the issue snapshot or normalized run contract.
 - Baseline verification is already red in a way the current issue is not allowed to repair.
 - A required secret, service dependency, or local prerequisite for this issue is missing.
 - The same failure fingerprint exceeds the allowed retry ceiling for this issue.
 - The final required deterministic verification pack stays red after the allowed repair loops.
-- The work turns out to require another lane and cannot be cleanly split into a follow-up issue.
+- The work turns out to require another lane, another decision owner, or a broader scope and cannot be cleanly split into a follow-up issue.
 
 ### Skip Without Mutation, Then Continue
 
@@ -164,9 +209,11 @@ Queue mode uses all three truth tiers defined in `RULES.md`.
 The supervisor writes queue-runtime artifacts under `.autoclaw/runs/<run_id>/`, including:
 
 - the normalized queue metadata
+- the frozen issue snapshot and contract-version record
 - the rendered Codex prompt
 - commands run and exit codes
 - logs, screenshots, traces, and defect packets
+- discovered-scope decisions and follow-up dispositions
 - the final machine-readable and human-readable run reports
 
 ### Repo Truth
@@ -191,6 +238,7 @@ Successful issue-run flow:
 3. Supervisor creates one landing commit for the issue-run and pushes it before claiming the next issue.
 4. Completion comment posted with:
    - `run_id`
+   - contract version and prompt template version
    - branch or worktree reference
    - landing commit SHA
    - verification commands and results
@@ -202,7 +250,7 @@ Successful issue-run flow:
 Blocked issue-run flow:
 
 1. Blocked reason artifact written in repo truth and run truth.
-2. Blocker comment posted with the failure class, key evidence, artifact path, and whether the queue will continue.
+2. Blocker comment posted with the failure class, key evidence, artifact path, whether the failure came from scope drift, and whether the queue will continue.
 3. Issue moves from `Building` to `Blocked`.
 
 Skipped issues do not get state changes or queue comments. They remain available to the correct lane or later manual handling.

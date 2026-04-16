@@ -155,7 +155,7 @@ Durable record:
 - Append the repo's `todo.md` `Work Record Log` entry for this issue-run when that governance surface exists.
 - Append the repo's `Completed` index entry on successful landings when that governance surface exists.
 - Append the repo's `Test Evidence Log` entry with the exact commands run and observed results when that governance surface exists.
-- Refresh the repo's `Linear Issue Ledger` entry for every live issue created or materially changed when that governance surface exists.
+- Refresh the repo's `Linear Issue Ledger` entry for every live issue created or materially changed when that governance surface exists, keeping `todo home:`, `why this exists:`, and `origin source:` current.
 - Create any surfaced follow-up issues in Linear during the same closeout pass, including Claude-owned audit or test issues when applicable.
 - The Self-audit must include the Ripple Check, the Linear-coverage disposition, and an explicit `did not verify X because Y` line for anything skipped or deferred.
 ```
@@ -223,7 +223,7 @@ When the repo has the governance bundle required for queue mode, the issue-run w
 - `todo.md` `Work Record Log` for every claimed issue, including blocked outcomes
 - `todo.md` `Completed` for successful landings
 - `todo.md` `Test Evidence Log` for the deterministic checks that were actually run
-- `todo.md` `Linear Issue Ledger` refreshes for any new or materially changed live issues
+- `todo.md` `Linear Issue Ledger` refreshes for any new or materially changed live issues, including current `todo home:`, `why this exists:`, and `origin source:`
 
 If the repo cannot provide those closeout surfaces, queue mode is unsupported for that repo rather than being silently downgraded to chat-only memory.
 

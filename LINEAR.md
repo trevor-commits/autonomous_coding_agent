@@ -385,6 +385,12 @@ When the queue runner exists, the only allowed supervisor-owned state moves are:
 
 `Human Verify` and `Done` remain outside the Codex queue lane.
 
+Completion-comment discipline:
+
+- the completion comment cites only the commit(s), artifact paths, and verification that belong to that issue's landing
+- if a later audit-only or correction commit belongs to a different `GIL-N`, it is posted on that issue instead of being appended to the earlier issue's comment
+- when a commit SHA was unknown at write time, the correcting or immediate-closeout update backfills the exact SHA on the correct issue
+
 ### Later
 
 When runtime implementation exists and branch protections are real, the allowed deterministic PR-state routing is:

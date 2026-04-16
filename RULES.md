@@ -333,6 +333,7 @@ These governance rules derive from `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.
 - `R-CONT-03`: Self-audit attestation must name the method used for each claimed check and include an explicit `did not verify X because Y` line.
 - `R-CONT-04`: Claude Code must spot-check at least one attestation claim per audit and record the outcome in `todo.md` `Audit Record Log`.
 - `R-CONT-05`: `design-history/` content is never rewritten to reflect new principles; only forward-facing docs change.
+- `R-CONT-06`: `todo.md` `Completed`, `Work Record Log` `led to:`, and Linear completion comments must cite only the commit(s) or artifacts whose primary outcome belongs to that issue. If the exact SHA is unknown pre-commit, it is backfilled in the next closeout update on the correct issue instead of being left as permanent placeholder text or attached to another issue's comment.
 
 ### Coherence
 

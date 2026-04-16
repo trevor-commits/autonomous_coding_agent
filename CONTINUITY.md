@@ -51,6 +51,8 @@ linear:
 
 The six required narrative fields are `Problem`, `Reasoning`, `Diagnosis inputs`, `Implementation inputs`, `Fix`, and `Self-audit`. The attribution fields `by:`, `triggered by:`, `led to:`, and `linear:` make the entry findable and accountable instead of anonymous prose.
 
+`led to:` is closeout evidence, not a narrative flourish. It names the actual commit(s), issue(s), artifact paths, or explicit `no-action:` outcomes produced by that task. Placeholder text is temporary only; once the real landing SHA or correction commit is known, the durable record is backfilled on the correct issue instead of being left to chat history.
+
 ## Self-audit honesty
 
 Self-audit is method, not claim. Each check named in the record must say how it was verified, what was actually observed, and what remains unverified. Every Self-audit includes an explicit line in the form `did not verify X because Y` for anything skipped, blocked, or intentionally left out. Claude Code spot-checks at least one claim per audit. A hollow attestation is harder to clear than an admitted gap because it corrupts the record future work depends on.

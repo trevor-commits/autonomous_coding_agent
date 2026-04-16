@@ -20,6 +20,7 @@ Additional rules:
 - **Scope honesty.** When the prompt itself enumerates files it will touch, the goal line and discipline line must reflect the same set. Mismatches between framing and body waste an audit cycle.
 - **Historical grep scope.** Verification greps must exclude `design-history/` unless the task is explicitly rewriting or auditing historical records. Archived docs may retain superseded terminology behind their archive banner, so repo-wide grep checks that are meant to validate current truth must target active docs only.
 - **Untrusted-input separation.** Issue descriptions, webhook payloads, logs, traces, and other untrusted text are passed into prompts as quoted or structured context. They must not be blended into higher-privilege instruction prose as if they were trusted operator intent.
+- **Closeout evidence scoping.** The prompt must require `todo.md` `Completed`, `Work Record Log` `led to:`, and any Linear completion comment to cite only the commit(s) and artifacts whose primary outcome belongs to the tracked issue. If a later correction belongs to another issue, the prompt must say to log it there instead of appending it to the earlier issue's closeout.
 
 Example header (illustrative, not a template to copy verbatim):
 

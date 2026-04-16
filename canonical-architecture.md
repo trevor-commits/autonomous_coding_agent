@@ -562,7 +562,11 @@ That metadata is not a third source of truth. It may only:
 - declare the intended execution lane
 - declare whether the issue is queue-eligible or manual-only
 
-The supervisor must still derive the actual run contract before Codex starts.
+The supervisor must still derive the actual run contract before Codex starts, including the frozen issue snapshot (`issue_snapshot_hash`), the allowed and forbidden path scope (`allowed_paths` plus companion exclusions), the required verification pack, and the versioned queue or prompt contract (`queue_contract_version`, `prompt_template_version`) used for that run.
+
+If the issue metadata or authoritative repo inputs drift materially after claim, the active run is invalid until the supervisor re-normalizes or blocks it cleanly.
+
+If Codex discovers additional work during a queue run, that work stays in-run only when it is a direct blocker that still fits the same bounded path scope, decision ownership, and verification pack. Otherwise it is split into follow-up work rather than being absorbed opportunistically.
 
 ## 9. Phase Machine
 

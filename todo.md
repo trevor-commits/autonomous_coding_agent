@@ -51,8 +51,8 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 
 | Auditor | Role | Last audited commit | Date | Verdict summary | Audit Record Log reference |
 |---|---|---|---|---|---|
-| Claude Code | File-level / diff auditor | c9bc221 + uncommitted | 2026-04-16 | Linear backfill: 13 GIL issues created (GIL-19–31), blocking chain set, todo.md/LINEAR.md/CLAUDE.md/IMPLEMENTATION-PLAN.md updated, ADR labels fixed on GIL-8–11, coverage invariant enforced. 0 findings. | Audit Record Log 2026-04-16 backfill entry below |
-| Claude Cowork | Orchestrator / spec auditor | 03aa9ed | 2026-04-15 | Endorsed Code's 4 findings; confirmed all insertion points against live files | Audit Record Log 2026-04-15 entry below |
+| Claude Code | File-level / diff auditor | a28f3ad | 2026-04-15 | Audited 17-commit range cbc701a..03aa9ed (4 findings closed) plus the GIL-19..GIL-31 Linear backfill and Coverage Invariant rollout; verified bidirectional todo↔Linear coverage | Audit Record Log 2026-04-15 entries below |
+| Claude Cowork | Orchestrator / spec auditor | a28f3ad | 2026-04-15 | Audited the same scope as Code; confirmed 18/18 Active Next Steps items carry (GIL-N), Roadmap table is internally consistent with IMPLEMENTATION-PLAN.md phases, and LINEAR-BOOTSTRAP.md is now tracked | Audit Record Log 2026-04-15 entries below |
 | ChatGPT Pro | Strategic / governance auditor | (none yet) | (none yet) | Phase-exit gate auditor; engaged at phase boundaries per ADR-0004 (queued) | — |
 | Codex | Self-audit (not a gate) | (none yet) | (none yet) | Self-audit is informational only; never the authoritative gate per AGENTS.md | — |
 

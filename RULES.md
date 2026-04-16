@@ -298,6 +298,34 @@ Reports are written to the run directory when the supervisor reaches a terminal 
 
 ---
 
+## Repo Governance Rules
+
+These governance rules derive from `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.md` `## Linear-at-the-core`. They govern repo landings, audits, and task closeout discipline rather than supervisor runtime behavior.
+
+### Continuity
+
+- `R-CONT-01`: No landing commit without a `todo.md` `Work Record Log` entry.
+- `R-CONT-02`: No Linear state move without the required Work Record entry on disk.
+- `R-CONT-03`: Self-audit attestation must name the method used for each claimed check and include an explicit `did not verify X because Y` line.
+- `R-CONT-04`: Claude Code must spot-check at least one attestation claim per audit and record the outcome in `todo.md` `Audit Record Log`.
+- `R-CONT-05`: `design-history/` content is never rewritten to reflect new principles; only forward-facing docs change.
+
+### Coherence
+
+- `R-COH-01`: Every commit that touches a governance doc includes updates to all companion docs referencing the changed section. Ripple Check attestation in Self-audit is mandatory.
+- `R-COH-02`: The Dependency Map in `COHERENCE.md` is updated in the same commit as any new inter-doc reference.
+- `R-COH-03`: No orphan docs. Every live doc is indexed from `GUIDE.md` or referenced by at least one other live doc. Orphans are either indexed or retired in the same commit they are discovered.
+
+### Linear-Core
+
+- `R-LIN-01`: Every `todo.md` `Active Next Steps` item has a matching Linear issue annotated `(GIL-N)`.
+- `R-LIN-02`: Every log entry in `todo.md` (`Audit Record`, `Feedback Decision`, `Test Evidence`, `Suggested Recommendation`, `Work Record`) has a `linear:` field populated with a `GIL-N`, `no-action: <reason>`, or `self-contained: <reason>` value.
+- `R-LIN-03`: Any surfaced follow-up implying future work is filed as a Linear issue in the same commit it is recorded, not deferred to "later."
+- `R-LIN-04`: Before any Linear state move or conversation exit, Cowork verifies Linear-coverage for findings surfaced in the interval. Un-Linearized actionable findings block the state move.
+- `R-LIN-05`: Linear holds routing, scheduling, and coverage metadata only. Acceptance criteria, decisions, audit conclusions, and reasoning stay in repo docs.
+
+---
+
 ## v1 Exclusion Rules
 
 The following are intentionally excluded from v1. Do not build them unless metrics from Phases 0–5 justify the addition:

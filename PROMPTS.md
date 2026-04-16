@@ -6,12 +6,13 @@
 
 ## Prompt framing convention
 
-Every Codex prompt issued from this repo opens with the same four-part frame so the agent knows the boundaries before reading the body.
+Every Codex prompt issued from this repo opens with the same five-part header so the agent knows the boundaries, durable-record obligations, and closeout surface before reading the body.
 
 1. **Goal line.** One sentence that names what is being produced and what scope it touches. Be honest about scope: if the task creates one new file and edits two existing ones, say so. Do not undersell the scope (e.g. "single doc-only change" when three files change) — scope/intent mismatches cause agents to hesitate or comply sloppily.
-2. **Discipline line.** Explicit "No code. No branch. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit." Drop "No code" if the task is a code change.
-3. **Read scope.** A bulleted list of files Codex is allowed to read substantively, each with a one-line reason. Use the wording: "For repo content, limit substantive reads to:" followed by the list, then the trailing line: "Do not read other repo docs unless required by higher-priority agent instructions or validation." This phrasing is intentional — fully absolute "do not read" language conflicts with agents that have validator or instruction-precedence obligations.
-4. **Body.** Numbered change instructions, then a `Constraints:` block at the end covering: do not modify other docs, do not create branches, do not commit, stop and report on conflict instead of guessing, and print a one-line summary of files modified after the change.
+2. **Discipline line.** State the execution posture explicitly: whether code is allowed, whether branches are allowed, and whether the task should leave changes staged or commit and push on the current branch. The point is to remove ambiguity before work starts.
+3. **Read-scope.** A bulleted list of files Codex is allowed to read substantively, each with a one-line reason. Use the wording: "For repo content, limit substantive reads to:" followed by the list, then the trailing line: "Do not read other repo docs unless required by higher-priority agent instructions or validation." This phrasing is intentional — fully absolute "do not read" language conflicts with agents that have validator or instruction-precedence obligations.
+4. **Body.** Numbered change instructions, then a `Constraints:` block at the end covering: do not modify other docs, do not create branches, stop and report on conflict instead of guessing, and print a one-line summary of files modified after the change.
+5. **Durable record.** The prompt must name: (a) the `todo.md` `Work Record Log` entry Codex will append, (b) the `todo.md` `Completed` index entry, (c) any `Audit Record Log`, `Feedback Decision Log`, or `Test Evidence Log` entries expected, (d) any Linear issues the task creates for surfaced follow-ups, (e) the Ripple Check the Self-audit must attest, and (f) any ADR touched or created.
 
 Additional rules:
 
@@ -22,20 +23,56 @@ Additional rules:
 Example header (illustrative, not a template to copy verbatim):
 
 ```text
-Goal: Record the 2026-04-15 four-way authority-boundary audit in a new ADR and apply the sanctioned doc-only follow-up edits in LINEAR.md and todo.md. No code. No branch. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit.
+Goal: Land the Continuity / Coherence / Linear-Core governance bundle across CONTINUITY.md, COHERENCE.md, LINEAR.md, AGENTS.md, CLAUDE.md, PROMPTS.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, todo.md, and ~/.claude/CLAUDE.md.
+
+Discipline: No new branches. Commit and push on the current branch. Use `ref GIL-32`. Do not edit `design-history/` or any repo file outside the named scope.
 
 For repo content, limit substantive reads to:
+- CONTINUITY.md (new root principle doc to create)
+- COHERENCE.md (new root principle doc to create and seed with the Dependency Map)
 - LINEAR.md
-- design-history/ADR-0001-terminal-state-normalization.md
-  (to match the existing ADR format exactly)
-- todo.md (to confirm ADR-0006 is unclaimed and to locate
-  the `## Completed` heading)
+- AGENTS.md
+- PROMPTS.md
+- GUIDE.md
+- RULES.md
+- todo.md (to update `Completed`, `Work Record Log`, and forward log shapes)
 
 Do not read other repo docs unless required by
 higher-priority agent instructions or validation.
+
+Body:
+1. Create the two root principle docs and thread them through every companion document in scope.
+2. Update `LINEAR.md` with Linear-at-the-core, the expanded coverage invariant, and state-move preconditions.
+3. Update `todo.md` so `Completed` is an index and `Work Record Log` is the durable narrative.
+4. Prepend `~/.claude/CLAUDE.md` with the repo-principles section only.
+Constraints:
+- do not modify other docs
+- do not create branches
+- stop and report on conflict instead of guessing
+- print a one-line summary of files modified after the change
+
+Durable record:
+- Work Record Log: add the 2026-04-16 `GIL-32` landing record in `todo.md`
+- Completed: add the one-line `GIL-32` landing index entry in `todo.md`
+- Audit / Feedback / Test logs: only append new entries if the work surfaces findings or runs verification that belongs there
+- Linear: create or use `GIL-32`; file any surfaced follow-up in the same commit or disposition it as `no-action:` / `self-contained:`
+- Ripple Check: attest consistency across CONTINUITY.md, COHERENCE.md, AGENTS.md, CLAUDE.md, PROMPTS.md, LINEAR.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, `todo.md`, and `~/.claude/CLAUDE.md`
+- ADRs: none
 ```
 
-Origin: this convention emerged from the 2026-04-15 Codex self-audit on the LINEAR authority-boundary prompt (see ADR-0006). Three specific frictions it resolves: scope undersell ("single doc-only change" applied to a 3-file edit), overly absolute read-restriction wording that conflicts with agent instruction precedence, and filler section stubs being added "for completeness" then needing a follow-up commit to remove.
+Origin: this convention emerged from the 2026-04-15 Codex self-audit on the LINEAR authority-boundary prompt (see ADR-0006) and was extended on 2026-04-16 when Continuity, Coherence, and Linear-Core became root-level repo principles. The frictions it resolves are scope undersell ("single doc-only change" applied to a 3-file edit), missing durable-record expectations, overly absolute read-restriction wording that conflicts with agent instruction precedence, and filler section stubs being added "for completeness" then needing a follow-up commit to remove.
+
+### Self-audit attestation
+
+Self-audit is method, not claim. For every claimed check, the prompt requires the agent to say what method was used and what output was actually observed. Every Self-audit includes an explicit `did not verify X because Y` line for anything skipped, blocked, or intentionally deferred. Claude Code spot-checks at least one Self-audit claim during audit. False attestation is a ship-blocking failure.
+
+### Ripple Check attestation
+
+Every touched section is listed in the Self-audit together with the dependent docs consulted and the method used to confirm consistency. A commit is not coherent just because the changed file reads well in isolation; it is coherent only when the ripple set was checked and any drift was fixed in the same commit.
+
+### Linear-coverage attestation
+
+Every actionable finding surfaced during the task is dispositioned in the same closeout surface: a `GIL-N` issue is filed, or the durable record explicitly says `no-action: <reason>` or `self-contained: <reason>`. The prompt must name which outcome is expected before implementation starts.
 
 ## 1. Core Position
 

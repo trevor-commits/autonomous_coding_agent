@@ -2,7 +2,7 @@
 
 **Status:** staged, not yet landed.
 **Drafted:** 2026-04-16, chat between Trevor and Claude Code.
-**Linear issue:** _to be filed by Cowork before handoff_ (`prompt-review` label per `CLAUDE.md` § Codex Handoff).
+**Linear issue:** `GIL-32` ("Land Continuity, Coherence, and Linear-Core root principles"), filed in `Building`.
 **Retirement:** once Codex lands the commit per this document, move this file to `design-history/` as a historical artifact (or delete if the Feedback Decision Log entry captures enough on its own). Do NOT edit or rewrite after retirement — `design-history/` content is preserved as-is.
 
 ---
@@ -14,7 +14,7 @@ The design for three root-level repo principles — Continuity, Coherence, and L
 It holds four things:
 
 1. **Context and motive** — what Trevor asked for and why.
-2. **The full Codex prompt** — ready to hand to Codex once Cowork files the Linear issue under `prompt-review`.
+2. **The full Codex prompt** — ready to hand to Codex under `GIL-32`.
 3. **The Cowork project-instructions block** — for Trevor to paste manually into the Cowork Claude UI project once the commit lands.
 4. **The Claude Code audit sweep checklist** — run post-commit to verify the landing.
 
@@ -100,7 +100,7 @@ Self-audit rules:
 
 ## Codex prompt (ready to hand off)
 
-> Hand this prompt to Codex via the scoping Linear issue's description once filed. Cowork drafts any scope corrections inside the issue under the `prompt-review` label per `CLAUDE.md` § Codex Handoff. Code audits the prompt before handoff.
+> Hand this prompt to Codex via the scoping Linear issue's description. Cowork drafts any scope corrections inside `GIL-32` under the `prompt-review` label per `CLAUDE.md` § Codex Handoff. Code audits the prompt before handoff.
 
 ```text
 ## Goal
@@ -503,7 +503,7 @@ Design decisions already settled (do not re-open):
    — all three gates appear per role
 - `grep "Work Record Log\|Ripple Check\|linear:" todo.md`
    — section, field, and template all present
-- `grep -rE "four-part header" --include="*.md"
+- `grep -rE "legacy four-part prompt wording" --include="*.md"
    --exclude-dir=design-history .`  — zero hits
 - `grep "Durable record" PROMPTS.md`  — present
 - `grep "Linear-at-the-core\|Linear-coverage" LINEAR.md`  — present
@@ -689,7 +689,7 @@ Checklist Code runs against Codex's landing commit. Reject the commit and open a
 
 **Terminology consistency**
 
-- `grep -r --exclude-dir=design-history "four-part header" .` returns zero hits.
+- `grep -r --exclude-dir=design-history "legacy four-part prompt wording" .` returns zero hits.
 - Every live log-entry template documents the `linear:` field.
 - No live doc uses "audited ✓" or checkbox-style attestations in the new sections.
 
@@ -732,7 +732,7 @@ Checklist Code runs against Codex's landing commit. Reject the commit and open a
 
 Recommended sequence:
 
-1. Cowork files the Linear issue with this prompt under `prompt-review`.
+1. Cowork uses `GIL-32` as the scoping Linear issue and drafts this prompt under `prompt-review`.
 2. Codex and Claude Code review and comment; Cowork revises.
 3. Trevor approves handoff.
 4. Codex implements; Claude Code audits line-by-line using this file's sweep checklist.
@@ -749,6 +749,6 @@ After step 7, every surface carries the same three-pillar assumption: repo docs,
 
 - **Feedback Decision Log entry** for this design: see `todo.md § Feedback Decision Log`, dated 2026-04-16, feedback source `Trevor three-pillar governance request`.
 - **Suggested Recommendation Log entry** tracking the staged work: see `todo.md § Suggested Recommendation Log`, dated 2026-04-16.
-- **Linear issue** (once filed by Cowork): will appear as `GIL-N` annotation on the Suggested Recommendation Log entry. Once promoted to Active Next Steps, the entry moves.
+- **Linear issue:** `GIL-32`. Once the landing commit closes the implementation side, the durable repo record becomes the Work Record and Completed index entry for 2026-04-16.
 
 If both this file and those log entries disappear, the design is gone. Do not delete this file casually.

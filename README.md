@@ -4,6 +4,8 @@ This repository holds the active source-of-truth documentation, planning artifac
 
 ## Start Here
 
+Read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md) and [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md) first. They state the root-level assumptions that every other rule in this repo depends on. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md) section `Linear-at-the-core` is the third pillar.
+
 - Need reading order, document roles, and file lookup: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
 - Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
 
@@ -11,37 +13,43 @@ This repository holds the active source-of-truth documentation, planning artifac
 
 Read these when working on the current system:
 
-1. [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
+1. [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md)
+   Root-level continuity principle: what must be written, signed, and pointed to before work survives the conversation that produced it.
+
+2. [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md)
+   Root-level coherence principle: Ripple Check, Dependency Map, and same-commit propagation for live-doc changes.
+
+3. [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
    What the repo is for, who it serves, what is out of scope, and how success is judged.
 
-2. [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
+4. [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
    Source of truth. Build from this.
 
-3. [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md)
+5. [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md)
    Conceptual explanation of how the system behaves.
 
-4. [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
+6. [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
    Enforceable constraints and stop conditions.
 
-5. [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
+7. [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
    File placement, repo boundary, runtime-state placement, and archive boundary.
 
-6. [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md)
+8. [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md)
    Prompt-system source of truth.
 
-7. [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
+9. [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
    Build order, verification expectations, and phase exits.
 
-8. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+10. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
 
-9. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+11. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-10. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+12. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
    Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
 
-11. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+13. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History
@@ -53,10 +61,11 @@ Archived drafts, reconciliation docs, old architecture summaries, and audit reco
 This repo keeps durable governance records instead of leaving them in chat:
 
 - `todo.md` `Active Next Steps`: execution-ready work
+- `todo.md` `Work Record Log`: what would otherwise be lost between conversations
+- `todo.md` `Completed`: one-line landing index
 - `todo.md` `Suggested Recommendation Log`: deferred or optional ideas
 - `todo.md` `Audit Record Log`: audits and review outcomes
 - `todo.md` `Feedback Decision Log`: requests, plan refinements, accepted/rejected guidance
-- `todo.md` `Completed`: what changed in the repo itself
 
 ## Current Direction
 

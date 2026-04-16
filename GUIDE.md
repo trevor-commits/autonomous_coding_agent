@@ -5,10 +5,12 @@
 
 ## Quick Reference — Where to Find Things
 
-If you are an agent beginning a session, read [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md) first. If you are orienting as a human, start with [README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/README.md) and then use this guide for reading order and lookup.
+If you are an agent beginning a session, read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md) and [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md) first, then [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md). If you are orienting as a human, start with [README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/README.md) and then use this guide for reading order and lookup.
 
 Use these files for current truth:
 
+- [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md): what must be recorded before work can survive a conversation boundary.
+- [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md): what must ripple when a live doc changes, including the Dependency Map and Ripple Check.
 - [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md): repo purpose, primary users, non-goals, success criteria.
 - [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md): authoritative architecture.
 - [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md): conceptual behavior and control flow.
@@ -23,11 +25,12 @@ Use these files for current truth:
 Use `todo.md` for durable working records:
 
 - `Active Next Steps`: execution-ready work
+- `Work Record Log`: what would otherwise die with the conversation
+- `Completed`: one-line landing index
 - `Suggested Recommendation Log`: deferred or optional ideas
 - `Audit Record Log`: audits and findings
 - `Test Evidence Log`: verification runs and results
 - `Feedback Decision Log`: plan refinements, accepted guidance, rejected guidance
-- `Completed`: durable record of landed milestones and repo changes
 
 Where does X go:
 
@@ -49,6 +52,14 @@ The repo now has three clear layers:
 That split is intentional. Root files should answer "what is true now?" Historical files should answer "how did we get here?"
 
 ## Active Source-Of-Truth Docs
+
+### [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md)
+
+The continuity principle. Read this first when you need to know what must be durably written, signed, and pointed to before a task can be considered complete.
+
+### [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md)
+
+The coherence principle. Read this when a change might ripple across multiple live docs or when you need the append-only Dependency Map for companion-doc consistency.
 
 ### [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
 
@@ -133,6 +144,9 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 
 | Question | Document |
 |----------|----------|
+| What survives this conversation? | `CONTINUITY.md` |
+| When I change X, what else must change? | `COHERENCE.md` |
+| Where does surfaced work live? | `LINEAR.md` section `Linear-at-the-core` |
 | What is the repo for? | `PROJECT_INTENT.md` |
 | What is the architecture? | `canonical-architecture.md` |
 | How does it work conceptually? | `LOGIC.md` |
@@ -145,5 +159,5 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | What should an agent read first? | `AGENTS.md` |
 | How do I find the right file fast? | `GUIDE.md` section `Quick Reference — Where to Find Things` |
 | Where are audits, ideas, and feedback decisions recorded? | `todo.md` |
-| What changed recently in the repo? | `todo.md` section `Completed` |
+| What changed recently in the repo? | `todo.md` section `Completed` (index) and `Work Record Log` (full record) |
 | Where is the old material? | `design-history/` |

@@ -17,6 +17,8 @@ The boundary is fixed. The target repo owns only its `.agent/` contract surface,
 - `policies/` holds repo-local policy assets if the project adopts a dedicated policy folder beyond the root rules documents.
 - `design-history/` holds ADRs, archived architecture drafts, old reconciliations, and audit reports that preserve how decisions were reached without becoming active source of truth.
 - Root doc files hold the current onboarding, navigation, architecture, rules, planning, and governance records that explain the repo as it exists now.
+- `CONTINUITY.md` lives at the repo root because continuity is a load-bearing rule for every bounded task and its durable record.
+- `COHERENCE.md` lives at the repo root because coherence is a load-bearing rule for every commit and the append-only Dependency Map belongs with the live governance surface.
 
 ## 3. Target-Repo Surface
 
@@ -33,6 +35,8 @@ A new schema goes in `schemas/` because it defines a reusable contract shape tha
 ## 6. Governance Records
 
 Use `todo.md` for durable planning, suggestions, audit logs, test evidence, feedback decisions, and the `Completed` trail of landed repo changes. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.
+
+The Dependency Map lives in `COHERENCE.md` and is append-only. Ripple ownership is part of the active governance surface, not archive material.
 
 ## Appendix: Changes Propagated
 

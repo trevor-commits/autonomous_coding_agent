@@ -41,6 +41,10 @@ Authoritative and never duplicated in Linear:
 - ChatGPT audit findings
 - recurring-audit cadence schedule
 
+## Linear-at-the-core
+
+Linear holds scheduling; repo docs hold truth. Together with `CONTINUITY.md` and `COHERENCE.md`, this is a root repo principle. Any audit finding, feedback decision, suggestion, or surfaced follow-up that implies future work gets a Linear issue in the same commit, or is dispositioned `no-action: <reason>` or `self-contained: <reason>` in the log entry. Nothing actionable sits un-Linearized.
+
 ## Coverage Invariant
 
 Every `todo.md` `Active Next Steps` item must have a matching Linear issue in team `GIL` before the item is considered actionable. The Linear issue ID is annotated inline in `todo.md` as `(GIL-N)`.
@@ -49,10 +53,16 @@ This is bidirectional:
 
 - Adding an item to `Active Next Steps` without creating a Linear issue is a violation.
 - Creating a Linear issue for planned work without a corresponding `todo.md` entry is permitted only for reactive or interrupt work that does not map to a planned phase step.
+- Any log entry whose content implies future action must resolve its `linear:` field in the same commit. A missing or unresolved `linear:` field is a coverage violation.
 
 When an item moves from `Active Next Steps` to `Completed`, the Linear issue moves to `Done` in the same logical commit. When an item is removed or deferred, the Linear issue is moved to `Canceled` or returned to `Inbox`.
 
 Invariant introduced 2026-04-16 after a gap was discovered where 9 of 14 Active Next Steps items had no Linear issue.
+
+`Linear-coverage` is clean only when both of these are true:
+
+- every `Active Next Steps` item has its `GIL-N`
+- every durable log entry that implies future work has a resolved `linear:` value (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 
 ## Statuses
 
@@ -75,6 +85,18 @@ The happy path is:
 
 The naming is deliberate. `AI Audit` means Claude Code performing the primary line-by-line review of Codex output (with Cowork running a lightweight spec-alignment pass afterward). `Human Verify` means Trevor's final signoff. This avoids overloading Linear's product-level review semantics and the dedicated Reviews surface for PR notifications.
 
+Before an issue enters `AI Audit`, these preconditions must already be true:
+
+- a `todo.md` `Work Record Log` entry with full Self-audit exists
+- all actionable findings surfaced during the task have Linear issues or explicit `no-action:` / `self-contained:` dispositions
+- the Ripple Check is complete and attested
+
+Before the default-path transition from `AI Audit` to `Human Verify`, these preconditions must already be true:
+
+- Claude Code has spot-checked at least one Self-audit claim and recorded the outcome in `todo.md` `Audit Record Log`
+- the coherence sweep for the task's scope is clean
+- the `Linear-coverage` check is clean
+
 ## Failure Routing
 
 - AI Audit failure (Claude Code's line-by-line review surfaces a P0/P1, or Cowork's spec-alignment pass disagrees) returns the issue to `Building` with findings linked from the repo.
@@ -90,6 +112,7 @@ Tasks that produce no code artifact may skip `AI Audit` and move:
 `Ready for Build -> Building -> Human Verify -> Done`
 
 Skipping `AI Audit` is a per-task decision recorded in the issue checklist. The default is to include `AI Audit`.
+Skipping `AI Audit` does not waive the Work Record, Ripple Check, or Linear-coverage requirements.
 
 ## Done
 
@@ -121,7 +144,7 @@ Every issue body contains:
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
-- `Checklist: Cowork drafts Codex prompt -> Codex builds -> Claude Code audits line-by-line (or N/A with one-line reason) -> Cowork spec-alignment check -> Trevor verifies -> completion artifact filed in repo`
+- `Checklist:` `Cowork drafts Codex prompt` -> `Codex builds` -> `Work Record Log entry written (Codex)` -> `Ripple Check complete and attested (Codex)` -> `Claude Code audits line-by-line (or N/A with one-line reason)` -> `Cowork spec-alignment check` -> `Linear-coverage confirmed for surfaced findings (Cowork)` -> `Trevor verifies` -> `completion artifact filed in repo`
 - `Enforcement checkbox: ☐ No acceptance criteria, decisions, or audit conclusions in this issue body — linked to repo doc instead`
 - fixed footer: `Repo docs are authoritative; this issue tracks state and links only.`
 
@@ -174,8 +197,11 @@ The template body is:
 
 - [ ] Cowork drafts Codex prompt
 - [ ] Codex builds
+- [ ] Work Record Log entry written (Codex)
+- [ ] Ripple Check complete and attested (Codex)
 - [ ] Claude Code audits line-by-line (or N/A with one-line reason: ____)
 - [ ] Cowork spec-alignment check
+- [ ] Linear-coverage confirmed for surfaced findings (Cowork)
 - [ ] Trevor verifies
 - [ ] Completion artifact filed in repo
 

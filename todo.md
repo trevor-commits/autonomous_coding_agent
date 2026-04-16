@@ -41,10 +41,12 @@ Current goal: keep the repo implementation-ready by finishing the remaining Phas
 ## Governance Shortcuts
 
 - New execution-ready work goes in `Active Next Steps`.
+- Landed task narrative goes in `Work Record Log`.
+- `Completed` is the one-line landing index.
 - Optional or deferred ideas go in `Suggested Recommendation Log`.
 - Audit requests, findings, and dispositions go in `Audit Record Log`.
 - User feedback, plan refinements, and accepted or rejected guidance go in `Feedback Decision Log`.
-- Concrete repo changes are summarized in `Completed`.
+- Concrete repo changes are indexed in `Completed`.
 
 ## Audit Watermarks
 Each AI auditor records the most recent commit it has audited so the next session knows where to pick up. Watermarks update only when an audit is recorded in the Audit Record Log below.
@@ -58,6 +60,8 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
+Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-32: add Continuity, Coherence, and Linear-Core root pillars — landed as SHA recorded in immediate closeout (self-referential hash cannot be embedded pre-commit); full record in Work Record Log 2026-04-16
 - [x] 2026-04-16: repositioned repo roles so Claude Cowork is the primary orchestrator (spec-alignment pass only) and Claude Code is the primary line-by-line auditor (with permission to author targeted fix code under independent review). Updated `CLAUDE.md` (Roles, Default Audit Chain, Linear state flow, Codex Handoff), `AGENTS.md` (`## Implementor Role`, `## Completion Authority`), `LINEAR.md` (`AI Audit` description, Failure Routing, Issue Shape checklist, Standard Issue Template, AI-Strategy Role Boundary, Prompt Drafting Surface), `IMPLEMENTATION-PLAN.md` (Phase 1 intro, Phase 1.2 Owner, Phase 1/2/3/4 exit criteria, Phase 2.3 + 3.3 Owners, Phase 4 designer/audit, Phase 4.1 title, Summary "Who Does What" table), and `todo.md` (Audit Watermarks, ADR-0004 Active Next Step description, Testing Cadence Matrix row, new Feedback Decision Log entry). Landing commit recorded in the same-day closeout below.
 - [x] 2026-04-15: Added `docs/launch-plan.md` to reconcile launch-scope status, updated `README.md` and `GUIDE.md` so the new doc is discoverable, and clarified in `LINEAR.md` that the unchecked checklist items are example Linear template content rather than repo backlog.
 - [x] 2026-04-15: LINEAR-BOOTSTRAP.md §3 UI runbook expanded with the full screen-by-screen sequence, and a new §4 Known pitfalls section added capturing ten lessons from the Gillettewsc setup (status migration, PR automation defaults, onboarding seeds, auto-archive, label doc-drift, checklist rendering, Installed Agents vs MCP, issue history, `<PREFIX>` replacement, verify-before-prompt).
@@ -82,11 +86,81 @@ Preserve a durable completion trail for verified work instead of deleting it fro
 - [x] 2026-04-15: corrected the archive-handling mistake from `8a0ded1` by restoring the superseded wording in archived `design-history/` docs, keeping the active `schemas/README.md` and governance-record updates, and adding a `PROMPTS.md` rule that verification greps must exclude `design-history/` unless the task is explicitly rewriting history. Commit: `392d686b77d829f6bc83e3624ce14536379fb888`.
 - [x] 2026-04-15: closed four open findings from Code's 17-commit audit (cbc701a..03aa9ed) — indexed `LINEAR-BOOTSTRAP.md` in `GUIDE.md` and `README.md`, added a verification note to LINEAR.md's Skip/Ignore Escape Hatch section, tightened LINEAR.md's Blocked Discipline to require committed repo artifacts, and normalized two earlier Completed entries to the `- [x]` style. Also added a new `## Audit Watermarks` section to `todo.md` so Code, Cowork, Pro, and Codex can each track their last-audited commit across sessions. Files modified: `GUIDE.md`, `README.md`, `LINEAR.md`, `todo.md`. Landing commit: TBD — staged for Trevor review.
 
+## Work Record Log
+If it's not here, it isn't remembered. This section implements `CONTINUITY.md`; each Self-audit also carries the Ripple Check required by `COHERENCE.md`, and each entry resolves the `linear:` coverage required by `LINEAR.md` `## Linear-at-the-core`.
+
+Use this shape for new entries:
+
+```text
+Problem:
+Reasoning:
+Diagnosis inputs:
+Implementation inputs:
+Fix:
+Self-audit:
+by:
+triggered by:
+led to:
+linear:
+```
+
+Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-16 | GIL-32 | by: Codex
+
+Problem:
+No root-level principles forced three behaviors — recording what dies with conversations, propagating changes through all affected docs, and keeping actionable work in Linear. Agents could finish turns with live drift, unrecorded reasoning, and un-Linearized follow-ups without any structural failure.
+
+Reasoning:
+Three peer principles with explicit enforcement gates is the minimum that makes all three load-bearing without adding governance theater. A single combined principle doc was rejected because it would be too coarse for rule-level referencing. CI-only enforcement was rejected because the principle has to work before automation exists. Per-project hooks were rejected because this repo needed a root-level governance answer first.
+
+Diagnosis inputs:
+2026-04-16 design conversation with Trevor; conflict check against `canonical-architecture.md`; direct reads of `AGENTS.md`, `CLAUDE.md`, `PROMPTS.md`, `LINEAR.md`, `GUIDE.md`, `STRUCTURE.md`, `README.md`, `RULES.md`, `todo.md`, and `~/.claude/CLAUDE.md`; `git status -sb`; `git log -1 --oneline`; targeted heading scans with `rg -n "^## |^### "`; verification greps for `CONTINUITY.md`, `COHERENCE.md`, `Continuity Check`, `Ripple Check`, `Linear-coverage`, `Durable record`, `Linear-at-the-core`, and rule IDs; scope-widening follow-up read of `SCOPING-three-pillar-principles.md` after a repo-wide verification hit on legacy wording.
+
+Implementation inputs:
+Created `CONTINUITY.md` and `COHERENCE.md`. Updated `AGENTS.md`, `CLAUDE.md`, `PROMPTS.md`, `LINEAR.md`, `GUIDE.md`, `STRUCTURE.md`, `README.md`, `RULES.md`, `todo.md`, `SCOPING-three-pillar-principles.md`, and `~/.claude/CLAUDE.md`. Linear issue `GIL-32` created as the scoping issue for this landing.
+
+Fix:
+Created the two root principle docs; added the five-part prompt contract and attestation rules; added `LINEAR.md` `## Linear-at-the-core`, expanded coverage requirements, and state-move preconditions; added the `todo.md` `Work Record Log` and the `Completed` index rule; wired Continuity / Ripple / Linear-coverage gates into `AGENTS.md`; added `R-CONT-01..05`, `R-COH-01..03`, and `R-LIN-01..05` to `RULES.md`; prepended global `~/.claude/CLAUDE.md` with the three principles; updated the scoped planning artifact so repo-wide verification no longer failed on stale wording. Landing SHA is recorded in the immediate closeout because a commit cannot embed its own final hash without changing that hash. No other deviation.
+
+Self-audit:
+Method-not-claim verification run before commit:
+1. Ran `test -f CONTINUITY.md && test -f COHERENCE.md && echo ok`; output `ok`; both root docs exist.
+2. Ran `grep -c '^## ' CONTINUITY.md`; output `9`; Continuity has at least eight top-level sections.
+3. Ran `grep -c '^## ' COHERENCE.md`; output `7`; Coherence has at least seven top-level sections.
+4. Ran `grep -l 'CONTINUITY.md\\|COHERENCE.md' AGENTS.md CLAUDE.md GUIDE.md README.md PROMPTS.md LINEAR.md RULES.md STRUCTURE.md todo.md`; output listed all nine repo docs; every required companion doc references the new principle docs.
+5. Ran `grep 'Continuity Check\\|Ripple Check\\|Linear-coverage' AGENTS.md`; output showed all three gates in Codex, Claude Code, and Cowork role clauses.
+6. Ran `grep 'Work Record Log\\|Ripple Check\\|linear:' todo.md`; output showed the section, template, and forward field requirements.
+7. Ran the repo-wide grep command from the task brief for legacy prompt-header wording; output empty after updating `SCOPING-three-pillar-principles.md`; no live doc still uses that wording.
+8. Ran `grep 'Durable record' PROMPTS.md`; output showed the new fifth header part and example block.
+9. Ran `grep 'Linear-at-the-core\\|Linear-coverage' LINEAR.md`; output showed the new section and coverage checks.
+10. Ran `grep -E 'R-CONT-0[1-5]|R-COH-0[1-3]|R-LIN-0[1-5]' RULES.md`; output listed all thirteen new rules.
+11. Ran `grep 'Repo Principles' ~/.claude/CLAUDE.md`; output showed the prepended global section.
+12. Ran `git diff --check`; output empty; no whitespace or patch-hygiene defects.
+Ripple Check attestation: read and updated every touched live doc in the ripple set — `CONTINUITY.md`, `COHERENCE.md`, `AGENTS.md`, `CLAUDE.md`, `PROMPTS.md`, `LINEAR.md`, `GUIDE.md`, `STRUCTURE.md`, `README.md`, `RULES.md`, `todo.md`, `SCOPING-three-pillar-principles.md`, and `~/.claude/CLAUDE.md` — and checked each one by direct reread plus targeted grep after the patch.
+Linear-coverage disposition: self-contained for this landing. `GIL-32` is the tracked issue for the work that actually surfaced here. No additional actionable follow-up was opened in this commit.
+Did not verify Claude UI or Codex UI project-instruction settings because the task explicitly marked those surfaces out of scope and Trevor updates them manually.
+Did not verify any Linear state move because Codex may create issues and comment on them, but state moves remain Cowork/Trevor-owned.
+
+by:
+Codex
+
+triggered by:
+2026-04-16 design conversation with Trevor
+
+led to:
+landing commit SHA recorded in immediate closeout; GIL-32
+
+linear:
+GIL-32
+
 ## Suggested Recommendation Log
+If it's not here, it isn't remembered.
 Keep materially new suggestions here so they survive beyond the current chat.
 - Do not delete old entries; mark them completed, declined, deferred, or superseded with date and chat context.
 - Keep audit-created items here only when they are deferred, optional, or not yet execution-ready; otherwise promote them into `## Active Next Steps`.
 - When a suggestion comes from an audit or feedback review, link back to the originating audit record or `Feedback Decision Log` entry and later note which chat implemented or declined it.
+- New entries should capture the suggestion, status, `by:`, and `linear:`. Older entries remain preserved as written.
 - 2026-04-12: Keep `acpx` behind an adapter instead of making it part of the supervisor spine on the first implementation pass. Status: deferred until the builder adapter is being built.
 - 2026-04-12: When Phase 4 starts, materialize the canonical prompt pack from `PROMPTS.md` into versioned `supervisor/prompts/` files plus parseable schema fixtures so prompt regressions can be tested directly. Status: deferred until Phase 4.
 - 2026-04-12: Add a prompt-regression harness that replays representative planning, build, review, fix-audit, and final-audit cases to catch prompt drift before it reaches real runs. Status: deferred until Phase 4/5.
@@ -129,9 +203,14 @@ Each active branch entry should include:
   - `declined / deferred findings`
   - `better-path challenge`
   - `references` (issue, PR, commit, or log path)
+- Forward entries must also capture:
+  - `by`
+  - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
+- Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - When a finding is later implemented, deferred, declined, or superseded, update the existing audit trail instead of deleting the history.
 
 ## Audit Record Log
+If it's not here, it isn't remembered.
 - 2026-04-12 | type: governance review | scope: companion-doc consistency after canonical architecture adoption | source/work chat: current repo audit thread | commands/evidence: document review only | findings opened or updated: LOGIC terminal-state mismatch, auth prerequisite overspecification, AGENTS global-reference ambiguity, empty active queue, onboarding-order ambiguity
 - 2026-04-12 | type: governance review | scope: prompt-system source-of-truth addition and review-loop hardening | source/work chat: current prompt operating system thread | commands/evidence: document review plus cross-doc consistency check | findings opened or updated: prompt-authority gap closed, independent-review loop made explicit, event/time-based testing cadence defined, phase-4 prompt operationalization deferred into follow-up
 - 2026-04-14 | type: governance review | scope: CI rollout documentation and plan placement | source/work chat: CI documentation placement thread | commands/evidence: targeted architecture/plan/todo/readme review | findings opened or updated: CI belongs in the first implementation repo, must be contract-driven, must emit structured artifacts, and should only be templated after local parity is proven
@@ -149,9 +228,14 @@ Each active branch entry should include:
   - `command(s)` executed
   - `result` (pass/fail + short note)
   - `log/PR reference` (commit SHA, CI URL, or local log path)
+- Forward entries must also capture:
+  - `by`
+  - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
+- Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - When a verification run closes or updates an audit finding, cross-reference the matching audit record entry and the chat or commit that performed the work.
 
 ## Test Evidence Log
+If it's not here, it isn't remembered.
 - 2026-04-15 | command(s): `git diff --check -- LINEAR.md README.md GUIDE.md todo.md docs/launch-plan.md`; `rg -n "template content|not this repository's backlog|Rollout runbook|Smoke lane|Production rollout lane|Post-launch monitoring" LINEAR.md README.md GUIDE.md docs/launch-plan.md` | result: pass; launch-plan reconciliation is present, navigation docs point to the new file, and `LINEAR.md` now explicitly disambiguates template checkboxes from repo backlog | log/PR reference: current documentation correction thread
 - 2026-04-12 | command(s): manual document review | result: pass with follow-up fixes required | log/PR reference: local documentation cleanup chat
 - 2026-04-12 | command(s): `git diff --check -- PROMPTS.md README.md GUIDE.md IMPLEMENTATION-PLAN.md todo.md`; `rg -n "PROMPTS\\.md|self-test|fix-audit|independent review|re-audit" README.md GUIDE.md IMPLEMENTATION-PLAN.md PROMPTS.md todo.md`; repo-level check discovery for `package.json` / `pnpm-workspace.yaml` | result: pass; cross-doc references and review-loop terms are consistent, and this docs repo does not expose repo-level Node checks to run | log/PR reference: current prompt operating system thread
@@ -179,6 +263,7 @@ Each active branch entry should include:
 | Phase 1 mid-build architecture checkpoint | Paired audit: Pro (strategic) + Claude Code (line-by-line against schemas, action set, and invariants) | After subphase 1.2 lands, before 1.3 begins | Both auditors return clean; tiebreaker per ADR-0002 if they disagree |
 
 ## Feedback Decision Log
+If it's not here, it isn't remembered.
 Record outside feedback and the resulting reasoning once, then update the same entry as the decision evolves.
 - Each entry should capture:
   - `date`
@@ -189,6 +274,10 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `decision status` (`accepted`, `partial`, `deferred`, `rejected`, or `superseded`)
   - `implementation/disposition chat`
   - `linked branch / audit / suggestion / test evidence`
+- Forward entries must also capture:
+  - `by`
+  - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
+- Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
 - 2026-04-12 | feedback source: Claude companion-doc audit | feedback summary: align terminal-state language, relax Codex auth prerequisite, disambiguate global policy references, populate `todo.md`, clarify human vs agent doc-reading order | evaluation chat: current documentation cleanup thread | reasoning response: accepted in substance; implemented the four direct fixes and clarified onboarding order without reordering the README's human-oriented reading path | decision status: accepted | implementation/disposition chat: current documentation cleanup thread | linked branch / audit / suggestion / test evidence: Audit Record Log entry 2026-04-12; Test Evidence Log entry 2026-04-12
 - 2026-04-12 | feedback source: Trevor prompt-system request | feedback summary: add a canonical prompt document, make testing cadence explicit, require self-review plus another AI review, and re-audit fixes until the work comes back clean | evaluation chat: current prompt operating system thread | reasoning response: accepted; implemented in `PROMPTS.md`, indexed from the repo guide/front page, and reflected in the testing/audit governance records | decision status: accepted | implementation/disposition chat: current prompt operating system thread | linked branch / audit / suggestion / test evidence: Audit Record Log entry 2026-04-12 (prompt-system source-of-truth addition); Test Evidence Log entry 2026-04-12

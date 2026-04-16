@@ -14,6 +14,7 @@ Some archived documents intentionally preserve superseded terminology, layout as
 
 ## Contents
 
+- `queue-upgrade-research-2026-04-16.md`: internet-backed rationale, conversation-audit record, and decision memo for the webhook, triage, durability, observability, and eval upgrades to unattended queue execution.
 - `canonical-architecture-synthesis.md`: narrative history of the architecture convergence.
 - `FINAL-ARCHITECTURE-DECISION.md`: archived executive summary from the convergence phase.
 - `autonomous-agent-system-architecture-review.md`: original architecture review.

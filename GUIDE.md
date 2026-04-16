@@ -131,6 +131,7 @@ Everything historical now lives under [design-history/](/Users/gillettes/Coding 
 
 Key historical records:
 
+- [design-history/queue-upgrade-research-2026-04-16.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/queue-upgrade-research-2026-04-16.md)
 - [design-history/canonical-architecture-synthesis.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/canonical-architecture-synthesis.md)
 - [design-history/FINAL-ARCHITECTURE-DECISION.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/FINAL-ARCHITECTURE-DECISION.md)
 - [design-history/autonomous-agent-system-architecture-review.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/autonomous-agent-system-architecture-review.md)

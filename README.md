@@ -59,6 +59,8 @@ Read these when working on the current system:
 
 Archived drafts, reconciliation docs, old architecture summaries, and audit records now live under [design-history/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history). Start with [design-history/README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/README.md) before opening historical documents.
 
+Latest queue-upgrade rationale and conversation-audit record: [design-history/queue-upgrade-research-2026-04-16.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/queue-upgrade-research-2026-04-16.md)
+
 ## Feedback, Audits, And Idea Tracking
 
 This repo keeps durable governance records instead of leaving them in chat:
@@ -73,7 +75,7 @@ This repo keeps durable governance records instead of leaving them in chat:
 
 ## Current Direction
 
-The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, structured evidence for readiness decisions, and supervisor-mediated unattended queue execution that treats Linear as routing metadata rather than a command surface.
+The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, structured evidence for readiness decisions, and supervisor-mediated unattended queue execution that treats Linear as routing metadata rather than a command surface. The current queue direction is webhook-first intake, pre-queue normalization, explicit risk and approval gates, and trace-linked observability plus eval evidence before autonomy expands.
 
 ## Next Build Focus
 

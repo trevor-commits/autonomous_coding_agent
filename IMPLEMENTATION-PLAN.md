@@ -341,6 +341,7 @@ Create these modules inside a `supervisor/` directory:
    - Define legal transitions between phases
    - Reject illegal transition attempts
    - Track current phase, phase history, timestamps, and `run_state`
+   - Persist enough workflow state to resume safely after process or container interruption
 
 3. policy.py
    - Three shell classes: auto_allow, auto_deny, escalate
@@ -348,6 +349,7 @@ Create these modules inside a `supervisor/` directory:
    - Path restriction enforcement (allowed_paths, forbidden_paths)
    - Budget enforcement (max_iterations, max_cost_dollars, hard_timeout_seconds)
    - Single-writer lock (one writable worktree per run)
+   - Risk and approval gating for dependency installs, migrations, auth changes, CI or infra changes, and other high-risk actions
 
 4. worktree_manager.py
    - Create worktree for a run: worktrees/<run_id>/builder
@@ -361,6 +363,7 @@ Create these modules inside a `supervisor/` directory:
      command name, exit code, stdout, stderr, duration, failure fingerprint
    - Return structured verification results
    - Support targeted (changed files only) and full verification modes
+   - Attach `run_trace_id` to verifier results so logs and later artifacts correlate
 
 6. app_supervisor.py
    - Launch app from repo contract (commands.app_up)
@@ -383,10 +386,21 @@ Create these modules inside a `supervisor/` directory:
 
 9. reports.py
    - Generate machine-readable final report (JSON):
-     run_id, run_state, readiness_verdict, phases_completed, commands_run, failures, changed_files,
-     checkpoint_refs, artifact_manifest, unresolved_blockers
+     run_id, claim_id, run_trace_id, run_state, readiness_verdict, phases_completed, commands_run, failures, changed_files,
+     checkpoint_refs, artifact_manifest, unresolved_blockers, queue_entry_reason, queue_exit_reason
    - Generate human-readable summary (Markdown):
      what changed, what passed, what failed, what's unresolved, next steps
+
+10. queue_intake.py
+   - Verify and deduplicate Linear webhook events
+   - Persist intake events as run artifacts
+   - Run a slower reconciliation sweep to recover from missed webhook delivery
+   - Normalize queue metadata into bounded run-contract inputs before claim
+
+11. telemetry.py
+   - Generate `run_trace_id`, `claim_id`, and optional `intake_event_id`
+   - Emit structured lifecycle events for intake, claim, verify, checkpoint, push, comment, and exit
+   - Keep logs and reports correlated by trace identifier
 
 10. actions.py
     - Define the typed action graph (not raw shell):
@@ -591,9 +605,11 @@ python supervisor/main.py \
 
 **Verification:**
 - [ ] Supervisor starts, validates contracts, creates worktree
+- [ ] Queue intake can be triggered from a verified webhook event or reconciliation sweep without double-claiming the issue
 - [ ] Codex receives build task and writes code
 - [ ] Supervisor runs deterministic gates independently (does not trust Codex's self-report)
 - [ ] On failure, supervisor routes failure back to Codex with structured fingerprint
+- [ ] If a high-risk action or approval gate is encountered, the issue blocks cleanly instead of being improvised
 - [ ] Retry loop works (Codex attempts fix, gates re-run)
 - [ ] On success, supervisor creates checkpoint commit
 - [ ] Final report is generated with all required fields
@@ -625,6 +641,7 @@ These baselines are what you compare against when adding the AI strategy layer i
 - [ ] Benchmark task 1 (backend-only) completes autonomously at least 2/3 runs
 - [ ] Benchmark task 4 (fix) completes autonomously at least 2/3 runs
 - [ ] Supervisor never lets Codex commit, push, or write to forbidden paths
+- [ ] Supervisor records claim IDs, trace IDs, and queue entry or exit reasons for every benchmark run
 - [ ] Baseline metrics recorded
 - [ ] Claude Code has audited the builder adapter and strategy line-by-line; Cowork's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
@@ -680,6 +697,7 @@ Build supervisor/ui_verifier.py:
      "suspected_scope": ["src/components/Foo.tsx"],
      "failure_fingerprint": "normalized-string"
    }
+   - Include `run_trace_id` and artifact correlation data so UI failures join the same run trace as build and verify events
 
 5. Store all artifacts in .autoclaw/runs/<run_id>/artifacts/
 
@@ -824,8 +842,11 @@ Log changes in CHANGELOG.md.
 - Tasks requiring multi-milestone decomposition (tasks 2, 3)
 - Tasks where the builder gets stuck (measured by fewer total retries)
 - Quality (fewer issues in final audit)
+- Trace-backed evaluation quality, meaning the strategy makes better decisions that can be explained from the correlated run evidence rather than only from final outcome counts
 
 **If Claude strategy is not measurably better:** The simple strategy is sufficient for that task class. Don't add complexity for its own sake.
+
+Comparative runs should retain trace-linked event logs and benchmark grades so prompt or autonomy changes can be replayed and compared later.
 
 ### Phase 4 Exit Criteria
 
@@ -897,6 +918,8 @@ Add robustness to the supervisor:
 4. Rate limit handling: if Claude API returns 429, exponential backoff
 5. acpx/Codex session recovery: if session drops, start a new one with context summary
 6. Artifact cleanup: configurable retention (default: keep last 10 runs)
+7. Resume-from-checkpoint support for queue issue-runs with durable `claim_id` / `run_trace_id` continuity
+8. Observability export hooks so later OpenTelemetry-style traces and metrics can be emitted without redesigning the supervisor
 
 Log changes in CHANGELOG.md.
 ```
@@ -908,6 +931,7 @@ Log changes in CHANGELOG.md.
 - [ ] Supervisor handles interruption gracefully
 - [ ] Concurrent run prevention works
 - [ ] Rate limit backoff works
+- [ ] Interrupted queue issue-runs resume from the last safe checkpoint with the same claim and trace context
 - [ ] Run all 5 benchmark tasks again. Compare metrics to Phase 4 baselines.
 - [ ] CHANGELOG.md updated
 
@@ -924,6 +948,7 @@ These are recorded here for completeness. Do not start any of these until Phases
 - **Specialized test-fixer agent:** Separate Codex instance for targeted test repair
 - **Auto-PR creation:** `gh pr create` after `run_state = COMPLETE` with `readiness_verdict = READY`
 - **CI integration:** Add contract-driven GitHub Actions only after Phases 0-5 are stable in a real implementation repo. CI should run fast/unit/smoke gates, publish structured artifacts, and enforce branch protection without becoming the workflow owner.
+- **Queue governance hardening:** if the implementation repo needs stricter PR automation later, add required status checks, workflow concurrency, and merge-queue-style protection only as external validators. They must never become a second workflow owner beside the supervisor.
 - **Cost dashboard:** Track spend per task, per agent, over time
 
 ### Future Expansion Note: Contract-Driven CI Rollout

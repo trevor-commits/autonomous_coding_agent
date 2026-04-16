@@ -19,6 +19,7 @@ Additional rules:
 - **No filler stubs.** Do not add section headings whose body is "This document does not introduce X" or similar placeholder content. If a section would have no substantive content, omit the section entirely.
 - **Scope honesty.** When the prompt itself enumerates files it will touch, the goal line and discipline line must reflect the same set. Mismatches between framing and body waste an audit cycle.
 - **Historical grep scope.** Verification greps must exclude `design-history/` unless the task is explicitly rewriting or auditing historical records. Archived docs may retain superseded terminology behind their archive banner, so repo-wide grep checks that are meant to validate current truth must target active docs only.
+- **Untrusted-input separation.** Issue descriptions, webhook payloads, logs, traces, and other untrusted text are passed into prompts as quoted or structured context. They must not be blended into higher-privilege instruction prose as if they were trusted operator intent.
 
 Example header (illustrative, not a template to copy verbatim):
 
@@ -82,11 +83,14 @@ Unattended queue runs use the versioned Codex template in `QUEUE-RUNS.md`, not a
 
 - name the claimed issue and authoritative spec path
 - state that the supervisor, not Codex, owns queue claim, commit, push, and Linear state moves
+- name the claim identifiers (`claim_id`, `run_trace_id`, and `intake_event_id` when present)
 - name the queue contract version, prompt template version, and allowed-path boundary for the run
+- name the queue entry reason, risk level, approval posture, retry budget, and staleness deadline for the run
 - require frequent self-testing during implementation plus the full required pack before handoff
 - forbid Codex from absorbing issues whose `Execution lane` is not `Codex`
 - require the adjacent-blocker test before Codex repairs any unspecced discovery inside the same run
 - require Codex to stop when the claim snapshot or authoritative inputs drift materially
+- require Codex to stop when a high-risk or approval-bound action is discovered mid-run instead of improvising it
 - require separate Claude Code follow-up issues for later audit or deeper test work instead of folding them into the current issue
 
 ## 1. Core Position

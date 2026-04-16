@@ -115,7 +115,45 @@ Defects, readiness, and progress must be backed by artifacts:
 - traces
 - structured reports
 
-### 3.7 Boring First
+### 3.7 Typed Control-Plane Outputs
+
+Every machine-crossing handoff in the control plane must stay schema-bound.
+
+This includes:
+
+- queue intake normalization
+- strategy decisions
+- verifier results
+- defect packets
+- approval-gate outcomes
+- final reports
+
+Free-form prose may explain a decision, but it must not be the only thing a later runtime step depends on.
+
+### 3.8 Webhook-First, Reconciled Intake
+
+When unattended queue mode is enabled, the preferred intake trigger is a verified Linear webhook rather than blind polling.
+
+Webhook delivery is not enough by itself to authorize execution. The supervisor must still:
+
+- verify event authenticity
+- deduplicate intake events
+- normalize the issue into a bounded run contract
+- reconcile against current Linear state before claiming work
+
+Periodic reconciliation sweeps remain valid as a safety net for missed events, but they do not replace authenticated event-driven intake as the primary trigger.
+
+### 3.9 Evals And Observability Are First-Class
+
+Autonomy should expand only when the system can explain what happened and measure whether it improved.
+
+That requires:
+
+- traceable run execution with correlated logs, spans, and artifacts
+- benchmark or eval comparisons when changing queue behavior, prompts, or autonomy boundaries
+- explicit risk and approval gates for high-impact actions
+
+### 3.10 Boring First
 
 The initial system should be narrow and reliable:
 
@@ -130,11 +168,17 @@ The initial system should be narrow and reliable:
 ## 4. High-Level System Shape
 
 ```text
-Human kickoff or supervised queue intake
+Human kickoff or verified Linear webhook / reconciliation sweep
+  ->
+Intake normalization
+  - triage / queue-readiness check
+  - schema validation
+  - risk / approval gating
   ->
 Deterministic Supervisor
   - selects next eligible issue when queue mode is enabled
   - validates repo contract + run contract
+  - persists durable workflow state
   - creates worktree and run store
   - controls phase transitions
   - enforces budgets, locks, guardrails
@@ -165,22 +209,28 @@ The deterministic supervisor is the center of the architecture.
 
 Responsibilities:
 
+- verify intake events and deduplicate them when queue mode is enabled
 - parse and validate repo contract
 - parse and validate run contract
+- normalize queue metadata into a bounded run contract
 - create run directory and worktree
 - enforce single-writer lock
 - enforce browser-owner lock
 - manage phase transitions
 - dispatch legal actions
+- enforce risk and approval gates
 - run required deterministic gates
 - start and stop the app
 - capture artifacts and reports
 - enforce retries, budgets, and stop conditions
+- externalize durable workflow state so runs can resume after process or container failure
 - own checkpoint commits
 - own landing commits and queue claim/release
 - decide final run state
 
 The supervisor must be implemented as ordinary code, not as an LLM prompt loop.
+
+The supervisor may run on top of a durable workflow substrate, but that substrate is an implementation detail, not a new workflow owner. The legality model, queue normalization rules, and stop conditions still live here.
 
 ## 5.2 AI Strategy Layer
 
@@ -326,6 +376,18 @@ Responsibilities:
 - emit a `readiness_verdict` of `READY`, `NOT_READY`, or `NEEDS_MORE_EVIDENCE`
 
 No model may unilaterally mark a run `READY` or set `run_state = COMPLETE`.
+
+## 5.9 Observability And Evaluation Layer
+
+This layer is not another decision-maker. It exists so the supervisor and later auditors can understand what happened and whether a change actually improved the system.
+
+Responsibilities:
+
+- assign and propagate `run_trace_id` and related correlation identifiers
+- record structured events for intake, claim, verification, push, comment, and exit
+- retain trace-linked logs, screenshots, traces, and reports
+- grade benchmark or eval runs when queue behavior, prompts, or autonomy boundaries change
+- compare new behavior against prior baselines before autonomy is widened
 
 ## 6. Excluded Components in v1
 
@@ -562,7 +624,11 @@ That metadata is not a third source of truth. It may only:
 - declare the intended execution lane
 - declare whether the issue is queue-eligible or manual-only
 
-The supervisor must still derive the actual run contract before Codex starts, including the frozen issue snapshot (`issue_snapshot_hash`), the allowed and forbidden path scope (`allowed_paths` plus companion exclusions), the required verification pack, and the versioned queue or prompt contract (`queue_contract_version`, `prompt_template_version`) used for that run.
+Verified webhooks are the preferred wake-up signal for queue intake, with a periodic reconciliation sweep as the recovery path for missed or delayed events.
+
+The supervisor must still derive the actual run contract before Codex starts, including the frozen issue snapshot (`issue_snapshot_hash`), the allowed and forbidden path scope (`allowed_paths` plus companion exclusions), the required verification pack, the versioned queue or prompt contract (`queue_contract_version`, `prompt_template_version`) used for that run, and the durable intake identifiers (`claim_id`, `run_trace_id`, optional `intake_event_id`) needed for replayable queue history.
+
+Queue normalization must also derive the bounded execution envelope for that run, including `queue_entry_reason`, `risk_level`, `approval_required`, `retry_budget`, `staleness_deadline`, and whether a resume should continue from a previous checkpoint (`resume_from_checkpoint`).
 
 If the issue metadata or authoritative repo inputs drift materially after claim, the active run is invalid until the supervisor re-normalizes or blocks it cleanly.
 
@@ -1249,10 +1315,13 @@ Deliverables:
 
 - contract parsing
 - phase machine
+- verified webhook intake plus reconciliation sweep support
+- queue normalization and approval gating
 - shell policy
 - worktree handling
 - run state persistence
 - deterministic verifier
+- trace correlation and structured event records
 - checkpointing
 
 ## Phase 2: Single Builder Loop
@@ -1266,6 +1335,7 @@ Deliverables:
 - builder adapter
 - repair loops based on deterministic failures
 - structured failure fingerprints
+- queue claim, closeout, and bounded follow-up filing against the normalized run contract
 - end-to-end code task completion without AI review dependency
 
 ## Phase 3: App + UI Verification
@@ -1280,6 +1350,7 @@ Deliverables:
 - Playwright integration
 - screenshot and trace artifacts
 - UI defect packet generation
+- trace-linked run artifacts across app and UI lanes
 
 ## Phase 4: AI Strategy + Review
 
@@ -1293,6 +1364,7 @@ Deliverables:
 - stall diagnosis
 - checkpoint review
 - final audit
+- trace-aware evaluation and benchmark grading for prompt or autonomy changes
 
 ## Phase 5: Operational Memory Hardening
 
@@ -1305,6 +1377,8 @@ Deliverables:
 - normalized operational memory
 - flaky-test registry
 - environment quirk registry
+- durable resume / rehydration across interrupted runs
+- observability and eval baselines for autonomy changes
 - optional structured DB migration if justified
 
 ## 23. Final Canonical Statement
@@ -1318,6 +1392,9 @@ The source-of-truth architecture for this repository is:
 - **Playwright as the sole browser verifier**
 - **repo contract + run contract as the required automation interface**
 - **structured artifacts and defect packets as the evidence model**
+- **webhook-first, supervisor-normalized queue intake**
+- **explicit risk and approval gates**
+- **traceable observability and eval-backed autonomy changes**
 - **single-writer and single-browser-owner isolation**
 - **runtime-owned correctness and readiness**
 

@@ -161,14 +161,18 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 ### Run contract (JSON, per-task):
 
 - Must define: `run_id`, `repo_path`, `objective`, `scope` (allowed_paths, forbidden_paths), `acceptance` (functional, quality_gates, ui_checks), `constraints` (single_writer, max_repair_loops, max_iterations, max_cost_dollars, hard_timeout_seconds).
-- Queue-mode runs must also record `queue_contract_version`, `prompt_template_version`, `issue_snapshot_hash`, and `follow_up_policy`.
+- Queue-mode runs must also record `claim_id`, `run_trace_id`, `queue_entry_reason`, `queue_contract_version`, `prompt_template_version`, `issue_snapshot_hash`, `follow_up_policy`, `risk_level`, `approval_required`, `retry_budget`, `staleness_deadline`, and `resume_from_checkpoint`.
 - Scope paths are enforced by the supervisor — the builder cannot write outside allowed_paths or inside forbidden_paths.
 
 ## Issue Queue Rules
 
 - Linear issue metadata is routing input only. It may nominate work, but it may not issue arbitrary commands or replace the repo contract or run contract.
+- Verified webhooks are the preferred queue trigger. Intake events must be authenticated, deduplicated, and recorded before they can change queue state.
+- A slower reconciliation sweep remains required so missed or delayed events cannot silently desynchronize the queue from current Linear truth.
+- Triage or its manual equivalent must normalize issue routing metadata before an issue enters `Ready for Build`.
 - The supervisor may claim only issues that satisfy the eligibility contract in `QUEUE-RUNS.md`.
 - The supervisor must freeze an issue snapshot and normalized run contract at claim time before Codex starts mutating files.
+- High-risk or approval-required work is not unattended queue work by default. If `risk_level = High` or `approval_required = Yes`, the issue stays manual or blocks for approval instead of being claimed.
 - Non-Codex or manual-mode issues are skipped without mutation by the Codex queue.
 - Codex may absorb an unspecced discovery only when it passes the adjacent-blocker test in `QUEUE-RUNS.md`; otherwise the work is split into a follow-up issue or explicit disposition.
 - Queue-generated Claude Code audit or test follow-up issues must be filed as separate issues and do not block the queue from continuing once the current Codex issue has either landed or blocked cleanly.
@@ -307,10 +311,14 @@ Stop conditions are enforced by the supervisor. The AI cannot override them.
 
 Every run must produce both:
 
-- **Machine-readable report (JSON):** `run_id`, `run_state`, `readiness_verdict`, `phases_completed`, `commands_run`, `failures`, `changed_files`, `checkpoint_refs`, `artifact_manifest`, `unresolved_blockers`.
+- **Machine-readable report (JSON):** `run_id`, `claim_id`, `run_trace_id`, `run_state`, `readiness_verdict`, `phases_completed`, `commands_run`, `failures`, `changed_files`, `checkpoint_refs`, `artifact_manifest`, `unresolved_blockers`, `queue_entry_reason`, `queue_exit_reason`.
 - **Human-readable summary (Markdown):** what changed, what passed, what failed, what's unresolved, what to do next.
 
 Reports are written to the run directory when the supervisor reaches a terminal `run_state`.
+
+Queue-mode reports and artifacts must be trace-correlated. Logs, comments, screenshots, verifier outputs, and blocker packets must all carry or reference the same `run_trace_id` so later audits can reconstruct the run without transcript archaeology.
+
+When queue behavior, prompt templates, or autonomy boundaries change materially, the change must be evaluated against benchmark or eval runs before the autonomy envelope is widened. Trace-linked benchmark evidence is required; "seems better" is not enough.
 
 ---
 

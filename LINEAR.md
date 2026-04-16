@@ -23,6 +23,8 @@ Routing metadata only:
 - assignee
 - `Why this exists:` one-line reason the issue exists at all
 - `Origin source:` where the issue came from (manual operator request, audit finding, GitHub/PR automation, or another connected system)
+- `Risk level:` whether the issue is safe for unattended queue execution
+- `Approval required:` whether unattended execution must stop for a human gate
 - authoritative spec link
 - authoritative decision-docs link
 - PR link
@@ -85,7 +87,7 @@ Invariant introduced 2026-04-16 after a gap was discovered where 9 of 14 Active 
 | Done | Completed | Manual-only; see `Automation` |
 | Canceled | Canceled | Terminal non-delivery state |
 
-Triage is not enabled in the initial rollout. If Triage is later enabled, update this document.
+Triage is the preferred ingress for externally generated, webhook-triggered, or support-style intake when the workspace supports it. If Triage is unavailable or intentionally disabled, `Inbox` acts as the manual equivalent and the same normalization rules still apply before an issue may enter `Ready for Build`.
 
 The happy path is:
 
@@ -153,6 +155,8 @@ Every issue body contains:
 - `Origin source:`
 - `Execution lane:` `Codex`, `Claude Code`, `Cowork`, or `Trevor`
 - `Execution mode:` `Queue` or `Manual`
+- `Risk level:` `Low`, `Medium`, or `High`
+- `Approval required:` `No` or `Yes`
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
@@ -207,6 +211,10 @@ The template body is:
 
 **Execution mode:**
 
+**Risk level:**
+
+**Approval required:**
+
 **PR:** (once opened)
 
 **Completion artifact:** (once filed)
@@ -242,11 +250,20 @@ If the template in Linear ever drifts from this block, the repo wins and the Lin
 
 `QUEUE-RUNS.md` defines the exact unattended queue contract. Linear supplies routing metadata only.
 
+Preferred intake model:
+
+- verified Linear webhooks wake the queue supervisor when issue state changes matter
+- Linear Triage or `Inbox` acts as the normalization lane before queue work becomes claimable
+- Triage rules, Triage Intelligence, or agent automations may enrich routing metadata only; they may not author repo truth or issue executable commands
+- the supervisor still performs the final queue-eligibility check against repo truth before claiming any issue
+
 Codex queue eligibility requires all of the following:
 
 - status `Ready for Build`
 - `Execution lane: Codex`
 - `Execution mode: Queue`
+- `Risk level: Low` or `Medium`
+- `Approval required: No`
 - valid `Authoritative spec path`
 - no `prompt-review` label
 - no `Blocked-external` label
@@ -254,8 +271,10 @@ Codex queue eligibility requires all of the following:
 Queue runs also enforce these guardrails:
 
 - the supervisor snapshots the issue and authoritative inputs at claim time
+- the supervisor records claim, trace, and intake identifiers for every issue-run
 - Codex works only inside the supervisor-derived allowed paths for that run
 - off-scope discoveries are absorbed only when they are direct adjacent blockers that still fit the same allowed paths, verification pack, and decision ownership
+- discovered high-risk actions or approval-bound operations block the issue instead of being improvised in-run
 - everything else becomes a separate issue or an explicit `no-action:` / `self-contained:` disposition
 
 Issues for later Claude Code audit or deeper test work must explicitly set:
@@ -297,6 +316,10 @@ These are separate mechanisms and must not be conflated.
 ### Linear MCP Server
 
 Enabled. This provides compatible clients such as Claude Code and Cowork with programmatic read and write access to Linear data. It is a data protocol, not a custom prompt surface.
+
+### Verified Webhooks
+
+Preferred for unattended queue intake. Webhooks wake the supervisor when issue state changes matter, but they are not execution authority by themselves. The supervisor still verifies the event, reconciles current Linear state, normalizes the issue into a bounded run contract, and only then decides whether work is claimable.
 
 ### Open Issues In Coding Tools
 
@@ -417,10 +440,10 @@ Deferred capabilities are adopted reactively when their stated trigger fires. Th
 
 ### Triage and AI features
 
-- **Triage status** — separate inbound queue distinct from `Inbox`. Not enabled in initial rollout; the Statuses section above flags this and notes that adopting Triage later requires updating this document.
+- **Triage status** — no longer a conceptual no. It is now the preferred pre-queue normalization lane when the workspace supports it. If still unavailable in practice, `Inbox` remains the manual equivalent.
 - **Linear Agent Skills** — reusable Linear-Agent prompts invoked by slash command or auto-selected. Skipped because the current flow has no repeated Linear-Agent request that justifies one. Revisit if a request pattern emerges.
-- **Triage Intelligence** (paid plan) — auto-infers team, project, labels, assignee for new issues. Skipped because triage is manual in the current flow and the plan tier does not include it.
-- **Agent automations** (paid plan) — automated workflows triggered when issues hit Triage. Skipped with Triage.
+- **Triage Intelligence** (paid plan) — acceptable only for routing enrichment (team, labels, assignee, issue categorization) before queue normalization. It must not become a source of acceptance criteria, commands, or audit truth.
+- **Agent automations** (paid plan) — acceptable only for Triage-to-routing metadata enrichment or notifications. They may not claim issues, emit executable instructions, or bypass supervisor normalization.
 - **AI Summaries** (paid plan) — AI-generated summaries across Linear. Skipped because the repo is the source of truth for summaries; Linear-side summaries would invite drift.
 
 ### Issue intake

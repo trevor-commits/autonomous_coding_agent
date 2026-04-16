@@ -1,7 +1,7 @@
 # Continuity
 
 **Date:** April 16, 2026  
-**Authority:** Repo governance derived from `AGENTS.md`, `RULES.md`, and `LINEAR.md`.  
+**Authority:** Repo governance derived from `AGENTS.project.md`, `RULES.md`, and `LINEAR.md`.
 **Purpose:** Define the continuity principle for this repository so bounded work leaves a durable, findable record instead of dying with the conversation that produced it.
 
 ## Principle
@@ -69,7 +69,7 @@ This is legacy-over-compliance. The goal is not to satisfy a checklist; it is to
 
 ## Where the rules live
 
-- `AGENTS.md` `## Completion Authority` defines who must satisfy the Continuity Check before a commit lands or a Linear state move happens.
+- `AGENTS.project.md` `## Completion Authority` defines who must satisfy the Continuity Check before a commit lands or a Linear state move happens.
 - `PROMPTS.md` `## Prompt framing convention` defines the five-part prompt header that must name the durable record up front.
 - `LINEAR.md` ties state-move preconditions to the existence of Work Record entries and Linear-coverage.
 - `RULES.md` `R-CONT-01` through `R-CONT-05` make the principle enforceable.

@@ -23,7 +23,7 @@ Additional rules:
 Example header (illustrative, not a template to copy verbatim):
 
 ```text
-Goal: Land the Continuity / Coherence / Linear-Core governance bundle across CONTINUITY.md, COHERENCE.md, LINEAR.md, AGENTS.md, CLAUDE.md, PROMPTS.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, todo.md, and ~/.claude/CLAUDE.md.
+Goal: Land the Continuity / Coherence / Linear-Core governance bundle across CONTINUITY.md, COHERENCE.md, LINEAR.md, AGENTS.md, AGENTS.project.md, CLAUDE.md, PROMPTS.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, todo.md, and ~/.claude/CLAUDE.md.
 
 Discipline: No new branches. Commit and push on the current branch. Use `ref GIL-32`. Do not edit `design-history/` or any repo file outside the named scope.
 
@@ -32,6 +32,7 @@ For repo content, limit substantive reads to:
 - COHERENCE.md (new root principle doc to create and seed with the Dependency Map)
 - LINEAR.md
 - AGENTS.md
+- AGENTS.project.md
 - PROMPTS.md
 - GUIDE.md
 - RULES.md
@@ -57,7 +58,7 @@ Durable record:
 - Linear Issue Ledger: add or refresh any live issue entries touched by the task, including `todo home:`, `why this exists:`, and `origin source:`
 - Audit / Feedback / Test logs: only append new entries if the work surfaces findings or runs verification that belongs there
 - Linear: create or use `GIL-32`; file any surfaced follow-up in the same commit or disposition it as `no-action:` / `self-contained:`
-- Ripple Check: attest consistency across CONTINUITY.md, COHERENCE.md, AGENTS.md, CLAUDE.md, PROMPTS.md, LINEAR.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, `todo.md`, and `~/.claude/CLAUDE.md`
+- Ripple Check: attest consistency across CONTINUITY.md, COHERENCE.md, AGENTS.md, AGENTS.project.md, CLAUDE.md, PROMPTS.md, LINEAR.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, `todo.md`, and `~/.claude/CLAUDE.md`
 - ADRs: none
 ```
 

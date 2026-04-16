@@ -1,7 +1,7 @@
 # Coherence
 
 **Date:** April 16, 2026  
-**Authority:** Repo governance derived from `AGENTS.md`, `RULES.md`, and `LINEAR.md`.  
+**Authority:** Repo governance derived from `AGENTS.project.md`, `RULES.md`, and `LINEAR.md`.
 **Purpose:** Define the coherence principle for this repository so live docs stay synchronized and the repo remains authoritative instead of drifting into contradiction.
 
 ## Principle
@@ -26,17 +26,17 @@ This map is append-only. Every future commit that adds a new inter-doc reference
 
 | Changed surface | Dependent docs to check in the same commit | Why the ripple exists |
 |---|---|---|
-| `CLAUDE.md` `## Roles` | `AGENTS.md` `## Completion Authority`; `LINEAR.md` state descriptions; `IMPLEMENTATION-PLAN.md` `Who Does What`; `todo.md` `## Audit Watermarks` | Role boundaries and audit ownership must stay aligned across orchestrator, auditor, and completion surfaces. |
-| `CLAUDE.md` `## Default Audit Chain` | `AGENTS.md` audit-chain language; `LINEAR.md` state flow | Review order and state meaning drift together if only one surface changes. |
+| `CLAUDE.md` `## Roles` | `AGENTS.project.md` `## Completion Authority`; `LINEAR.md` state descriptions; `IMPLEMENTATION-PLAN.md` `Who Does What`; `todo.md` `## Audit Watermarks` | Role boundaries and audit ownership must stay aligned across orchestrator, auditor, and completion surfaces. |
+| `CLAUDE.md` `## Default Audit Chain` | `AGENTS.project.md` audit-chain language; `LINEAR.md` state flow | Review order and state meaning drift together if only one surface changes. |
 | `canonical-architecture.md` any governing section | `LOGIC.md`; `RULES.md`; `STRUCTURE.md`; `PROJECT_INTENT.md` | Canonical architecture is authoritative, so companion docs must point back to it instead of redefining it. |
-| `PROMPTS.md` header shape | `CLAUDE.md` `## Codex Handoff`; `AGENTS.md` `## Prompt And Commit Discipline` | Prompt framing rules are load-bearing only if the handoff and enforcement docs match the same shape. |
-| `todo.md` log shapes | `AGENTS.md` `## Reading Scope`; `CONTINUITY.md` `## Work Record format`; `LINEAR.md` state-move preconditions | Durable record requirements, landing-step scope, and Linear coverage must all speak the same log language. |
-| `LINEAR.md` state flow | `CLAUDE.md`; `AGENTS.md`; `IMPLEMENTATION-PLAN.md` exit criteria | Linear status meanings are only trustworthy when the surrounding workflow docs agree. |
-| `CONTINUITY.md` | `AGENTS.md` `## Completion Authority` Continuity Check; `CLAUDE.md` top-of-file loading instruction; `PROMPTS.md` five-part header; `RULES.md` `R-CONT-*` | The continuity principle must be loaded, enforced, and named consistently at intake, execution, and audit time. |
-| `COHERENCE.md` | `AGENTS.md` `## Completion Authority` Ripple Check; `CLAUDE.md` top-of-file loading instruction; `PROMPTS.md` `Durable record`; `RULES.md` `R-COH-*` | The Ripple Check is real only if the intake docs, prompt contract, and rule index all require it. |
+| `PROMPTS.md` header shape | `CLAUDE.md` `## Codex Handoff`; `AGENTS.project.md` `## Prompt And Commit Discipline` | Prompt framing rules are load-bearing only if the handoff and enforcement docs match the same shape. |
+| `todo.md` log shapes | `AGENTS.project.md` `## Reading Scope`; `CONTINUITY.md` `## Work Record format`; `LINEAR.md` state-move preconditions | Durable record requirements, landing-step scope, and Linear coverage must all speak the same log language. |
+| `LINEAR.md` state flow | `CLAUDE.md`; `AGENTS.project.md`; `IMPLEMENTATION-PLAN.md` exit criteria | Linear status meanings are only trustworthy when the surrounding workflow docs agree. |
+| `CONTINUITY.md` | `AGENTS.project.md` `## Completion Authority` Continuity Check; `CLAUDE.md` top-of-file loading instruction; `PROMPTS.md` five-part header; `RULES.md` `R-CONT-*` | The continuity principle must be loaded, enforced, and named consistently at intake, execution, and audit time. |
+| `COHERENCE.md` | `AGENTS.project.md` `## Completion Authority` Ripple Check; `CLAUDE.md` top-of-file loading instruction; `PROMPTS.md` `Durable record`; `RULES.md` `R-COH-*` | The Ripple Check is real only if the intake docs, prompt contract, and rule index all require it. |
 | Linear-Core governance | `LINEAR.md` `## Linear-at-the-core`; every forward log-entry shape in `todo.md`; `RULES.md` `R-LIN-*` | Actionable work must resolve to Linear or an explicit disposition everywhere it can be recorded. |
-| `QUEUE-RUNS.md` | `LINEAR.md`; `PROMPTS.md`; `RULES.md`; `AGENTS.md`; `CLAUDE.md`; `GUIDE.md`; `README.md`; `todo.md` | Queue intake, lane ownership, prompt rendering, stop or skip policy, and closeout records must stay synchronized or unattended execution will drift. |
-| Role boundaries | `CLAUDE.md`; `AGENTS.md`; `LINEAR.md`; `IMPLEMENTATION-PLAN.md`; `todo.md` `## Audit Watermarks` | Ownership drift creates audit ambiguity and false completion signals across the repo. |
+| `QUEUE-RUNS.md` | `LINEAR.md`; `PROMPTS.md`; `RULES.md`; `AGENTS.project.md`; `CLAUDE.md`; `GUIDE.md`; `README.md`; `todo.md` | Queue intake, lane ownership, prompt rendering, stop or skip policy, and closeout records must stay synchronized or unattended execution will drift. |
+| Role boundaries | `CLAUDE.md`; `AGENTS.project.md`; `LINEAR.md`; `IMPLEMENTATION-PLAN.md`; `todo.md` `## Audit Watermarks` | Ownership drift creates audit ambiguity and false completion signals across the repo. |
 
 ## Staleness and Orphans
 
@@ -57,4 +57,4 @@ A repo that drifts is a repo that dies. Once two live docs disagree, every later
 ## Where the rules live
 
 - `RULES.md` `R-COH-01` through `R-COH-03` make the Ripple Check, Dependency Map upkeep, and orphan prevention enforceable.
-- `AGENTS.md` `## Completion Authority` makes coherence a gate instead of a suggestion.
+- `AGENTS.project.md` `## Completion Authority` makes coherence a gate instead of a suggestion.

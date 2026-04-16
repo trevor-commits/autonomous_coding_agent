@@ -39,16 +39,16 @@ For adding Linear to a new project, use `LINEAR-BOOTSTRAP.md`.
 
 Prompts follow `PROMPTS.md`: five-part header (`Goal`, `Discipline`, `Read-scope`, `Body`, `Durable record`), scope honesty, no filler stubs, verification commands, `todo.md` `Work Record Log` plus `Completed` index entry with the landing reference, commit + push on current branch, and no new branches. The `Durable record` section names every log entry expected, every Linear issue created or refreshed, every `Linear Issue Ledger` update required, and the Ripple Check attestation the Self-audit must contain. Fresh Codex conversation per bounded task. Manual prompts are drafted in the scoping Linear issue's description under the `prompt-review` label, reviewed by Codex and Claude Code via Linear comments, and revised by Cowork before handoff. Queue-mode prompts are rendered from the versioned template in `QUEUE-RUNS.md`. See `LINEAR.md` `## Prompt Drafting Surface`.
 
-Codex is expected to create its own Linear issue if none exists for the task, append `todo.md` `Work Record Log` and `Completed` as landing steps, update `todo.md` `Linear Issue Ledger` for any live issue it creates or materially changes, and report completion to me. It does not move Linear state or check off audit items — that is my role. Claude Code (the primary auditor) checks off audit checklist items after completing its line-by-line review. See `AGENTS.md` `## Completion Authority`.
+Codex is expected to create its own Linear issue if none exists for the task, append `todo.md` `Work Record Log` and `Completed` as landing steps, update `todo.md` `Linear Issue Ledger` for any live issue it creates or materially changes, and report completion to me. It does not move Linear state or check off audit items — that is my role. Claude Code (the primary auditor) checks off audit checklist items after completing its line-by-line review. See `AGENTS.project.md` `## Completion Authority`.
 
 ## Orchestrator Scope
 
 I may edit directly: `todo.md`, Linear state, `CLAUDE.md`, and light organization moves.
 
-Substantive edits go to Codex via a prompt: `canonical-architecture.md`, schemas, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `PROMPTS.md`, `LINEAR.md`, `AGENTS.md`, ADRs, `IMPLEMENTATION-PLAN.md`.
+Substantive edits go to Codex via a prompt: `canonical-architecture.md`, schemas, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `PROMPTS.md`, `LINEAR.md`, `AGENTS.project.md`, ADRs, `IMPLEMENTATION-PLAN.md`.
 
 ## Authoritative Docs
 
-`canonical-architecture.md` (authority), `CONTINUITY.md`, `COHERENCE.md`, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `GUIDE.md`, `PROMPTS.md`, `LINEAR.md`, `QUEUE-RUNS.md`, `AGENTS.md`, `IMPLEMENTATION-PLAN.md`, `todo.md`, ADRs in `design-history/`. Companions reference canonical sections rather than redefining. `design-history/` content is preserved as-is — never rewritten to match current truth.
+`canonical-architecture.md` (authority), `CONTINUITY.md`, `COHERENCE.md`, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `GUIDE.md`, `PROMPTS.md`, `LINEAR.md`, `QUEUE-RUNS.md`, `AGENTS.md` (bootstrap pointer), `AGENTS.project.md` (repo-local overlay), `IMPLEMENTATION-PLAN.md`, `todo.md`, ADRs in `design-history/`. Companions reference canonical sections rather than redefining. `design-history/` content is preserved as-is — never rewritten to match current truth.
 
 Any change touching structure, governance, process, or doc relationships updates every affected doc in the same commit.

@@ -1,8 +1,8 @@
 # Linear
 
 **Date:** April 15, 2026
-**Authority:** Repo governance derived from `RULES.md` and `AGENTS.md`. This document governs how Linear is used for this repository; the authoritative source of truth remains in repo docs.
-**Purpose:** Define Linear as the operator board for this repository. This is a repo-governance choice derived from `RULES.md`'s three-tier memory model and supervisor-owned run model, together with `AGENTS.md`'s docs-first, not-yet-implementation posture. Linear is an external operator board, not one of the three memory tiers.
+**Authority:** Repo governance derived from `RULES.md` and `AGENTS.project.md`. This document governs how Linear is used for this repository; the authoritative source of truth remains in repo docs.
+**Purpose:** Define Linear as the operator board for this repository. This is a repo-governance choice derived from `RULES.md`'s three-tier memory model and supervisor-owned run model, together with `AGENTS.project.md`'s docs-first, not-yet-implementation posture. Linear is an external operator board, not one of the three memory tiers.
 
 ---
 
@@ -171,7 +171,7 @@ Labels are scoped to two groups and applied at issue creation. The taxonomy is s
 **Work type** (what kind of deliverable the issue produces; exactly one per issue):
 
 - `ADR` — issue produces an Architecture Decision Record in `design-history/`.
-- `Governance` — issue edits one of the authoritative governance docs (`RULES.md`, `LOGIC.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `canonical-architecture.md`, `LINEAR.md`, `AGENTS.md`, `PROMPTS.md`, `CLAUDE.md`).
+- `Governance` — issue edits one of the authoritative governance docs (`RULES.md`, `LOGIC.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `canonical-architecture.md`, `LINEAR.md`, `AGENTS.md`, `AGENTS.project.md`, `PROMPTS.md`, `CLAUDE.md`).
 - `Docs` — issue edits non-governance docs (guides, README, indexes, completion logs).
 - `Feature` — issue implements new behavior in runtime code.
 - `Improvement` — issue refactors, clarifies, or strengthens existing behavior without new capability.
@@ -267,7 +267,7 @@ Codex and the queue supervisor skip those issues and continue. They do not absor
 
 ## AI-Strategy Role Boundary
 
-Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Cowork drafts Codex prompts and may propose when review should happen. Claude Code is the primary auditor of implementation output — it performs the line-by-line review and may author targeted fix code during audit per `CLAUDE.md § Roles` and `AGENTS.md § Completion Authority`.
+Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Cowork drafts Codex prompts and may propose when review should happen. Claude Code is the primary auditor of implementation output — it performs the line-by-line review and may author targeted fix code during audit per `CLAUDE.md § Roles` and `AGENTS.project.md § Completion Authority`.
 
 Neither Cowork nor Claude Code owns phase-transition or completion authority. Those stay with the supervisor at runtime and with Trevor at the governance layer.
 
@@ -287,7 +287,7 @@ Guardrails:
 - Prompts in Linear descriptions are a drafting surface, not authority. The authoritative spec the prompt points to remains in the repo.
 - Audit comments are transient. Any decision durable enough to matter later is distilled into an ADR or the repo doc it touches — never left to live only as a Linear comment.
 - The prompt of record is the final version Codex logs in `todo.md` under `## Completed` after its run. Linear's description-edit history is convenient but not load-bearing.
-- Code and Codex write comments only. Neither moves issue state directly. Manual-workflow state changes remain Cowork's responsibility; queue-mode state changes remain supervisor-owned under `QUEUE-RUNS.md`. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.md § Completion Authority`).
+- Code and Codex write comments only. Neither moves issue state directly. Manual-workflow state changes remain Cowork's responsibility; queue-mode state changes remain supervisor-owned under `QUEUE-RUNS.md`. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.project.md § Completion Authority`).
 - Queue-mode issues do not require a handcrafted issue-description prompt. When `Execution mode: Queue`, the supervisor renders the versioned Codex template from `QUEUE-RUNS.md` and `PROMPTS.md`.
 
 ## Integrations

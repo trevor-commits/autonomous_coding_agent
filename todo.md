@@ -101,11 +101,12 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 | Claude Code | **Primary auditor** — line-by-line diff/test/invariant review, cross-doc consistency; may also author targeted fix code | 21b8898 | 2026-04-16 | Audited the three-pillar principles landing (GIL-32): CONTINUITY.md + COHERENCE.md created; LINEAR.md gains Linear-at-the-core + state-move preconditions; todo.md gains Work Record Log + one-line Completed index; AGENTS.md gains Repo Principles + three Completion Authority gates; PROMPTS.md extended to five parts with three attestation subsections; 13 rules (R-CONT/R-COH/R-LIN) added to RULES.md; global `~/.claude/CLAUDE.md` prepended. Dogfooding clean: Work Record Log entry for GIL-32 is complete, Self-audit has 12 method-named checks, Ripple Check covers 13 touched docs, Linear-coverage = self-contained. Spot-checked 4 of Codex's Self-audit claims (greps #4, #5, #10, #11) — all outputs match. No transfer errors. design-history/ byte-identical. 17 root `.md` files all have inbound references (no orphans) | Audit Record Log 2026-04-16 entry below |
 | Claude Cowork | Orchestrator (primary) — lightweight spec-alignment check after Code's audit | a28f3ad | 2026-04-15 | Spec-alignment pass on same scope as Code; confirmed 18/18 Active Next Steps items carry (GIL-N), Roadmap table is internally consistent with IMPLEMENTATION-PLAN.md phases, and LINEAR-BOOTSTRAP.md is now tracked | Audit Record Log 2026-04-15 entries below |
 | ChatGPT Pro | Strategic / governance auditor | (none yet) | (none yet) | Phase-exit gate auditor; engaged at phase boundaries per ADR-0004 (queued) | — |
-| Codex | Self-audit (not a gate) | (none yet) | (none yet) | Self-audit is informational only; never the authoritative gate per AGENTS.md | — |
+| Codex | Self-audit (not a gate) | (none yet) | (none yet) | Self-audit is informational only; never the authoritative gate per AGENTS.project.md | — |
 
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-38: reconcile AGENTS split companion-doc drift — landed as SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-33: add provenance-rule pointers to project intent entry docs — landed as SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-38: audit queue landing and repair stale repo-truth gaps — landed as SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-36: tighten unattended queue guardrails for drift and scoped issue discovery — landed as `cbf8ea4` + `ed738c0`; full record in Work Record Log 2026-04-16
@@ -194,6 +195,45 @@ landing commit SHA recorded in immediate closeout; GIL-33 onboarding-angle repai
 
 linear:
 GIL-33
+
+### 2026-04-16 | GIL-38 | by: Codex
+
+Problem:
+The repo had already adopted a thin-root `AGENTS.md` plus authoritative `AGENTS.project.md`, but several live docs still cited nonexistent `AGENTS.md` sections as if the old single-file layout still existed. That left the instruction stack internally contradictory: an agent could follow the new bootstrap file and still hit stale companion docs that pointed to the wrong authority surface.
+
+Reasoning:
+This is a coherence failure, not a wording nit. Once `AGENTS.md` becomes a pointer, any doc that names specific repo-local rules, gates, or sections must point at `AGENTS.project.md` instead. The right repair is to land the split as a full repo-truth update: track the overlay file in git, fix the stale section references, and update newcomer-facing entry docs so they explain the root bootstrap versus overlay model instead of assuming readers will infer it.
+
+Diagnosis inputs:
+Direct rereads of `AGENTS.md`, `AGENTS.project.md`, `CONTINUITY.md`, `COHERENCE.md`, `CLAUDE.md`, `GUIDE.md`, `README.md`, `PROMPTS.md`, `LINEAR.md`, `LOGIC.md`, and `todo.md`; `git status -sb`; `git log --oneline -5`; global policy reads of `/Users/gillettes/.codex/BUSINESS_CONTEXT.md`, `/Users/gillettes/.codex/policies/TASK_CLASSIFICATION.md`, `/Users/gillettes/.codex/policies/OPERATING_PRINCIPLES.md`, `/Users/gillettes/.codex/policies/PROJECT_AGENTS_MANDATORY.md`, and `/Users/gillettes/.codex/policies/POLICY_INDEX.md`; `rg -n "AGENTS\\.md|AGENTS\\.project\\.md|Linear Issue Ledger|todo home:|why this exists:|origin source:"` across this repo and `/Users/gillettes/Coding Projects/Linear`.
+
+Implementation inputs:
+Tracked `AGENTS.project.md`. Updated `CONTINUITY.md`, `COHERENCE.md`, `CLAUDE.md`, `GUIDE.md`, `README.md`, `PROMPTS.md`, `LINEAR.md`, `LOGIC.md`, and `todo.md`.
+
+Fix:
+Committed the repo-local AGENTS split coherently instead of leaving it half-landed. The root `AGENTS.md` remains the bootstrap pointer, `AGENTS.project.md` is now tracked as the authoritative repo-local overlay, and the live companion docs that name role gates, reading order, or governance authority now point at the overlay where the real sections live. Entry docs now tell readers to open `AGENTS.md` and then `AGENTS.project.md`, while governance docs that cite `Completion Authority`, prompt discipline, reading scope, or authority surfaces now name `AGENTS.project.md` directly.
+
+Self-audit:
+Method-not-claim verification run before commit:
+1. Ran `git diff --check`; output empty; the coherence repair is whitespace-clean.
+2. Ran `rg -n --glob '!design-history/**' --glob '!SCOPING-*' 'AGENTS\\.md' .`; output shows only intentional bootstrap references, historical log entries, and examples that still make sense with the thin-root model.
+3. Ran `rg -n --glob '!design-history/**' --glob '!SCOPING-*' 'AGENTS\\.project\\.md' .`; output shows the authoritative overlay is now wired through the live docs that need repo-local section references.
+4. Ran `git status -sb`; output showed only the intended doc set plus the now-tracked `AGENTS.project.md`; no unrelated file was pulled into this landing.
+Ripple Check attestation: reread and updated the live docs that depended on the AGENTS authority surface — `CONTINUITY.md`, `COHERENCE.md`, `CLAUDE.md`, `GUIDE.md`, `README.md`, `PROMPTS.md`, `LINEAR.md`, `LOGIC.md`, and `todo.md` — so the bootstrap path, repo-local authority, role gates, and prompt/governance references all describe the same split model.
+Linear-coverage disposition: `GIL-38` remains the right issue because this is still a stale-truth repair pass. No new follow-up issue was opened; the problem was directly remediated in this landing.
+Did not modify `/Users/gillettes/Coding Projects/Linear` because this pass found no equivalent stale-section-reference gap there; the canonical Linear repo already points at `AGENTS.project.md` where needed.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-16 to think critically about the rollout, find anything still missed, and implement it
+
+led to:
+landing commit SHA recorded in immediate closeout; GIL-38 AGENTS-split coherence repair
+
+linear:
+GIL-38
 
 ### 2026-04-16 | GIL-38 | by: Codex
 
@@ -458,6 +498,7 @@ Each active branch entry should include:
 
 ## Audit Record Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | type: targeted governance audit | scope: AGENTS split coherence sweep — verify the thin-root `AGENTS.md` conversion did not leave live docs pointing at nonexistent repo-local sections | repo fingerprint: main @ `7987d4c313fc3d01d5294b62d8c7f9708d59c6ad` before companion-doc repair | prior audit reference: 2026-04-16 targeted governance audit for the earlier GIL-38 queue-truth repair and the GIL-33 provenance-rule follow-ups | source/work chat: current critical re-audit thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat | separate follow-up audit: no — bounded coherence repair only | commands/evidence: direct rereads of `AGENTS.md`, `AGENTS.project.md`, `CONTINUITY.md`, `COHERENCE.md`, `CLAUDE.md`, `GUIDE.md`, `README.md`, `PROMPTS.md`, `LINEAR.md`, `LOGIC.md`, and `todo.md`; `git status -sb`; `git log --oneline -5`; `rg -n --glob '!design-history/**' --glob '!SCOPING-*' 'AGENTS\\.md' .`; `rg -n --glob '!design-history/**' --glob '!SCOPING-*' 'AGENTS\\.project\\.md' .`; cross-repo `rg -n "AGENTS\\.project\\.md|AGENTS\\.md|Linear Issue Ledger|todo home:|why this exists:|origin source:"` against this repo and `/Users/gillettes/Coding Projects/Linear`; `git diff --check` | tested: authority-surface coherence, entry-point accuracy, overlay discoverability, and stale-reference cleanup in active docs | not tested: a fresh external integration-created issue event, because this pass targeted the AGENTS split rather than the already-landed provenance rule | findings opened or updated: 1 | fixes closed / verified: tracked `AGENTS.project.md`; retargeted stale section references from `AGENTS.md` to `AGENTS.project.md`; updated entry docs so agent bootstrap now explicitly names the overlay after the root pointer; no equivalent stale-reference gap found in `/Users/gillettes/Coding Projects/Linear` | declined / deferred findings: none | better-path challenge: yes — when an authoritative file is intentionally split into a thin pointer plus overlay, audit for broken section references first, because a grep that merely checks for the rule text can still miss a dead instruction path | references: current chat; `GIL-38` | by: Codex | linear: GIL-38
 - 2026-04-16 | type: targeted governance audit | scope: multi-angle provenance-rule review — verify the rollout from onboarding, execution, template, and governance perspectives and close any last active-doc gap | repo fingerprint: main @ `14407f84b1c0f252a8340fedf355f3b1d66236fd` before onboarding-angle repair | prior audit reference: 2026-04-16 targeted governance audit for the earlier GIL-33 follow-up plus 2026-04-16 queue-landing review under `GIL-38` | source/work chat: current multi-angle audit thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat | separate follow-up audit: no — bounded orientation fix only | commands/evidence: direct rereads of `PROJECT_INTENT.md`, `README.md`, `GUIDE.md`, `LINEAR.md`, `STRUCTURE.md`, and `todo.md`; `git diff --check`; targeted `rg -n "LINEAR\\.md|todo\\.md|durable execution record|issue-provenance ledger" PROJECT_INTENT.md`; `git status -sb` | tested: entry-point orientation coverage for routing and provenance surfaces in the source repo | not tested: another live connected-system issue flow, since this pass was documentation-only | findings opened or updated: 1 | fixes closed / verified: `PROJECT_INTENT.md` now points readers to `LINEAR.md` for work routing/live-issue coverage and to `todo.md` for the durable execution record and issue-provenance ledger; no additional active-doc gap was found in `/Users/gillettes/Coding Projects/Linear` | declined / deferred findings: none | better-path challenge: yes — after enforcement and queue surfaces are fixed, audit the repo the way a newcomer reads it, because entry-point drift is how good rules still get missed in practice | references: current chat; `GIL-33` | by: Codex | linear: GIL-33
 - 2026-04-12 | type: governance review | scope: companion-doc consistency after canonical architecture adoption | source/work chat: current repo audit thread | commands/evidence: document review only | findings opened or updated: LOGIC terminal-state mismatch, auth prerequisite overspecification, AGENTS global-reference ambiguity, empty active queue, onboarding-order ambiguity
 - 2026-04-12 | type: governance review | scope: prompt-system source-of-truth addition and review-loop hardening | source/work chat: current prompt operating system thread | commands/evidence: document review plus cross-doc consistency check | findings opened or updated: prompt-authority gap closed, independent-review loop made explicit, event/time-based testing cadence defined, phase-4 prompt operationalization deferred into follow-up
@@ -487,6 +528,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | command(s): `git diff --check`; `rg -n --glob '!design-history/**' --glob '!SCOPING-*' 'AGENTS\\.md' .`; `rg -n --glob '!design-history/**' --glob '!SCOPING-*' 'AGENTS\\.project\\.md' .`; `git status -sb` | result: pass; active docs now treat `AGENTS.md` as the bootstrap pointer and `AGENTS.project.md` as the authoritative repo-local overlay, with no stale live-doc section references left in the repaired surfaces | log/PR reference: current chat; `GIL-38` | by: Codex | linear: GIL-38
 - 2026-04-16 | command(s): direct rereads of `PROJECT_INTENT.md`, `README.md`, `GUIDE.md`, `LINEAR.md`, `STRUCTURE.md`, and `todo.md`; `git diff --check`; `rg -n "LINEAR\\.md|todo\\.md|durable execution record|issue-provenance ledger" PROJECT_INTENT.md`; `git status -sb` | result: pass; the multi-angle review found one remaining onboarding-gap in the source repo, closed it in `PROJECT_INTENT.md`, and found no equivalent missing entry surface in the standalone Linear repo | log/PR reference: current multi-angle audit thread | by: Codex | linear: GIL-33
 - 2026-04-16 | command(s): `git diff --check`; `rg -n "QUEUE-RUNS|queue contract|Execution lane|Execution mode|adjacent-blocker|claim snapshot|queue_contract_version|prompt_template_version" QUEUE-RUNS.md LINEAR.md PROMPTS.md RULES.md canonical-architecture.md GUIDE.md README.md COHERENCE.md STRUCTURE.md todo.md`; `git show HEAD:STRUCTURE.md | sed -n '30,45p'`; `sed -n '30,45p' STRUCTURE.md`; `git status -sb` | result: pass; the review confirmed the queue guardrails are now represented across architecture and companion docs, confirmed `STRUCTURE.md` already matched `HEAD`, and left only unrelated AGENTS workspace changes outside this landing | log/PR reference: current queue-landing review thread | by: Codex | linear: GIL-38
 - 2026-04-16 | command(s): `git diff --check`; `rg -n "queue_contract_version|prompt_template_version|issue_snapshot_hash|allowed_paths|adjacent-blocker|post-claim drift|claim snapshot" QUEUE-RUNS.md LINEAR.md PROMPTS.md RULES.md todo.md`; `git status -sb` | result: pass; the queue contract now pins versions and snapshots, the adjacent-blocker rule is wired through the contract, prompt, and rule surfaces, the diff is whitespace-clean, and the only non-task changes in the checkout remain the unrelated AGENTS workspace edits intentionally left out of this landing | log/PR reference: current queue-guardrails thread | by: Codex | linear: GIL-36

@@ -170,7 +170,7 @@ The target split for UI verification is 80-90% deterministic (route availability
 
 The system uses three tiers of memory, each with a different lifecycle:
 
-**Repo truth** — version-controlled files in the repo (contract, ADRs, AGENTS.md, conventions). Stable, human-managed, survives across all runs.
+**Repo truth** — version-controlled files in the repo (contract, ADRs, AGENTS.md bootstrap pointer, AGENTS.project.md repo-local overlay, conventions). Stable, human-managed, survives across all runs.
 
 **Run truth** — per-run state and artifacts in the supervisor-owned runtime workspace at `.autoclaw/runs/<run_id>/`. Created at run start, written throughout, preserved after completion, and gitignored rather than committed in either repo. It contains the contract, plan, state file, defect packets, screenshots, traces, logs, and final report. It is ephemeral to the run but preserved for post-mortem.
 

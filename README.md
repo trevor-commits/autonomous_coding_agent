@@ -7,7 +7,7 @@ This repository holds the active source-of-truth documentation, planning artifac
 Read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md) and [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md) first. They state the root-level assumptions that every other rule in this repo depends on. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md) section `Linear-at-the-core` is the third pillar.
 
 - Need reading order, document roles, and file lookup: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
-- Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
+- Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md), then [AGENTS.project.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.project.md) for the authoritative repo-local overlay
 
 ## Active Docs
 

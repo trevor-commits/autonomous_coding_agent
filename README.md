@@ -32,10 +32,13 @@ Read these when working on the current system:
 7. [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
    Build order, verification expectations, and phase exits.
 
-8. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+8. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+   Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
+
+9. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-9. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+10. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History

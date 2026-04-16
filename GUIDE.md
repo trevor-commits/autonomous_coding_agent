@@ -16,6 +16,7 @@ Use these files for current truth:
 - [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md): file placement, repo boundary, runtime-state placement.
 - [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md): prompt-system source of truth.
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
+- [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
 
 Use `todo.md` for durable working records:
@@ -76,6 +77,10 @@ The prompt-system source of truth. Read this before changing strategy prompts, r
 
 The execution roadmap. Read this when deciding what phase comes next or how a milestone is verified.
 
+### [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+
+The launch-scope reconciliation note. Read this when you need to distinguish between rollout pieces that already exist as documentation/process and future runtime or production capabilities that do not exist yet.
+
 ### [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
 
 The Linear governance reference. Read this when configuring or using Linear so the board stays routing-only and repo truth stays in repo docs.
@@ -130,6 +135,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Where does this file go? | `STRUCTURE.md` |
 | How do prompts and audits work? | `PROMPTS.md` |
 | What should be built next? | `IMPLEMENTATION-PLAN.md` |
+| Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | What should an agent read first? | `AGENTS.md` |
 | How do I find the right file fast? | `GUIDE.md` section `Quick Reference — Where to Find Things` |
 | Where are audits, ideas, and feedback decisions recorded? | `todo.md` |

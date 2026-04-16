@@ -114,9 +114,33 @@ Every issue body contains:
 
 Supervisor-gated phase transitions inside a Codex run are not represented in Linear.
 
+## Labels
+
+Labels are scoped to two groups and applied at issue creation. The taxonomy is small by design — labels are for filtering and routing, not for tracking state (state lives in the status) or acceptance criteria (those live in the authoritative repo spec linked from the issue).
+
+**Work type** (what kind of deliverable the issue produces; exactly one per issue):
+
+- `ADR` — issue produces an Architecture Decision Record in `design-history/`.
+- `Governance` — issue edits one of the authoritative governance docs (`RULES.md`, `LOGIC.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `canonical-architecture.md`, `LINEAR.md`, `AGENTS.md`, `PROMPTS.md`, `CLAUDE.md`).
+- `Docs` — issue edits non-governance docs (guides, README, indexes, completion logs).
+- `Feature` — issue implements new behavior in runtime code.
+- `Improvement` — issue refactors, clarifies, or strengthens existing behavior without new capability.
+- `Defect` — issue fixes a bug or audit-surfaced regression.
+
+**Routing** (how the issue moves through the system; zero or more per issue):
+
+- `Blocked-external` — work is paused pending an external dependency (vendor response, waiting on a human outside the repo). Pair with status `Blocked`.
+- `Cadence` — recurring issue mirroring a scheduled audit or review defined in the repo cadence doc.
+- `Audit-finding` — issue was created by an audit (Code, Pro, or Claude) documenting a finding that needs its own tracked resolution.
+- `prompt-review` — applied by Cowork while a draft prompt in the issue description is open for Codex and Claude Code audit comments. Removed by Cowork once the prompt is final. See `## Prompt Drafting Surface`.
+
+If the Linear workspace label set ever drifts from this block, the repo wins and Linear is corrected.
+
 ## Standard Issue Template
 
 The Linear workspace defines one universal issue template named `Standard issue`. It is the default template for new issues and prefills the issue body shape defined in the Issue Shape section. Variants should not be created until a specific work type demonstrably needs additional fields.
+
+The unchecked boxes shown below are example template content for Linear issue bodies. They are not this repository's backlog and they are not meant to be checked off inside `LINEAR.md`.
 
 The template body is:
 
@@ -157,6 +181,24 @@ If the template in Linear ever drifts from this block, the repo wins and the Lin
 Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Claude drafts Codex prompts and may propose when review should happen.
 
 Claude does not own phase-transition or completion authority. Those stay with the supervisor.
+
+## Prompt Drafting Surface
+
+Codex prompts are drafted inside the Linear issue that scopes the work, not only in chat. This is an orchestration convenience, not an authority shift.
+
+Workflow:
+
+1. Cowork creates or opens the issue, moves it to `Ready for Build`, writes the first-draft prompt into the issue description, and applies the `prompt-review` label.
+2. Codex and Claude Code read the description and post their audits as Linear comments, prefixed `[Codex Audit]` or `[Code Audit]` for scanability.
+3. Cowork revises the description in place, then posts a summary comment noting which audit points were accepted or rejected and why.
+4. When the prompt is final, Cowork removes the `prompt-review` label. The prompt is now ready to hand to Codex for implementation under the normal `Building → AI Audit → Human Verify → Done` flow.
+
+Guardrails:
+
+- Prompts in Linear descriptions are a drafting surface, not authority. The authoritative spec the prompt points to remains in the repo.
+- Audit comments are transient. Any decision durable enough to matter later is distilled into an ADR or the repo doc it touches — never left to live only as a Linear comment.
+- The prompt of record is the final version Codex logs in `todo.md` under `## Completed` after its run. Linear's description-edit history is convenient but not load-bearing.
+- Code and Codex write comments only. Neither moves issue state; that remains Cowork's responsibility per AI-Strategy Role Boundary.
 
 ## Integrations
 
@@ -324,3 +366,4 @@ If any item in this section is later adopted, move it out of this list and updat
 ## Governance Note
 
 `LINEAR.md` is repo truth. It governs how Linear is used for this repository, but it does not itself live in Linear.
+For bootstrapping Linear on new projects, see `LINEAR-BOOTSTRAP.md`.

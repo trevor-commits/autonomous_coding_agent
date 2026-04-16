@@ -16,6 +16,7 @@ This architecture is designed to satisfy the actual operating goal:
 Build a system that can autonomously:
 
 - accept a coding objective
+- pull execution-ready work from a supervised issue queue when configured
 - plan the work
 - implement backend and frontend changes
 - run deterministic quality gates
@@ -129,9 +130,10 @@ The initial system should be narrow and reliable:
 ## 4. High-Level System Shape
 
 ```text
-Human kickoff
+Human kickoff or supervised queue intake
   ->
 Deterministic Supervisor
+  - selects next eligible issue when queue mode is enabled
   - validates repo contract + run contract
   - creates worktree and run store
   - controls phase transitions
@@ -175,6 +177,7 @@ Responsibilities:
 - capture artifacts and reports
 - enforce retries, budgets, and stop conditions
 - own checkpoint commits
+- own landing commits and queue claim/release
 - decide final run state
 
 The supervisor must be implemented as ordinary code, not as an LLM prompt loop.
@@ -377,6 +380,8 @@ Without this split, the system becomes:
 
 The system uses two different contracts.
 
+Queue intake may also read Linear routing metadata, but that metadata is normalized into the run contract and never replaces either contract below.
+
 ## 8.1 Repo Contract
 
 The repo contract describes how a supported repo works.
@@ -545,6 +550,19 @@ This is per-run operational truth, not long-lived repo truth.
   }
 }
 ```
+
+## 8.3 Queue Intake Routing Metadata
+
+When unattended queue mode is enabled, the supervisor may read issue-routing metadata from Linear to decide what to run next.
+
+That metadata is not a third source of truth. It may only:
+
+- identify the candidate issue
+- point to the authoritative repo docs
+- declare the intended execution lane
+- declare whether the issue is queue-eligible or manual-only
+
+The supervisor must still derive the actual run contract before Codex starts.
 
 ## 9. Phase Machine
 
@@ -836,7 +854,7 @@ Future read-only exploration worktrees may exist later, but not in v1 as active 
 
 ### 12.3 Commit ownership
 
-The supervisor owns checkpoint commits.
+The supervisor owns checkpoint commits and per-issue landing commits.
 
 The builder edits files but does not own commit authority in v1.
 

@@ -75,6 +75,16 @@ Every touched section is listed in the Self-audit together with the dependent do
 
 Every actionable finding surfaced during the task is dispositioned in the same closeout surface: a `GIL-N` issue is filed, or the durable record explicitly says `no-action: <reason>` or `self-contained: <reason>`. Every live Linear issue touched by the task also gets a `todo.md` `Linear Issue Ledger` entry or refresh with `todo home:`, `why this exists:`, and `origin source:`. The prompt must name which outcome is expected before implementation starts.
 
+### Queue-mode Codex prompts
+
+Unattended queue runs use the versioned Codex template in `QUEUE-RUNS.md`, not a bespoke issue-description prompt. Queue-mode prompts must explicitly:
+
+- name the claimed issue and authoritative spec path
+- state that the supervisor, not Codex, owns queue claim, commit, push, and Linear state moves
+- require frequent self-testing during implementation plus the full required pack before handoff
+- forbid Codex from absorbing issues whose `Execution lane` is not `Codex`
+- require separate Claude Code follow-up issues for later audit or deeper test work instead of folding them into the current issue
+
 ## 1. Core Position
 
 Do **not** solve this with one giant master prompt.
@@ -252,7 +262,10 @@ This repo needs two prompt families:
 2. **Run-operation prompts**
    Used by the finished platform to execute a coding task safely.
 
-Both families use the same rules and cadence.
+3. **Queue-operation prompts**
+   Used by the supervisor to execute one Linear-backed issue-run at a time from the unattended queue contract in `QUEUE-RUNS.md`.
+
+All prompt families use the same rules and cadence.
 
 ---
 

@@ -17,6 +17,7 @@ Use these files for current truth:
 - [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md): enforceable constraints and stop conditions.
 - [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md): file placement, repo boundary, runtime-state placement.
 - [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md): prompt-system source of truth.
+- [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md): exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
@@ -86,6 +87,10 @@ The file-placement and boundary reference. Read this before creating new files o
 
 The prompt-system source of truth. Read this before changing strategy prompts, review prompts, or audit loops.
 
+### [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
+
+The exact operating contract for unattended queue execution: eligible issue schema, supervisor loop, Codex queue prompt template, stop or skip policy, and logging plus commit flow.
+
 ### [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
 
 The execution roadmap. Read this when deciding what phase comes next or how a milestone is verified.
@@ -154,6 +159,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | What is allowed or forbidden? | `RULES.md` |
 | Where does this file go? | `STRUCTURE.md` |
 | How do prompts and audits work? | `PROMPTS.md` |
+| How does unattended Linear queue execution work? | `QUEUE-RUNS.md` |
 | What should be built next? | `IMPLEMENTATION-PLAN.md` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |

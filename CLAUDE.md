@@ -23,19 +23,21 @@ Cowork drafts prompt → Trevor approves → Codex implements (Claude Code may c
 
 Every bounded task gets a Linear issue in team `GIL` before I draft the Codex prompt.
 
-State flow — orchestrator-owned, Codex never moves state:
+State flow — manual transitions are Cowork-owned, queue claim/exit transitions are supervisor-owned, and Codex never moves state:
 `Inbox → Ready for Build → Building` (prompt handed to Trevor) `→ AI Audit` (Codex reports done; Claude Code audits line-by-line) `→ Human Verify` (Code audit clean + Cowork spec-alignment check) `→ Done` (Trevor only).
 
 Linear holds routing metadata only. Acceptance criteria, decisions, audit findings, and completion artifacts live in repo docs. PR refs use `ref GIL-N`, never `Fixes`/`Closes`.
 
 Every live Linear issue has a matching entry in `todo.md` `Linear Issue Ledger` recording its current status, `todo home:`, `why this exists:`, and `origin source:`. Every `todo.md` `Active Next Steps` item also has a matching Linear issue, annotated inline as `(GIL-N)`. Adding an item without its Linear issue ID or leaving a live issue without a ledger entry violates the coverage invariant (see `LINEAR.md` § Coverage Invariant). Other `todo.md` sections are records, not task queues, but any entry that implies future work must still carry a resolved `linear:` disposition per `LINEAR.md` `## Linear-at-the-core`.
 
+Queue mode is supervisor-owned. The Codex queue only consumes issues with `Execution lane: Codex` and `Execution mode: Queue` per `QUEUE-RUNS.md`. Claude-owned audit or deeper test issues must be filed separately with `Execution lane: Claude Code` and `Execution mode: Manual`; Codex and the queue runner skip them and continue.
+
 Full rules: `LINEAR.md`.
 For adding Linear to a new project, use `LINEAR-BOOTSTRAP.md`.
 
 ## Codex Handoff
 
-Prompts follow `PROMPTS.md`: five-part header (`Goal`, `Discipline`, `Read-scope`, `Body`, `Durable record`), scope honesty, no filler stubs, verification commands, `todo.md` `Work Record Log` plus `Completed` index entry with the landing reference, commit + push on current branch, and no new branches. The `Durable record` section names every log entry expected, every Linear issue created or refreshed, every `Linear Issue Ledger` update required, and the Ripple Check attestation the Self-audit must contain. Fresh Codex conversation per bounded task. Prompts are drafted in the scoping Linear issue's description under the `prompt-review` label, reviewed by Codex and Claude Code via Linear comments, and revised by Cowork before handoff. See `LINEAR.md` `## Prompt Drafting Surface`.
+Prompts follow `PROMPTS.md`: five-part header (`Goal`, `Discipline`, `Read-scope`, `Body`, `Durable record`), scope honesty, no filler stubs, verification commands, `todo.md` `Work Record Log` plus `Completed` index entry with the landing reference, commit + push on current branch, and no new branches. The `Durable record` section names every log entry expected, every Linear issue created or refreshed, every `Linear Issue Ledger` update required, and the Ripple Check attestation the Self-audit must contain. Fresh Codex conversation per bounded task. Manual prompts are drafted in the scoping Linear issue's description under the `prompt-review` label, reviewed by Codex and Claude Code via Linear comments, and revised by Cowork before handoff. Queue-mode prompts are rendered from the versioned template in `QUEUE-RUNS.md`. See `LINEAR.md` `## Prompt Drafting Surface`.
 
 Codex is expected to create its own Linear issue if none exists for the task, append `todo.md` `Work Record Log` and `Completed` as landing steps, update `todo.md` `Linear Issue Ledger` for any live issue it creates or materially changes, and report completion to me. It does not move Linear state or check off audit items — that is my role. Claude Code (the primary auditor) checks off audit checklist items after completing its line-by-line review. See `AGENTS.md` `## Completion Authority`.
 
@@ -47,6 +49,6 @@ Substantive edits go to Codex via a prompt: `canonical-architecture.md`, schemas
 
 ## Authoritative Docs
 
-`canonical-architecture.md` (authority), `CONTINUITY.md`, `COHERENCE.md`, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `GUIDE.md`, `PROMPTS.md`, `LINEAR.md`, `AGENTS.md`, `IMPLEMENTATION-PLAN.md`, `todo.md`, ADRs in `design-history/`. Companions reference canonical sections rather than redefining. `design-history/` content is preserved as-is — never rewritten to match current truth.
+`canonical-architecture.md` (authority), `CONTINUITY.md`, `COHERENCE.md`, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `GUIDE.md`, `PROMPTS.md`, `LINEAR.md`, `QUEUE-RUNS.md`, `AGENTS.md`, `IMPLEMENTATION-PLAN.md`, `todo.md`, ADRs in `design-history/`. Companions reference canonical sections rather than redefining. `design-history/` content is preserved as-is — never rewritten to match current truth.
 
 Any change touching structure, governance, process, or doc relationships updates every affected doc in the same commit.

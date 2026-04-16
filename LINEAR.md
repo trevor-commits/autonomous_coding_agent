@@ -151,6 +151,8 @@ Every issue body contains:
 - `Authoritative decision docs:` if applicable
 - `Why this exists:`
 - `Origin source:`
+- `Execution lane:` `Codex`, `Claude Code`, `Cowork`, or `Trevor`
+- `Execution mode:` `Queue` or `Manual`
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
@@ -199,6 +201,10 @@ The template body is:
 
 **Origin source:**
 
+**Execution lane:**
+
+**Execution mode:**
+
 **PR:** (once opened)
 
 **Completion artifact:** (once filed)
@@ -230,6 +236,26 @@ _Repo docs are authoritative; this issue tracks state and links only._
 
 If the template in Linear ever drifts from this block, the repo wins and the Linear template is corrected.
 
+## Queue Execution
+
+`QUEUE-RUNS.md` defines the exact unattended queue contract. Linear supplies routing metadata only.
+
+Codex queue eligibility requires all of the following:
+
+- status `Ready for Build`
+- `Execution lane: Codex`
+- `Execution mode: Queue`
+- valid `Authoritative spec path`
+- no `prompt-review` label
+- no `Blocked-external` label
+
+Issues for later Claude Code audit or deeper test work must explicitly set:
+
+- `Execution lane: Claude Code`
+- `Execution mode: Manual`
+
+Codex and the queue supervisor skip those issues and continue. They do not absorb them into the current Codex pass.
+
 ## AI-Strategy Role Boundary
 
 Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Cowork drafts Codex prompts and may propose when review should happen. Claude Code is the primary auditor of implementation output — it performs the line-by-line review and may author targeted fix code during audit per `CLAUDE.md § Roles` and `AGENTS.md § Completion Authority`.
@@ -252,7 +278,8 @@ Guardrails:
 - Prompts in Linear descriptions are a drafting surface, not authority. The authoritative spec the prompt points to remains in the repo.
 - Audit comments are transient. Any decision durable enough to matter later is distilled into an ADR or the repo doc it touches — never left to live only as a Linear comment.
 - The prompt of record is the final version Codex logs in `todo.md` under `## Completed` after its run. Linear's description-edit history is convenient but not load-bearing.
-- Code and Codex write comments only. Neither moves issue state; that remains Cowork's responsibility per AI-Strategy Role Boundary. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.md § Completion Authority`).
+- Code and Codex write comments only. Neither moves issue state directly. Manual-workflow state changes remain Cowork's responsibility; queue-mode state changes remain supervisor-owned under `QUEUE-RUNS.md`. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.md § Completion Authority`).
+- Queue-mode issues do not require a handcrafted issue-description prompt. When `Execution mode: Queue`, the supervisor renders the versioned Codex template from `QUEUE-RUNS.md` and `PROMPTS.md`.
 
 ## Integrations
 
@@ -268,7 +295,7 @@ Enabled. This is a separate Linear launch workflow that opens Codex or Claude Co
 
 ### Codex-In-Linear Delegation
 
-Disabled by policy, not because of a capability gap. The integration exists; this repo does not use it because `RULES.md` keeps run spawning and worktree ownership under the supervisor. On 2026-04-15 Codex was removed from Linear's Installed Agents surface to reinforce this policy at the tool level, not just in doc.
+Direct Installed-Agent delegation remains disabled by policy. The integration exists, but this repo does not let Linear hand Codex arbitrary commands or become the workflow owner. Queue execution is allowed only through the supervisor-mediated contract in `QUEUE-RUNS.md`, where Linear nominates eligible work and the supervisor owns normalization, claim, state transitions, and landing mechanics. On 2026-04-15 Codex was removed from Linear's Installed Agents surface to reinforce this boundary at the tool level, not just in doc.
 
 ## GitHub Account And Sync Settings
 
@@ -312,11 +339,19 @@ Do not add Linear IDs to stable source-of-truth docs such as `PROJECT_INTENT.md`
 
 ### Now
 
-This repository is still in its docs-only phase per `AGENTS.md`, so all status moves are manual.
+GitHub PR and commit automations remain manual-safe and should stay at `No action`. Queue-mode issue automation is allowed only through the supervisor contract in `QUEUE-RUNS.md`.
 
 Set every GitHub PR and commit automation destination in Linear team settings to `No action`. Keep commit linking disabled. Keep the branch-copy auto-assign and move-to-started preference disabled.
 
 Writing a policy sentence is not enough on its own. Linear's defaults otherwise move issues to `In Progress` when PRs open and to `Done` when PRs merge, regardless of whether the PR used a non-closing reference verb.
+
+When the queue runner exists, the only allowed supervisor-owned state moves are:
+
+- `Ready for Build` -> `Building` when the supervisor claims a Codex-eligible queue issue
+- `Building` -> `AI Audit` when the landing commit, repo completion artifacts, and completion comment exist
+- `Building` -> `Blocked` when the blocked reason artifact and blocker comment exist
+
+`Human Verify` and `Done` remain outside the Codex queue lane.
 
 ### Later
 
@@ -412,6 +447,7 @@ Deferred capabilities are adopted reactively when their stated trigger fires. Th
 The following are listed here for capability awareness; the binding rule is in the section noted in parentheses, not here.
 
 - Codex-in-Linear delegation — disabled by policy (Integrations).
+- supervisor-mediated queue execution from Linear routing metadata — allowed only through `QUEUE-RUNS.md` and never through direct Installed-Agent delegation.
 - GitHub Issues Sync — disabled (GitHub Account And Sync Settings).
 - Commit linking — disabled initially (GitHub Account And Sync Settings).
 - Branch-copy auto-assign / move-to-started — disabled (GitHub Account And Sync Settings).

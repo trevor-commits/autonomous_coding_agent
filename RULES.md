@@ -23,6 +23,7 @@
 - App lifecycle (launch, health check, shutdown)
 - Artifact and report generation
 - Run directory management
+- Queue intake, claim/release, and queue-state automation permitted by `QUEUE-RUNS.md`
 
 ### The AI strategy layer owns:
 
@@ -68,7 +69,7 @@
 
 ## Commit Rules
 
-- The supervisor owns checkpoint commits, not the builder.
+- The supervisor owns checkpoint and landing commits, not the builder.
 - The builder edits files but does not have commit authority.
 - Commit message format: `[autoclaw/<run_id>] <type>: <description>`
 - Checkpoint tags follow the pattern: `autoclaw/<run_id>/start`, `autoclaw/<run_id>/last-green`, `autoclaw/<run_id>/cp-NN`
@@ -162,6 +163,15 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 - Must define: `run_id`, `repo_path`, `objective`, `scope` (allowed_paths, forbidden_paths), `acceptance` (functional, quality_gates, ui_checks), `constraints` (single_writer, max_repair_loops, max_iterations, max_cost_dollars, hard_timeout_seconds).
 - Scope paths are enforced by the supervisor — the builder cannot write outside allowed_paths or inside forbidden_paths.
 
+## Issue Queue Rules
+
+- Linear issue metadata is routing input only. It may nominate work, but it may not issue arbitrary commands or replace the repo contract or run contract.
+- The supervisor may claim only issues that satisfy the eligibility contract in `QUEUE-RUNS.md`.
+- Non-Codex or manual-mode issues are skipped without mutation by the Codex queue.
+- Queue-generated Claude Code audit or test follow-up issues must be filed as separate issues and do not block the queue from continuing once the current Codex issue has either landed or blocked cleanly.
+- Codex self-testing is mandatory during queue runs: narrow deterministic checks after each material edit cluster, then the full required verification pack before handoff.
+- The supervisor, not Codex, owns queue claim, queue release, landing commit, push, and any Linear issue-state move performed by queue automation.
+
 ---
 
 ## Phase Transition Rules
@@ -207,6 +217,7 @@ The supervisor must stop or block the run when any of the following occur:
 - Budget is exhausted (max_iterations, max_cost_dollars, or hard_timeout_seconds) → `run_state = BLOCKED`
 - Path or command restrictions are violated → `run_state = BLOCKED`
 - An unresolved high-severity review finding remains at FINAL_GATE → `run_state = BLOCKED`
+- A landing commit is prepared but push fails → `run_state = BLOCKED` and the queue controller stops before claiming another issue
 
 Stop conditions are enforced by the supervisor. The AI cannot override them.
 

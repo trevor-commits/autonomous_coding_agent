@@ -43,6 +43,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-34` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (landing in progress; awaiting Cowork/Trevor state move after commit) | why this exists: codify the unattended supervisor-mediated queue contract so Linear can feed execution-ready work issue-by-issue without becoming the source of truth or mixing Claude-owned audit work into Codex runs | origin source: Trevor request on 2026-04-16 to enable walk-away Linear-fed execution with separate Claude audit/test follow-up handling
 - `GIL-33` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (landed; awaiting Cowork/Trevor state move) | why this exists: codify the rule that every live Linear issue must have a durable `todo.md` home with provenance across this repo and the standalone Linear standards repo | origin source: Trevor request on 2026-04-16 to make all live Linear issues explicit in `todo.md`, including why they exist and where they came from
 - `GIL-32` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (landed; awaiting Cowork/Trevor state move) | why this exists: land Continuity, Coherence, and Linear-Core root principles | origin source: Trevor three-pillar governance request recorded in `Feedback Decision Log` 2026-04-16
 - `GIL-18` | status: `Human Verify` | todo home: `Completed` 2026-04-16 | why this exists: close the April 15 audit follow-ups and add audit watermarks | origin source: 2026-04-15 Claude Code audit findings carried into follow-up documentation work
@@ -51,6 +52,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Ready for Build
 
+- `GIL-35` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (Claude-only audit follow-up; intentionally outside the Codex queue lane) | why this exists: run an independent Claude Code audit of the unattended queue contract and the related Linear/prompt/rules changes before implementation begins | origin source: follow-up surfaced while landing `GIL-34` on 2026-04-16
 - `GIL-19` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0A.5 | why this exists: trim the v1 implementation surface before the heavier Phase 5 memory hardening work | origin source: phase-plan refinement accepted in `Feedback Decision Log` 2026-04-15
 - `GIL-24` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.4 | why this exists: verify local tool readiness before the first implementation pass | origin source: Phase 0 prerequisites in `IMPLEMENTATION-PLAN.md` and `todo.md`
 - `GIL-11` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.8 | why this exists: codify the Codex conversation lifecycle before longer implementation work starts | origin source: Trevor Codex conversation lifecycle request recorded in `Feedback Decision Log` 2026-04-15
@@ -100,6 +102,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-34: codify unattended supervisor-mediated Linear queue execution contract — landed as SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-33: codify live Linear issue ledger and provenance coverage — landed as SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-32: add Continuity, Coherence, and Linear-Core root pillars — landed as SHA recorded in immediate closeout (self-referential hash cannot be embedded pre-commit); full record in Work Record Log 2026-04-16
 - [x] 2026-04-16: repositioned repo roles so Claude Cowork is the primary orchestrator (spec-alignment pass only) and Claude Code is the primary line-by-line auditor (with permission to author targeted fix code under independent review). Updated `CLAUDE.md` (Roles, Default Audit Chain, Linear state flow, Codex Handoff), `AGENTS.md` (`## Implementor Role`, `## Completion Authority`), `LINEAR.md` (`AI Audit` description, Failure Routing, Issue Shape checklist, Standard Issue Template, AI-Strategy Role Boundary, Prompt Drafting Surface), `IMPLEMENTATION-PLAN.md` (Phase 1 intro, Phase 1.2 Owner, Phase 1/2/3/4 exit criteria, Phase 2.3 + 3.3 Owners, Phase 4 designer/audit, Phase 4.1 title, Summary "Who Does What" table), and `todo.md` (Audit Watermarks, ADR-0004 Active Next Step description, Testing Cadence Matrix row, new Feedback Decision Log entry). Landing commit recorded in the same-day closeout below.
@@ -235,6 +238,45 @@ landing commit SHA recorded in immediate closeout; GIL-33
 linear:
 GIL-33
 
+### 2026-04-16 | GIL-34 | by: Codex
+
+Problem:
+The repo allowed only manual Linear routing. It did not define an exact unattended queue contract for issue eligibility, supervisor claim/release behavior, Codex queue prompts, skip/block rules, or the separation between Codex build work and later Claude Code audit/test work.
+
+Reasoning:
+Letting Linear hand Codex arbitrary commands would weaken the architecture by turning Linear into a workflow owner. The safer design is supervisor-mediated queue execution: Linear stays routing metadata, the supervisor converts eligible issues into run contracts, each issue gets a fresh Codex session, Codex self-tests continuously, and Claude-only follow-up work is filed as separate lane-owned issues rather than being folded into the same run.
+
+Diagnosis inputs:
+Direct reads of `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `canonical-architecture.md`, `CLAUDE.md`, `AGENTS.md`, `README.md`, `GUIDE.md`, `COHERENCE.md`, and `todo.md`; `git status -sb`; `git log -1 --oneline`; Linear MCP `save_issue` to create `GIL-34`; Linear MCP `save_issue` to create the Claude-only follow-up `GIL-35`.
+
+Implementation inputs:
+Created `QUEUE-RUNS.md`. Updated `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `canonical-architecture.md`, `CLAUDE.md`, `README.md`, `GUIDE.md`, `COHERENCE.md`, and `todo.md`.
+
+Fix:
+Defined a canonical unattended queue contract with five load-bearing parts: eligible issue schema, supervisor loop, Codex prompt template per issue, stop/skip policy, and logging/commit/comment flow. The contract keeps direct Codex-in-Linear delegation disabled, permits only supervisor-mediated queue execution from Linear routing metadata, adds `Execution lane` and `Execution mode` to the Linear issue shape, codifies mandatory Codex self-test cadence, and requires Claude Code audit/test work to be filed as separate manual-lane issues. Created `GIL-35` so the independent Claude Code audit of this contract exists as a real tracked item rather than chat residue.
+
+Self-audit:
+Method-not-claim verification run before commit:
+1. Ran `git diff --check`; output empty; no whitespace or patch-hygiene defects remain in the landed repo state.
+2. Ran `rg -n "QUEUE-RUNS\\.md|Execution lane|Execution mode|queue-mode|supervisor-mediated queue|landing commits" AGENTS.md CLAUDE.md COHERENCE.md GUIDE.md LINEAR.md PROMPTS.md QUEUE-RUNS.md README.md RULES.md canonical-architecture.md todo.md`; output hit every intended active-doc surface, including the new queue contract, the Linear issue fields, the prompt/rules references, and the todo record.
+3. Ran `git status -sb`; output showed the task files for this landing plus unrelated AGENTS workspace changes (`AGENTS.md` modified and `AGENTS.project.md` untracked). Those AGENTS changes were treated as concurrent work and left out of this landing.
+Ripple Check attestation: checked and updated the full companion set for this change — `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `canonical-architecture.md`, `CLAUDE.md`, `README.md`, `GUIDE.md`, `COHERENCE.md`, and `todo.md` — so the queue contract, Linear routing rules, prompt guidance, architecture, and durable records all match in the same commit.
+Linear-coverage disposition: `GIL-34` tracks this landed governance change. `GIL-35` was filed in the same task for the Claude Code audit follow-up that surfaced during design. Queue-run implementation remains self-contained within the existing supervisor/build phases already tracked in `GIL-25` through `GIL-28`; no duplicate implementation issue was opened here.
+Did not verify the actual Linear workspace `Standard issue` template object because the available Linear MCP tools in this session can create issues and comments but do not edit workspace issue templates directly.
+Did not verify a live queue runner against real issue automation because this task codifies the contract and policy surfaces only; the runtime implementation does not exist yet in this repo.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-16 to change the policy and draft the exact unattended Linear-fed operating contract, with Claude audit/test work separated into its own lane.
+
+led to:
+GIL-35; self-contained: implementation remains within existing supervisor/build phases `GIL-25` through `GIL-28`
+
+linear:
+GIL-34
+
 ## Suggested Recommendation Log
 If it's not here, it isn't remembered.
 Keep materially new suggestions here so they survive beyond the current chat.
@@ -319,6 +361,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | command(s): `git diff --check`; `rg -n "QUEUE-RUNS\\.md|Execution lane|Execution mode|queue-mode|supervisor-mediated queue|landing commits" AGENTS.md CLAUDE.md COHERENCE.md GUIDE.md LINEAR.md PROMPTS.md QUEUE-RUNS.md README.md RULES.md canonical-architecture.md todo.md`; `git status -sb` | result: pass; the new queue contract is indexed and cross-referenced across every intended active-doc surface, the Linear issue schema and queue rules are present where expected, the diff is whitespace-clean, and `git status -sb` captures unrelated AGENTS workspace changes that were intentionally left out of this landing | log/PR reference: current unattended queue contract thread | by: Codex | linear: GIL-34
 - 2026-04-16 | command(s): `git diff --check` in `/Users/gillettes/Coding Projects/Autonomous Coding Agent`; `rg -n "Linear Issue Ledger|Why this exists|Origin source|origin source" AGENTS.md CLAUDE.md GUIDE.md LINEAR-BOOTSTRAP.md LINEAR.md PROMPTS.md README.md RULES.md todo.md`; `git diff --check` in `/Users/gillettes/Coding Projects/Linear`; `rg -n "Linear Issue Ledger|Why this exists|Origin source|origin source|Linear-at-the-core" AGENTS.project.md CLAUDE.md GUIDE.md LINEAR-BOOTSTRAP.md LINEAR.md PROJECT_INTENT.md README.md todo.md`; Linear MCP `list_issues(team="GIL", limit=100)` cross-check against the new ledger | result: pass; both repos are whitespace-clean, every intended doc surface now carries the new ledger/provenance rule, and the source repo `todo.md` mirrors the current live `GIL` issues with `why` and `origin` metadata | log/PR reference: current live-issue-provenance sync thread | by: Codex | linear: GIL-33
 - 2026-04-15 | command(s): `git diff --check -- LINEAR.md README.md GUIDE.md todo.md docs/launch-plan.md`; `rg -n "template content|not this repository's backlog|Rollout runbook|Smoke lane|Production rollout lane|Post-launch monitoring" LINEAR.md README.md GUIDE.md docs/launch-plan.md` | result: pass; launch-plan reconciliation is present, navigation docs point to the new file, and `LINEAR.md` now explicitly disambiguates template checkboxes from repo backlog | log/PR reference: current documentation correction thread
 - 2026-04-12 | command(s): manual document review | result: pass with follow-up fixes required | log/PR reference: local documentation cleanup chat
@@ -364,6 +407,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-16 | feedback source: Trevor unattended Linear queue request | feedback summary: enable walk-away Linear-fed execution without giving Linear direct command authority; keep Claude audit/test work as separate later issues; require Codex to self-test frequently and let the orchestrator skip or bypass non-Codex issues instead of stalling the whole queue | evaluation chat: current unattended queue contract thread | reasoning response: accepted with architecture correction. Direct Codex-in-Linear delegation stays disabled. The repo now defines a supervisor-mediated queue contract: Linear supplies routing metadata only, eligible issues are filtered by `Execution lane` and `Execution mode`, each issue-run gets a fresh Codex session, the supervisor owns claim/commit/push/state moves, Codex self-tests continuously, and later Claude Code audit/test work is filed as separate manual-lane issues instead of being absorbed into the current Codex pass. `GIL-35` was created so the first Claude Code audit of the contract is tracked explicitly. | decision status: accepted | implementation/disposition chat: current unattended queue contract thread | linked branch / audit / suggestion / test evidence: `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `canonical-architecture.md`, `Test Evidence Log` 2026-04-16 entry, `GIL-35` Claude Code audit follow-up | by: Codex | linear: GIL-34
 - 2026-04-16 | feedback source: Trevor request to make every live Linear issue appear in `todo.md` and to record why it exists and where it came from, including issues that arrive from connected systems, plus a request to commit/push any uncommitted work even if it was not originated in the current chat | evaluation chat: current live-issue-provenance sync thread | reasoning response: accepted. The old invariant was too narrow because it protected only `Active Next Steps`. The better path is a dedicated `Linear Issue Ledger` that mirrors every live issue with provenance while preserving `Active Next Steps` as the execution-ready queue. The same rule must live in the canonical Linear repo and its bootstrap runbook, otherwise the source repo would immediately drift again. Existing uncommitted work in the source repo is included in the same landing rather than left behind. | decision status: accepted | implementation/disposition chat: current live-issue-provenance sync thread | linked branch / audit / suggestion / test evidence: `LINEAR.md`, `todo.md` `Linear Issue Ledger`, `AGENTS.md`, `PROMPTS.md`, `/Users/gillettes/Coding Projects/Linear` companion-doc sync, `Test Evidence Log` 2026-04-16 entry above | by: Codex | linear: GIL-33
 - 2026-04-12 | feedback source: Claude companion-doc audit | feedback summary: align terminal-state language, relax Codex auth prerequisite, disambiguate global policy references, populate `todo.md`, clarify human vs agent doc-reading order | evaluation chat: current documentation cleanup thread | reasoning response: accepted in substance; implemented the four direct fixes and clarified onboarding order without reordering the README's human-oriented reading path | decision status: accepted | implementation/disposition chat: current documentation cleanup thread | linked branch / audit / suggestion / test evidence: Audit Record Log entry 2026-04-12; Test Evidence Log entry 2026-04-12
 - 2026-04-12 | feedback source: Trevor prompt-system request | feedback summary: add a canonical prompt document, make testing cadence explicit, require self-review plus another AI review, and re-audit fixes until the work comes back clean | evaluation chat: current prompt operating system thread | reasoning response: accepted; implemented in `PROMPTS.md`, indexed from the repo guide/front page, and reflected in the testing/audit governance records | decision status: accepted | implementation/disposition chat: current prompt operating system thread | linked branch / audit / suggestion / test evidence: Audit Record Log entry 2026-04-12 (prompt-system source-of-truth addition); Test Evidence Log entry 2026-04-12

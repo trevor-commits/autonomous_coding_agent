@@ -46,10 +46,13 @@ Read these when working on the current system:
 11. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-12. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+12. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
+   Exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
+
+13. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
    Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
 
-13. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+14. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History
@@ -70,7 +73,7 @@ This repo keeps durable governance records instead of leaving them in chat:
 
 ## Current Direction
 
-The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, and structured evidence for readiness decisions.
+The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, structured evidence for readiness decisions, and supervisor-mediated unattended queue execution that treats Linear as routing metadata rather than a command surface.
 
 ## Next Build Focus
 

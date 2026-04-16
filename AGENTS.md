@@ -71,15 +71,18 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 ## Implementor Role
 
-- The agent is the sole implementor for this repository.
-- The agent writes code, modifies doc content, lands commits, and performs a self-audit.
-- Self-audit is never the ship gate. Claude Code and Claude Cowork audit after implementation, and Trevor verifies last.
+- Codex is the primary implementor for this repository.
+- Codex writes code, modifies doc content, lands commits, and performs a self-audit.
+- Claude Code may also write code when doing so is the cleanest way to land an audit-surfaced fix, unblock Codex on a narrow targeted change, or close a small mechanical gap uncovered during line-by-line review. When Code writes code, it is still subject to independent audit — Code never ships its own code as the sole reviewer of record.
+- Self-audit is never the ship gate. Claude Code is the primary auditor and performs the line-by-line review; Claude Cowork performs a lightweight spec-alignment pass; Trevor verifies last.
 
 ## Completion Authority
 
 - **Codex may:** create a Linear issue if none exists, append `todo.md` `Completed` with the landing commit reference, post a completion comment on the Linear issue, and commit and push on the current branch.
 - **Codex may not:** move Linear state, check off any checklist item in the Linear issue body, mark a task `Done`, or edit other agents' audit writeups.
-- **Cowork may:** move Linear state through `Building -> AI Audit -> Human Verify`, check off audit checklist items, draft sub-issues for repair loops, and manage `todo.md` `Active Next Steps` state.
+- **Claude Code may:** perform the primary line-by-line audit, check off audit checklist items in the Linear issue body once its review is clean, write targeted fix code when appropriate, post audit findings as Linear comments, and append audit entries to `todo.md` `Audit Record Log` and `Test Evidence Log`.
+- **Claude Code may not:** move Linear state, mark a task `Done`, or sign off on code it authored itself — an independent auditor (second Code session, Cowork, or Trevor) must clear Code-authored changes.
+- **Cowork may:** move Linear state through `Building -> AI Audit -> Human Verify`, draft sub-issues for repair loops, manage `todo.md` `Active Next Steps` state, perform the lightweight spec-alignment pass after Code's audit is clean, and check off the spec-alignment checklist item. Cowork does not perform the line-by-line review that is Code's role.
 - **Trevor may:** move an issue to `Done`, override any of the above, and resolve disagreements.
 
 ## Linear Workflow

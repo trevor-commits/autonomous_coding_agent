@@ -302,9 +302,11 @@ All of the following must be true:
 
 **Duration estimate:** 1-2 weeks
 
-**Who builds it:** Codex
+**Who builds it:** Codex (Claude Code may co-implement narrow, audit-surfaced fixes)
 
-**What Claude does:** Audits the output after each major module.
+**What Claude Code does:** Primary auditor — line-by-line review of every module, tests, invariants, and schema/contract adherence after each major change.
+
+**What Claude Cowork does:** Lightweight spec-alignment check after Code's audit is clean, before Trevor verifies.
 
 ### 1.1 Supervisor Modules to Build
 
@@ -435,10 +437,10 @@ Log what you build in a CHANGELOG.md in this repo.
 
 ### 1.2 Audit the Supervisor
 
-**Owner:** Claude (me)
+**Owner:** Claude Code (primary auditor); Cowork performs a spec-alignment pass afterward
 **Trigger:** After Codex delivers the supervisor modules
 
-I will audit for:
+Claude Code audits line-by-line for:
 - [ ] Phase machine correctly rejects illegal transitions
 - [ ] Policy engine correctly blocks denied commands
 - [ ] Path restrictions are enforced (builder cannot write to forbidden_paths)
@@ -483,7 +485,7 @@ Walk through: INTAKE → PREPARE_WORKSPACE → BUILD (you type `request_builder_
 - [ ] All tests pass
 - [ ] Manual integration test completes benchmark task 1 with you as the strategy layer
 - [ ] Supervisor correctly blocks illegal commands, paths, and phase transitions
-- [ ] Claude has audited the code and no P0/P1 issues remain open
+- [ ] Claude Code has audited the code line-by-line, no P0/P1 issues remain open, and Cowork's spec-alignment pass is clean
 - [ ] CHANGELOG.md is updated
 
 **Do not proceed to Phase 2 until all Phase 1 criteria are met.**
@@ -577,7 +579,7 @@ Log changes in CHANGELOG.md.
 
 ### 2.3 End-to-End Test: Automated Build Loop
 
-**Owner:** Trevor + Claude (audit)
+**Owner:** Trevor + Claude Code (primary audit) + Cowork (spec-alignment check)
 **Deliverable:** Run benchmark tasks 1 and 4 (backend-only and fix task) fully autonomously
 
 ```bash
@@ -624,7 +626,7 @@ These baselines are what you compare against when adding the AI strategy layer i
 - [ ] Benchmark task 4 (fix) completes autonomously at least 2/3 runs
 - [ ] Supervisor never lets Codex commit, push, or write to forbidden paths
 - [ ] Baseline metrics recorded
-- [ ] Claude has audited the builder adapter and strategy
+- [ ] Claude Code has audited the builder adapter and strategy line-by-line; Cowork's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
 
 **Do not proceed to Phase 3 until all Phase 2 criteria are met.**
@@ -716,7 +718,7 @@ Log changes in CHANGELOG.md.
 
 ### 3.3 End-to-End Test: Full Frontend Task
 
-**Owner:** Trevor + Claude (audit)
+**Owner:** Trevor + Claude Code (primary audit) + Cowork (spec-alignment check)
 **Deliverable:** Run benchmark tasks 2 and 3 (frontend+backend and UI verification tasks)
 
 **Verification:**
@@ -737,7 +739,7 @@ Log changes in CHANGELOG.md.
 - [ ] UI failure → builder fix → re-verify loop works
 - [ ] Screenshots and traces are captured in artifacts
 - [ ] At least one frontend benchmark task completes with UI verification
-- [ ] Claude has audited the UI verifier and defect packet generation
+- [ ] Claude Code has audited the UI verifier and defect packet generation line-by-line; Cowork's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
 
 **Do not proceed to Phase 4 until all Phase 3 criteria are met.**
@@ -750,12 +752,12 @@ Log changes in CHANGELOG.md.
 
 **Duration estimate:** 1-2 weeks
 
-**Who designs it:** Claude (me)
-**Who integrates it:** Codex
+**Who designs it:** Claude Cowork (orchestrator drafts prompts; Claude Code audits the prompts line-by-line before handoff)
+**Who integrates it:** Codex (Claude Code may co-implement narrow, audit-surfaced fixes)
 
-### 4.1 Strategy Layer Design (Claude's Responsibility)
+### 4.1 Strategy Layer Design (Cowork's Responsibility, Code Audits)
 
-**Deliverables from Claude:**
+**Deliverables from Cowork (audited by Code):**
 
 1. **Planner prompt** — Given a run contract and repo context, decompose the objective into milestones. Output: structured JSON with milestone ID, description, files to touch, tests to add, dependencies.
 
@@ -779,7 +781,7 @@ Use `PROMPTS.md` as the canonical prompt-writing and review-cadence reference wh
 ```
 Read canonical-architecture.md Sections 5.2 and 7.
 Read supervisor/strategy_api.py and supervisor/actions.py.
-Read the strategy prompts provided by Claude (in supervisor/prompts/ directory).
+Read the strategy prompts provided by Cowork (in supervisor/prompts/ directory).
 
 Implement supervisor/strategy_claude.py:
 
@@ -833,7 +835,7 @@ Log changes in CHANGELOG.md.
 - [ ] Stall diagnosis helps resolve at least one builder stall that simple strategy couldn't
 - [ ] Code review catches at least one real issue across the benchmark suite
 - [ ] Comparative metrics show measurable improvement on complex tasks
-- [ ] Claude has audited the integration
+- [ ] Claude Code has audited the integration line-by-line; Cowork's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
 
 **Do not proceed to Phase 5 until all Phase 4 criteria are met.**
@@ -958,14 +960,14 @@ The first success criterion is deterministic parity with the contract, not maxim
 
 ## Summary: Who Does What
 
-| Phase | Trevor | Codex | Claude |
-|-------|--------|-------|--------|
-| 0 | Write repo contract, benchmark tasks, validate tools | (optional) Create directory structure | — |
-| 1 | Manual integration test | Build all supervisor modules | Audit supervisor code |
-| 2 | Run benchmarks, record metrics | Build builder adapter + simple strategy | Audit builder adapter |
-| 3 | Run frontend benchmarks | Build UI verifier, update strategy | Audit UI verifier |
-| 4 | Comparative testing | Integrate Claude strategy layer | Design all prompts + StrategyDecision schema |
-| 5 | Run final benchmarks | Build memory, flaky test, hardening features | Audit everything |
+| Phase | Trevor | Codex | Claude Code (primary auditor; may co-implement narrow fixes) | Claude Cowork (orchestrator; spec-alignment check) |
+|-------|--------|-------|-------------------------------------------------------------|---------------------------------------------------|
+| 0 | Write repo contract, benchmark tasks, validate tools | (optional) Create directory structure | Audit contract and benchmark fixtures line-by-line | Draft Codex prompts, route work, manage Linear |
+| 1 | Manual integration test | Build all supervisor modules | Audit supervisor code line-by-line (invariants, tests, schemas) | Draft Codex prompts; spec-alignment check after Code's audit |
+| 2 | Run benchmarks, record metrics | Build builder adapter + simple strategy | Audit builder adapter and strategy line-by-line | Draft Codex prompts; spec-alignment check |
+| 3 | Run frontend benchmarks | Build UI verifier, update strategy | Audit UI verifier and defect-packet generation line-by-line | Draft Codex prompts; spec-alignment check |
+| 4 | Comparative testing | Integrate Claude strategy layer | Audit all prompts and the integration line-by-line | Design all prompts + StrategyDecision schema (authored by Cowork, audited by Code) |
+| 5 | Run final benchmarks | Build memory, flaky test, hardening features | Audit everything line-by-line | Spec-alignment check; retrospective scope review |
 
 ---
 

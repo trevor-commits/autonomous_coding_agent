@@ -73,11 +73,11 @@ The happy path is:
 
 `Building -> AI Audit -> Human Verify -> Done`
 
-The naming is deliberate. `AI Audit` means Claude reviewing Codex output. `Human Verify` means Trevor's final signoff. This avoids overloading Linear's product-level review semantics and the dedicated Reviews surface for PR notifications.
+The naming is deliberate. `AI Audit` means Claude Code performing the primary line-by-line review of Codex output (with Cowork running a lightweight spec-alignment pass afterward). `Human Verify` means Trevor's final signoff. This avoids overloading Linear's product-level review semantics and the dedicated Reviews surface for PR notifications.
 
 ## Failure Routing
 
-- AI Audit failure returns the issue to `Building` with findings linked from the repo.
+- AI Audit failure (Claude Code's line-by-line review surfaces a P0/P1, or Cowork's spec-alignment pass disagrees) returns the issue to `Building` with findings linked from the repo.
 - Human Verify failure returns the issue to `Building` for a code or logic regression, or to `AI Audit` for a missed audit criterion.
 - Recurring failure signatures escalate into a new issue or the defect-packet workflow. No silent loops.
 
@@ -121,7 +121,7 @@ Every issue body contains:
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
-- `Checklist: Claude drafts Codex prompt -> Codex builds -> Claude audits (or N/A with one-line reason) -> Trevor verifies -> completion artifact filed in repo`
+- `Checklist: Cowork drafts Codex prompt -> Codex builds -> Claude Code audits line-by-line (or N/A with one-line reason) -> Cowork spec-alignment check -> Trevor verifies -> completion artifact filed in repo`
 - `Enforcement checkbox: ☐ No acceptance criteria, decisions, or audit conclusions in this issue body — linked to repo doc instead`
 - fixed footer: `Repo docs are authoritative; this issue tracks state and links only.`
 
@@ -172,9 +172,10 @@ The template body is:
 
 **Checklist**
 
-- [ ] Claude drafts Codex prompt
+- [ ] Cowork drafts Codex prompt
 - [ ] Codex builds
-- [ ] Claude audits (or N/A with one-line reason: ____)
+- [ ] Claude Code audits line-by-line (or N/A with one-line reason: ____)
+- [ ] Cowork spec-alignment check
 - [ ] Trevor verifies
 - [ ] Completion artifact filed in repo
 
@@ -191,9 +192,9 @@ If the template in Linear ever drifts from this block, the repo wins and the Lin
 
 ## AI-Strategy Role Boundary
 
-Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Claude drafts Codex prompts and may propose when review should happen.
+Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Cowork drafts Codex prompts and may propose when review should happen. Claude Code is the primary auditor of implementation output — it performs the line-by-line review and may author targeted fix code during audit per `CLAUDE.md § Roles` and `AGENTS.md § Completion Authority`.
 
-Claude does not own phase-transition or completion authority. Those stay with the supervisor.
+Neither Cowork nor Claude Code owns phase-transition or completion authority. Those stay with the supervisor at runtime and with Trevor at the governance layer.
 
 ## Prompt Drafting Surface
 
@@ -202,7 +203,7 @@ Codex prompts are drafted inside the Linear issue that scopes the work, not only
 Workflow:
 
 1. Cowork creates or opens the issue, moves it to `Ready for Build`, writes the first-draft prompt into the issue description, and applies the `prompt-review` label.
-2. Codex and Claude Code read the description and post their audits as Linear comments, prefixed `[Codex Audit]` or `[Code Audit]` for scanability.
+2. Claude Code (primary prompt auditor) and Codex read the description and post their audits as Linear comments, prefixed `[Code Audit]` or `[Codex Audit]` for scanability. Code's pass is the load-bearing one; Codex's self-audit surfaces implementability gaps but is not the gate.
 3. Cowork revises the description in place, then posts a summary comment noting which audit points were accepted or rejected and why.
 4. When the prompt is final, Cowork removes the `prompt-review` label. The prompt is now ready to hand to Codex for implementation under the normal `Building → AI Audit → Human Verify → Done` flow.
 
@@ -211,7 +212,7 @@ Guardrails:
 - Prompts in Linear descriptions are a drafting surface, not authority. The authoritative spec the prompt points to remains in the repo.
 - Audit comments are transient. Any decision durable enough to matter later is distilled into an ADR or the repo doc it touches — never left to live only as a Linear comment.
 - The prompt of record is the final version Codex logs in `todo.md` under `## Completed` after its run. Linear's description-edit history is convenient but not load-bearing.
-- Code and Codex write comments only. Neither moves issue state; that remains Cowork's responsibility per AI-Strategy Role Boundary.
+- Code and Codex write comments only. Neither moves issue state; that remains Cowork's responsibility per AI-Strategy Role Boundary. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.md § Completion Authority`).
 
 ## Integrations
 

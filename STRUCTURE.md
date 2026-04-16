@@ -34,7 +34,7 @@ A new schema goes in `schemas/` because it defines a reusable contract shape tha
 
 ## 6. Governance Records
 
-Use `todo.md` for durable planning, suggestions, audit logs, test evidence, feedback decisions, and the `Completed` trail of landed repo changes. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.
+Use `todo.md` for durable planning, the `Active Next Steps` execution queue, the `Linear Issue Ledger` that mirrors every live issue with `todo home:`, `why this exists:`, and `origin source:`, plus suggestions, audit logs, test evidence, feedback decisions, and the `Completed` trail of landed repo changes. Use `design-history/` for archived audit reports, reconciliations, and superseded architecture documents that should remain available without cluttering the active root surface.
 
 The Dependency Map lives in `COHERENCE.md` and is append-only. Ripple ownership is part of the active governance surface, not archive material.
 

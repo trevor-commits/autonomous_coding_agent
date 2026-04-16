@@ -93,7 +93,7 @@ Codex may repair an unspecced discovery inside the current issue-run only when a
 
 If any one of those tests fails, the discovery is not absorbed. It becomes one of:
 
-- a separate Linear follow-up issue with a refreshed `Linear Issue Ledger` entry
+- a separate Linear follow-up issue with a refreshed `Linear Issue Ledger` entry that keeps `todo home:`, `why this exists:`, and `origin source:` current
 - a `no-action: <reason>` disposition
 - a `self-contained: <reason>` disposition
 

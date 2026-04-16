@@ -38,7 +38,10 @@ Read these when working on the current system:
 9. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-10. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+10. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+   Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
+
+11. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History

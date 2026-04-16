@@ -239,6 +239,8 @@ If a PR should not move issue state at all, use the currently documented suppres
 
 Use either form with the specific issue ID being suppressed. These suppress Linear's PR-linking automation for that PR.
 
+Verify the current Linear-supported suppression syntax against Linear's PR-linking docs before relying on it. The token form has changed historically; if Linear's current docs disagree, the docs win and this section is corrected.
+
 ## Bidirectional Traceability
 
 Linear issue IDs belong only in task-local artifacts:
@@ -285,7 +287,7 @@ If the repo and Linear recurrence ever disagree, the repo wins and the Linear re
 
 ## Blocked Discipline
 
-Every `Blocked` issue must link to a repo artifact that explains what would unblock it. Acceptable artifacts include a `todo.md` entry, defect packet, ADR, or blocker note.
+Every `Blocked` issue must link to a repo artifact that explains what would unblock it. Acceptable artifacts are authoritative repo documents — a `todo.md` entry, defect packet, ADR, or blocker note committed to the repo. A Linear comment or description does not satisfy this; the artifact must live in the repo so the unblock condition survives outside Linear.
 
 If the blocker is another task, also use Linear's native blocked and blocking relation.
 

@@ -18,6 +18,7 @@ Use these files for current truth:
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
+- [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md): step-by-step Linear setup runbook and known-pitfalls list for bootstrapping new projects.
 
 Use `todo.md` for durable working records:
 
@@ -85,6 +86,10 @@ The launch-scope reconciliation note. Read this when you need to distinguish bet
 
 The Linear governance reference. Read this when configuring or using Linear so the board stays routing-only and repo truth stays in repo docs.
 
+### LINEAR-BOOTSTRAP.md
+
+The Linear setup runbook for new projects. Read this when configuring Linear from scratch so the screen-by-screen sequence and known pitfalls are followed without re-discovery.
+
 ### [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
 
 Repo-local working instructions for agents. Read this at the start of an agent session.
@@ -136,6 +141,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | How do prompts and audits work? | `PROMPTS.md` |
 | What should be built next? | `IMPLEMENTATION-PLAN.md` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
+| How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |
 | What should an agent read first? | `AGENTS.md` |
 | How do I find the right file fast? | `GUIDE.md` section `Quick Reference — Where to Find Things` |
 | Where are audits, ideas, and feedback decisions recorded? | `todo.md` |

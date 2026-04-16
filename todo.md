@@ -116,6 +116,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-45: audit queue/provenance durable trails from multiple angles and harden closeout evidence discipline — landed as `bd404cd`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-42: harden unattended queue intake, durability, and auditability from current external guidance — landed as `9c2a861`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-37: backfill missing local rollout records, correct the live-Taxes exception, and repair audit-verification drift — landed as `bb97c79` + `8cf198e`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-37: fully audit the portfolio rollout and close local branch drift — landed as `b4adccb`; full record in Work Record Log 2026-04-16
@@ -201,7 +202,7 @@ triggered by:
 Trevor request on 2026-04-16 to audit the queue/process work again from different angles, make sure it is logged in Linear for later AI audit, and implement anything else needed to make the process better
 
 led to:
-landing commit SHA recorded in immediate closeout; `GIL-46`
+`bd404cd`; `GIL-46`; self-contained: corrective Linear note posted on `GIL-42` in closeout
 
 linear:
 GIL-45

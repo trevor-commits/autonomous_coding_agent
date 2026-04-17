@@ -128,6 +128,7 @@ Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title �
 - [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-57: implement manual queue intake, normalization, and drain runner — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: capture installed workflow-plugin state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -203,6 +204,77 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained | by: Codex
+
+Problem:
+The repo's plugin docs documented several tools to use now, defer, or trial,
+but they did not yet record the direct operator decision that `MarcoPolo` is
+not needed for this repository. Without that note, later sessions could waste
+time rediscovering whether `MarcoPolo` should be part of normal repo work just
+because the connector is available in the session.
+
+Reasoning:
+The correct boundary is simple: this repo's normal work is local code, docs,
+tests, governance, and implementation planning, not external-data analysis.
+`MarcoPolo` only helps if a future task truly needs secure access to uploaded
+files, storage, or databases outside the checkout. That decision belongs in the
+canonical plugin ledger, the append-only plugin-intake log, and the operator
+cheat sheet, not in architecture docs.
+
+Diagnosis inputs:
+Direct rereads of `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`PROJECT_INTENT.md`; plus the live session check confirming `MarcoPolo` is
+available but currently has only the default `local_files` datasource with no
+uploaded files.
+
+Implementation inputs:
+Updated `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`.
+
+Fix:
+Added a `MarcoPolo` row to the canonical plugin decision ledger with the stance
+`Do not adopt now`, bounded it to future external-data tasks only, appended the
+decision trail to the plugin-intake log, added an operator-facing note that it
+is not part of the active repo tool split, and recorded the branch plus durable
+closeout in `todo.md`.
+
+Self-audit:
+1. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the new `MarcoPolo`
+   row matches the repo's local-versus-external-data boundary and does not
+   overstate any current integration.
+2. Re-read `docs/plugin-intake.md`; confirmed the new entry is append-only,
+   records the live-session evidence, and does not claim task-backed usage.
+3. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed the new note
+   keeps `MarcoPolo` out of the active operator split without changing any
+   existing phase-owner guidance.
+4. Did not update `README.md` or `GUIDE.md` because no new document was added
+   and the existing discovery pointers already lead to the canonical plugin
+   memo and operator cheat sheet where this stance now lives.
+Ripple Check attestation: the stance change touched the canonical plugin ledger,
+the append-only intake log, and the operator companion, so all three were
+updated in the same commit and the durable record was appended in `todo.md`.
+Linear-coverage disposition: self-contained: Trevor directly stated that
+`MarcoPolo` is not needed here, and the resulting work was a bounded repo-doc
+clarification rather than a queued implementation task.
+
+by:
+Codex
+
+triggered by:
+Trevor clarification on 2026-04-17 that `MarcoPolo` is not needed and that the
+decision should be recorded in repo docs
+
+led to:
+landing commit SHA recorded in the immediate closeout;
+`docs/codex-april-16-2026-impact.md`;
+`docs/codex-plugin-operator-cheatsheet.md`;
+`docs/plugin-intake.md`
+
+linear:
+self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 
 ### 2026-04-17 | GIL-57 | by: Codex
 
@@ -2074,6 +2146,32 @@ Each active branch entry should include:
 - delete when: After merge or explicit closeout and branch cleanup completes
 - retain reason: n/a
 
+### `codex/marcopolo-not-needed-docs`
+- status: active
+- created: 2026-04-17
+- base: `codex/coderabbit-flow-docs`
+- worktree: `/Users/gillettes/Coding Projects/_worktrees/autonomous-coding-agent-marcopolo-not-needed-docs`
+- source chat: 2026-04-17 "I don't need Marco Polo. Record that in the documents"
+- last refreshed by chat: 2026-04-17 "MarcoPolo not-needed repo stance"
+- purpose: Record that `MarcoPolo` is not part of the active tool stack for this repo and keep the plugin decision docs aligned on that boundary.
+- linked issue: `self-contained`
+- plugin mirror: n/a; self-contained disposition recorded in `todo.md`
+- merge expectation: merge
+- merge target: `codex/coderabbit-flow-docs`
+- review surface: local doc review only; no PR yet
+- exit checklist:
+  - [ ] Canonical plugin ledger updated coherently
+  - [ ] Plugin intake log appended
+  - [ ] Operator cheat sheet updated coherently
+  - [ ] Durable repo record updated in `todo.md`
+  - [ ] Commit pushed on this branch
+  - [ ] Merge or explicit no-merge closeout decided
+  - [ ] Local/remote branch cleanup completed
+- delete when: After merge into `codex/coderabbit-flow-docs` or explicit closeout and branch cleanup completes
+- retain reason: n/a
+- cleanup command: `git worktree remove '/Users/gillettes/Coding Projects/_worktrees/autonomous-coding-agent-marcopolo-not-needed-docs' && git branch -d codex/marcopolo-not-needed-docs`
+- linked PR/audit/completion record: `TODO: verify`
+
 ## Branch History
 - No closed branch entries recorded yet.
 
@@ -2141,6 +2239,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md` | result: pass — the canonical plugin memo, operator cheat sheet, append-only intake log, and durable repo record now all carry the same "MarcoPolo not needed here" boundary, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake tests.test_contracts tests.test_verifier tests.test_main`; `git diff --check -- supervisor/contracts.py schemas/run-contract.schema.json supervisor/verifier.py supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md` | result: pass — the new queue eligibility, normalization, manual drain, and verification-pack behavior are covered by the targeted supervisor suite, the pre-existing single-run path still passes, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
 - 2026-04-17 | command(s): `rg -n "Autopilot|HOTL|Cavekit|gillettes-local-plugins|ck" docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md`; `git diff --check -- docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md todo.md` | result: pass — the new setup companion, canonical ledger, operator cheat sheet, intake log, and discovery surfaces all reflect the installed-and-enabled state for `Autopilot`, `HOTL`, and `Cavekit`, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `git diff --check -- supervisor/builder_adapter.py supervisor/main.py supervisor/strategy_simple.py tests/test_builder_adapter.py tests/test_strategy_simple.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the new builder adapter, simple strategy, and main loop pass their focused tests; the broader supervisor suite still passes with the builder loop wired on top; and the final patch is whitespace-clean | log/PR reference: `bea68f6`; `Work Record Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-28
@@ -2219,6 +2318,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor clarification that `MarcoPolo` is not needed for this repository | feedback summary: do not add `MarcoPolo` to the active repo tool stack; record the non-use decision durably in the repo docs so later sessions do not keep reconsidering it from scratch | evaluation chat: current `MarcoPolo` usefulness clarification thread | reasoning response: accepted. `MarcoPolo` is a secure external-data connector, not a repo/worktree tool. This repository's ordinary code, docs, tests, and governance work should stay in Codex or Claude Code. The only reason to revisit `MarcoPolo` is a future task that genuinely needs secure analysis of uploaded files, storage, or databases outside the local checkout. | decision status: accepted | implementation/disposition chat: current `MarcoPolo` usefulness clarification thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture; `Test Evidence Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 - 2026-04-17 | feedback source: Trevor request to do both the architecture checkpoint and the next implementation slice, while keeping the work in this repository instead of moving into target-repo contract work | feedback summary: do not stop at choosing between `GIL-9` and `GIL-28`; land the checkpoint and then immediately carry that result into the next repo-local runtime slice | evaluation chat: current Phase 2 runtime thread | reasoning response: accepted with one correction. The checkpoint could not be treated as a pure paperwork stop because the repo still had real action-boundary drift, so `GIL-9` had to become a repair-backed ADR before Phase 2 continued. Once that was repaired, the right move was to build the smallest runnable Codex builder loop immediately instead of waiting for more docs work. This keeps the work in the control-plane repo, respects the user direction not to switch into target-repo contract work yet, and avoids hardening the wrong abstractions before a real loop exists. | decision status: accepted | implementation/disposition chat: current Phase 2 runtime thread | linked branch / audit / suggestion / test evidence: `design-history/ADR-0003-phase-1-architecture-checkpoint.md`; `supervisor/builder_adapter.py`; `supervisor/strategy_simple.py`; `supervisor/main.py`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-9`; `Test Evidence Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-9 + GIL-28
 - 2026-04-17 | feedback source: Trevor request to land the plugin operator cheat sheet in the repo, commit it, and research additional Codex plugins that could help with implementation, handoffs, testing, reviewing, and enforcement | feedback summary: move the Autopilot/HOTL/Cavekit operating guidance out of chat memory into repo docs, then broaden the plugin research beyond the first pass so the repo captures real next candidates instead of a shallow list | evaluation chat: current plugin-operator and broader-plugin-research thread | reasoning response: accepted. The better split is not one giant plugin writeup. The repo now keeps the decision ledger in `docs/codex-april-16-2026-impact.md` and adds a separate operator cheat sheet for how to use the locally installed workflow plugins without overlap. The broader research was expanded from "available official plugins" to primary-source inspection of local installs and candidate repos relevant to implementation discipline, deterministic review, session orchestration, handoffs, and delegation. | decision status: accepted | implementation/disposition chat: current plugin-operator and broader-plugin-research thread | linked branch / audit / suggestion / test evidence: `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Suggested Recommendation Log` 2026-04-17 `plugin-eval` / orchestration follow-ups; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | feedback source: Trevor request to add a governing-doc section that tracks plugins discussed for this repo, whether they have been tried, and the current use/not-use conclusion | feedback summary: centralize plugin decisions in one durable repo-visible place so future Codex sessions can update the same ledger instead of scattering plugin conclusions across chats and separate docs | evaluation chat: current plugin-governance thread | reasoning response: accepted. The cleaner move is to extend the active Codex impact memo instead of creating another governance surface. `docs/codex-april-16-2026-impact.md` now carries the durable `Plugin decision ledger`, with tried/not-tried status, current stance, allowed use, forbidden use, and revisit triggers. `README.md` and `GUIDE.md` now point future sessions to that exact ledger. Other Codex conversations can update it, but only if their prompt/read-scope includes the doc or the task is explicitly to revise plugin decisions. | decision status: accepted | implementation/disposition chat: current plugin-governance thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53

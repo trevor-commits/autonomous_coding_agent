@@ -35,6 +35,9 @@ This is the operational companion to
 - `CodeRabbit` has committed repo-local settings at `.coderabbit.yaml`.
 - The exact field-by-field settings and rationale now live in
   `docs/coderabbit-review-settings.md`.
+- `MarcoPolo` is not part of the active operator split for this repo. Treat it
+  only as a future external-data connector, not as a codebase, worktree, or
+  governance tool.
 - The repo decision is to try `CodeRabbit` first for dedicated PR-review
   quality. `GitHub Copilot` remains the cheaper GitHub-native fallback, not
   the active trial.

@@ -253,3 +253,35 @@ Notes:
 This still does not count as a task-backed plugin trial. The durable change is
 about install state and operating guidance, not proof that any of the three
 improves real repo work yet.
+
+### 2026-04-17 | source: MarcoPolo usefulness clarification chat | by: Codex
+
+Plugins:
+`MarcoPolo`
+
+Observation:
+The repo now has an explicit negative stance for `MarcoPolo`: it is available
+as a session connector, but it is not needed for this repository's normal
+code/docs/governance work. The deciding distinction is local-repo work versus
+external-data work. This repo's ordinary tasks stay in Codex or Claude Code,
+and `MarcoPolo` only becomes relevant if a future task actually needs secure
+analysis of uploaded files, storage, or databases outside the checkout.
+
+Evidence:
+Current Trevor clarification chat; live session check showing `MarcoPolo` is
+available but only exposes the default `local_files` datasource with no files
+uploaded; `PROJECT_INTENT.md` and repo-local plugin docs confirm this repo is a
+docs/governance/codebase workspace rather than an external-data workspace.
+
+Recommended ledger delta:
+Add a `MarcoPolo` row to the canonical plugin decision ledger with the current
+stance `Do not adopt now`, explicitly bounded to future external-data tasks
+only.
+
+Canonical ledger updated:
+Yes
+
+Notes:
+Availability in session still does not count as "tried here." This is a
+decision-trail entry recording why the repo is intentionally not adding
+`MarcoPolo` to the active tool stack.

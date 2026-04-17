@@ -14,6 +14,59 @@ Already-enabled core apps such as `GitHub`, `Linear`, `Gmail`,
 the current baseline and are only mentioned below when they create a
 redundancy call for another app.
 
+## Current accessible app audit
+
+This section answers a different question from the later recommendation tables:
+what app and connector surfaces are actually accessible to this repo session
+right now, and what should they be used for here?
+
+This audit is based on the current Codex session surfaces:
+
+- enabled plugin families available in this repo session
+- directly loaded connector tool namespaces already present in the session
+- searchable connector inventory available through the current tool-discovery
+  surface
+
+### Directly usable or enabled now
+
+| Surface | Access path | Use here for | Keep out of |
+|---|---|---|---|
+| `Linear` | Direct tools loaded plus plugin coverage | issue creation, queue hygiene, provenance, and repo-to-board routing | acceptance criteria or workflow authority |
+| `GitHub` | Plugin plus searchable connector tools | PR review comments, CI context, issue/PR follow-up, and repo metadata in real target-repo work | replacing repo truth or becoming queue authority |
+| `Gmail` | Plugin plus searchable connector tools | operator inbox triage, reply drafting, and follow-up context | core runtime/control-plane duties |
+| `Google Calendar` | Direct tools loaded plus plugin coverage | scheduling, review cadence, reminders, and availability checks | core runtime/control-plane duties |
+| `Hugging Face` | Direct tools loaded plus plugin coverage | model/dataset/paper lookup and bounded remote-job experiments when a concrete ML need appears | widening the repo around ML tooling by default |
+| `Vercel` | Plugin plus searchable connector tools | preview deploys, frontend verification support, env/log inspection, and AI SDK experiments | auto-deploy authority in the v1 core |
+| `Cloudflare` | Plugin plus searchable connector tools | Workers/Pages experiments, webhook-intake hosting exploration, and runtime-hosting evaluation | backdooring the hosting decision through tool availability |
+| `Figma` | Plugin | operator UI or app-supervisor UI design work | early-stage governance work where design tooling adds no leverage |
+| `Jam` | Searchable connector tools | frontend bug packets with replay, console, and network context when UI debugging becomes real | generic note-taking or replacing deterministic test evidence |
+| `Stripe` | Searchable connector tools | payments, billing, subscriptions, invoices, and integration planning when monetization work is real | casual enablement without an actual billing need |
+| `MarcoPolo` | Searchable connector tools | secure workspace/data-room style retrieval only if a concrete isolated-data workflow appears | becoming a default repo-memory layer |
+| `Computer Use` | Plugin plus searchable connector tools | OS-level app interaction or manual reproduction when CLI/browser helpers are insufficient | authoritative verification or routine coding tasks |
+| `Build Web Apps` | Plugin | curated web-app guidance across UI, deployment, payments, and database decisions when the task is clearly web-product oriented | overriding repo architecture or acting as a catch-all workflow owner |
+| `Superpowers` | Plugin | planning, verification, review discipline, and bounded execution workflows when they add real structure | heavy process on simple repo-doc tasks |
+| `HOTL` | Plugin | bounded implementation execution and verification discipline once a real plan exists | early product discovery or queue authority |
+| `Cavekit` | Plugin (`ck`) | requirements, acceptance criteria, and decomposition when direction is known but the spec is weak | owning the implementation loop end to end |
+| `Autopilot` | Plugin | vague project intake, discovery questions, and route shaping before spec or build work | routine bounded repo tasks with already-clear direction |
+| `CodeRabbit` | Plugin | active bounded PR-review trial for mechanical bug, lint, security, and missing-test signal | replacing architecture review or completion authority |
+| `plugin-eval` | Plugin | evidence-backed comparison of plugins, models, or workflow variants | making adoption decisions on vibes alone |
+
+### Missing or under-recorded before this audit
+
+These were accessible in the current session but not yet clearly recorded as
+current-use surfaces in the repo's live docs:
+
+- `Build Web Apps`: available now; should be the curated web-product guidance
+  layer, not a generic workflow owner.
+- `Computer Use`: available now; should stay operator-assist only, not an
+  authoritative verifier.
+- `Jam`: accessible connector; worth using for rich frontend bug reports if UI
+  debugging becomes a recurring pain point.
+- `Stripe`: accessible connector; should be used for real billing/payments work
+  instead of being left implicit in the broader marketplace memo.
+- `MarcoPolo`: accessible connector; recorded here as conditional secure
+  workspace access rather than leaving it as an unexplained searchable surface.
+
 ## Recommendation key
 
 - `Add now` — likely immediate leverage if Trevor wants to widen the app

@@ -164,6 +164,7 @@ not count as tried.
 | `Linear` | Yes | Use now, bounded | issue creation, queue hygiene, routing metadata, provenance checks | workflow authority or storing acceptance criteria and decisions in Linear | only if the queue contract or Linear boundary changes |
 | `GitHub` | No durable repo-side trial yet | Use now, bounded when needed | PR review comments, CI context, and audit follow-up in real target-repo work | making GitHub the owner of repo truth, queue legality, or task acceptance | when target-repo PR and CI work becomes active |
 | `Superpowers` | Yes | Use now, selectively | governance/design discipline, planning, review, and honest closeout checks | turning docs-only work into heavy process, branch churn, or subagent theater | when this repo becomes implementation-heavy enough to justify broader skill stacks |
+| `Build Web Apps` | No durable repo-side trial yet | Use now, selectively | curated web-product guidance for UI work, frontend review, deployment posture, payments integration choices, and data-stack patterns when the task is clearly a web app | replacing canonical repo decisions, becoming a generic catch-all for non-web governance work, or silently overriding the repo's own architecture | when real target-repo web implementation or frontend-heavy validation work becomes active |
 | `Autopilot` | Installed and enabled in Codex; no task-backed repo-side run yet | Use selectively for fuzzy project intake | discovery questions, brief creation, route selection, and handoff framing when a project starts as an idea instead of a bounded issue | routine bounded repo tasks or implementation execution once direction is already known | when a real project starts from a vague idea and needs route shaping before spec or build work |
 | `HOTL` | Installed and enabled in Codex; no task-backed repo-side run yet | Use now, selectively | implementation discipline, review, verification, and resumable execution once a bounded plan exists | replacing repo truth, acting as queue authority, or forcing heavy ceremony on trivial fixes | when a real implementation slice or risky repair needs stronger execution guardrails |
 | `Cavekit` | Installed and enabled in Codex as plugin id `ck`; no task-backed repo-side run yet | Use selectively for spec-heavy work | requirements, acceptance criteria, build-task decomposition, and pre-build traceability; current Blueprint-family candidate | rediscovering already-approved plans or owning the whole implementation loop | when a fuzzy or large feature needs real spec/decomposition before code |
@@ -176,6 +177,7 @@ not count as tried.
 | `Claude Code for Codex` | No | Later / conditional | tracked Claude review, rescue, or background jobs launched from Codex | duplicating the existing Codex-to-Claude bridge and audit chain without a concrete tracked-job need | if background Claude review or rescue jobs become operationally valuable |
 | `ECC` | No | Study as a source library only | harvesting specific TDD, security, or verification ideas from a large skill catalog | wholesale install that lets a giant external workflow redefine this repo | if a specific capability is needed and smaller plugins do not cover it |
 | `Figma` | No | Later / conditional | operator UI or app-supervisor UI design work | early-stage governance work where it adds no leverage | when a real UI surface is in scope |
+| `Computer Use` | No durable repo-side trial yet | Later / conditional | OS-level app interactions, manual reproduction of desktop-only flows, and exploratory UI/system work when CLI/browser helpers are not enough | authoritative verification, routine code tasks, or replacing deterministic browser/test tooling | when real desktop-app interaction or OS-level reproduction becomes a recurring operator bottleneck |
 | `Vercel` | No | Later / conditional | preview environments, frontend verification, and AI SDK experiments | auto-deploy authority or hosted-platform dependence in the v1 core | when preview or frontend workflow becomes real |
 | `Cloudflare` | No | Later / conditional | webhook intake hosting, Workers experiments, and possible workflow-substrate exploration | backdooring the hosting/runtime decision through plugin availability | when the runtime hosting choice is actively being made |
 | `Gmail` | No | Low now | operator follow-up and reminder workflows | core runtime or control-plane responsibilities | when operator follow-up pain becomes concrete |
@@ -185,8 +187,8 @@ not count as tried.
 Notes:
 
 - The current allow-now set is still role-bounded rather than plugin-maximal:
-  `Linear`, `GitHub`, `Superpowers`, `HOTL`, `CodeRabbit`, and
-  `plugin-eval` are usable now inside the limits above.
+  `Linear`, `GitHub`, `Superpowers`, `Build Web Apps`, `HOTL`,
+  `CodeRabbit`, and `plugin-eval` are usable now inside the limits above.
 - `Autopilot`, `HOTL`, and `Cavekit` are installed and enabled in Codex but
   should remain selective phase owners, not default workflow owners.
 - `docs/codex-workflow-plugin-setup.md` is the detailed operator companion for

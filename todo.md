@@ -45,6 +45,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-65` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (accessible app-surface audit landing; awaiting Cowork/Trevor state move) | why this exists: audit the apps, connectors, and plugin surfaces currently accessible in this repo session and record the missing repo-visible guidance for what they should be used for here | origin source: Trevor request on 2026-04-17 to audit what apps this repo has access to and record them with intended use guidance if not already documented
 - `GIL-64` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex Project Autopilot bootstrap and approval-plan capture; awaiting Cowork/Trevor state move) | why this exists: bootstrap a local `.codex-agent` for this repo, correct the autopilot state to the real autonomous-harness architecture, and capture an approval-ready bounded plan instead of generic project defaults | origin source: Trevor invoked Codex Project Autopilot in this workspace on 2026-04-17
 - `GIL-63` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex app-marketplace evaluation memo landing; awaiting Cowork/Trevor state move) | why this exists: capture the reviewed Codex marketplace apps in one durable repo-visible memo with the current operator-fit judgment for each so later sessions do not have to re-score the same screenshot surfaces from scratch | origin source: Trevor request on 2026-04-17 to record all reviewed apps and Codex's thoughts on them in the repo
 - `GIL-58` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit after `GIL-29` landing; scheduled before the Phase 3 follow-up fixes `GIL-59`–`GIL-62`) | why this exists: audit the landed Phase 3 supervisor runtime critically before later phases build on top of it so runtime defects, defect-packet shape, and invariant drift are caught at the codebase/audit layer instead of rediscovered in later phases | origin source: Trevor request on 2026-04-17 to run a thorough audit on the current code from multiple angles
@@ -133,6 +134,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-65: audit current accessible app surfaces and record missing intended-use guidance — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-64: bootstrap repo-local Codex Project Autopilot state and capture approval-ready plan variants — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: land Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup) — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-63: add durable Codex marketplace-app evaluation memo — landed as `4a90d6f`; full record in Work Record Log 2026-04-17
@@ -214,6 +216,79 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-65 | by: Codex
+
+Problem:
+The repo already had a broad marketplace-app recommendation memo and plugin
+guidance, but it did not cleanly answer the narrower operational question
+"what app and connector surfaces are actually accessible in this repo session
+right now, and what should we use them for here?" That gap would force later
+sessions to reconstruct access from chat context, tool discovery, and plugin
+lists.
+
+Reasoning:
+The right fix was to update the existing durable docs instead of creating a
+third tracker. `docs/codex-app-marketplace-evaluations.md` already owned the
+broader app-judgment problem, so it should also own the current accessible-app
+audit. `docs/codex-april-16-2026-impact.md` already owned the plugin stance
+ledger, so the missing `Build Web Apps` and `Computer Use` judgments belonged
+there rather than in another appendix.
+
+Diagnosis inputs:
+Direct rereads of `docs/codex-app-marketplace-evaluations.md`,
+`docs/codex-april-16-2026-impact.md`, and `todo.md`; inspection of the current
+session's directly loaded connector namespaces; the current enabled plugin
+inventory exposed in session context; searchable connector inventory available
+through the tool-discovery surface; and the existing repo docs that already
+covered installed workflow plugins and prior screenshot-based marketplace app
+recommendations.
+
+Implementation inputs:
+Updated `docs/codex-app-marketplace-evaluations.md`,
+`docs/codex-april-16-2026-impact.md`, and `todo.md`; created and used Linear
+issue `GIL-65`.
+
+Fix:
+Added a new `Current accessible app audit` section to
+`docs/codex-app-marketplace-evaluations.md` that records the app and connector
+surfaces directly usable in this repo session, what each should be used for
+here, and what to keep them out of. Also expanded the plugin decision ledger in
+`docs/codex-april-16-2026-impact.md` with explicit bounded stances for
+`Build Web Apps` and `Computer Use`, plus a notes update that makes the current
+allow-now set accurate. The repo now distinguishes cleanly between "accessible
+now" and "maybe worth enabling later."
+
+Self-audit:
+1. Re-read `docs/codex-app-marketplace-evaluations.md` after the edit;
+   confirmed the new section distinguishes current accessible surfaces from the
+   broader recommendation tables and records `Use here for` / `Keep out of`
+   guidance for each audited surface.
+2. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the plugin decision
+   ledger now includes explicit rows for `Build Web Apps` and `Computer Use`
+   and that the notes block reflects the corrected allow-now set.
+3. Verified the missing-surfaces callout in the app memo covers the real gap
+   found during the audit: `Build Web Apps`, `Computer Use`, `Jam`, `Stripe`,
+   and `MarcoPolo` were accessible but not previously captured as current-use
+   surfaces in one repo-visible place.
+4. `git diff --check -- docs/codex-april-16-2026-impact.md
+   docs/codex-app-marketplace-evaluations.md todo.md` must pass before closeout.
+5. Did not execute any of the audited apps live and did not add them to the
+   repo's runtime contract. This landing records access posture and intended
+   use only.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to audit what apps this repo has access to and
+record them with intended use guidance if they were not already documented.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+GIL-65
 
 ### 2026-04-17 | self-contained full-repo audit — ledger backfill and GIL-55 status correction | by: Cowork
 
@@ -2514,6 +2589,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `rg -n "## Current accessible app audit|### Directly usable or enabled now|Build Web Apps|Computer Use|Jam|Stripe|MarcoPolo" docs/codex-app-marketplace-evaluations.md docs/codex-april-16-2026-impact.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-app-marketplace-evaluations.md todo.md` | result: pass — the repo now has one durable current-access audit section, the missing plugin stances for `Build Web Apps` and `Computer Use` are present in the canonical plugin ledger, the searchable-connector gap surfaces are named explicitly in the app memo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
 - 2026-04-17 | command(s): `python3 -c "import yaml, json, urllib.request, ssl, jsonschema; ..."` strict-validating `.coderabbit.yaml` against the resolved `#/definitions/schema` at `https://coderabbit.ai/integrations/schema.v2.json` (including the new `reviews.slop_detection` block); `rg -n "slop_detection|Defaults we accept|reviews.tools|pre_merge_checks|finishing_touches|code_generation|issue_enrichment" .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md`; `git diff --check -- .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md todo.md` | result: pass — the updated CodeRabbit config validates against the live schema, the companion doc now encodes `slop_detection` as repo-supported and explicitly names the five unconfigured schema surfaces under `Defaults we accept`, the intake log carries the audit follow-up entry, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | command(s): `rg -n "Slack|Notion|Google Drive|Sentry|Jam|Stripe|Amplitude|Neon Postgres|Help Scout|Readwise|Attio|Scite" docs/codex-app-marketplace-evaluations.md`; `rg -n "codex-app-marketplace-evaluations.md" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-app-marketplace-evaluations.md README.md GUIDE.md todo.md` | result: pass — the new marketplace-app memo contains the intended high-leverage shortlist and detailed app judgments, both discovery docs point to it, the durable repo trail references it, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-63` | by: Codex | linear: GIL-63
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake tests.test_contracts tests.test_verifier tests.test_main`; `git diff --check -- supervisor/contracts.py schemas/run-contract.schema.json supervisor/verifier.py supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md` | result: pass — the new queue eligibility, normalization, manual drain, and verification-pack behavior are covered by the targeted supervisor suite, the pre-existing single-run path still passes, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
@@ -2594,6 +2670,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor request to audit what apps this repo currently has access to and record them with intended use guidance if the repo was missing that clarity | feedback summary: do not leave the repo with only the broad marketplace-recommendation memo; add one durable record of the app and connector surfaces actually accessible in this session and what they should be used for here | evaluation chat: current accessible-app audit thread | reasoning response: accepted. The missing question was not "what apps are good?" but "what can this repo actually use right now, and for what?" The right shape is to extend the existing marketplace memo with a current-access audit section and to patch the plugin decision ledger where two currently available surfaces (`Build Web Apps` and `Computer Use`) still had no explicit stance rows. That preserves one owner per doc instead of creating a new tracker. | decision status: accepted | implementation/disposition chat: current accessible-app audit thread | linked branch / audit / suggestion / test evidence: `docs/codex-app-marketplace-evaluations.md`; `docs/codex-april-16-2026-impact.md`; `todo.md`; `Work Record Log` 2026-04-17 `GIL-65`; `Test Evidence Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
 - 2026-04-17 | feedback source: Trevor request to execute the recommended disposition from the Claude Code second-pass audit of CodeRabbit settings | feedback summary: after the second-pass audit found that `slop_detection` was mis-categorized as UI-only, that four configurable schema surfaces were left undocumented, and that four low-severity durable-trail items remained open, land the fixes in one bounded follow-up commit rather than queuing them as separate Codex prompts | evaluation chat: current Claude Code second-pass audit and follow-up landing thread | reasoning response: accepted. The bounded, audit-surfaced fixes fall within the Claude Code narrow-fix allowance defined in `CLAUDE.md` `Roles`, so routing them through a fresh Codex handoff would add ceremony without adding review value. The right shape is: encode the operator's documented `slop_detection` preference in `.coderabbit.yaml` even though it is a no-op on private repos today, move `slop_detection` into the `Supported settings in repo config` table with the public-repo caveat preserved, add an explicit `Defaults we accept` section that names `reviews.tools`, `reviews.pre_merge_checks`, `reviews.finishing_touches`, `code_generation`, and `issue_enrichment` with default posture and known risk, append the audit follow-up to the intake log, and clear the Linear ledger description, exit-checklist, Completed-index, and cosmetic-link trail defects in the same landing. Explicit per-tool overrides were intentionally deferred to the 3-5 PR calibration window so the landing does not bake in unreviewed product judgments. | decision status: accepted | implementation/disposition chat: current Claude Code second-pass audit and follow-up landing thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up; `Test Evidence Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | feedback source: Trevor request to do both the architecture checkpoint and the next implementation slice, while keeping the work in this repository instead of moving into target-repo contract work | feedback summary: do not stop at choosing between `GIL-9` and `GIL-28`; land the checkpoint and then immediately carry that result into the next repo-local runtime slice | evaluation chat: current Phase 2 runtime thread | reasoning response: accepted with one correction. The checkpoint could not be treated as a pure paperwork stop because the repo still had real action-boundary drift, so `GIL-9` had to become a repair-backed ADR before Phase 2 continued. Once that was repaired, the right move was to build the smallest runnable Codex builder loop immediately instead of waiting for more docs work. This keeps the work in the control-plane repo, respects the user direction not to switch into target-repo contract work yet, and avoids hardening the wrong abstractions before a real loop exists. | decision status: accepted | implementation/disposition chat: current Phase 2 runtime thread | linked branch / audit / suggestion / test evidence: `design-history/ADR-0003-phase-1-architecture-checkpoint.md`; `supervisor/builder_adapter.py`; `supervisor/strategy_simple.py`; `supervisor/main.py`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-9`; `Test Evidence Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-9 + GIL-28
 - 2026-04-17 | feedback source: Trevor request to land the plugin operator cheat sheet in the repo, commit it, and research additional Codex plugins that could help with implementation, handoffs, testing, reviewing, and enforcement | feedback summary: move the Autopilot/HOTL/Cavekit operating guidance out of chat memory into repo docs, then broaden the plugin research beyond the first pass so the repo captures real next candidates instead of a shallow list | evaluation chat: current plugin-operator and broader-plugin-research thread | reasoning response: accepted. The better split is not one giant plugin writeup. The repo now keeps the decision ledger in `docs/codex-april-16-2026-impact.md` and adds a separate operator cheat sheet for how to use the locally installed workflow plugins without overlap. The broader research was expanded from "available official plugins" to primary-source inspection of local installs and candidate repos relevant to implementation discipline, deterministic review, session orchestration, handoffs, and delegation. | decision status: accepted | implementation/disposition chat: current plugin-operator and broader-plugin-research thread | linked branch / audit / suggestion / test evidence: `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Suggested Recommendation Log` 2026-04-17 `plugin-eval` / orchestration follow-ups; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54

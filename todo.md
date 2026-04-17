@@ -115,7 +115,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-16 | GIL-48: require critical review of AI feedback and prompts before Codex acts — landed as `<SHA>`; full record in Work Record Log 2026-04-16
+- [x] 2026-04-16 | GIL-48: require critical review of AI feedback and prompts before Codex acts — landed as `65cbb1a`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-40: normalize the live `.codex` checkout onto the published baseline and quarantine pre-normalize state in backup refs — landed as `.codex` `438bc3e1`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-41: remove the ambient `DATABASE_URL` dependency from canonical `job-media-hub` verification — landed as `job-media-hub` `fcd065b`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-43: enforce repo-local rollout-record backfill in portfolio governance automation — landed as `.codex` `438bc3e1`; full record in Work Record Log 2026-04-16
@@ -204,7 +204,7 @@ triggered by:
 Trevor request on 2026-04-16 to make Codex critically evaluate another AI's feedback and prompts before acting, while also checking the live Linear setup and the repo's runtime readiness
 
 led to:
-`<SHA>`; `GIL-49`
+`65cbb1a`; `GIL-49`
 
 linear:
 GIL-48

@@ -9,14 +9,14 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | **0** | Repo prep + manual baseline | Target repo demonstrably automation-ready | GIL-19 through GIL-24 + GIL-8 through GIL-11 | In progress |
 | **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | In progress |
 | **2** | Single builder loop (Codex) | Backend + fix benchmarks complete autonomously ≥2/3; supervisor enforces gates independently | GIL-28 | In progress |
-| **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | Not started |
+| **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | In progress |
 | **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | Not started |
 | **5** | Operational memory hardening (v1.1) | Benchmark suite rerun shows clear reliability gains | GIL-31 | Not started |
 
 **Shortest valid path:** choose target repo → finish Phase 0 → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: keep the repo implementation-ready while finishing the repo-local Phase 0/1/2 control-plane work in this repository and leaving target-repo contract work deferred until a first implementation repo is explicitly chosen.
+Current goal: finish the remaining repo-local runtime phases in this repository first, then return to target-repo contract/proof work only after the control system is finished enough to test other apps. `GIL-20` through `GIL-22` stay deferred by operator direction while repo-local runtime work (`GIL-29` through `GIL-31`) remains open.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
@@ -36,7 +36,7 @@ Current goal: keep the repo implementation-ready while finishing the repo-local 
 - [x] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
 - [x] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
 - [x] Phase 2 (GIL-28): integrate Codex as sole writer — builder adapter, rule-based strategy, and a simple build → verify → retry loop with structured failure routing.
-- [ ] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
+- [x] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
 - [ ] Phase 4 (GIL-30): add bounded Claude strategy layer — planner, task shaper, stall diagnosis, candidate review, final audit, typed domain actions only.
 - [ ] Phase 5 (GIL-31): operational memory hardening (v1.1) — failure-memory promotion, flaky-test registry, graceful shutdown/resume, concurrent-run prevention, session recovery.
 
@@ -95,7 +95,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-27` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (verification, fingerprinting, and reporting layer landed as `4c6e980`; awaiting Cowork/Trevor state move) | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-28` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (builder loop landed as `bea68f6`; awaiting Cowork/Trevor state move) | why this exists: integrate Codex as the sole writer with a simple repair loop and bounded adapter | origin source: `IMPLEMENTATION-PLAN.md` Phase 2
-- `GIL-29` | status: `Inbox` | todo home: `Active Next Steps` Phase 3 | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
+- `GIL-29` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (runtime landed as `9f1b693`; awaiting Cowork/Trevor state move) | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
 - `GIL-30` | status: `Inbox` | todo home: `Active Next Steps` Phase 4 | why this exists: add the bounded Claude strategy layer without giving it workflow control, using candidate review rather than a checkpoint-heavy surface | origin source: `IMPLEMENTATION-PLAN.md` Phase 4
 - `GIL-31` | status: `Inbox` | todo home: `Active Next Steps` Phase 5 | why this exists: harden operational memory after the core flow is proven | origin source: `IMPLEMENTATION-PLAN.md` Phase 5
 - `GIL-13` | status: `Inbox` | todo home: `Linear Issue Ledger` (decision-blocked backlog) | why this exists: reconcile the `STRUCTURE.md` `acpx` claim with the canonical architecture open question | origin source: 2026-04-15 Claude Code audit finding `P2-5`
@@ -125,6 +125,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-17 | GIL-23: add the first benchmark run-contract suite and invariant coverage floor — landed as `408b0b0`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-29: add app launch, UI verification, and defect routing — landed as `9f1b693`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-28: add the first runnable Codex builder loop — landed as `bea68f6`; full record in Work Record Log 2026-04-17
@@ -359,6 +360,99 @@ led to:
 
 linear:
 GIL-23
+
+### 2026-04-17 | GIL-29 | by: Codex
+
+Problem:
+The supervisor could already parse contracts, enforce scope and single-writer
+control, run deterministic verification, fingerprint failures, and drive a
+bounded builder loop, but it still stopped before the app/UI phase the repo
+claims to own. `Phase.APP_LAUNCH` and `Phase.UI_VERIFY` existed in the runtime
+model without executable implementations behind them, so the system could not
+launch a local app, wait for health, run the repo-owned `ui_smoke` suite,
+capture browser artifacts, emit defect packets, or route UI failures back into
+the builder loop.
+
+Reasoning:
+The better path was not to embed Playwright-specific logic directly into this
+repo. This repo is the control plane, so it should own process lifecycle,
+health gating, artifact locations, browser-profile isolation, and defect-packet
+structure while still treating the target repo's `ui_smoke` command as the
+authoritative browser entrypoint. That keeps app-specific UI logic where it
+belongs, keeps the browser owned by one verifier lane, and adds the missing
+Phase 3 seams without bloating the supervisor with repo-specific assumptions.
+
+Diagnosis inputs:
+Direct rereads of `IMPLEMENTATION-PLAN.md` Phase 3, the current
+`supervisor/main.py`, `supervisor/verifier.py`, `supervisor/reports.py`,
+`supervisor/fingerprints.py`, `supervisor/contracts.py`,
+`schemas/defect-packet.schema.json`, `schemas/readiness-report.schema.json`,
+`tests/test_main.py`, `tests/test_strategy_simple.py`, and the repo-local
+governance/continuity surfaces loaded at task start. Red tests in
+`tests/test_app_supervisor.py`, `tests/test_ui_verifier.py`,
+`tests/test_strategy_simple.py`, and `tests/test_main.py` then confirmed the
+missing runtime seams directly.
+
+Implementation inputs:
+Added `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`,
+`tests/test_app_supervisor.py`, and `tests/test_ui_verifier.py`; updated
+`supervisor/main.py`, `supervisor/strategy_simple.py`, `tests/test_main.py`,
+`tests/test_strategy_simple.py`, and `CHANGELOG.md`.
+
+Fix:
+Added the first executable app-launch and UI-verification slice. The runtime
+now launches the target app from `commands.app_up`, polls localhost health from
+`commands.app_health`, captures launch logs, and stops the process cleanly.
+`UIVerifier` now runs the repo-owned `commands.ui_smoke` command with isolated
+browser-profile and artifact env, writes UI logs, harvests screenshots/traces,
+records `UI_VERIFY` failure fingerprints, and emits schema-valid defect packet
+JSON into the run directory. `supervisor/main.py` now routes
+`LOCAL_VERIFY -> APP_LAUNCH -> UI_VERIFY -> FINAL_GATE` when `ui_smoke` is
+present, sends app-health and UI defects back through bounded builder repair
+loops, and carries those command results into the final readiness report.
+
+Self-audit:
+Method-not-claim verification run before closeout:
+1. Ran `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier
+   tests.test_strategy_simple tests.test_main`; output `OK`; the new app/UI
+   seams pass in focused coverage, including app-health retry and UI-defect
+   repair routing.
+2. Ran `python3 -m unittest discover -s tests -p 'test_*.py'`; output `OK`
+   with `73` passing tests; the broader supervisor suite still passes with the
+   Phase 3 additions in place.
+3. Ran `git diff --check -- CHANGELOG.md supervisor/app_supervisor.py
+   supervisor/ui_verifier.py supervisor/main.py supervisor/strategy_simple.py
+   tests/test_app_supervisor.py tests/test_ui_verifier.py tests/test_main.py
+   tests/test_strategy_simple.py`; output empty; the executable Phase 3 patch
+   is whitespace-clean.
+4. Re-read `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`, and
+   the updated `supervisor/main.py`; confirmed the control plane owns lifecycle,
+   artifact, and defect-packet behavior while the repo contract still owns the
+   actual `ui_smoke` browser command.
+5. Did not run a live target-repo app or real Playwright suite in another repo
+   because Trevor explicitly deferred cross-repo proving until the repo-local
+   autonomous system is finished enough to test other apps.
+Ripple Check attestation: because this task changed a live runtime boundary and
+the durable queue/closeout surfaces that future sessions use to sequence work,
+I updated `CHANGELOG.md`, the `todo.md` execution roadmap/current-goal text,
+the `Active Next Steps` queue, the `Linear Issue Ledger`, the `Completed`
+index, this `Work Record Log` entry, the `Test Evidence Log`, the relevant
+feedback decision, and the `Active Branch Ledger` in the same landing.
+Linear-coverage disposition: `GIL-29` is landed. No new follow-up issue was
+opened because the remaining repo-local system work already lives in `GIL-30`
+and `GIL-31`, while target-repo proof remains intentionally deferred and
+already tracked in `GIL-20` through `GIL-22`.
+
+triggered by:
+Trevor correction on 2026-04-17 that work should stay strictly on this
+repository until the autonomous system itself is finished enough to test other
+apps, followed by the direct request to continue with the next repo-local task
+
+led to:
+`9f1b693`
+
+linear:
+GIL-29
 
 ### 2026-04-17 | GIL-53 | by: Codex
 
@@ -1732,11 +1826,25 @@ Each active branch entry should include:
 - merge expectation: merge or cherry-pick both `GIL-23` commits after Trevor/Cowork review so canonical history keeps the fixture suite plus its durable closeout record together
 - exit checklist:
   - [ ] validate `GIL-23` closeout evidence in `todo.md`
-  - [ ] push `codex/gil23-benchmarks`
-  - [ ] post the `GIL-23` completion note in Linear
+  - [x] push `codex/gil23-benchmarks`
+  - [x] post the `GIL-23` completion note in Linear
   - [ ] merge or cherry-pick the landed commits onto the canonical branch
   - [ ] remove `/Users/gillettes/Coding Projects/autonomous-coding-agent-wt-gil23` after landing
 - delete when: after the `GIL-23` commits land on the canonical branch and the attached worktree is removed
+
+### `codex/gil29-ui-verifier`
+
+- source chat: 2026-04-17 continuation after Trevor corrected that work should stay in this repo until the autonomous system itself is finished enough to test other apps
+- last refreshed by chat: current `GIL-29` landing thread on 2026-04-17
+- purpose: land the app-launch, UI-verifier, and defect-routing runtime slice under `GIL-29`
+- merge expectation: merge or cherry-pick the `GIL-29` feature and closeout commits together after Trevor/Cowork review so the runtime slice and its durable record stay aligned
+- exit checklist:
+  - [ ] validate `GIL-29` closeout evidence in `todo.md`
+  - [ ] push `codex/gil29-ui-verifier`
+  - [ ] post the `GIL-29` completion note in Linear
+  - [ ] merge or cherry-pick the landed commits onto the canonical branch
+  - [ ] remove `/Users/gillettes/Coding Projects/autonomous-coding-agent-wt-gil23` after landing
+- delete when: after the `GIL-29` commits land on the canonical branch and the attached worktree is removed
 
 ## Branch History
 - No closed branch entries recorded yet.
@@ -1805,6 +1913,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_strategy_simple tests.test_main`; `python3 -m unittest discover -s tests -p 'test_*.py'`; `git diff --check -- CHANGELOG.md supervisor/app_supervisor.py supervisor/ui_verifier.py supervisor/main.py supervisor/strategy_simple.py tests/test_app_supervisor.py tests/test_ui_verifier.py tests/test_main.py tests/test_strategy_simple.py` | result: pass — the new app-launch and UI-verifier seams pass their focused tests, the full supervisor suite now passes with the Phase 3 runtime slice in place (`73` tests), and the executable patch is whitespace-clean | log/PR reference: `9f1b693`; `Work Record Log` 2026-04-17 `GIL-29` | by: Codex | linear: GIL-29
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_benchmark_fixtures`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_builder_adapter tests.test_strategy_simple tests.test_main tests.test_closeout_evidence tests.test_benchmark_fixtures`; `git diff --check -- CHANGELOG.md fixtures/README.md fixtures/*.json tests/test_benchmark_fixtures.py` | result: pass — the new benchmark-fixture suite enforces the exact ten-fixture coverage set, the full supervisor suite still passes with the new test included, and the fixture landing patch is whitespace-clean | log/PR reference: `408b0b0`; `Work Record Log` 2026-04-17 `GIL-23` | by: Codex | linear: GIL-23
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `git diff --check -- supervisor/builder_adapter.py supervisor/main.py supervisor/strategy_simple.py tests/test_builder_adapter.py tests/test_strategy_simple.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the new builder adapter, simple strategy, and main loop pass their focused tests; the broader supervisor suite still passes with the builder loop wired on top; and the final patch is whitespace-clean | log/PR reference: `bea68f6`; `Work Record Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-28
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_actions tests.test_strategy_schema`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|record_failure_signature" LOGIC.md RULES.md schemas/strategy-decision.schema.json`; `git diff --check -- supervisor/actions.py schemas/strategy-decision.schema.json RULES.md LOGIC.md tests/test_actions.py tests/test_strategy_schema.py design-history/ADR-0003-phase-1-architecture-checkpoint.md design-history/README.md todo.md` | result: pass — the action validator and strategy schema agree on the live payload contract, the stale checkpoint/failure-signature strategy actions are gone from the active docs/schema boundary, and the closeout patch is whitespace-clean | log/PR reference: `95a6271`; `Work Record Log` 2026-04-17 `GIL-9` | by: Codex | linear: GIL-9
@@ -1880,6 +1989,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor correction after the premature target-repo detour | feedback summary: do not work in other repos yet; complete only work that directly improves this repository until the autonomous system itself is finished enough to test multiple other apps | evaluation chat: current repo-local runtime sequencing thread | reasoning response: accepted. The repo-local runtime slices remain the execution-ready path, so `GIL-29`, `GIL-30`, and `GIL-31` stay in scope here while target-repo contract/proof work (`GIL-20` through `GIL-22`) is explicitly deferred by operator direction instead of being treated as the next mechanical queue item. `GIL-23` remained valid because it strengthens this repository directly. | decision status: accepted | implementation/disposition chat: current repo-local runtime sequencing thread | linked branch / audit / suggestion / test evidence: `todo.md` `Active Next Steps` current-goal note; `Work Record Log` 2026-04-17 `GIL-23`; `Work Record Log` 2026-04-17 `GIL-29`; `Test Evidence Log` 2026-04-17 `GIL-29` | by: Codex | linear: GIL-29 + GIL-30 + GIL-31
 - 2026-04-17 | feedback source: Trevor request to do both the architecture checkpoint and the next implementation slice, while keeping the work in this repository instead of moving into target-repo contract work | feedback summary: do not stop at choosing between `GIL-9` and `GIL-28`; land the checkpoint and then immediately carry that result into the next repo-local runtime slice | evaluation chat: current Phase 2 runtime thread | reasoning response: accepted with one correction. The checkpoint could not be treated as a pure paperwork stop because the repo still had real action-boundary drift, so `GIL-9` had to become a repair-backed ADR before Phase 2 continued. Once that was repaired, the right move was to build the smallest runnable Codex builder loop immediately instead of waiting for more docs work. This keeps the work in the control-plane repo, respects the user direction not to switch into target-repo contract work yet, and avoids hardening the wrong abstractions before a real loop exists. | decision status: accepted | implementation/disposition chat: current Phase 2 runtime thread | linked branch / audit / suggestion / test evidence: `design-history/ADR-0003-phase-1-architecture-checkpoint.md`; `supervisor/builder_adapter.py`; `supervisor/strategy_simple.py`; `supervisor/main.py`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-9`; `Test Evidence Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-9 + GIL-28
 - 2026-04-17 | feedback source: Trevor request to land the plugin operator cheat sheet in the repo, commit it, and research additional Codex plugins that could help with implementation, handoffs, testing, reviewing, and enforcement | feedback summary: move the Autopilot/HOTL/Cavekit operating guidance out of chat memory into repo docs, then broaden the plugin research beyond the first pass so the repo captures real next candidates instead of a shallow list | evaluation chat: current plugin-operator and broader-plugin-research thread | reasoning response: accepted. The better split is not one giant plugin writeup. The repo now keeps the decision ledger in `docs/codex-april-16-2026-impact.md` and adds a separate operator cheat sheet for how to use the locally installed workflow plugins without overlap. The broader research was expanded from "available official plugins" to primary-source inspection of local installs and candidate repos relevant to implementation discipline, deterministic review, session orchestration, handoffs, and delegation. | decision status: accepted | implementation/disposition chat: current plugin-operator and broader-plugin-research thread | linked branch / audit / suggestion / test evidence: `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Suggested Recommendation Log` 2026-04-17 `plugin-eval` / orchestration follow-ups; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | feedback source: Trevor request to add a governing-doc section that tracks plugins discussed for this repo, whether they have been tried, and the current use/not-use conclusion | feedback summary: centralize plugin decisions in one durable repo-visible place so future Codex sessions can update the same ledger instead of scattering plugin conclusions across chats and separate docs | evaluation chat: current plugin-governance thread | reasoning response: accepted. The cleaner move is to extend the active Codex impact memo instead of creating another governance surface. `docs/codex-april-16-2026-impact.md` now carries the durable `Plugin decision ledger`, with tried/not-tried status, current stance, allowed use, forbidden use, and revisit triggers. `README.md` and `GUIDE.md` now point future sessions to that exact ledger. Other Codex conversations can update it, but only if their prompt/read-scope includes the doc or the task is explicitly to revise plugin decisions. | decision status: accepted | implementation/disposition chat: current plugin-governance thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53

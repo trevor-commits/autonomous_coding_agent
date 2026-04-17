@@ -20,7 +20,7 @@ Current goal: keep the repo implementation-ready by finishing the remaining Phas
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
-- [ ] Audit follow-up (GIL-46): automate durable closeout-evidence backfill and validation so queue/provenance landings cannot leave placeholder SHAs, missing Work Record entries, or misattributed completion comments in the repo or Linear audit trail.
+- [x] Audit follow-up (GIL-46): automate durable closeout-evidence backfill and validation so queue/provenance landings cannot leave placeholder SHAs, missing Work Record entries, or misattributed completion comments in the repo or Linear audit trail.
 - [ ] Phase 0A.5 (GIL-19): trim the initial implementation surface to a smaller v1 by reducing externally visible action families and collapsing operational memory to a minimal first-pass shape; push the heavier Phase 5 hardening items behind a later v1.1-style threshold.
 - [ ] Phase 0.1 (GIL-20): write the first target repo's `.agent/contract.yml` using the canonical repo-contract shape and keep the initial scope intentionally narrow.
 - [ ] Phase 0.2 (GIL-21): manually validate the target repo contract end-to-end on a clean checkout. "Clean" is defined as: fresh clone into an empty directory, no cached dependencies, no prior `.autoclaw/` state, no prior `.agent/` artifacts beyond the committed `contract.yml`. Validation covers setup, test, app launch, and health check, each recorded as a passed checklist step.
@@ -60,7 +60,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Ready for Build
 
-- `GIL-46` | status: `Ready for Build` | todo home: `Active Next Steps` audit follow-up | why this exists: automate closeout-evidence validation so future queue/provenance changes cannot leave placeholder SHAs, missing durable records, or misattributed Linear completion comments behind | origin source: `GIL-45` multi-angle queue/process audit on 2026-04-16 found that the contract prose was stronger than the durable closeout trail enforcing it
+- `GIL-46` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-16 (validator landed; awaiting Cowork/Trevor state move) | why this exists: automate closeout-evidence validation so future queue/provenance changes cannot leave placeholder SHAs, missing durable records, or misattributed Linear completion comments behind | origin source: `GIL-45` multi-angle queue/process audit on 2026-04-16 found that the contract prose was stronger than the durable closeout trail enforcing it
 - `GIL-41` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-16 (canonical `job-media-hub` fix landed as `fcd065b`; awaiting Cowork/Trevor state move) | why this exists: remove the ambient `DATABASE_URL` dependency from the canonical `job-media-hub` verification path so normal repo tests are self-contained or explicitly provisioned | origin source: post-rollout full audit on 2026-04-16 reproduced the canonical `job-media-hub` `pnpm test && pnpm build` failure in `@jmh/api`
 - `GIL-40` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-16 (global policy fix landed as `.codex` `438bc3e1`; live checkout normalized with backup refs preserved; awaiting Cowork/Trevor state move) | why this exists: reconcile the live `.codex` checkout onto the published policy baseline and prevent tracked runtime/plugin state from re-entering the global policy repo | origin source: post-rollout full audit on 2026-04-16 found the live `.codex` checkout still `ahead 4, behind 3` with tracked runtime churn after the clean-worktree publish
 - `GIL-39` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (portfolio rollout blocker; waiting on remote/init decision) | why this exists: decide whether `Trevor Stack` is a canonical portfolio repo and either attach an `origin` remote so the repo-principles baseline can land, or record an explicit non-landing/exclusion decision | origin source: `GIL-37` landing audit surfaced `Trevor Stack` as a no-remote repo during the portfolio rollout
@@ -116,7 +116,8 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-16 | GIL-50: add repo-specific Superpowers usage guide and discovery pointers — landed as `TBD`; full record in Work Record Log 2026-04-16
+- [x] 2026-04-16 | GIL-46: automate durable closeout-evidence backfill and validation — landed as `12f6b4c`; full record in Work Record Log 2026-04-16
+- [x] 2026-04-16 | GIL-50: add repo-specific Superpowers usage guide and discovery pointers — landed as `8cfbd58`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-48: require critical review of AI feedback and prompts before Codex acts — landed as `65cbb1a`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-40: normalize the live `.codex` checkout onto the published baseline and quarantine pre-normalize state in backup refs — landed as `.codex` `438bc3e1`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-41: remove the ambient `DATABASE_URL` dependency from canonical `job-media-hub` verification — landed as `job-media-hub` `fcd065b`; full record in Work Record Log 2026-04-16
@@ -238,7 +239,7 @@ triggered by:
 Trevor request on 2026-04-16 to turn the repo-specific Superpowers guidance into an organized repo-local playbook and update the repo docs
 
 led to:
-`TBD`
+`8cfbd58`
 
 linear:
 GIL-50
@@ -281,6 +282,43 @@ led to:
 
 linear:
 self-contained: coordinating repo closeout for already-tracked `GIL-40`, `GIL-41`, and `GIL-43`
+
+### 2026-04-16 | GIL-46 | by: Codex
+
+Problem:
+The queue/provenance audit in `GIL-45` found that the repo's closeout contract was stronger than its enforcement. Placeholder SHA handling, missing or mismatched `Work Record Log` evidence, and misattributed Linear completion comments could still slip through because the repo had prose rules but no deterministic validator or renderer to enforce them. The first implementation pass also exposed two tool bugs immediately: it treated `todo.md` as a placeholder because of the `TODO` substring, and it compared short and full commit hashes literally instead of by prefix. Running the validator against the live backlog also uncovered real stale `GIL-37` `led to:` lines that did not include the coordinating repo's own closeout commits.
+
+Reasoning:
+The right response was not to weaken the rule or silently whitelist older entries. This repo needs a small deterministic utility that can both render the canonical closeout shapes and validate real `todo.md` and Linear comment text against them. Once that existed, the better path was to use it immediately on the active queue-family issues and backfill the genuine stale `GIL-37` evidence it surfaced, rather than claiming the automation worked without proving it against the current durable trail.
+
+Diagnosis inputs:
+Direct reads of `todo.md`, `CONTINUITY.md`, `LINEAR.md`, and the new `supervisor/closeout_evidence.py` implementation surface; `python3 -m unittest tests.test_closeout_evidence`; repeated validation runs across `GIL-34`, `GIL-36`, `GIL-37`, `GIL-42`, `GIL-45`, and `GIL-48`; sample `render-comment` / `validate-comment` runs for `GIL-46`; and targeted rereads of the three existing `GIL-37` Work Record entries to confirm whether the remaining failures were validator bugs or real stale closeout evidence.
+
+Implementation inputs:
+Created `supervisor/__init__.py`, `supervisor/closeout_evidence.py`, and `tests/test_closeout_evidence.py`. Updated `todo.md` to backfill the stale `GIL-37` `led to:` lines, record the `GIL-46` landing in `Completed`, move the `GIL-46` ledger home, and preserve this durable closeout trail.
+
+Fix:
+Added a deterministic closeout-evidence utility under `supervisor/` with CLI commands to validate issue closeout evidence in `todo.md`, render canonical `Completed` / `led to:` / Linear comment shapes, and validate a Linear completion comment against its intended landed refs. Hardened the validator so it handles short-versus-full SHA comparisons correctly, does not flag `todo.md` as a placeholder token, and can match the correct `Work Record` when an issue has multiple closeout entries. Then used the validator findings to backfill the stale `GIL-37` `led to:` lines so the existing rollout/audit records now include their coordinating repo closeout commits instead of forcing later audits to infer them from git history.
+
+Self-audit:
+Method-not-claim verification run before closeout:
+1. Ran `python3 -m unittest tests.test_closeout_evidence`; output `Ran 10 tests ... OK`; the validator and renderer behavior is covered for placeholders, short/full SHA matching, multi-entry issue matching, and Linear comment attribution checks.
+2. Ran targeted validation on the current backlog with `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-34`, `GIL-36`, `GIL-37`, `GIL-42`, `GIL-45`, and `GIL-48`; after the `GIL-37` backfill, each command passed, which confirmed the tool works against the real queue/provenance records rather than only synthetic fixtures.
+3. Ran `python3 -m supervisor.closeout_evidence validate-comment --issue GIL-46 --comment-file /tmp/gil46-comment.md --landed 12f6b4c`; output pass; the rendered completion-comment shape keeps landed refs separate from follow-up refs.
+4. Ran `git diff --check`; output empty; the combined code and `todo.md` patch is whitespace-clean.
+5. Ran `git status -sb`; output showed the intended task files plus unrelated pre-existing workspace changes in `GUIDE.md`, `README.md`, and `docs/superpowers-playbook.md`, which were left untouched as concurrent work.
+Ripple Check attestation: this change introduced executable closeout-evidence code under the already-authorized `supervisor/` and `tests/` surfaces in `STRUCTURE.md`, while the durable-record requirements themselves stay aligned with `CONTINUITY.md`, `LINEAR.md`, and `todo.md`. No companion-doc wording drift remained after the backfill.
+Linear-coverage disposition: `GIL-46` tracks this validator/backfill landing. No new follow-up issue was opened because the remaining closeout failures in the active queue family were fixed in the same task rather than deferred.
+Did not verify existing historical Linear comment bodies beyond the current generated sample because the available Linear tool surface here can list and post comments but do not provide a durable repo-side export of prior comment revisions for offline validation.
+
+triggered by:
+Trevor request on 2026-04-16 to start working through the Linear issue queue, beginning with the `GIL-45` closeout-evidence automation follow-up
+
+led to:
+`12f6b4c`
+
+linear:
+GIL-46
 
 ### 2026-04-16 | GIL-45 | by: Codex
 
@@ -391,7 +429,7 @@ triggered by:
 Trevor request on 2026-04-16 to keep looking at the work from different angles and find what was still missed.
 
 led to:
-`openclaw-ai` `f5751a3`; `Cline` `e2a1e4d`; `financial-command-center` `503ff3a`; `Repo Foundry` `dbd8249`; `Forgekeeper` `0632849`; canonical `job-media-hub` main `4568164`; `codex-global-backup` `0cdba9c`; `Linear` `2587bac`; `Codex` `dd272ec`; `BlackBox` `4cb739b`; `gillette-estimator` `ff4b206`; `foreman` `390acce`; `customer-contact-system-v2` `f4318b0`; `bible-ai` `87b8ea1`; `Operations Asset System` `4303617`; `gillette-website` branch `dbaf498` and main `5c0d519`; `WeatherAutomationSystem` branch `a0333dc` and main `b26e335`; `proactive-outreach-crm` branch `b4d2cdb` and main `945a830`; `Pictures Hub/job-media-hub` `40810cf`; `Taxes` main `9f9a7d1`; `GIL-43`; `no-action: live Taxes working tree remained dirty and operator-owned`.
+`bb97c79`; `8cf198e`; `openclaw-ai` `f5751a3`; `Cline` `e2a1e4d`; `financial-command-center` `503ff3a`; `Repo Foundry` `dbd8249`; `Forgekeeper` `0632849`; canonical `job-media-hub` main `4568164`; `codex-global-backup` `0cdba9c`; `Linear` `2587bac`; `Codex` `dd272ec`; `BlackBox` `4cb739b`; `gillette-estimator` `ff4b206`; `foreman` `390acce`; `customer-contact-system-v2` `f4318b0`; `bible-ai` `87b8ea1`; `Operations Asset System` `4303617`; `gillette-website` branch `dbaf498` and main `5c0d519`; `WeatherAutomationSystem` branch `a0333dc` and main `b26e335`; `proactive-outreach-crm` branch `b4d2cdb` and main `945a830`; `Pictures Hub/job-media-hub` `40810cf`; `Taxes` main `9f9a7d1`; `GIL-43`; `no-action: live Taxes working tree remained dirty and operator-owned`.
 
 linear:
 GIL-37
@@ -432,7 +470,7 @@ triggered by:
 Trevor request on 2026-04-16 to fully audit the work from this chat from multiple angles and make sure the rollout is actually thorough, correct, and error-free rather than merely published
 
 led to:
-`Pictures Hub/job-media-hub` `4dd577e`; `WeatherAutomationSystem` `2031059`; `gillette-website` `37a6dff`; `proactive-outreach-crm` `9b19034`; `Taxes` local `42616ac` rebased over `8657385`; `GIL-40`; `GIL-41`
+`b4adccb`; `Pictures Hub/job-media-hub` `4dd577e`; `WeatherAutomationSystem` `2031059`; `gillette-website` `37a6dff`; `proactive-outreach-crm` `9b19034`; `Taxes` local `42616ac` rebased over `8657385`; `GIL-40`; `GIL-41`
 
 linear:
 GIL-37
@@ -472,7 +510,7 @@ triggered by:
 Trevor request on 2026-04-16 to apply the repo principles at every project/global level, make the rollout repeatable and enforceable without redundant landings, and record the outcome in this repo plus Linear for later Claude review/audit/test
 
 led to:
-`.codex` `be4b92b`; `openclaw-ai` `7b290f4`; `Cline` `622f554`; `financial-command-center` `ad7325b`; `Repo Foundry` `64215d1`; `Forgekeeper` `d2bb80a`; `job-media-hub` `5895b87`; `codex-global-backup` `949a16d`; `Linear` `30e9d22`; `Codex` `0891081`; `BlackBox` `fd70833`; `gillette-estimator` `81edb0b`; `foreman` `6a62277`; `customer-contact-system-v2` `afc1b3a`; `bible-ai` `2f22576`; `Operations Asset System` `2c965a1`; `Taxes` `8657385`; `gillette-website` `f890f56`; `WeatherAutomationSystem` `c4c1122`; `proactive-outreach-crm` `00898fe`; `Equipment & SOPs` confirmed at `ebf7955`; `GIL-39`
+`0075d31`; `.codex` `be4b92b`; `openclaw-ai` `7b290f4`; `Cline` `622f554`; `financial-command-center` `ad7325b`; `Repo Foundry` `64215d1`; `Forgekeeper` `d2bb80a`; `job-media-hub` `5895b87`; `codex-global-backup` `949a16d`; `Linear` `30e9d22`; `Codex` `0891081`; `BlackBox` `fd70833`; `gillette-estimator` `81edb0b`; `foreman` `6a62277`; `customer-contact-system-v2` `afc1b3a`; `bible-ai` `2f22576`; `Operations Asset System` `2c965a1`; `Taxes` `8657385`; `gillette-website` `f890f56`; `WeatherAutomationSystem` `c4c1122`; `proactive-outreach-crm` `00898fe`; `Equipment & SOPs` confirmed at `ebf7955`; `GIL-39`
 
 linear:
 GIL-37
@@ -886,6 +924,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | command(s): `python3 -m unittest tests.test_closeout_evidence`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-34`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-36`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-37`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-42`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-45`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-48`; `python3 -m supervisor.closeout_evidence validate-comment --issue GIL-46 --comment-file /tmp/gil46-comment.md --landed 12f6b4c` | result: pass — the new closeout-evidence utility passes its unit tests, validates the current queue/provenance issue records after the `GIL-37` backfill, and confirms the generated `GIL-46` Linear completion-comment shape keeps landed refs scoped correctly | log/PR reference: `12f6b4c`; `Work Record Log` 2026-04-16 `GIL-46` | by: Codex | linear: GIL-46
 - 2026-04-16 | command(s): `rg -n "accepted|narrowed|rejected|needs more evidence|Feedback challenge gate|R-CONT-07" AGENTS.project.md CLAUDE.md PROMPTS.md LINEAR.md RULES.md`; `find . -maxdepth 3 \\( -name '*.py' -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.mjs' -o -name '*.go' -o -name '*.rs' -o -name 'package.json' -o -name 'pyproject.toml' -o -name 'Cargo.toml' -o -name 'go.mod' \\) | sort`; `git diff --check`; `git status -sb` | result: pass — the critical-review vocabulary is present across the intended live governance surfaces, the repo still has no current queue/supervisor implementation source files, and the patch is whitespace-clean with only the intended docs changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-48` | by: Codex | linear: GIL-48
 - 2026-04-16 | command(s): `rg -n "^## (Active Next Steps|Linear Issue Ledger|Completed|Work Record Log|Audit Record Log|Test Evidence Log)" todo.md`; `rg -n "GIL-40|GIL-41|GIL-43|GIL-40 \\+ GIL-41 \\+ GIL-43|linear:" todo.md`; `nl -ba todo.md | sed -n '100,230p'`; `nl -ba todo.md | sed -n '742,830p'`; `git diff --check` in `/Users/gillettes/Coding Projects/Autonomous Coding Agent` | result: pass — the coordinating repo records for `GIL-40`, `GIL-41`, and `GIL-43` sit in the correct `todo.md` sections with the required `linear:` field shape and no whitespace errors | log/PR reference: `Work Record Log` 2026-04-16 `GIL-40 + GIL-41 + GIL-43`; `Audit Record Log` 2026-04-16 targeted repair verification | by: Codex | linear: self-contained: coordinating repo closeout verification for `GIL-40`, `GIL-41`, and `GIL-43`
 - 2026-04-16 | command(s): `pnpm test --filter @jmh/api -- --test-name-pattern "nextCursor null"`; `pnpm test`; `pnpm build` in `/Users/gillettes/Coding Projects/job-media-hub` | result: pass — canonical `job-media-hub` verification is now self-contained for the previously failing `GET /jobs` pagination path and the full workspace test/build loop stays green | log/PR reference: `job-media-hub` `fcd065b`; `Work Record Log` 2026-04-16 `GIL-40 + GIL-41 + GIL-43` | by: Codex | linear: GIL-41

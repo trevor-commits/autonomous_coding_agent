@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-04-17
+
+- Added the first `GIL-28` builder-loop slice:
+  - added a real Codex CLI builder adapter in `supervisor/builder_adapter.py`
+  - added a minimal rule-based builder strategy in `supervisor/strategy_simple.py`
+  - added the first runnable supervisor main loop in `supervisor/main.py`
+  - added integration tests for session reuse, build -> verify -> retry, and policy blocking
+- Recorded the `GIL-9` architecture-checkpoint repair:
+  - repaired strategy action payload drift from `task_description` / `command_name` to `description` / `name`
+  - narrowed `schemas/strategy-decision.schema.json` to the current smallest-v1 action surface
+  - updated `LOGIC.md` and `RULES.md` to remove stale checkpoint/failure-signature strategy actions
+  - added `design-history/ADR-0003-phase-1-architecture-checkpoint.md`
+
 ## 2026-04-16
 
 - Added the first `GIL-27` verification-and-reporting slice:

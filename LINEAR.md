@@ -297,13 +297,14 @@ Codex prompts are drafted inside the Linear issue that scopes the work, not only
 Workflow:
 
 1. Cowork creates or opens the issue, moves it to `Ready for Build`, writes the first-draft prompt into the issue description, and applies the `prompt-review` label.
-2. Claude Code (primary prompt auditor) and Codex read the description and post their audits as Linear comments, prefixed `[Code Audit]` or `[Codex Audit]` for scanability. Code's pass is the load-bearing one; Codex's self-audit surfaces implementability gaps but is not the gate.
-3. Cowork revises the description in place, then posts a summary comment noting which audit points were accepted or rejected and why.
+2. Claude Code (primary prompt auditor) and Codex read the description and post their audits as Linear comments, prefixed `[Code Audit]` or `[Codex Audit]` for scanability. Code's pass is the load-bearing one. Codex's pass must challenge material prompt instructions and imported AI findings against repo truth, current evidence, and scope, classifying them as `accepted`, `narrowed`, `rejected`, or `needs more evidence` instead of merely flagging implementability concerns.
+3. Cowork revises the description in place, then posts a summary comment noting which audit points were accepted, narrowed, rejected, or left needing more evidence and why.
 4. When the prompt is final, Cowork removes the `prompt-review` label. The prompt is now ready to hand to Codex for implementation under the normal `Building → AI Audit → Human Verify → Done` flow.
 
 Guardrails:
 
 - Prompts in Linear descriptions are a drafting surface, not authority. The authoritative spec the prompt points to remains in the repo.
+- Another AI's prompt or review comment is advisory until the final prompt is revised by Cowork and the implementing Codex pass confirms the instruction still matches repo truth, evidence, and scope.
 - Audit comments are transient. Any decision durable enough to matter later is distilled into an ADR or the repo doc it touches — never left to live only as a Linear comment.
 - The prompt of record is the final version Codex logs in `todo.md` under `## Completed` after its run. Linear's description-edit history is convenient but not load-bearing.
 - Code and Codex write comments only. Neither moves issue state directly. Manual-workflow state changes remain Cowork's responsibility; queue-mode state changes remain supervisor-owned under `QUEUE-RUNS.md`. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.project.md § Completion Authority`).

@@ -19,6 +19,7 @@ Use these files for current truth:
 - [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md): prompt-system source of truth.
 - [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md): exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
+- [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md): repo-specific guidance for which Superpowers skills are worth using in this architecture/governance repo.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
 - [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md): step-by-step Linear setup runbook and known-pitfalls list for bootstrapping new projects.
@@ -95,6 +96,12 @@ The exact operating contract for unattended queue execution: eligible issue sche
 
 The execution roadmap. Read this when deciding what phase comes next or how a milestone is verified.
 
+### [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md)
+
+The repo-local Superpowers guide. Read this when deciding which plugin skills
+are actually worth using here instead of applying a generic implementation-heavy
+workflow to a documentation-first repository.
+
 ### [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
 
 The launch-scope reconciliation note. Read this when you need to distinguish between rollout pieces that already exist as documentation/process and future runtime or production capabilities that do not exist yet.
@@ -166,6 +173,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | How do prompts and audits work? | `PROMPTS.md` |
 | How does unattended Linear queue execution work? | `QUEUE-RUNS.md` |
 | What should be built next? | `IMPLEMENTATION-PLAN.md` |
+| Which Superpowers skills fit this repo versus adding overhead? | `docs/superpowers-playbook.md` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |
 | What should an agent read first? | `AGENTS.md`, then `AGENTS.project.md` |

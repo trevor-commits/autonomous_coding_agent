@@ -44,6 +44,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-50` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (repo-local Superpowers playbook landing; awaiting Cowork/Trevor state move) | why this exists: document which Superpowers skills actually fit this architecture/governance repo so future sessions do not apply generic implementation-heavy workflows blindly | origin source: Trevor request on 2026-04-16 to turn the repo-specific Superpowers guidance into durable repo docs
 - `GIL-48` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (critical-review governance landing; awaiting Cowork/Trevor state move) | why this exists: require Codex to critically audit AI feedback and prompt instructions against repo truth, evidence, and scope before acting instead of blindly implementing another model's suggestions | origin source: Trevor request on 2026-04-16 during live Linear/runtime review to make Codex think critically about outside-AI prompts and feedback before execution
 - `GIL-45` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (multi-angle queue/process audit landing; awaiting Cowork/Trevor state move) | why this exists: audit the unattended queue and provenance upgrades from additional angles, repair any remaining durable-trail defects, and strengthen the closeout-evidence rules so later AIs can trust the repo and Linear records | origin source: Trevor request on 2026-04-16 to audit the work again from different angles, make sure it is logged in Linear for later AI audit, and implement anything else needed to make the process stronger
 - `GIL-42` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (queue upgrade landing plus durable reasoning record; awaiting Cowork/Trevor state move) | why this exists: fold current external guidance and operator constraints back into the unattended queue contract so intake, risk gating, durability, observability, and later Claude audit/test work are handled explicitly instead of by convention | origin source: Trevor request on 2026-04-16 to search for improvements, implement the worthwhile queue/runtime upgrades thoroughly, review them heavily, and preserve the reasoning in a repo-visible place other AIs can audit later
@@ -115,6 +116,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-50: add repo-specific Superpowers usage guide and discovery pointers — landed as `TBD`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-48: require critical review of AI feedback and prompts before Codex acts — landed as `65cbb1a`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-40: normalize the live `.codex` checkout onto the published baseline and quarantine pre-normalize state in backup refs — landed as `.codex` `438bc3e1`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-41: remove the ambient `DATABASE_URL` dependency from canonical `job-media-hub` verification — landed as `job-media-hub` `fcd065b`; full record in Work Record Log 2026-04-16
@@ -208,6 +210,38 @@ led to:
 
 linear:
 GIL-48
+
+### 2026-04-16 | GIL-50 | by: Codex
+
+Problem:
+The repo had no durable, repo-local explanation of how the Superpowers plugin should be used here. Generic plugin advice would push implementation-heavy workflows, but this repo is still primarily architecture, governance, and planning truth.
+
+Reasoning:
+The better path was a dedicated playbook, not more AGENTS sprawl. The repo needed one place that says which Superpowers skills fit this repository, which are conditional, and which are usually overhead, then lightweight discovery pointers so later sessions can actually find it.
+
+Diagnosis inputs:
+Direct reads of `AGENTS.project.md`, `PROJECT_INTENT.md`, `README.md`, `GUIDE.md`, the current file tree, and the installed Superpowers skill docs (`using-superpowers`, `brainstorming`, `writing-plans`, `verification-before-completion`).
+
+Implementation inputs:
+Added `docs/superpowers-playbook.md`; updated `README.md` and `GUIDE.md`; updated `todo.md` `Linear Issue Ledger`, `Completed`, and this Work Record entry.
+
+Fix:
+Documented the repo-specific Superpowers usage model: design/review skills are the best fit here, implementation-heavy skills are conditional until real runtime code lands, and branch/subagent-heavy workflows are usually overkill for this repository. Added discovery pointers in the front page and guide so future sessions can find the playbook quickly.
+
+Self-audit:
+1. Re-read `docs/superpowers-playbook.md`; confirmed it matches the repo's present reality as a documentation-first architecture/governance repo and does not recommend workflow patterns that conflict with the local no-branch bias.
+2. Re-read the new `README.md` and `GUIDE.md` references; confirmed the playbook is now visible from the main discovery surfaces instead of being an orphaned doc.
+3. Re-read `todo.md`; confirmed `GIL-50` is now mirrored in `Linear Issue Ledger`, indexed in `Completed`, and explained in this Work Record entry.
+4. Did not verify runtime behavior because this change is documentation-only and does not alter the current supervisor/runtime surface.
+
+triggered by:
+Trevor request on 2026-04-16 to turn the repo-specific Superpowers guidance into an organized repo-local playbook and update the repo docs
+
+led to:
+`TBD`
+
+linear:
+GIL-50
 
 ### 2026-04-16 | GIL-40 + GIL-41 + GIL-43 | by: Codex
 

@@ -40,16 +40,20 @@ Read these when working on the current system:
 9. [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
    Build order, verification expectations, and phase exits.
 
-10. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+10. [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md)
+   Repo-specific guidance for when Superpowers skills help in this
+   documentation-first architecture/governance repo and when they add overhead.
+
+11. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
 
-11. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+12. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-12. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
+13. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
    Exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 
-13. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+14. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
    Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
 
 14. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)

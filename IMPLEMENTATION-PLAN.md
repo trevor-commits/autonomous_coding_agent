@@ -41,6 +41,37 @@ If any prerequisite fails, fix it before proceeding. The system cannot compensat
 
 **Why this phase exists:** If the repo can't be reliably set up, built, tested, and launched by a human following explicit commands, no agent system will succeed on it. This phase forces that proof.
 
+### 0A.5 Trim The First Implementation Surface
+
+**Owner:** Trevor + Codex + Claude Code (audit)
+**Deliverable:** A smaller v1 envelope recorded coherently across the architecture, implementation plan, and roadmap docs before implementation starts
+
+The smallest credible v1 is the narrow harness that proves deterministic orchestration on one real repo. It does not need every future reliability feature on day one.
+
+For the first implementation pass, keep **in scope**:
+
+- repo contract + run contract validation
+- deterministic phase machine and policy enforcement
+- direct Codex integration as the sole writer
+- deterministic local verification, app launch, and UI verification
+- per-run artifacts, structured reports, and trace-linked queue evidence
+- simple build -> verify -> fix loops
+
+Push explicitly to **v1.1 / later hardening**:
+
+- cross-run operational memory promotion
+- flaky-test registry and quarantine logic
+- interrupted-run resume / rehydration
+- rollback-oriented checkpoint recovery as a first-class surface
+- alternate adapter paths beyond the direct Codex integration needed to prove v1
+
+**Verification:**
+- [ ] `canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `PROJECT_INTENT.md`, `RULES.md`, `PROMPTS.md`, `STRUCTURE.md`, and `todo.md` describe the same trimmed v1 envelope
+- [ ] Phase 1 and Phase 2 prompts no longer require the deferred v1.1 features as first-pass deliverables
+- [ ] Phase 5 is explicitly framed as post-v1 hardening rather than part of the smallest initial proof
+
+**If it fails:** Stop before implementation and cut scope harder. Shipping a believable narrow v1 is better than documenting a broad pseudo-v1 that will immediately slip.
+
 ### 0.1 Write the Repo Contract
 
 **Owner:** Trevor
@@ -341,7 +372,8 @@ Create these modules inside a `supervisor/` directory:
    - Define legal transitions between phases
    - Reject illegal transition attempts
    - Track current phase, phase history, timestamps, and `run_state`
-   - Persist enough workflow state to resume safely after process or container interruption
+   - Persist enough workflow state to explain the run truthfully and survive normal per-run execution
+   - Interrupted-run resume is deferred to v1.1 hardening
 
 3. policy.py
    - Three shell classes: auto_allow, auto_deny, escalate
@@ -355,8 +387,6 @@ Create these modules inside a `supervisor/` directory:
    - Create worktree for a run: worktrees/<run_id>/builder
    - Create run branch: run/<task-slug>/<run_id>
    - Acquire and release single-writer lease
-   - Create checkpoint tags: autoclaw/<run_id>/start, autoclaw/<run_id>/last-green, autoclaw/<run_id>/cp-NN
-   - Rollback to checkpoint
 
 5. verifier.py
    - Run contract commands (setup, format, lint, typecheck, test) and capture:
@@ -376,54 +406,47 @@ Create these modules inside a `supervisor/` directory:
    - Normalize failure fingerprints from: phase, command, error signature, relevant paths
    - Detect repeated fingerprints (same failure appearing N times)
    - Persist fingerprints to run directory
-   - Load prior fingerprints from .autoclaw/memory/failure-signatures.json
+   - Cross-run fingerprint promotion is deferred to v1.1
 
-8. checkpoints.py
-   - Create checkpoint commit (supervisor owns commits, not builder)
-   - Structured commit message format: [autoclaw/<run_id>] <type>: <description>
-   - Tag checkpoints
-   - Track last-green checkpoint
-
-9. reports.py
+8. reports.py
    - Generate machine-readable final report (JSON):
      run_id, claim_id, run_trace_id, run_state, readiness_verdict, phases_completed, commands_run, failures, changed_files,
-     checkpoint_refs, artifact_manifest, unresolved_blockers, queue_entry_reason, queue_exit_reason
+     artifact_manifest, unresolved_blockers, queue_entry_reason, queue_exit_reason
    - Generate human-readable summary (Markdown):
      what changed, what passed, what failed, what's unresolved, next steps
 
-10. queue_intake.py
+9. queue_intake.py
    - Verify and deduplicate Linear webhook events
    - Persist intake events as run artifacts
    - Run a slower reconciliation sweep to recover from missed webhook delivery
    - Normalize queue metadata into bounded run-contract inputs before claim
 
-11. telemetry.py
+10. telemetry.py
    - Generate `run_trace_id`, `claim_id`, and optional `intake_event_id`
-   - Emit structured lifecycle events for intake, claim, verify, checkpoint, push, comment, and exit
+    - Emit structured lifecycle events for intake, claim, verify, push, comment, and exit
    - Keep logs and reports correlated by trace identifier
 
-10. actions.py
+11. actions.py
     - Define the typed action graph (not raw shell):
       collect_context, request_builder_task, run_contract_command, launch_app,
-      stop_app, run_ui_suite, checkpoint_candidate, rollback_to_checkpoint,
-      record_failure_signature, record_decision, propose_terminal_state
+      stop_app, run_ui_suite, record_decision, propose_terminal_state
     - Validate actions are legal for current phase
     - Actions resolve to supervisor-controlled implementations
     - Actions may NOT carry arbitrary shell payloads
 
-11. strategy_api.py
+12. strategy_api.py
     - Define the interface: get_strategy_decision(state, allowed_actions) -> StrategyDecision
     - Implement a MANUAL strategy (reads decisions from stdin or a file) for Phase 1 testing
     - Placeholder for future Claude integration
     - The strategy layer can only choose from actions the supervisor exposes for the current phase
 
-12. run_store.py
+13. run_store.py
     - Create run directory: .autoclaw/runs/<run_id>/
     - Initialize: contract.json, state.json, execution.log, defects/, artifacts/, reports/
     - Write and update state.json after every action
     - Append to execution.log
 
-13. main.py
+14. main.py
     - Entry point: accepts repo path and run contract JSON
     - Validates repo contract
     - Creates run store and worktree
@@ -437,7 +460,7 @@ Create these modules inside a `supervisor/` directory:
     - test_policy.py: deny list enforcement, path restrictions, budget limits
     - test_contracts.py: valid/invalid contract parsing, `run_state = UNSUPPORTED` detection
     - test_fingerprints.py: normalization, dedup, persistence
-    - test_worktree.py: creation, lease, checkpoint, rollback
+    - test_worktree.py: creation, lease, and cleanup discipline
     - test_actions.py: phase-legal action validation, illegal action rejection
 
 Non-goals for this phase:
@@ -529,32 +552,28 @@ Requirements:
    - send_task(session, prompt, timeout) -> BuilderResult
    - close_session(session)
 
-2. Implement CodexAdapter that:
+2. Implement Codex integration that:
    - Starts a Codex session scoped to the worktree
    - Sends implementation prompts to Codex
    - Captures Codex's output (files changed, commands run, self-reported status)
    - Supports session continuity (multi-turn within a run)
    - Has configurable timeout per task
 
-3. Implement a DirectCLIAdapter as fallback:
-   - Uses `codex exec` for stateless one-shot tasks
-   - Less capable but works if session management breaks
-
-4. The adapter must NOT let the builder:
+3. The adapter must NOT let the builder:
    - Commit (supervisor owns commits)
    - Push
    - Switch branches
    - Control a browser
    - Write outside allowed_paths
 
-5. Builder prompts should include:
+4. Builder prompts should include:
    - The current milestone objective
    - Relevant file paths from the plan
    - The repo contract commands (so builder can run targeted checks)
-   - Any prior failure fingerprints for this milestone
+   - Any prior failure fingerprints from the current run for this milestone
    - Instruction to NOT commit, push, or switch branches
 
-6. Add tests: test_builder_adapter.py
+5. Add tests: test_builder_adapter.py
    - Mock Codex responses
    - Verify session lifecycle
    - Verify forbidden operations are not included in prompts
@@ -575,12 +594,11 @@ Rules:
 - In BUILD phase: issue request_builder_task with the run contract objective
 - After BUILD: always transition to LOCAL_VERIFY
 - In LOCAL_VERIFY: run all available contract commands (lint, typecheck, test)
-- If LOCAL_VERIFY passes: issue checkpoint_candidate
+- If LOCAL_VERIFY passes: if more milestones remain, return to BUILD; otherwise continue toward FINAL_GATE
 - If LOCAL_VERIFY fails (attempt < max_repair_loops):
   issue request_builder_task with failure details and ask builder to fix
 - If LOCAL_VERIFY fails (attempt >= max_repair_loops):
   propose_terminal_state with `run_state = BLOCKED`
-- After successful checkpoint: if more milestones, back to BUILD; else continue toward FINAL_GATE and use `canonical-architecture.md §9.1 "Terminal States and Readiness Verdict"` for terminal-state legality.
 - Handle `run_state = UNSUPPORTED` and `run_state = BLOCKED` as terminal
 
 This is a dumb strategy — it doesn't decompose tasks into milestones, it doesn't
@@ -611,7 +629,7 @@ python supervisor/main.py \
 - [ ] On failure, supervisor routes failure back to Codex with structured fingerprint
 - [ ] If a high-risk action or approval gate is encountered, the issue blocks cleanly instead of being improvised
 - [ ] Retry loop works (Codex attempts fix, gates re-run)
-- [ ] On success, supervisor creates checkpoint commit
+- [ ] On success, supervisor records a clean final report and the last passing verification outcome for the run
 - [ ] Final report is generated with all required fields
 - [ ] Benchmark task 1 completes successfully (code + tests pass)
 - [ ] Benchmark task 4 (fix) completes successfully
@@ -637,7 +655,7 @@ These baselines are what you compare against when adding the AI strategy layer i
 ### Phase 2 Exit Criteria
 
 - [ ] Builder adapter works with Codex (session-based or direct CLI)
-- [ ] Simple strategy drives the full build → verify → fix → checkpoint loop
+- [ ] Simple strategy drives the full build → verify → fix loop
 - [ ] Benchmark task 1 (backend-only) completes autonomously at least 2/3 runs
 - [ ] Benchmark task 4 (fix) completes autonomously at least 2/3 runs
 - [ ] Supervisor never lets Codex commit, push, or write to forbidden paths
@@ -783,7 +801,7 @@ Log changes in CHANGELOG.md.
 
 3. **Stall diagnosis prompt** — Given repeated failure fingerprints and builder attempts, diagnose the root cause and recommend a different approach. Output: structured diagnosis with specific fix direction.
 
-4. **Checkpoint review prompt** — Given a diff and acceptance criteria, review for correctness, security, and plan adherence. Output: structured findings with severity, file, evidence, and fix instruction.
+4. **Candidate review prompt** — Given a diff and acceptance criteria, review for correctness, security, and plan adherence. Output: structured findings with severity, file, evidence, and fix instruction.
 
 5. **Final audit prompt** — Given the complete diff, artifacts, and acceptance criteria, produce a `readiness_verdict` using the canonical vocabulary and legality rules from `canonical-architecture.md §9.1 "Terminal States and Readiness Verdict"`.
 
@@ -807,7 +825,7 @@ Implement supervisor/strategy_claude.py:
 2. Calls Claude API with the appropriate prompt for the current phase:
    - BUILD phase: use planner prompt (first iteration) or builder task shaper (subsequent)
    - After repeated failure: use stall diagnosis prompt
-   - AUDIT_READY phase: use checkpoint review prompt
+   - AUDIT_READY phase: use candidate review prompt
    - FINAL_GATE phase: use final audit prompt
 3. Parses Claude's structured response into typed StrategyDecision
 4. Falls back to simple strategy if Claude returns unparseable output
@@ -863,9 +881,9 @@ Comparative runs should retain trace-linked event logs and benchmark grades so p
 
 ---
 
-## Phase 5: Operational Memory + Hardening
+## Phase 5: Operational Memory + Hardening (v1.1)
 
-**Goal:** Use cross-run data to improve future runs. Harden the system for repeated use.
+**Goal:** Use cross-run data to improve future runs after the narrow v1 harness is already proven. Harden the system for repeated use.
 
 **Duration estimate:** 1-2 weeks
 
@@ -939,7 +957,7 @@ Log changes in CHANGELOG.md.
 
 ## Phase 5+: Future Expansion (Not Scheduled)
 
-These are recorded here for completeness. Do not start any of these until Phases 0-5 are stable and producing value on real tasks.
+These are recorded here for completeness. Do not start any of these until the narrow v1 scope (Phases 0-4) is stable and producing value on real tasks.
 
 - **Multiple repo support:** Test the system on a second repo with a different stack
 - **Parallel tasks:** Multiple worktrees for independent features
@@ -971,14 +989,14 @@ The first success criterion is deterministic parity with the contract, not maxim
 | Risk | Mitigation | Phase |
 |------|-----------|-------|
 | Repo not automation-ready | Phase 0 validates every contract command manually | 0 |
-| acpx alpha instability | Builder adapter has direct-CLI fallback | 2 |
+| Adapter churn beyond direct Codex integration | Keep the first implementation path direct; defer alternate adapters until hardening proves they are needed | 5 |
 | Codex session drops | Session recovery with context summary | 5 |
 | Claude API rate limits | Exponential backoff | 5 |
 | False completion | Supervisor-enforced gates, `run_state = COMPLETE` requires `readiness_verdict = READY` and evidence | 1 |
 | Builder writes to forbidden paths | Policy engine blocks at execution time | 1 |
 | Flaky tests stall the loop | Flaky test detection and quarantine | 5 |
 | Cost blowup | Budget enforcement kills the run | 1 |
-| Stale memory | TTL on operational memory entries | 5 |
+| Stale memory | TTL on operational memory entries once v1.1 memory is enabled | 5 |
 | Multiple runs collide | Concurrent run prevention lock | 5 |
 
 ---
@@ -992,7 +1010,7 @@ The first success criterion is deterministic parity with the contract, not maxim
 | 2 | Run benchmarks, record metrics | Build builder adapter + simple strategy | Audit builder adapter and strategy line-by-line | Draft Codex prompts; spec-alignment check |
 | 3 | Run frontend benchmarks | Build UI verifier, update strategy | Audit UI verifier and defect-packet generation line-by-line | Draft Codex prompts; spec-alignment check |
 | 4 | Comparative testing | Integrate Claude strategy layer | Audit all prompts and the integration line-by-line | Design all prompts + StrategyDecision schema (authored by Cowork, audited by Code) |
-| 5 | Run final benchmarks | Build memory, flaky test, hardening features | Audit everything line-by-line | Spec-alignment check; retrospective scope review |
+| 5 | Run post-v1 hardening benchmarks | Build memory, flaky test, hardening features | Audit everything line-by-line | Spec-alignment check; retrospective scope review |
 
 ---
 

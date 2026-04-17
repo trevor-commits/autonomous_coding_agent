@@ -68,7 +68,7 @@ The deterministic supervisor is the source of truth for:
 - path and command restrictions
 - app lifecycle ordering
 - verification ordering
-- checkpoint commits
+- any run-level milestone markers the supervisor chooses to emit
 - final readiness authority
 
 No model may override these rules.
@@ -164,6 +164,9 @@ The initial system should be narrow and reliable:
 - no multi-writer parallelism
 - no semantic memory service
 - no auto-merge or auto-deploy
+- no required cross-run operational memory promotion
+- no interrupted-run resume or rehydration
+- no rollback-oriented checkpoint recovery in the smallest v1
 
 ## 4. High-Level System Shape
 
@@ -223,7 +226,7 @@ Responsibilities:
 - start and stop the app
 - capture artifacts and reports
 - enforce retries, budgets, and stop conditions
-- externalize durable workflow state so runs can resume after process or container failure
+- externalize enough per-run state and artifacts to explain what happened truthfully after the run ends
 - own checkpoint commits
 - own landing commits and queue claim/release
 - decide final run state
@@ -274,7 +277,7 @@ Bad examples:
 Good examples:
 
 ```json
-{ "action": "checkpoint_candidate", "reason": "targeted gates passed for milestone M2" }
+{ "action": "record_decision", "reason": "green candidate is ready for final gate" }
 ```
 
 ```json
@@ -282,7 +285,7 @@ Good examples:
 ```
 
 ```json
-{ "action": "record_failure_signature", "fingerprint": "test-auth-empty-email", "evidence_refs": ["artifacts/logs/test.txt"] }
+{ "action": "propose_terminal_state", "run_state": "BLOCKED", "reason": "retry budget exhausted on repeated auth failure" }
 ```
 
 This rule exists to prevent the strategy layer from regaining control of the workflow through a side door.
@@ -628,7 +631,7 @@ Verified webhooks are the preferred wake-up signal for queue intake, with a peri
 
 The supervisor must still derive the actual run contract before Codex starts, including the frozen issue snapshot (`issue_snapshot_hash`), the allowed and forbidden path scope (`allowed_paths` plus companion exclusions), the required verification pack, the versioned queue or prompt contract (`queue_contract_version`, `prompt_template_version`) used for that run, and the durable intake identifiers (`claim_id`, `run_trace_id`, optional `intake_event_id`) needed for replayable queue history.
 
-Queue normalization must also derive the bounded execution envelope for that run, including `queue_entry_reason`, `risk_level`, `approval_required`, `retry_budget`, `staleness_deadline`, and whether a resume should continue from a previous checkpoint (`resume_from_checkpoint`).
+Queue normalization must also derive the bounded execution envelope for that run, including `queue_entry_reason`, `risk_level`, `approval_required`, `retry_budget`, and `staleness_deadline`.
 
 If the issue metadata or authoritative repo inputs drift materially after claim, the active run is invalid until the supervisor re-normalizes or blocks it cleanly.
 
@@ -708,7 +711,7 @@ Companion docs should reference this section rather than redefining the vocabula
 
 ### `AUDIT_READY`
 
-- optional review/audit checkpoint after green candidate
+- optional review/audit pause after green candidate
 
 ### `FINAL_GATE`
 
@@ -740,9 +743,6 @@ Suggested v1 action families:
 - `launch_app`
 - `stop_app`
 - `run_ui_suite`
-- `checkpoint_candidate`
-- `rollback_to_checkpoint`
-- `record_failure_signature`
 - `record_decision`
 - `propose_terminal_state`
 
@@ -755,6 +755,8 @@ Rules:
 - actions may not bypass path, writer, or browser ownership rules
 
 This keeps the AI layer expressive enough for delegation while preserving deterministic control-plane ownership.
+
+Checkpointing, rollback, and cross-run failure-memory promotion may still exist later as supervisor-internal mechanisms, but they are intentionally not strategy-facing actions in the smallest v1 surface.
 
 ## 10. Agent Roster
 
@@ -847,7 +849,7 @@ Backing model:
 
 Purpose:
 
-- checkpoint review
+- candidate review
 - stall diagnosis
 - final audit
 
@@ -924,25 +926,17 @@ Future read-only exploration worktrees may exist later, but not in v1 as active 
 
 ### 12.3 Commit ownership
 
-The supervisor owns checkpoint commits and per-issue landing commits.
+The supervisor owns any run-level milestone markers it creates and all per-issue landing commits.
 
 The builder edits files but does not own commit authority in v1.
 
 This ensures:
 
-- checkpoint commits represent known-good or intentionally recorded states
+- any run-level markers remain supervisor-owned rather than builder-owned
 - commit message format is consistent
-- partial broken work is less likely to be snapshot as progress
+- partial broken work is less likely to be mistaken for a final landing
 
-### 12.4 Rollback model
-
-Use checkpoint tags or equivalent references such as:
-
-- `autoclaw/<run-id>/start`
-- `autoclaw/<run-id>/last-green`
-- `autoclaw/<run-id>/cp-01`
-
-Rollback should restore the run worktree to the last known-good checkpoint rather than relying on destructive ad hoc cleanup.
+Rollback-oriented checkpoint recovery is intentionally deferred out of the smallest v1. If milestone markers or checkpoints return as a first-class recovery surface later, the supervisor still owns them.
 
 ### 12.5 Forbidden git operations for builder
 
@@ -1078,7 +1072,7 @@ Examples:
 - logs
 - reports
 
-## 14.3 Operational Memory
+## 14.3 Operational Memory (Deferred In The Smallest v1)
 
 Cross-run learnings that may improve future runs.
 
@@ -1088,7 +1082,7 @@ Suggested location:
 .autoclaw/memory/
 ```
 
-This is supervisor-owned runtime storage rather than target-repo structure; see `STRUCTURE.md` for the boundary rule.
+This is supervisor-owned runtime storage rather than target-repo structure; see `STRUCTURE.md` for the boundary rule. The smallest v1 does not require this layer to be present. It becomes relevant only once the core run loop has already been proven and the project intentionally enters hardening work.
 
 Examples:
 
@@ -1103,8 +1097,10 @@ Examples:
 - no chain-of-thought storage
 - no external semantic memory system
 - no promotion of undocumented assumptions into durable truth
+- no required cross-run fingerprint promotion or flaky-test registry
+- no resume heuristics that depend on prior runs
 
-File-based operational memory is acceptable in v1. A structured database may be introduced later only when scale justifies it.
+File-based operational memory is acceptable once the project enters v1.1 hardening. A structured database may be introduced later only when scale justifies it.
 
 ## 15. Run Directory Layout
 
@@ -1127,7 +1123,7 @@ Suggested run layout:
       reports/
         final-report.json
         final-summary.md
-  memory/
+  memory/              # optional v1.1+ hardening layer
     failure-signatures.json
     flaky-tests.json
     environment-quirks.md
@@ -1264,7 +1260,6 @@ Containing at minimum:
 - commands run
 - failures encountered
 - changed files
-- checkpoint refs
 - artifact manifest
 - unresolved blockers
 
@@ -1283,7 +1278,7 @@ Containing at minimum:
 These remain open implementation choices rather than settled architecture changes:
 
 - minimum viable repo contract fields beyond the v1 floor
-- exact adapter choice for `acpx` vs direct Codex CLI fallback
+- whether any adapter beyond direct Codex CLI is justified after the smallest v1 is proven
 - exact `StrategyDecision` schema
 - exact failure fingerprint normalization rules
 - when file-based memory should migrate to a database
@@ -1322,7 +1317,7 @@ Deliverables:
 - run state persistence
 - deterministic verifier
 - trace correlation and structured event records
-- checkpointing
+- truthful per-run reporting without requiring cross-run recovery
 
 ## Phase 2: Single Builder Loop
 
@@ -1362,15 +1357,15 @@ Deliverables:
 
 - planner interface
 - stall diagnosis
-- checkpoint review
+- candidate review
 - final audit
 - trace-aware evaluation and benchmark grading for prompt or autonomy changes
 
-## Phase 5: Operational Memory Hardening
+## Phase 5: Operational Memory Hardening (v1.1)
 
 Goal:
 
-- improve repeat-run efficiency without destabilizing v1
+- improve repeat-run efficiency without destabilizing the proven v1 harness
 
 Deliverables:
 

@@ -69,11 +69,11 @@
 
 ## Commit Rules
 
-- The supervisor owns checkpoint and landing commits, not the builder.
+- The supervisor owns landing commits and any run-level milestone markers, not the builder.
 - The builder edits files but does not have commit authority.
 - Commit message format: `[autoclaw/<run_id>] <type>: <description>`
-- Checkpoint tags follow the pattern: `autoclaw/<run_id>/start`, `autoclaw/<run_id>/last-green`, `autoclaw/<run_id>/cp-NN`
-- Rollback restores the worktree to the last known-good checkpoint rather than relying on ad hoc cleanup.
+- If milestone-marker tags are introduced later, they should follow a predictable `autoclaw/<run_id>/...` pattern.
+- If rollback-oriented recovery is added later, it remains supervisor-owned rather than builder-owned.
 
 ---
 
@@ -113,7 +113,7 @@ The builder may use read-only git inspection commands (e.g., `git log`, `git dif
 ```json
 { "action": "request_builder_task", "prompt": "...", "milestone": "M2" }
 { "action": "run_contract_command", "name": "test", "scope": "targeted" }
-{ "action": "checkpoint_candidate", "reason": "targeted gates passed for milestone M2" }
+{ "action": "record_decision", "reason": "green candidate is ready for final gate" }
 { "action": "record_failure_signature", "fingerprint": "...", "evidence_refs": [...] }
 { "action": "propose_terminal_state", "run_state": "BLOCKED", "reason": "Retry threshold exceeded" }
 ```
@@ -161,7 +161,7 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 ### Run contract (JSON, per-task):
 
 - Must define: `run_id`, `repo_path`, `objective`, `scope` (allowed_paths, forbidden_paths), `acceptance` (functional, quality_gates, ui_checks), `constraints` (single_writer, max_repair_loops, max_iterations, max_cost_dollars, hard_timeout_seconds).
-- Queue-mode runs must also record `claim_id`, `run_trace_id`, `queue_entry_reason`, `queue_contract_version`, `prompt_template_version`, `issue_snapshot_hash`, `follow_up_policy`, `risk_level`, `approval_required`, `retry_budget`, `staleness_deadline`, and `resume_from_checkpoint`.
+- Queue-mode runs must also record `claim_id`, `run_trace_id`, `queue_entry_reason`, `queue_contract_version`, `prompt_template_version`, `issue_snapshot_hash`, `follow_up_policy`, `risk_level`, `approval_required`, `retry_budget`, and `staleness_deadline`.
 - Scope paths are enforced by the supervisor — the builder cannot write outside allowed_paths or inside forbidden_paths.
 
 ## Issue Queue Rules
@@ -296,7 +296,7 @@ Stop conditions are enforced by the supervisor. The AI cannot override them.
 |------|----------|-----------|-----------|
 | Repo truth | In repo, version-controlled | Permanent, human-managed | Human + supervisor |
 | Run truth | Supervisor-owned runtime `.autoclaw/runs/<run_id>/` | Per-run, preserved after completion, gitignored | Supervisor |
-| Operational memory | Supervisor-owned runtime `.autoclaw/memory/` | Cross-run, subject to TTL, gitignored | Supervisor (post-run) |
+| Operational memory | Supervisor-owned runtime `.autoclaw/memory/` when enabled | Cross-run, subject to TTL, gitignored | Supervisor (post-run, v1.1+) |
 
 ### Non-goals for memory in v1:
 
@@ -304,6 +304,7 @@ Stop conditions are enforced by the supervisor. The AI cannot override them.
 - No chain-of-thought storage
 - No external semantic memory system (no Zep)
 - No promotion of undocumented assumptions into durable truth
+- No required cross-run fingerprint promotion, flaky-test quarantine, or interrupted-run resume heuristics in the smallest v1
 
 ---
 
@@ -311,7 +312,7 @@ Stop conditions are enforced by the supervisor. The AI cannot override them.
 
 Every run must produce both:
 
-- **Machine-readable report (JSON):** `run_id`, `claim_id`, `run_trace_id`, `run_state`, `readiness_verdict`, `phases_completed`, `commands_run`, `failures`, `changed_files`, `checkpoint_refs`, `artifact_manifest`, `unresolved_blockers`, `queue_entry_reason`, `queue_exit_reason`.
+- **Machine-readable report (JSON):** `run_id`, `claim_id`, `run_trace_id`, `run_state`, `readiness_verdict`, `phases_completed`, `commands_run`, `failures`, `changed_files`, `artifact_manifest`, `unresolved_blockers`, `queue_entry_reason`, `queue_exit_reason`. `checkpoint_refs` is optional and belongs to later hardening if checkpointing is reintroduced as a first-class surface.
 - **Human-readable summary (Markdown):** what changed, what passed, what failed, what's unresolved, what to do next.
 
 Reports are written to the run directory when the supervisor reaches a terminal `run_state`.

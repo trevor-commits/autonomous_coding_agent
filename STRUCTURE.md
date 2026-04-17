@@ -5,7 +5,7 @@
 
 ## 1. Boundary
 
-The boundary is fixed. The target repo owns only its `.agent/` contract surface, beginning with `.agent/contract.yml` and any target-repo-specific contract companions that the canonical architecture explicitly names. This control-plane repo owns the version-controlled implementation and governance surfaces for the system itself: `schemas/`, `supervisor/`, `fixtures/`, `tests/`, `prompts/` if adopted, `policies/` if adopted, the active root documentation set, and historical records under `design-history/`. Runtime state is supervisor-owned on disk under `.autoclaw/runs/<run-id>/` and related `.autoclaw/` runtime paths, is gitignored everywhere, and is never treated as committed source in either repo. Codex CLI is a hard runtime dependency, `acpx` is the adapter, and Phase 0 stops at entry if Codex is unavailable.
+The boundary is fixed. The target repo owns only its `.agent/` contract surface, beginning with `.agent/contract.yml` and any target-repo-specific contract companions that the canonical architecture explicitly names. This control-plane repo owns the version-controlled implementation and governance surfaces for the system itself: `schemas/`, `supervisor/`, `fixtures/`, `tests/`, `prompts/` if adopted, `policies/` if adopted, the active root documentation set, and historical records under `design-history/`. Runtime state is supervisor-owned on disk under `.autoclaw/runs/<run-id>/` and related `.autoclaw/` runtime paths, is gitignored everywhere, and is never treated as committed source in either repo. Direct Codex CLI integration is the hard runtime dependency for the smallest v1; any alternate adapter path such as `acpx` is a later hardening concern, and Phase 0 stops at entry if Codex is unavailable.
 
 ## 2. Control-Plane Repo Contents
 
@@ -26,7 +26,7 @@ The target repo exposes one automation surface: `.agent/`. In v1, the only canon
 
 ## 4. Runtime State
 
-Runtime state is supervisor-owned and lives under `.autoclaw/` only while the system is running or preserving post-run evidence. The canonical per-run anchor is `.autoclaw/runs/<run-id>/state.json`, with sibling runtime artifacts already named by the architecture: `contract.json`, `plan.json`, `execution.log`, `defects/`, `artifacts/` with `screenshots/`, `videos/`, `logs/`, and `traces/`, plus `reports/` for final outputs. Cross-run operational memory, when enabled, lives alongside runs under `.autoclaw/memory/` as supervisor-managed runtime data rather than repo truth. `.autoclaw/` is gitignored in both this repo and any target repo; it is runtime storage, not committed structure.
+Runtime state is supervisor-owned and lives under `.autoclaw/` only while the system is running or preserving post-run evidence. The canonical per-run anchor is `.autoclaw/runs/<run-id>/state.json`, with sibling runtime artifacts already named by the architecture: `contract.json`, `plan.json`, `execution.log`, `defects/`, `artifacts/` with `screenshots/`, `videos/`, `logs/`, and `traces/`, plus `reports/` for final outputs. Cross-run operational memory, when enabled later, lives alongside runs under `.autoclaw/memory/` as supervisor-managed runtime data rather than repo truth, but the smallest v1 does not require that directory to exist. `.autoclaw/` is gitignored in both this repo and any target repo; it is runtime storage, not committed structure.
 
 ## 5. Where Does X Go?
 

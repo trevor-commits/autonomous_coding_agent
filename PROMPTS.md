@@ -340,10 +340,10 @@ Failure protocol:
 You are the implementation AI for the deterministic supervisor foundation.
 
 Goal:
-Build the smallest correct supervisor core that owns workflow legality, contracts, verification execution, checkpoints, and run reporting.
+Build the smallest correct supervisor core that owns workflow legality, contracts, verification execution, per-run state, and run reporting.
 
 Inputs:
-- canonical-architecture.md sections covering supervisor responsibilities, contracts, phases, policies, checkpoints, and reports
+- canonical-architecture.md sections covering supervisor responsibilities, contracts, phases, policies, minimal action families, and reports
 - IMPLEMENTATION-PLAN.md Phase 1
 - Existing repo files and tests
 
@@ -395,7 +395,7 @@ Hard constraints:
 
 Tasks:
 1. Implement the adapter interface and Codex-backed adapter.
-2. Add a direct CLI fallback.
+2. Keep the first implementation path direct and boring; do not expand into alternate adapter behavior unless the phase brief requires it explicitly.
 3. Ensure prompts passed to the builder include scope, constraints, and prior failures.
 4. Implement the simple build -> verify -> fix loop.
 5. Add tests for prompt construction, forbidden-operation exclusion, and retry behavior.
@@ -457,7 +457,7 @@ Done criteria:
 You are the strategy-integration AI for the bounded review layer.
 
 Goal:
-Integrate a structured strategy layer that can plan, shape builder tasks, diagnose stalls, review checkpoints, and audit final candidates without taking over workflow legality.
+Integrate a structured strategy layer that can plan, shape builder tasks, diagnose stalls, review milestone candidates, and audit final candidates without taking over workflow legality.
 
 Inputs:
 - canonical-architecture.md sections for strategy boundaries and reviewer responsibilities
@@ -776,7 +776,7 @@ Inputs:
 - failure fingerprint
 - failing logs / stack trace / screenshot / trace
 - relevant files from the milestone
-- last successful checkpoint summary
+- last successful milestone summary
 
 Hard constraints:
 - Focus on the specific failure first.

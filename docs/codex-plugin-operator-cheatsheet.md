@@ -28,6 +28,8 @@ This is the operational companion to
 ## Current repo status
 
 - `CodeRabbit` has committed repo-local settings at `.coderabbit.yaml`.
+- The exact field-by-field settings and rationale now live in
+  `docs/coderabbit-review-settings.md`.
 - The repo decision is to try `CodeRabbit` first for dedicated PR-review
   quality. `GitHub Copilot` remains the cheaper GitHub-native fallback, not
   the active trial.

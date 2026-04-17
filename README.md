@@ -54,23 +54,27 @@ Read these when working on the current system:
    `plugin-eval`, plus the current shortlist of further plugin candidates worth
    spiking later.
 
-13. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+13. [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md)
+   Exact CodeRabbit settings, UI caveats, path instructions, and the
+   repo-specific rationale behind the current review-trial posture.
+
+14. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
 
-14. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
+15. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
    Approved design baseline for the first runnable local single-run supervisor
    slice, aligned to the supervisor foundation already landed in `supervisor/`.
 
-15. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+16. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-16. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
+17. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
    Exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 
-17. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+18. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
    Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
 
-18. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+19. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History
@@ -97,6 +101,9 @@ This repo's CodeRabbit PR-review config lives at
 [.coderabbit.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml).
 Use it as the repo-local source for CodeRabbit review behavior. GitHub App
 installation and authorization remain a manual operator step outside the repo.
+The detailed settings rationale, UI caveats, and field-by-field review posture
+live in
+[docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md).
 
 ## Current Direction
 

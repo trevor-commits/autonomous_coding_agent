@@ -22,6 +22,7 @@ Use these files for current truth:
 - [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md): repo-specific guidance for which Superpowers skills are worth using in this architecture/governance repo.
 - [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md): repo-local guidance for how the April 16, 2026 Codex update should change operator workflow and where plugin use/not-use decisions now live.
 - [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md): practical operating split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval`, plus the current shortlist of further plugin candidates worth spiking later.
+- [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md): exact CodeRabbit settings, path instructions, UI-only caveats, and the repo-specific rationale for the current review-trial posture.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md): approved design baseline for the first runnable local single-run harness on top of the current supervisor foundation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
@@ -121,6 +122,13 @@ should own discovery, spec-writing, implementation discipline, deterministic
 pre-audit, or plugin-evaluation work, and when you need the current shortlist
 of additional workflow plugins worth later spikes.
 
+### [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md)
+
+The detailed CodeRabbit settings companion. Read this when you need the exact
+field-by-field `CodeRabbit` settings, which values are encoded in
+`.coderabbit.yaml`, which UI fields are intentionally blank, and which settings
+carry support caveats such as slop detection.
+
 ### [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
 
 The launch-scope reconciliation note. Read this when you need to distinguish between rollout pieces that already exist as documentation/process and future runtime or production capabilities that do not exist yet.
@@ -204,6 +212,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Where do plugin use/not-use and tried/not-tried decisions live? | `docs/codex-april-16-2026-impact.md` section `Plugin decision ledger` |
 | How should `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval` be split operationally? | `docs/codex-plugin-operator-cheatsheet.md` |
 | Where does the repo's CodeRabbit setup live? | `.coderabbit.yaml` |
+| Where do the exact CodeRabbit settings and rationale live? | `docs/coderabbit-review-settings.md` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |
 | What should an agent read first? | `AGENTS.md`, then `AGENTS.project.md` |

@@ -198,6 +198,9 @@ Notes:
 - `CodeRabbit` now has repo-local configuration at `.coderabbit.yaml`, but the
   GitHub App installation and first live PR review are still manual operator
   work rather than a completed repo-side automation step.
+- `docs/coderabbit-review-settings.md` is the detailed operator companion for
+  the exact CodeRabbit settings, caveats, and reasoning behind the current
+  trial posture.
 - `docs/superpowers-playbook.md` remains the detailed usage guide for
   `Superpowers`; this ledger records the decision status, not the full
   workflow.

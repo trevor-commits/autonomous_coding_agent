@@ -124,6 +124,8 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
@@ -198,6 +200,169 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained CodeRabbit settings capture | by: Codex
+
+Problem:
+The repo already carried the high-level CodeRabbit trial decision and the
+base `.coderabbit.yaml`, but it still lacked a durable record of the exact
+field-by-field settings discussed in chat, which settings belong in repo
+config versus UI-only operator guidance, and the caveats around things like
+labeling instructions and slop detection. Without that detail, later AI
+reviewers would have to reconstruct the real setup from chat fragments.
+
+Reasoning:
+The right split is two-layered. Repo-supported settings should be explicit in
+`.coderabbit.yaml` so the product behavior is machine-readable. A companion doc
+should explain why those values were chosen, preserve intentionally blank UI
+fields, and record current product caveats from the official CodeRabbit docs.
+That keeps the config authoritative while making the decision trail reviewable
+by later AI sessions.
+
+Diagnosis inputs:
+Direct rereads of `.coderabbit.yaml`, `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`; the current chat thread about CodeRabbit settings; and official
+CodeRabbit docs for the YAML guide and schema-derived configuration reference.
+
+Implementation inputs:
+Updated `.coderabbit.yaml`; created `docs/coderabbit-review-settings.md`;
+updated `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`.
+
+Fix:
+Expanded `.coderabbit.yaml` to explicitly encode the discussed repo-supported
+settings, added `docs/coderabbit-review-settings.md` as the field-by-field
+operator companion, indexed that doc from the discovery surfaces, and appended
+the settings-capture event to the plugin-intake log so later AI reviewers can
+audit both the actual config and the reasoning around it.
+
+Self-audit:
+1. Re-read `.coderabbit.yaml`; confirmed the supported settings from the chat
+   are now explicitly encoded instead of left implicit in defaults.
+2. Re-read `docs/coderabbit-review-settings.md`; confirmed it distinguishes
+   repo-supported settings from UI-only or caveated settings, preserves the
+   exact summary prompt, and records the labeling/slop caveats honestly.
+3. Re-read `README.md` and `GUIDE.md`; confirmed the new settings doc is now
+   discoverable from the repo entry surfaces.
+4. Re-read `docs/codex-april-16-2026-impact.md`,
+   `docs/codex-plugin-operator-cheatsheet.md`, and `docs/plugin-intake.md`;
+   confirmed the settings doc is linked from the plugin-governance surfaces and
+   the intake log records the settings capture without pretending it changed the
+   canonical plugin stance.
+5. Did not verify a live PR review from GitHub because GitHub App activation
+   remains a manual operator step outside this repo task.
+Ripple Check attestation: because this task changed the repo's documented
+CodeRabbit operating setup, I updated the actual config, added the detailed
+settings companion, refreshed the plugin-governance references, refreshed the
+discovery surfaces, and recorded the durable task trail in `todo.md` in the
+same landing.
+Linear-coverage disposition: self-contained direct Trevor request; no new
+future-work issue was created by the settings-capture task itself.
+
+triggered by:
+Trevor request on 2026-04-17 to make sure the discussed CodeRabbit settings and
+their detailed reasoning are preserved in the repo for later AI review.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: preserve the full CodeRabbit settings and rationale in repo
+docs and config
+
+### 2026-04-17 | self-contained plugin-intake sweep evidence | by: Codex
+
+Problem:
+Recent chat plugin discussion surfaced repo-relevant evidence — prior-research
+coverage gap against the hol.org registry, existing PyPI plugin-validation
+tooling (`codex-plugin-scanner`, `hol-guard`), Microsoft `playwright-mcp` as a
+direct match for the operator's Python-Playwright visual-audit rule, an
+untried commercial code-review fallback tier alongside `CodeRabbit`, and
+HOL trust/security scores for two already-researched plugins — that was not
+captured in any existing intake entry. Leaving it only in chat means the next
+`plugin-eval` spike would rederive the same signals.
+
+Reasoning:
+Per the repo's append-only intake workflow in `docs/plugin-intake.md`, new
+plugin evidence belongs in the intake log as a dated entry, not in the
+canonical ledger. None of this evidence is a task-backed trial; availability
+in session, reachability of a repo URL, and third-party trust scores are raw
+observations, not proof that a plugin improves real repo work. So the right
+update surface is the intake log. The canonical ledger in
+`docs/codex-april-16-2026-impact.md` and the operator cheat sheet in
+`docs/codex-plugin-operator-cheatsheet.md` stay unchanged because nothing
+here flips a `Tried here?` status or teaches a new operational rule about
+using a plugin here.
+
+Diagnosis inputs:
+Direct rereads of `docs/plugin-intake.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, and the relevant `Completed`,
+`Linear Issue Ledger`, and `Work Record Log` sections of `todo.md`; the
+current chat thread including its plugin-research sweep and the operator's
+explicit correction that the earlier sweep had been too narrow.
+
+Implementation inputs:
+Appended one new dated entry to `docs/plugin-intake.md`; added this
+Work Record entry plus a matching `Completed` index line in `todo.md`.
+
+Fix:
+Captured five durable, repo-relevant signals from the chat research sweep
+into a new `docs/plugin-intake.md` entry and explicitly marked
+`Canonical ledger updated: No`. Made no edits to
+`docs/codex-april-16-2026-impact.md` or
+`docs/codex-plugin-operator-cheatsheet.md`, because no plugin trial occurred
+in this chat and no operational rule for using a plugin here was learned.
+
+Self-audit:
+1. Re-read `docs/plugin-intake.md` after the append; confirmed the new entry
+   uses the file's template, does not rewrite prior entries, does not
+   duplicate existing observations, and records
+   `Canonical ledger updated: No`.
+2. Re-read `docs/codex-april-16-2026-impact.md` and
+   `docs/codex-plugin-operator-cheatsheet.md`; confirmed no edits were made
+   because nothing in the chat established a real stance change or a new
+   operator rule here.
+3. Confirmed each of the five recorded signals is grounded in concrete
+   evidence (hol.org registry, specific PyPI packages, Microsoft
+   `playwright-mcp` repo, a specific reachable
+   `AlexMi64/codex-project-autopilot` repo, and two specific HOL trust/
+   security scores) rather than generic plugin marketing.
+4. Confirmed the `Autopilot` row in the canonical ledger was not silently
+   merged with the `AlexMi64/codex-project-autopilot` repo, because the
+   chat did not establish they are the same artifact.
+5. Did not run the closeout-evidence validator because this landing is a
+   self-contained append with an immediate-closeout SHA placeholder rather
+   than an issue-backed landing with a final commit SHA at write time.
+6. Did not execute any plugin and did not install any new dependency. The
+   intake-log append is doc-only.
+
+Ripple Check attestation: because this task records chat-only evidence into
+the append-only intake log and does not change the repo's live plugin
+stance, I updated only `docs/plugin-intake.md` and the durable task trail
+in `todo.md`. The canonical ledger and operator cheat sheet were left
+untouched on purpose.
+
+Linear-coverage disposition: self-contained direct Trevor request; no
+future-work issue was created because the append is evidence capture, not a
+trial or stance change, and the prompt explicitly restricted scope to the
+intake log unless a real repo change surfaced.
+
+triggered by:
+Trevor prompt on 2026-04-17 to contribute repo-relevant plugin knowledge
+from this chat into the repo's durable plugin records without turning the
+canonical ledger into a scratchpad.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: chat-only plugin evidence appended to the intake log;
+canonical ledger unchanged
 
 ### 2026-04-17 | self-contained CodeRabbit re-activation docs | by: Codex
 
@@ -1715,12 +1880,13 @@ Each active branch entry should include:
 
 ### `codex/coderabbit-flow-docs`
 - source chat: 2026-04-17 "Im going to try rabbit. Document our thinking process in the repo and update the documents to include again the rabbit flow in the repo"
-- last refreshed by chat: 2026-04-17 "CodeRabbit trial docs and reasoning update"
-- purpose: Record the CodeRabbit-versus-Copilot decision trail and restore CodeRabbit as the active bounded review trial in the repo's plugin docs.
+- last refreshed by chat: 2026-04-17 "CodeRabbit settings and rationale capture"
+- purpose: Record the CodeRabbit-versus-Copilot decision trail, restore CodeRabbit as the active bounded review trial in the repo's plugin docs, and preserve the exact settings and rationale for later AI review.
 - merge expectation: merge
 - exit checklist:
   - [ ] Plugin memo updated coherently
   - [ ] Operator cheat sheet updated coherently
+  - [ ] CodeRabbit config/settings companion updated coherently
   - [ ] Plugin-intake log appended
   - [ ] Durable repo record updated in `todo.md`
   - [ ] Commit pushed on this branch
@@ -1853,6 +2019,7 @@ If it's not here, it isn't remembered.
 - 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml` | result: pass — the new CodeRabbit config parses, validates against the current live CodeRabbit schema, and is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
 - 2026-04-17 | command(s): `git diff --check -- README.md GUIDE.md todo.md`; direct reread of `README.md`; direct reread of `GUIDE.md` | result: pass — the repo discovery docs now point to `.coderabbit.yaml`, the new note stays minimal and non-authoritative, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
 - 2026-04-17 | command(s): `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/codex-april-16-2026-impact.md`; direct reread of `docs/codex-plugin-operator-cheatsheet.md`; direct reread of `docs/plugin-intake.md`; direct reread of `README.md`; direct reread of `GUIDE.md`; direct reread of `.coderabbit.yaml` | result: pass — the Rabbit trial wording is now consistent across the canonical memo and operator guide, the comparison logic is preserved in the append-only intake log, the patch is whitespace-clean, and the existing discovery/config surfaces still match without further edits | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
+- 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml README.md GUIDE.md docs/coderabbit-review-settings.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/coderabbit-review-settings.md` | result: pass — the expanded CodeRabbit config parses, validates against the current live schema, the settings doc is indexed from the discovery and plugin-governance surfaces, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
 
 ## Feedback Decision Log
 If it's not here, it isn't remembered.
@@ -1901,3 +2068,4 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-17 | feedback source: Trevor request to implement CodeRabbit in this repository using the best bounded setup | feedback summary: enable CodeRabbit here without turning it into a noisy generic reviewer, a CI replacement, or a second workflow owner | evaluation chat: current CodeRabbit integration thread | reasoning response: accepted. The right first landing is a repo-local `.coderabbit.yaml` that keeps CodeRabbit in PR-review mode, teaches it the difference between supervisor code, tests, schemas, live governance docs, and archive docs, and scopes knowledge locally to this repository. Activation beyond that still requires manual GitHub/CodeRabbit app installation and a short calibration period before any blocking behavior is enabled. | decision status: accepted | implementation/disposition chat: current CodeRabbit integration thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Suggested Recommendation Log` 2026-04-17 CodeRabbit activation follow-up | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
 - 2026-04-17 | feedback source: Trevor clarification that CodeRabbit should be referenced somewhere in the repo docs so people know it is present | feedback summary: do not treat the `.coderabbit.yaml` landing as enough on its own; add a visible pointer in the repo's discovery docs | evaluation chat: current CodeRabbit discoverability follow-up thread | reasoning response: accepted. The minimal, correct place is the repo's navigation layer: `README.md` and `GUIDE.md`. That makes CodeRabbit easy to find without expanding authority docs or pretending it is part of the system's canonical architecture. | decision status: accepted | implementation/disposition chat: current CodeRabbit discoverability follow-up thread | linked branch / audit / suggestion / test evidence: `README.md`; `GUIDE.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
 - 2026-04-17 | feedback source: Trevor decision after the CodeRabbit-versus-GitHub-Copilot comparison | feedback summary: keep the CodeRabbit path in the repo docs, document the actual tradeoff instead of only the final preference, and present Rabbit as the active bounded review trial again | evaluation chat: current CodeRabbit re-activation thread | reasoning response: accepted. The durable repo position is not "Copilot was wrong"; it is "Copilot is still the stronger value/integration baseline for a small private repo, while CodeRabbit is still the likelier stronger dedicated PR-review tool." Because Trevor wants to test review quality first, the repo now treats CodeRabbit as the active bounded review trial, keeps Copilot only as the cheaper fallback baseline in the narrative, and leaves GitHub App activation plus 3-5 real PRs as the remaining proof step. | decision status: accepted | implementation/disposition chat: current CodeRabbit re-activation thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
+- 2026-04-17 | feedback source: Trevor request to preserve the exact CodeRabbit settings and the detailed reasoning in the repo so later AIs can review them | feedback summary: do not leave the settings only in chat; make the specific values, blank fields, caveats, and rationale durable in repo docs and, where supported, in the repo config itself | evaluation chat: current CodeRabbit settings capture thread | reasoning response: accepted. The right shape is `.coderabbit.yaml` plus a dedicated operator companion doc. Repo-supported settings belong in config; blank UI fields and product caveats belong in a doc. That gives later AI reviewers both machine-readable truth and the human rationale without forcing them to infer hidden settings from chat. | decision status: accepted | implementation/disposition chat: current CodeRabbit settings capture thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config

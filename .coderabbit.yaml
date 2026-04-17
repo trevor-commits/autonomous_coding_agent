@@ -6,10 +6,34 @@ reviews:
   profile: "chill"
   request_changes_workflow: false
   high_level_summary: true
+  high_level_summary_instructions: |
+    Write a concise technical summary in 4-8 bullets. Prioritize behavioral changes,
+    invariants touched, schema or contract changes, tests added or updated, and any
+    governance or documentation ripple effects. Avoid marketing language, avoid poetry,
+    and do not restate unchanged files.
+  high_level_summary_placeholder: ""
+  high_level_summary_in_walkthrough: true
+  auto_title_placeholder: ""
+  auto_title_instructions: ""
   review_status: true
   review_details: false
+  commit_status: true
+  fail_commit_status: false
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  assess_linked_issues: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  labeling_instructions: []
+  auto_apply_labels: false
+  suggested_reviewers: false
+  auto_assign_reviewers: false
   poem: false
   in_progress_fortune: false
+  enable_prompt_for_ai_agents: true
   auto_review:
     enabled: true
     drafts: false
@@ -56,6 +80,8 @@ reviews:
         Treat this directory as archive material, not live source-of-truth docs.
         Do not suggest normalizing superseded terminology or rewriting history to match current docs unless the pull request explicitly intends archive repair.
         Only flag changes for accidental corruption, broken references, or factual mistakes introduced by the current diff.
+  abort_on_close: true
+  disable_cache: false
 
 chat:
   art: false

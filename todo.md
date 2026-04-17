@@ -142,7 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landed as `5d076f5`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-72: enforce queue landing contract — push-before-`AI Audit` + pre-land snapshot revalidation in `supervisor/queue_intake.py` — landed as `346ae4c`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-24: verify local Codex/Claude/Python/Playwright readiness for the first implementation pass — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-22: add the `bible-ai` CI-parity note for the contract-first path — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
@@ -351,7 +351,8 @@ Trevor request on 2026-04-17 to "do what you suggested" after Cowork's
 pass-2 audit recommended backfill notes for the two P1 Ripple misses.
 
 led to:
-Landing commit SHA recorded in immediate closeout.
+Landed as `5d076f5` on `codex/coderabbit-flow-docs`; pushed to
+`origin/codex/coderabbit-flow-docs`.
 
 linear:
 `GIL-73` — backfill Ripple Check reconciliation notes for `42847da`

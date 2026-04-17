@@ -26,7 +26,7 @@ Current goal: keep the repo implementation-ready while finishing the repo-local 
 - [ ] Phase 0.1 (GIL-20): write the first target repo's `.agent/contract.yml` using the canonical repo-contract shape and keep the initial scope intentionally narrow.
 - [ ] Phase 0.2 (GIL-21): manually validate the target repo contract end-to-end on a clean checkout. "Clean" is defined as: fresh clone into an empty directory, no cached dependencies, no prior `.autoclaw/` state, no prior `.agent/` artifacts beyond the committed `contract.yml`. Validation covers setup, test, app launch, and health check, each recorded as a passed checklist step.
 - [ ] Phase 0.2a (GIL-22): document CI parity for the first implementation repo so GitHub Actions reuses repo-contract commands, fast/unit/smoke gates, and structured artifacts instead of inventing repo behavior in workflow YAML.
-- [ ] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
+- [x] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
 - [ ] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
 - [x] Phase 0.6 (GIL-9): draft ADR-0003 "Phase 1 Subphase 2 Architecture Checkpoint" — after supervisor subphases 1.1 and 1.2 land (contract parsing, run directory, shell/path guardrails, single-writer lock), pause before subphase 1.3 and run an architecture audit against the schemas, action set, and invariants. If the design still fits, continue. If not, rescope before deepening the Phase 1.3 runtime surface on top of a shaky foundation.
 - [ ] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
@@ -90,7 +90,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-20` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.1 | why this exists: write the first target repo `.agent/contract.yml` | origin source: implementation roadmap; blocked until Trevor selects the first target repo
 - `GIL-21` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2 | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
 - `GIL-22` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2a | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
-- `GIL-23` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.3 | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
+- `GIL-23` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (benchmark fixture suite landed as `408b0b0`; awaiting Cowork/Trevor state move) | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
 - `GIL-25` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.1 | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
 - `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-27` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (verification, fingerprinting, and reporting layer landed as `4c6e980`; awaiting Cowork/Trevor state move) | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
@@ -124,6 +124,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-23: add the first benchmark run-contract suite and invariant coverage floor — landed as `408b0b0`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-28: add the first runnable Codex builder loop — landed as `bea68f6`; full record in Work Record Log 2026-04-17
@@ -275,6 +276,89 @@ preserved in `Suggested Recommendation Log` 2026-04-17
 
 linear:
 GIL-54
+
+### 2026-04-17 | GIL-23 | by: Codex
+
+Problem:
+Phase 0.3 still existed only as intent. The control-plane repo had no committed
+benchmark run-contract suite, so the roadmap could talk about invariant
+coverage without giving the supervisor any real reusable benchmark inputs to
+exercise. That also meant there was no automated check enforcing the raised
+6–8 floor or the required invariant cases from the 2026-04-15 plan review.
+
+Reasoning:
+This was the right next repo-local task because it strengthens the autonomous
+system itself without switching into target-repo implementation work. The
+better path was a control-plane-owned fixture suite with one real test that
+enforces count, schema validity, unique run IDs, and real scope paths. I kept
+the fixtures pointed at `gillette-website` as the first current full-stack
+benchmark target because the run contracts need a concrete repo path, but this
+landing does not claim the supervisor is ready to execute those runs end to
+end yet.
+
+Diagnosis inputs:
+Direct rereads of `todo.md` Phase 0.3, `IMPLEMENTATION-PLAN.md` Phase 0
+benchmark requirements, `STRUCTURE.md` fixture boundary rules, `GUIDE.md`
+fixture indexing, `schemas/run-contract.schema.json`, `supervisor/contracts.py`,
+and the current `gillette-website` repo tree to confirm the referenced
+`client/`, `server/`, `shared/`, `scripts/`, and `tests/` paths actually
+exist.
+
+Implementation inputs:
+Added `fixtures/README.md`, ten `fixtures/benchmark-*.json` run contracts,
+`tests/test_benchmark_fixtures.py`, and a `CHANGELOG.md` entry. Updated
+`todo.md` `Active Next Steps`, `Linear Issue Ledger`, `Completed`, `Work Record
+Log`, `Test Evidence Log`, and `Active Branch Ledger`.
+
+Fix:
+Added the first committed benchmark fixture suite for the autonomous system.
+The new fixtures split cleanly between four positive benchmark tasks and six
+supervisor-invariant cases, covering forbidden-path writes, missing-evidence
+COMPLETE attempts, illegal phase transitions, single-writer lock violations,
+rollback correctness, and failure-fingerprint normalization. Added
+`tests/test_benchmark_fixtures.py` so the repo now enforces the fixture floor,
+the exact expected coverage set, schema-valid run contracts, unique run IDs,
+and real path existence for the chosen benchmark target. This makes `GIL-23`
+concrete and machine-checked rather than a planning note.
+
+Self-audit:
+1. Method: ran `python3 -m unittest tests.test_benchmark_fixtures`.
+   Outcome: pass — the new focused fixture suite validated the expected ten
+   fixtures, schema parsing, unique run IDs, and real allowed/forbidden scope
+   paths.
+2. Method: ran `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_builder_adapter tests.test_strategy_simple tests.test_main tests.test_closeout_evidence tests.test_benchmark_fixtures`.
+   Outcome: pass — the broader supervisor suite still passes with the new
+   fixture test included, so the added benchmark coverage did not break the
+   current control-plane runtime.
+3. Method: ran `git diff --check -- CHANGELOG.md fixtures/README.md fixtures/*.json tests/test_benchmark_fixtures.py`.
+   Outcome: pass — the benchmark-fixture landing patch is whitespace-clean.
+4. Method: re-read `fixtures/README.md`, the ten run contracts, and
+   `tests/test_benchmark_fixtures.py` together after the green test run.
+   Outcome: pass — the README, fixture names, and automated assertions all
+   describe the same positive-task versus invariant-guard split, and the suite
+   enforces the exact required invariant set from `todo.md`.
+5. Did not verify a live supervisor execution against any benchmark fixture,
+   because app launch wiring, Playwright ownership, and end-to-end target-repo
+   execution remain outside `GIL-23` and belong to the still-open `GIL-29`
+   plus later phase work.
+Ripple Check attestation: `fixtures/` was already indexed as a control-plane
+surface in `GUIDE.md` and `STRUCTURE.md`, so this landing only needed the
+fixture files, their enforcing test, the changelog index, and the durable
+`todo.md` record. No additional active-doc drift remained after the reread.
+Linear-coverage disposition: `GIL-23` tracks this benchmark-suite landing. No
+new follow-up issue was opened because the remaining proof-run work already
+lives in the existing phase issues, especially `GIL-29`.
+
+triggered by:
+Trevor correction on 2026-04-17 that work should stay strictly inside this repo
+until the autonomous system itself is finished end to end, followed by the
+request to continue with `GIL-23`
+
+led to:
+`408b0b0`
+
+linear:
+GIL-23
 
 ### 2026-04-17 | GIL-53 | by: Codex
 
@@ -1640,6 +1724,20 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
+### `codex/gil23-benchmarks`
+
+- source chat: 2026-04-17 thread where Trevor required work to stay strictly inside this repo until the autonomous system is finished end to end
+- last refreshed by chat: current `GIL-23` landing thread on 2026-04-17
+- purpose: land the first control-plane-owned benchmark run-contract suite and its enforcing test under `GIL-23`
+- merge expectation: merge or cherry-pick both `GIL-23` commits after Trevor/Cowork review so canonical history keeps the fixture suite plus its durable closeout record together
+- exit checklist:
+  - [ ] validate `GIL-23` closeout evidence in `todo.md`
+  - [ ] push `codex/gil23-benchmarks`
+  - [ ] post the `GIL-23` completion note in Linear
+  - [ ] merge or cherry-pick the landed commits onto the canonical branch
+  - [ ] remove `/Users/gillettes/Coding Projects/autonomous-coding-agent-wt-gil23` after landing
+- delete when: after the `GIL-23` commits land on the canonical branch and the attached worktree is removed
+
 ## Branch History
 - No closed branch entries recorded yet.
 
@@ -1707,6 +1805,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_benchmark_fixtures`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_builder_adapter tests.test_strategy_simple tests.test_main tests.test_closeout_evidence tests.test_benchmark_fixtures`; `git diff --check -- CHANGELOG.md fixtures/README.md fixtures/*.json tests/test_benchmark_fixtures.py` | result: pass — the new benchmark-fixture suite enforces the exact ten-fixture coverage set, the full supervisor suite still passes with the new test included, and the fixture landing patch is whitespace-clean | log/PR reference: `408b0b0`; `Work Record Log` 2026-04-17 `GIL-23` | by: Codex | linear: GIL-23
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `git diff --check -- supervisor/builder_adapter.py supervisor/main.py supervisor/strategy_simple.py tests/test_builder_adapter.py tests/test_strategy_simple.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the new builder adapter, simple strategy, and main loop pass their focused tests; the broader supervisor suite still passes with the builder loop wired on top; and the final patch is whitespace-clean | log/PR reference: `bea68f6`; `Work Record Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-28
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_actions tests.test_strategy_schema`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|record_failure_signature" LOGIC.md RULES.md schemas/strategy-decision.schema.json`; `git diff --check -- supervisor/actions.py schemas/strategy-decision.schema.json RULES.md LOGIC.md tests/test_actions.py tests/test_strategy_schema.py design-history/ADR-0003-phase-1-architecture-checkpoint.md design-history/README.md todo.md` | result: pass — the action validator and strategy schema agree on the live payload contract, the stale checkpoint/failure-signature strategy actions are gone from the active docs/schema boundary, and the closeout patch is whitespace-clean | log/PR reference: `95a6271`; `Work Record Log` 2026-04-17 `GIL-9` | by: Codex | linear: GIL-9
 - 2026-04-17 | command(s): `rg -n "One-owner rule|Default split|Autopilot|HOTL|Cavekit|CodeRabbit|plugin-eval|Brooks Lint|Session Orchestrator|Agent Message Queue|Registry Broker|Claude Code for Codex|ECC" docs/codex-plugin-operator-cheatsheet.md docs/codex-april-16-2026-impact.md`; `rg -n "codex-plugin-operator-cheatsheet.md|Plugin decision ledger|CodeRabbit|plugin-eval" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-plugin-operator-cheatsheet.md docs/codex-april-16-2026-impact.md README.md GUIDE.md todo.md` | result: pass — the new cheat sheet contains the intended role split and candidate shortlist, the discovery docs point to both the operator guide and the decision ledger, and the patch is whitespace-clean. `supervisor.closeout_evidence validate` was intentionally not run pre-commit because `GIL-54` does not have a final landed SHA yet. | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54

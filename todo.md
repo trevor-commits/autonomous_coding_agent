@@ -182,6 +182,38 @@ linear:
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
 
+### 2026-04-16 | no-linear (research memo) | by: Cowork
+
+Problem:
+Trevor asked Cowork to heavily research the latest Codex CLI update and determine which of its new features and plugins could help this repo. No durable record of the Codex update existed in-repo, so future audits would have no way to reconstruct which capabilities were evaluated, which were adopted, and which were deliberately rejected.
+
+Reasoning:
+A research memo under `design-history/` is the right shape. It preserves reasoning without rewriting active source-of-truth docs and mirrors the pattern established by `design-history/queue-upgrade-research-2026-04-16.md`. Cowork did the research and fit analysis directly because the work is squarely orchestrator scope (light organization, research trail). Any actual adoption — plugin installs, skill authoring, run-contract changes — is deferred to Codex prompts gated on Trevor selection, per `CLAUDE.md § Orchestrator Scope`.
+
+Diagnosis inputs:
+OpenAI Codex changelog and release notes for v0.120.0 → v0.122.0-alpha.5 (2026-04-11 to 2026-04-16); Codex CLI, skills, and subagents documentation at developers.openai.com/codex; openai/codex GitHub releases; secondary coverage (The New Stack, AlternativeTo, PAS7) used only to triangulate. Repo reads limited to `CLAUDE.md`, `AGENTS.project.md`, `PROMPTS.md`, `QUEUE-RUNS.md`, `canonical-architecture.md` (scope preface), `design-history/queue-upgrade-research-2026-04-16.md`, `design-history/README.md`, and `todo.md` structure.
+
+Implementation inputs:
+Created `design-history/codex-update-review-2026-04-16.md` with the full fit analysis, adoption candidates, rejections, mapping-to-truth, open items, and audit guidance. Updated `design-history/README.md` contents list to index the new memo. No edits to `canonical-architecture.md`, `QUEUE-RUNS.md`, `PROMPTS.md`, `RULES.md`, `LINEAR.md`, `AGENTS.project.md`, schemas, or ADRs — those would be substantive edits and require a Codex prompt.
+
+Fix:
+Added the research memo, indexed it from `design-history/README.md`, and staged six adoption candidates plus four explicit rejections in the memo itself. The candidates are not filed as Linear issues yet; they wait for Trevor to select before Cowork drafts Codex prompts.
+
+Self-audit:
+1. Re-read `design-history/codex-update-review-2026-04-16.md`; confirmed the memo follows the `queue-upgrade-research-2026-04-16.md` structure, cites only sources verifiable from the official changelog/docs, and frames every adoption candidate against a named section of `canonical-architecture.md`, `QUEUE-RUNS.md`, `PROMPTS.md`, or `AGENTS.project.md`.
+2. Ripple Check: only `design-history/` and `todo.md` were touched. `design-history/README.md` was updated in the same commit to index the new memo. No other live governance surface depends on this research note until Trevor selects a candidate and a `GIL-N` is opened, at which point the corresponding Codex prompt will carry the full ripple set. Attested consistent.
+3. Linear-coverage: `self-contained: research memo staged as Suggested Recommendation Log candidates; no `GIL-N` opened yet because adoption decisions require Trevor selection before prompt drafting per `CLAUDE.md § Orchestrator Scope``. When candidates are selected, each will become its own Linear issue with a `Linear Issue Ledger` entry.
+4. Did not verify `codex exec-server`, subagents, or thread automations against a live Codex CLI install because the sandbox does not expose the CLI and the analysis is evaluative, not implementation; the memo flags these as explore-tier specifically to force live verification before adoption.
+
+triggered by:
+Trevor request on 2026-04-16 to heavily research the Codex update and evaluate fit for this repo.
+
+led to:
+`design-history/codex-update-review-2026-04-16.md`; six adoption candidates staged in `Suggested Recommendation Log` awaiting Trevor selection.
+
+linear:
+self-contained: research memo; no live issue opened. Individual adoption candidates become their own `GIL-N` issues after Trevor selection.
+
 ### 2026-04-16 | GIL-48 | by: Codex
 
 Problem:
@@ -959,6 +991,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - 2026-04-12: Add a prompt-regression harness that replays representative planning, build, review, fix-audit, and final-audit cases to catch prompt drift before it reaches real runs. Status: deferred until Phase 4/5.
 - 2026-04-14: Implement CI first as a contract-driven validator in the first real implementation repo, with fast/unit/smoke gates and structured artifacts, then extract a reusable template only after that pattern is proven. Status: accepted and promoted into Active Next Steps as Phase 0.2a.
 - 2026-04-14: Add GitHub governance hardening only after executable control-plane surfaces exist (`supervisor/`, `schemas/`, tests, workflows). Minimum expected later set: CODEOWNERS for control-plane files, required checks, Dependabot, CodeQL, and secret-scanning hygiene. Status: deferred until after Phase 0A and initial implementation scaffolding.
+- 2026-04-16: Codex update review (see `design-history/codex-update-review-2026-04-16.md`). Six adoption candidates from the Codex CLI v0.121.0 / v0.122.0-alpha release, staged for Trevor selection before any `GIL-N` issue is opened: (1) skills-ify the repo prompt system under `.agents/skills/repo-prompts/`; (2) adopt `/review` presets inside Codex Self-audit; (3) require MCP namespacing and sandbox-state in queue run contracts; (4) adopt the devcontainer/bubblewrap sandbox profile and forbid the removed `danger-full-access` denylist-only networking mode in `RULES.md`; (5) extend `design-history/queue-upgrade-research-2026-04-16.md § Still Intentionally Open` to track `codex exec-server`, subagents, thread automations, realtime V2, and memory controls; (6) record the rejections of `spawn_agents_on_csv`, in-app browser/computer-use, cross-thread memory carryover, and bulk-plugin installs so they cannot be resurrected without re-opening the argument. Status: staged; awaiting Trevor selection. Source: 2026-04-16 Cowork research pass over the Codex update. by: Cowork. linear: self-contained until selected.
 - 2026-04-16: Land three root-level repo principles — Continuity, Coherence, and Linear-Core — as a unified governance commit. Creates `CONTINUITY.md` and `COHERENCE.md` at repo root; adds `## Linear-at-the-core` section and extended Coverage Invariant to `LINEAR.md`; introduces a six-field `## Work Record Log` in `todo.md` with Self-audit attestation (method-not-claim + Code spot-check); adds a Ripple Check ripple-consistency gate on commits and a Linear-coverage gate on state moves; extends the Codex prompt header from four to five parts (adding `Durable record`); layers Continuity / Ripple / Linear-coverage gates into `AGENTS.md § Completion Authority` for Codex, Claude Code, and Cowork; seeds a Dependency Map in `COHERENCE.md`; adds thirteen rules to `RULES.md` (R-CONT-01..05, R-COH-01..03, R-LIN-01..05); indexes the new principle docs from `GUIDE.md`, `STRUCTURE.md`, and `README.md`; prepends all three principles to the global `~/.claude/CLAUDE.md`. Full Codex prompt, Cowork UI project-instructions block, and Claude Code post-commit audit sweep preserved at `SCOPING-three-pillar-principles.md` at repo root. Status: completed via `GIL-32`; see `Completed` 2026-04-16, `Work Record Log` 2026-04-16, and `Audit Record Log` 2026-04-16. Source: 2026-04-16 Feedback Decision Log entry (Trevor three-pillar governance request).
 
 ## Active Branch Ledger

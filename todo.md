@@ -142,6 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | self-contained: repair queue halt, live-state drift, and no-op landing-commit regressions in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landed as `5d076f5`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-72: enforce queue landing contract — push-before-`AI Audit` + pre-land snapshot revalidation in `supervisor/queue_intake.py` — landed as `346ae4c`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-24: verify local Codex/Claude/Python/Playwright readiness for the first implementation pass — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -232,6 +233,94 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained queue-review repair | by: Codex
+
+Problem:
+The current `codex/audit` branch carried three confirmed regressions in
+`supervisor/queue_intake.py` after the earlier queue landing-contract fix:
+(1) a failed landing push blocked the current issue but still let the
+runner continue onto later queue items, (2) `_revalidate_snapshot`
+ignored manual state changes because `_issue_snapshot_hash` no longer
+included `status` and no explicit live-state check existed, and (3)
+no-op successful runs reused the previous `HEAD` as the reported landing
+SHA instead of producing the documented one-run/one-landing commit.
+
+Reasoning:
+All three failures sit on the same boundary: the supervisor's landing
+authority. The clean repair is to restore the documented contract rather
+than change the docs around the broken code. That requires a queue-halt
+path for failed pushes, an explicit `Building`-state assertion during
+revalidation so manual intervention cannot be overwritten silently, and
+restoring an explicit landing commit even when the worktree is already
+clean. The tests needed to prove those behaviors directly because the
+existing suite covered only single-issue blocking and description drift.
+
+Diagnosis inputs:
+Direct reread of `supervisor/queue_intake.py`; direct reread of
+`tests/test_queue_intake.py`; the three review findings from the current
+chat; a focused repro that showed a failed `git push` still processed a
+second eligible issue; a focused repro that returned a live `Canceled`
+issue and still transitioned it to `AI Audit`; and a focused repro that
+left `before_sha == after_sha` on an already-satisfied issue while the
+completion comment still advertised that old SHA as the landing.
+
+Implementation inputs:
+Updated `tests/test_queue_intake.py` first so the queue-drain suite now
+requires: halt-after-block on landing-push failure, block-on-manual
+state change after claim, and a fresh landing commit for successful
+no-op runs. Updated `supervisor/queue_intake.py` to add `QueueHalt`,
+break the drain loop after blocking a halt-worthy issue, enforce a live
+`Building` status check in `_revalidate_snapshot`, restore
+`commit --allow-empty` in `_land_successful_run`, and wrap
+`_push_landing_commit` so failed pushes route through the blocker path
+and stop the queue.
+
+Fix:
+`ManualQueueRunner.drain` now treats `QueueHalt` separately from general
+blocking errors so a failed push blocks the current issue and exits the
+queue instead of continuing. `_revalidate_snapshot` now rejects any live
+issue state other than `Building`, which preserves manual `Blocked` /
+`Canceled` intervention. `_land_successful_run` now always creates the
+per-issue landing commit with `--allow-empty`, so successful no-op runs
+still have a truthful landing SHA and the repo contract's one-run /
+one-landing invariant holds.
+
+Self-audit:
+1. Ran `python3 -m unittest tests.test_queue_intake.QueueDrainRunnerTests`;
+   result: pass (5 tests, including the new halt/state/no-op regressions).
+2. Ran `python3 -m unittest discover -s tests`; result: pass (70 tests).
+3. Ran `git diff --check`; result: clean.
+4. Re-read `supervisor/queue_intake.py` and confirmed the push-failure
+   path raises `QueueHalt`, the dedicated `except QueueHalt` blocks the
+   current issue and breaks the loop, and `_push_landing_commit` is the
+   only caller that raises that halt path today.
+5. Re-read `_revalidate_snapshot` and confirmed it now fails when the
+   live issue state is not `Building` before comparing the frozen hash.
+6. Re-read `_land_successful_run` and confirmed it always creates one
+   landing commit per successful issue-run via `commit --allow-empty`.
+7. Ripple Check attestation: this landing changes runtime queue-control
+   behavior and updates the direct regression surface in
+   `tests/test_queue_intake.py` in the same commit. No queue contract doc
+   edits were required because the existing docs were already correct and
+   the runtime was being reconciled back to them.
+8. did not verify a live Linear workspace state transition because this
+   repair was exercised through the in-repo `RecordingLinearClient`
+   regression suite rather than an external Linear environment.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to implement the three queue review
+findings after the first audit-only pass.
+
+led to:
+landing commit SHA recorded in immediate closeout on `codex/audit`.
+
+linear:
+self-contained: direct repair of current-chat review findings on the
+existing audit branch; no separate live issue created in this pass.
 
 ### 2026-04-17 | GIL-73 | by: Claude Code
 
@@ -3141,6 +3230,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake.QueueDrainRunnerTests`; `python3 -m unittest discover -s tests`; `git diff --check` | result: pass — the queue-drain regressions for halt-on-push-failure, block-on-manual-state-change, and no-op landing commits all pass in the focused suite, the full discovered Python test suite stays green, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained queue-review repair | by: Codex | linear: self-contained: queue review-finding repair on `codex/audit`
 - 2026-04-17 | command(s): `npm ci && pnpm bootstrap:convex:frontend`; `pnpm test`; `pnpm preview --host 127.0.0.1 --port 4173 --strictPort`; `curl -fsS http://127.0.0.1:4173/login`; `APP_URL=http://127.0.0.1:4173 bun run --bun scripts/smoke-public.ts`; `codex --version`; `codex login status`; `claude --version`; `claude auth status`; `python3 --version`; `npx playwright --version`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- todo.md .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md` | result: pass — in a disposable fresh `bible-ai` clone the contract-first path passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state; local `codex` / `claude` / `python3` / `npx playwright` readiness checks all passed; the updated ACA autopilot surfaces still validate; and the final patch is whitespace-clean | log/PR reference: `bible-ai` `c7760dab553a843a3be413c00bd148c6db7ba3be`; `bible-ai` `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; `Work Record Log` 2026-04-17 `GIL-20 + GIL-21 + GIL-22 + GIL-24` | by: Codex | linear: GIL-20 + GIL-21 + GIL-22 + GIL-24
 - 2026-04-17 | command(s): `python3 -m json.tool .codex-agent/state.json`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md .codex-agent/context-bundle.md .codex-agent/state.json .codex-agent/approval-snapshot.json todo.md` | result: pass — the local Autopilot state is valid in the locked execution phase, the approved `Optimal` route is frozen, `bible-ai` is recorded as the first implementation repo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-64` | by: Codex | linear: GIL-64
 - 2026-04-17 | command(s): `rg -n "## Current accessible app audit|### Directly usable or enabled now|Build Web Apps|Computer Use|Jam|Stripe|MarcoPolo" docs/codex-app-marketplace-evaluations.md docs/codex-april-16-2026-impact.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-app-marketplace-evaluations.md todo.md` | result: pass — the repo now has one durable current-access audit section, the missing plugin stances for `Build Web Apps` and `Computer Use` are present in the canonical plugin ledger, the searchable-connector gap surfaces are named explicitly in the app memo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65

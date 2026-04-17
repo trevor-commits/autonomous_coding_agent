@@ -37,6 +37,10 @@ class QueueError(RuntimeError):
     """Raised when the queue controller cannot continue cleanly."""
 
 
+class QueueHalt(QueueError):
+    """Raised when the queue must stop after blocking the current issue."""
+
+
 @dataclass(frozen=True)
 class LinearIssueDescription:
     authoritative_spec_path: str
@@ -472,6 +476,10 @@ class ManualQueueRunner:
                 else:
                     self._block_issue(issue, ids, outcome=outcome)
                     blocked += 1
+            except QueueHalt as exc:
+                self._block_issue(issue, ids, error=exc)
+                blocked += 1
+                break
             except Exception as exc:
                 self._block_issue(issue, ids, error=exc)
                 blocked += 1
@@ -535,6 +543,11 @@ class ManualQueueRunner:
         if claimed_hash is None and deadline is None:
             return
         fresh = self.linear_client.get_issue(issue.id)
+        if fresh.status != "Building":
+            raise QueueError(
+                f"Issue `{issue.identifier}` state changed after claim "
+                f"(expected `Building`, live `{fresh.status}`)."
+            )
         if claimed_hash is not None:
             fresh_hash = _issue_snapshot_hash(fresh)
             if fresh_hash != claimed_hash:
@@ -764,22 +777,24 @@ def _render_blocker_comment(ids: QueueRunIds, reason: str, artifact_path: Path) 
 
 
 def _land_successful_run(repo_root: Path, workspace: Any, issue_identifier: str) -> str:
-    status = _git(workspace.worktree_path, "status", "--porcelain", "--untracked-files=all")
-    if status.stdout.strip():
-        _git(workspace.worktree_path, "add", "-A")
-        _git(
-            workspace.worktree_path,
-            "commit",
-            "-m",
-            f"chore(queue): land {issue_identifier}",
-        )
+    _git(workspace.worktree_path, "add", "-A")
+    _git(
+        workspace.worktree_path,
+        "commit",
+        "--allow-empty",
+        "-m",
+        f"chore(queue): land {issue_identifier}",
+    )
     landing_sha = _git(workspace.worktree_path, "rev-parse", "HEAD").stdout.strip()
     _git(repo_root, "merge", "--ff-only", workspace.branch_name)
     return landing_sha
 
 
 def _push_landing_commit(repo_root: Path) -> None:
-    _git(repo_root, "push", "origin", "HEAD")
+    try:
+        _git(repo_root, "push", "origin", "HEAD")
+    except QueueError as exc:
+        raise QueueHalt(f"Landing push failed; queue must halt: {exc}") from exc
 
 
 def _git(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:

@@ -33,7 +33,7 @@ Current goal: keep the repo implementation-ready while building the Phase 1 supe
 - [ ] Phase 0.4 (GIL-24): verify local tool readiness for the first implementation pass: Codex CLI auth path works, Claude access path works, Python is ready, and Playwright is installable.
 - [ ] Phase 1.1 (GIL-25): build the deterministic supervisor foundation before any bounded strategy-layer integration.
 - [x] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
-- [ ] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
+- [x] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
 - [ ] Phase 2 (GIL-28): integrate Codex as sole writer — builder adapter, rule-based strategy, and a simple build → verify → retry loop with structured failure routing.
 - [ ] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
 - [ ] Phase 4 (GIL-30): add bounded Claude strategy layer — planner, task shaper, stall diagnosis, candidate review, final audit, typed domain actions only.
@@ -87,7 +87,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-23` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.3 | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
 - `GIL-25` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.1 | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
 - `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
-- `GIL-27` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.3 | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
+- `GIL-27` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (verification, fingerprinting, and reporting layer landed as `4c6e980`; awaiting Cowork/Trevor state move) | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-28` | status: `Inbox` | todo home: `Active Next Steps` Phase 2 | why this exists: integrate Codex as the sole writer with a simple repair loop and bounded adapter | origin source: `IMPLEMENTATION-PLAN.md` Phase 2
 - `GIL-29` | status: `Inbox` | todo home: `Active Next Steps` Phase 3 | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
 - `GIL-30` | status: `Inbox` | todo home: `Active Next Steps` Phase 4 | why this exists: add the bounded Claude strategy layer without giving it workflow control, using candidate review rather than a checkpoint-heavy surface | origin source: `IMPLEMENTATION-PLAN.md` Phase 4
@@ -119,6 +119,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-16 | GIL-26: add contract parsing, run-store scaffolding, shell policy, and worktree control — landed as `69cd3c2`; full record in Work Record Log 2026-04-16
+- [x] 2026-04-17 | GIL-27: add verification runners, run-local fingerprinting, and final reports — landed as `4c6e980`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-16 | GIL-19: trim the smallest v1 surface before implementation begins — landed as `42847da`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-52: approve the local single-run harness design baseline aligned to the current supervisor foundation — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-51: add April 16 Codex update impact memo and plugin-fit guidance — landed as `e228b3f`; full record in Work Record Log 2026-04-16
@@ -256,6 +257,42 @@ led to:
 
 linear:
 GIL-26
+
+### 2026-04-17 | GIL-27 | by: Codex
+
+Problem:
+The supervisor foundation could now parse contracts, own run storage, and enforce policy, but it still could not perform the deterministic verification layer that decides whether a candidate is actually green, fingerprint repeated failures inside a run, or emit the final machine-readable and human-readable readiness artifacts the architecture depends on. The repo also still carried stale schema contracts for these machine boundaries, including malformed spaced-key JSON fields and an outdated requirement that `checkpoint_refs` always be present.
+
+Reasoning:
+The right Phase 1.3 slice was to complete the verification/reporting boundary in code and fix the schema boundary at the same time, rather than building around stale contracts. `GIL-27` needed three things together: a deterministic verifier that runs contract commands under supervisor-owned metadata, a run-local fingerprint store that can actually detect repeats instead of narrating them, and a report generator that writes the final JSON plus markdown outputs in the shape the current rules require. Leaving the stale schemas in place would have forced later work to either keep speaking the wrong machine contract or add compatibility hacks around known-bad field names.
+
+Diagnosis inputs:
+Direct rereads of `IMPLEMENTATION-PLAN.md` Phase 1.3 module list, `RULES.md` reporting and repeated-fingerprint rules, `canonical-architecture.md` §§9, 15, and reporting/failure-handling sections, `LOGIC.md` failure-handling and reporting explanations, the current `supervisor/` package, and the existing `schemas/readiness-report.schema.json` plus `schemas/failure-fingerprint.schema.json` drift against the live rules.
+
+Implementation inputs:
+Added `supervisor/fingerprints.py`, `supervisor/verifier.py`, `supervisor/reports.py`, `tests/test_fingerprints.py`, `tests/test_verifier.py`, and `tests/test_reports.py`; updated `schemas/failure-fingerprint.schema.json`, `schemas/readiness-report.schema.json`, and `CHANGELOG.md`.
+
+Fix:
+Completed the Phase 1.3 verification/reporting slice. `supervisor/verifier.py` now runs the repo-contract verification commands in deterministic order, attaches `run_trace_id` and targeted-scope metadata through supervisor-owned environment variables, records stdout/stderr artifacts, and emits structured command results. `supervisor/fingerprints.py` now normalizes run-local failure fingerprints, deduplicates repeated sightings inside a run, persists them to the run directory, and keeps repeat detection stable even as later sightings add more evidence paths. `supervisor/reports.py` now builds and validates the final readiness JSON, writes the final markdown summary, and carries the queue correlation fields required by the current rules. The schema layer now matches the live runtime contract: snake_case machine keys, optional `checkpoint_refs`, and required queue/report correlation fields.
+
+Self-audit:
+Method-not-claim verification run before closeout:
+1. Ran `python3 -m unittest tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; output `OK`; the new Phase 1.3 suites pass and the previously landed supervisor/runtime suites still pass after the reporting-layer addition.
+2. Ran `git diff --check -- CHANGELOG.md schemas/failure-fingerprint.schema.json schemas/readiness-report.schema.json supervisor/fingerprints.py supervisor/verifier.py supervisor/reports.py tests/test_fingerprints.py tests/test_verifier.py tests/test_reports.py`; output empty; the new slice is whitespace-clean.
+3. Re-read the new verifier, fingerprint, and report modules against `RULES.md` and `IMPLEMENTATION-PLAN.md`; confirmed the runtime now emits the queue-correlation fields the active rules require and no longer depends on stale spaced-key schema fields like `exit code` or `error signature`.
+4. Re-ran the focused failure/fingerprint reasoning in tests; confirmed repeated sightings of the same failure stay deduplicated while path/evidence metadata widens, which is the bounded behavior needed for the retry-threshold rule to mean anything.
+5. Did not run a live end-to-end supervisor execution against a target repo because app launch wiring, UI verifier wiring, and the builder/main-loop integration remain outside this issue and belong to the remaining `GIL-25`, `GIL-28`, and `GIL-29` work.
+Ripple Check attestation: this slice changed machine-crossing runtime schemas plus their executable consumers, so I updated the active schemas and changelog in the same landing. The canonical architecture, logic, and rules already expressed the desired contract; the change was to bring code and schemas up to that truth rather than redefine the docs.
+Linear-coverage disposition: `GIL-27` is self-contained and landed. No new follow-up issue was opened because the remaining execution work already lives in the existing `GIL-25`, `GIL-28`, and `GIL-29` issue set.
+
+triggered by:
+Trevor request on 2026-04-17 to continue building out this repository and take the next repo-local implementation issue
+
+led to:
+`4c6e980`
+
+linear:
+GIL-27
 
 ### 2026-04-16 | GIL-52 | by: Codex
 
@@ -1184,6 +1221,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-27`; `git diff --check -- CHANGELOG.md schemas/failure-fingerprint.schema.json schemas/readiness-report.schema.json supervisor/fingerprints.py supervisor/verifier.py supervisor/reports.py tests/test_fingerprints.py tests/test_verifier.py tests/test_reports.py todo.md` | result: pass — the new verifier, fingerprinting, and reporting suites pass; the previously landed supervisor/runtime suites still pass; the schema normalization is exercised by the new report/fingerprint writers; the `GIL-27` closeout evidence validates cleanly in `todo.md`; and the full patch is whitespace-clean | log/PR reference: `4c6e980`; `Work Record Log` 2026-04-17 `GIL-27` | by: Codex | linear: GIL-27
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md schemas/README.md schemas/repo-contract.schema.json schemas/run-contract.schema.json supervisor/contracts.py supervisor/run_store.py supervisor/policy.py supervisor/worktree_manager.py tests/test_contracts.py tests/test_policy.py tests/test_run_store.py tests/test_worktree.py` | result: pass — the new contract parsing, run-store, policy, and worktree suites pass; the earlier supervisor foundation suites still pass; and the full `GIL-26` slice is whitespace-clean | log/PR reference: `69cd3c2`; `Work Record Log` 2026-04-16 `GIL-26` | by: Codex | linear: GIL-26
 - 2026-04-16 | command(s): `rg -n "TODO|TBD|docs-only|greenfield" docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `rg -n "2026-04-16-local-single-run-harness-design.md" README.md GUIDE.md todo.md`; `git diff --check`; `git status -sb` | result: pass — the written design spec has no unresolved placeholders, the discovery docs and durable record point to it correctly, the patch is whitespace-clean, and only the intended docs/log files changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-52` | by: Codex | linear: GIL-52
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md supervisor/__init__.py supervisor/models.py supervisor/actions.py supervisor/state_machine.py supervisor/strategy_api.py tests/test_state_machine.py tests/test_actions.py`; `git status -sb` | result: pass — the new deterministic supervisor foundation tests pass, the existing closeout-evidence suite still passes, the new patch is whitespace-clean, and the only concurrent out-of-scope edits were separate `design-history/` / `todo.md` research-task changes left untouched | log/PR reference: `3f9aa53`; `Work Record Log` 2026-04-16 `GIL-25` | by: Codex | linear: GIL-25

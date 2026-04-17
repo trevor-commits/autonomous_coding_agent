@@ -9,9 +9,9 @@
 Every Codex prompt issued from this repo opens with the same five-part header so the agent knows the boundaries, durable-record obligations, and closeout surface before reading the body.
 
 1. **Goal line.** One sentence that names what is being produced and what scope it touches. Be honest about scope: if the task creates one new file and edits two existing ones, say so. Do not undersell the scope (e.g. "single doc-only change" when three files change) — scope/intent mismatches cause agents to hesitate or comply sloppily.
-2. **Discipline line.** State the execution posture explicitly: whether code is allowed, whether branches are allowed, and whether the task should leave changes staged or commit and push on the current branch. The point is to remove ambiguity before work starts.
+2. **Discipline line.** State the execution posture explicitly: whether code is allowed, whether the task is read-only or requires a task branch, which branch should be created or reused, and whether the task should leave changes staged or commit and push on that branch. The point is to remove ambiguity before work starts.
 3. **Read-scope.** A bulleted list of files Codex is allowed to read substantively, each with a one-line reason. Use the wording: "For repo content, limit substantive reads to:" followed by the list, then the trailing line: "Do not read other repo docs unless required by higher-priority agent instructions or validation." This phrasing is intentional — fully absolute "do not read" language conflicts with agents that have validator or instruction-precedence obligations.
-4. **Body.** Numbered change instructions, then a `Constraints:` block at the end covering: do not modify other docs, do not create branches, stop and report on conflict instead of guessing, and print a one-line summary of files modified after the change.
+4. **Body.** Numbered change instructions, then a `Constraints:` block at the end covering: do not modify other docs, create or reuse the task branch before deep implementation when the task edits files, stop and report on conflict instead of guessing, and print a one-line summary of files modified after the change.
 5. **Durable record.** The prompt must name: (a) the `todo.md` `Work Record Log` entry Codex will append, (b) the `todo.md` `Completed` index entry, (c) any `Audit Record Log`, `Feedback Decision Log`, or `Test Evidence Log` entries expected, (d) any Linear issues the task creates or refreshes for surfaced follow-ups, (e) any `todo.md` `Linear Issue Ledger` updates required, (f) the Ripple Check the Self-audit must attest, and (g) any ADR touched or created.
 
 Additional rules:
@@ -28,7 +28,7 @@ Example header (illustrative, not a template to copy verbatim):
 ```text
 Goal: Land the Continuity / Coherence / Linear-Core governance bundle across CONTINUITY.md, COHERENCE.md, LINEAR.md, AGENTS.md, AGENTS.project.md, CLAUDE.md, PROMPTS.md, GUIDE.md, STRUCTURE.md, README.md, RULES.md, todo.md, and ~/.claude/CLAUDE.md.
 
-Discipline: No new branches. Commit and push on the current branch. Use `ref GIL-32`. Do not edit `design-history/` or any repo file outside the named scope.
+Discipline: Create or reuse the task branch for `GIL-32`, commit and push on that branch, and do not edit `design-history/` or any repo file outside the named scope.
 
 For repo content, limit substantive reads to:
 - CONTINUITY.md (new root principle doc to create)
@@ -51,7 +51,7 @@ Body:
 4. Prepend `~/.claude/CLAUDE.md` with the repo-principles section only.
 Constraints:
 - do not modify other docs
-- do not create branches
+- create or reuse the task branch before deep implementation
 - stop and report on conflict instead of guessing
 - print a one-line summary of files modified after the change
 

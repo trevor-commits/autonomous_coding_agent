@@ -14,10 +14,18 @@ class ActionValidationTests(unittest.TestCase):
     def test_build_phase_allows_builder_task(self) -> None:
         action = Action(
             action_type=ActionType.REQUEST_BUILDER_TASK,
-            payload={"task_description": "Implement a deterministic phase machine."},
+            payload={"description": "Implement a deterministic phase machine."},
         )
 
         validate_action_for_phase(Phase.BUILD, action)
+
+    def test_local_verify_allows_named_contract_command(self) -> None:
+        action = Action(
+            action_type=ActionType.RUN_CONTRACT_COMMAND,
+            payload={"name": "test", "scope": "targeted"},
+        )
+
+        validate_action_for_phase(Phase.LOCAL_VERIFY, action)
 
     def test_disallows_action_not_legal_for_phase(self) -> None:
         action = Action(action_type=ActionType.RUN_UI_SUITE)
@@ -67,11 +75,11 @@ class ManualStrategyTests(unittest.TestCase):
 
     def test_parse_manual_action_accepts_json_payload(self) -> None:
         action = parse_manual_action(
-            '{"action":"request_builder_task","task_description":"Add tests"}'
+            '{"action":"request_builder_task","description":"Add tests"}'
         )
 
         self.assertEqual(ActionType.REQUEST_BUILDER_TASK, action.action_type)
-        self.assertEqual("Add tests", action.payload["task_description"])
+        self.assertEqual("Add tests", action.payload["description"])
 
     def test_manual_strategy_rejects_illegal_phase_action(self) -> None:
         strategy = ManualStrategy()

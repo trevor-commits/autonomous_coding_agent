@@ -111,10 +111,9 @@ The builder may use read-only git inspection commands (e.g., `git log`, `git dif
 ### Required action patterns (always use these):
 
 ```json
-{ "action": "request_builder_task", "prompt": "...", "milestone": "M2" }
+{ "action": "request_builder_task", "description": "Implement the current repo-contract objective and stay within allowed_paths." }
 { "action": "run_contract_command", "name": "test", "scope": "targeted" }
 { "action": "record_decision", "reason": "green candidate is ready for final gate" }
-{ "action": "record_failure_signature", "fingerprint": "...", "evidence_refs": [...] }
 { "action": "propose_terminal_state", "run_state": "BLOCKED", "reason": "Retry threshold exceeded" }
 ```
 

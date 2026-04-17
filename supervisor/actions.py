@@ -96,16 +96,16 @@ def validate_action_for_phase(phase: Phase, action: Action) -> None:
         )
 
     if action.action_type is ActionType.REQUEST_BUILDER_TASK:
-        if not str(action.payload.get("task_description", "")).strip():
+        if not str(action.payload.get("description", "")).strip():
             raise ActionValidationError(
-                "`request_builder_task` requires a non-empty `task_description`."
+                "`request_builder_task` requires a non-empty `description`."
             )
         return
 
     if action.action_type is ActionType.RUN_CONTRACT_COMMAND:
-        if not str(action.payload.get("command_name", "")).strip():
+        if not str(action.payload.get("name", "")).strip():
             raise ActionValidationError(
-                "`run_contract_command` requires `command_name`, not raw shell text."
+                "`run_contract_command` requires `name`, not raw shell text."
             )
         return
 
@@ -145,4 +145,3 @@ def _validate_terminal_state_proposal(
             raise ActionValidationError(
                 "`COMPLETE` proposals must carry `readiness_verdict = READY`."
             )
-

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://autonomous-coding-agent.local/schemas/strategy-decision.schema.json",
   "title": "Strategy Decision Schema",
-  "description": "Schema for typed StrategyDecision outputs returned by get_strategy_decision(...) in canonical-architecture.md Sections 3.2, 9.3, and 11, and consumed by IMPLEMENTATION-PLAN.md Phase 4. Open questions: canonical-architecture.md has not yet fully specified payload fields for collect_context, launch_app, stop_app, run_ui_suite, rollback_to_checkpoint, or record_decision, so this schema stays minimal and only types field names that are explicitly present in the docs and examples.",
+  "description": "Schema for typed StrategyDecision outputs returned by get_strategy_decision(...) in canonical-architecture.md Sections 3.2, 9.3, and 11, and consumed by IMPLEMENTATION-PLAN.md Phase 2 and Phase 4. The smallest v1 action graph is intentionally narrower than the historical checkpoint-oriented drafts: failure fingerprinting is supervisor-owned, and rollback/checkpoint actions are deferred until later hardening if they ever return as first-class surfaces.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,9 +18,6 @@
         "launch_app",
         "stop_app",
         "run_ui_suite",
-        "checkpoint_candidate",
-        "rollback_to_checkpoint",
-        "record_failure_signature",
         "record_decision",
         "propose_terminal_state"
       ],
@@ -32,7 +29,7 @@
     },
     "reason": {
       "type": "string",
-      "description": "Human-readable reason for the decision. This field is shown in the checkpoint_candidate example in canonical-architecture.md."
+      "description": "Human-readable reason for the decision or terminal-state proposal."
     },
     "name": {
       "type": "string",
@@ -41,10 +38,6 @@
     "scope": {
       "type": "string",
       "description": "Execution scope string for run_contract_command. The examples use targeted scope in canonical-architecture.md and PROMPTS.md."
-    },
-    "fingerprint": {
-      "type": "string",
-      "description": "Failure fingerprint identifier for record_failure_signature, from canonical-architecture.md Section 3.2 examples."
     },
     "run_state": {
       "type": "string",
@@ -56,27 +49,17 @@
       ],
       "description": "Supervisor-level run_state proposed through propose_terminal_state, aligned to canonical-architecture.md Section 9.1 \"Terminal States and Readiness Verdict\"."
     },
-    "evidence_refs": {
-      "type": "array",
-      "description": "Artifact references that support a recorded failure signature, from canonical-architecture.md Section 3.2 examples.",
-      "items": {
-        "type": "string"
-      }
+    "readiness_verdict": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "NOT_READY",
+        "NEEDS_MORE_EVIDENCE"
+      ],
+      "description": "Required alongside `run_state = COMPLETE` so the terminal proposal stays aligned with the final-gate contract."
     }
   },
   "oneOf": [
-    {
-      "description": "checkpoint_candidate mirrors the canonical example in canonical-architecture.md Section 5.2, where the strategy layer nominates a candidate checkpoint with a reason but does not carry a terminal run_state.",
-      "properties": {
-        "action": {
-          "const": "checkpoint_candidate"
-        }
-      },
-      "required": [
-        "action",
-        "reason"
-      ]
-    },
     {
       "properties": {
         "action": {
@@ -86,17 +69,6 @@
       "required": [
         "action",
         "name"
-      ]
-    },
-    {
-      "properties": {
-        "action": {
-          "const": "record_failure_signature"
-        }
-      },
-      "required": [
-        "action",
-        "fingerprint"
       ]
     },
     {
@@ -131,7 +103,6 @@
             "launch_app",
             "stop_app",
             "run_ui_suite",
-            "rollback_to_checkpoint",
             "record_decision"
           ]
         }
@@ -155,6 +126,12 @@
       "action": "propose_terminal_state",
       "run_state": "BLOCKED",
       "reason": "The same failure fingerprint exceeded the retry threshold."
+    },
+    {
+      "action": "propose_terminal_state",
+      "run_state": "COMPLETE",
+      "readiness_verdict": "READY",
+      "reason": "Authoritative checks passed at final gate."
     }
   ]
 }

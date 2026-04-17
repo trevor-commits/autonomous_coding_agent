@@ -121,7 +121,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-16 | GIL-26: add contract parsing, run-store scaffolding, shell policy, and worktree control — landed as `69cd3c2`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-17 | GIL-27: add verification runners, run-local fingerprinting, and final reports — landed as `4c6e980`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-16 | GIL-19: trim the smallest v1 surface before implementation begins — landed as `42847da`; full record in Work Record Log 2026-04-16
@@ -261,9 +261,8 @@ Trevor request on 2026-04-17 to add a governing-doc section that tracks
 discussed plugins, tried/not-tried status, and use/not-use conclusions
 
 led to:
-`docs/codex-april-16-2026-impact.md`; self-contained: the repo now has one
-durable plugin decision ledger for future Codex conversations to update, and
-the final commit SHA is recorded in the immediate closeout for this task
+`cd615b6`; self-contained: the repo now has one durable plugin decision ledger
+for future Codex conversations to update
 
 linear:
 GIL-53
@@ -1303,7 +1302,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
-- 2026-04-17 | command(s): `rg -n "Plugin decision ledger|Tried here\\?|Current stance|Superpowers|Hugging Face" docs/codex-april-16-2026-impact.md`; `rg -n "ongoing plugin decision ledger|plugin use/not-use|Plugin decision ledger|codex-april-16-2026-impact.md" README.md GUIDE.md todo.md`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-53`; `git diff --check -- docs/codex-april-16-2026-impact.md README.md GUIDE.md todo.md` | result: pass — the active memo now contains the intended plugin ledger fields, the repo discovery docs point to the same ledger, the `GIL-53` closeout evidence validates cleanly, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53
+- 2026-04-17 | command(s): `rg -n "Plugin decision ledger|Tried here\\?|Current stance|Superpowers|Hugging Face" docs/codex-april-16-2026-impact.md`; `rg -n "ongoing plugin decision ledger|plugin use/not-use|Plugin decision ledger|codex-april-16-2026-impact.md" README.md GUIDE.md todo.md`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-53`; `git diff --check -- docs/codex-april-16-2026-impact.md README.md GUIDE.md todo.md` | result: pass — the active memo now contains the intended plugin ledger fields, the repo discovery docs point to the same ledger, the `GIL-53` closeout evidence validates cleanly, and the patch is whitespace-clean | log/PR reference: `cd615b6`; `Work Record Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-27`; `git diff --check -- CHANGELOG.md schemas/failure-fingerprint.schema.json schemas/readiness-report.schema.json supervisor/fingerprints.py supervisor/verifier.py supervisor/reports.py tests/test_fingerprints.py tests/test_verifier.py tests/test_reports.py todo.md` | result: pass — the new verifier, fingerprinting, and reporting suites pass; the previously landed supervisor/runtime suites still pass; the schema normalization is exercised by the new report/fingerprint writers; the `GIL-27` closeout evidence validates cleanly in `todo.md`; and the full patch is whitespace-clean | log/PR reference: `4c6e980`; `Work Record Log` 2026-04-17 `GIL-27` | by: Codex | linear: GIL-27
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md schemas/README.md schemas/repo-contract.schema.json schemas/run-contract.schema.json supervisor/contracts.py supervisor/run_store.py supervisor/policy.py supervisor/worktree_manager.py tests/test_contracts.py tests/test_policy.py tests/test_run_store.py tests/test_worktree.py` | result: pass — the new contract parsing, run-store, policy, and worktree suites pass; the earlier supervisor foundation suites still pass; and the full `GIL-26` slice is whitespace-clean | log/PR reference: `69cd3c2`; `Work Record Log` 2026-04-16 `GIL-26` | by: Codex | linear: GIL-26
 - 2026-04-16 | command(s): `rg -n "TODO|TBD|docs-only|greenfield" docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `rg -n "2026-04-16-local-single-run-harness-design.md" README.md GUIDE.md todo.md`; `git diff --check`; `git status -sb` | result: pass — the written design spec has no unresolved placeholders, the discovery docs and durable record point to it correctly, the patch is whitespace-clean, and only the intended docs/log files changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-52` | by: Codex | linear: GIL-52

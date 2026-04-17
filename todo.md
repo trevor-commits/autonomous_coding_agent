@@ -44,6 +44,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-53` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin decision ledger landing; awaiting Cowork/Trevor state move) | why this exists: add one durable governing-doc section that tracks the plugins discussed for this repo, whether they have been tried here, and the current use/not-use conclusion so future Codex chats update the same ledger instead of scattering plugin decisions | origin source: Trevor request on 2026-04-17 to add a plugin-tracking section to the governing docs
 - `GIL-52` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (local single-run harness design baseline landing; awaiting Cowork/Trevor state move) | why this exists: write the approved design baseline for the first runnable local single-run supervisor slice on top of the current `supervisor/` foundation, with required Linear linkage and branch lifecycle visibility | origin source: Trevor request on 2026-04-16 during the Superpowers brainstorming/design session
 - `GIL-51` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (April 16 Codex update impact memo landing; awaiting Cowork/Trevor state move) | why this exists: turn the April 16, 2026 Codex update and currently enabled plugin surface into a durable repo-local memo that separates adopt-now operator workflow gains from v1 runtime scope changes the repo should still defer or reject | origin source: Trevor request on 2026-04-16 to convert the April 16 Codex update analysis into a concrete repo-local impact memo
 - `GIL-50` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (repo-local Superpowers playbook landing; awaiting Cowork/Trevor state move) | why this exists: document which Superpowers skills actually fit this architecture/governance repo so future sessions do not apply generic implementation-heavy workflows blindly | origin source: Trevor request on 2026-04-16 to turn the repo-specific Superpowers guidance into durable repo docs
@@ -80,6 +81,8 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 ### Inbox / blocked by predecessors
 
 - `GIL-49` | status: `Inbox` | todo home: `Linear Issue Ledger` (workspace-governance follow-up) | why this exists: restore the missing `prompt-review` workspace label and verify the live Linear workspace settings still match the repo's queue/prompt contract | origin source: Codex live Linear inspection on 2026-04-16 found workspace drift that the current tool surface could not repair directly
+- `GIL-47` | status: `Inbox` | todo home: `Linear Issue Ledger` (portfolio rollout correction; audit follow-up to `GIL-37`/`GIL-43`) | why this exists: replace the temporary `/Users/gillettes/Downloads/taxes-principles-main/` scratch-worktree paths still embedded in the `Taxes` repo's `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.md` with the canonical `/Users/gillettes/Coding Projects/Taxes/` path so the principle docs' "Where The Rules Live" pointers remain findable | origin source: 2026-04-16 Claude Code portfolio-wide audit following the `GIL-37`/`GIL-43` rollout grepped every canonical repo for `/Users/gillettes/Downloads/` path leakage and found `Taxes` as the only remaining offender
+- `GIL-44` | status: `Inbox` | todo home: `Linear Issue Ledger` (audit follow-up backlog) | why this exists: close three coherence/ripple findings Claude Code surfaced during the 2026-04-16 line-by-line audit of the `GIL-32..GIL-38` landings — duplicate `## Repo Principles` heading in `AGENTS.project.md`, unmoved post-retirement `SCOPING-three-pillar-principles.md` at repo root, and a stale `AGENTS.md` read-scope reference in `IMPLEMENTATION-PLAN.md:319` after the AGENTS split | origin source: 2026-04-16 Claude Code line-by-line audit of commits `69aa003..b4adccb`, with details recorded in audit comments on `GIL-37`, `GIL-38`, `GIL-35`
 - `GIL-43` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (automation enforcement landed as `.codex` `438bc3e1`; awaiting Cowork/Trevor state move) | why this exists: update the portfolio remediation / validation path so repo-principles rollouts either backfill a local durable record in each touched repo or explicitly enforce a documented non-redundant exception path | origin source: third-pass audit on 2026-04-16 found that multiple touched repos had the new principle surfaces but still showed empty `Work Record Log` / `Linear Issue Ledger` sections until manual backfill
 - `GIL-20` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.1 | why this exists: write the first target repo `.agent/contract.yml` | origin source: implementation roadmap; blocked until Trevor selects the first target repo
 - `GIL-21` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2 | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
@@ -118,6 +121,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-16 | GIL-26: add contract parsing, run-store scaffolding, shell policy, and worktree control — landed as `69cd3c2`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-17 | GIL-27: add verification runners, run-local fingerprinting, and final reports — landed as `4c6e980`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-16 | GIL-19: trim the smallest v1 surface before implementation begins — landed as `42847da`; full record in Work Record Log 2026-04-16
@@ -185,6 +189,84 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-53 | by: Codex
+
+Problem:
+The repo had plugin conclusions spread across the original April 16 impact memo,
+the separate Superpowers playbook, and chat memory, but no single active-doc
+section tracked which plugins had actually been discussed, whether they had
+been tried here, and the current use/not-use conclusion. That makes later
+sessions likely to reopen settled plugin decisions or miss the difference
+between "available in the environment" and "approved for this repo."
+
+Reasoning:
+The cleanest fix was to extend the existing active plugin memo rather than add a
+second governance surface. One durable ledger inside
+`docs/codex-april-16-2026-impact.md`, plus discovery pointers from the repo
+entry docs, keeps plugin decisions centralized and gives later Codex
+conversations one place to update when a plugin is tried, approved, deferred,
+or rejected.
+
+Diagnosis inputs:
+Direct rereads of `docs/codex-april-16-2026-impact.md`,
+`docs/superpowers-playbook.md`, `README.md`, `GUIDE.md`, `AGENTS.project.md`,
+`PROJECT_INTENT.md`, and `todo.md`; the current enabled plugin surface in this
+session (`Cloudflare`, `Figma`, `GitHub`, `Gmail`, `Google Calendar`,
+`Hugging Face`, `Linear`, `Superpowers`, `Vercel`); and live Linear inspection
+confirming no existing issue already tracked this follow-up plugin-ledger
+change.
+
+Implementation inputs:
+Updated `docs/codex-april-16-2026-impact.md`, `README.md`, `GUIDE.md`, and
+`todo.md`; and created `GIL-53` to keep the change issue-backed under the
+repo's Linear-Core rule.
+
+Fix:
+Turned the existing Codex-impact memo into the repo's durable plugin decision
+ledger. The active doc now says future Codex conversations should update the
+same ledger, distinguishes `tried here` from mere plugin availability, and
+records the current stance for `Linear`, `GitHub`, `Superpowers`, `Figma`,
+`Vercel`, `Cloudflare`, `Gmail`, `Google Calendar`, and `Hugging Face`. The
+front page and guide now point directly to that ledger so later sessions can
+find and extend it instead of creating a parallel tracker.
+
+Self-audit:
+1. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the new `Plugin
+   decision ledger` section centralizes plugin conclusions, distinguishes
+   `tried here` from `available`, and explicitly instructs future Codex
+   conversations to update the existing ledger rather than inventing another
+   tracker.
+2. Re-read `README.md` and `GUIDE.md`; confirmed the main discovery surfaces
+   now point to the same active doc as the ongoing plugin decision ledger.
+3. Ran `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue
+   GIL-53`; output `OK`; the `todo.md` closeout package for this issue is
+   internally consistent.
+4. Re-read `todo.md`; confirmed `GIL-53` is mirrored in `Linear Issue Ledger`,
+   indexed in `Completed`, and captured in this Work Record, the Test Evidence
+   Log, and the Feedback Decision Log.
+5. Did not verify runtime behavior or execute any plugins because this change
+   records governance decisions and trial status only; it does not install or
+   run new plugin integrations.
+Ripple Check attestation: because this task changed how the active Codex-impact
+memo is used, I updated the two repo discovery surfaces (`README.md` and
+`GUIDE.md`) plus the durable task trail in `todo.md` in the same landing.
+Linear-coverage disposition: `GIL-53` tracks this bounded plugin-ledger
+landing. No follow-up issue was opened because later plugin evaluations should
+update the same ledger unless they require a real architecture or workflow
+change of their own.
+
+triggered by:
+Trevor request on 2026-04-17 to add a governing-doc section that tracks
+discussed plugins, tried/not-tried status, and use/not-use conclusions
+
+led to:
+`docs/codex-april-16-2026-impact.md`; self-contained: the repo now has one
+durable plugin decision ledger for future Codex conversations to update, and
+the final commit SHA is recorded in the immediate closeout for this task
+
+linear:
+GIL-53
 
 ### 2026-04-16 | GIL-25 | by: Codex
 
@@ -1221,6 +1303,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `rg -n "Plugin decision ledger|Tried here\\?|Current stance|Superpowers|Hugging Face" docs/codex-april-16-2026-impact.md`; `rg -n "ongoing plugin decision ledger|plugin use/not-use|Plugin decision ledger|codex-april-16-2026-impact.md" README.md GUIDE.md todo.md`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-53`; `git diff --check -- docs/codex-april-16-2026-impact.md README.md GUIDE.md todo.md` | result: pass — the active memo now contains the intended plugin ledger fields, the repo discovery docs point to the same ledger, the `GIL-53` closeout evidence validates cleanly, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-27`; `git diff --check -- CHANGELOG.md schemas/failure-fingerprint.schema.json schemas/readiness-report.schema.json supervisor/fingerprints.py supervisor/verifier.py supervisor/reports.py tests/test_fingerprints.py tests/test_verifier.py tests/test_reports.py todo.md` | result: pass — the new verifier, fingerprinting, and reporting suites pass; the previously landed supervisor/runtime suites still pass; the schema normalization is exercised by the new report/fingerprint writers; the `GIL-27` closeout evidence validates cleanly in `todo.md`; and the full patch is whitespace-clean | log/PR reference: `4c6e980`; `Work Record Log` 2026-04-17 `GIL-27` | by: Codex | linear: GIL-27
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md schemas/README.md schemas/repo-contract.schema.json schemas/run-contract.schema.json supervisor/contracts.py supervisor/run_store.py supervisor/policy.py supervisor/worktree_manager.py tests/test_contracts.py tests/test_policy.py tests/test_run_store.py tests/test_worktree.py` | result: pass — the new contract parsing, run-store, policy, and worktree suites pass; the earlier supervisor foundation suites still pass; and the full `GIL-26` slice is whitespace-clean | log/PR reference: `69cd3c2`; `Work Record Log` 2026-04-16 `GIL-26` | by: Codex | linear: GIL-26
 - 2026-04-16 | command(s): `rg -n "TODO|TBD|docs-only|greenfield" docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `rg -n "2026-04-16-local-single-run-harness-design.md" README.md GUIDE.md todo.md`; `git diff --check`; `git status -sb` | result: pass — the written design spec has no unresolved placeholders, the discovery docs and durable record point to it correctly, the patch is whitespace-clean, and only the intended docs/log files changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-52` | by: Codex | linear: GIL-52
@@ -1288,6 +1371,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor request to add a governing-doc section that tracks plugins discussed for this repo, whether they have been tried, and the current use/not-use conclusion | feedback summary: centralize plugin decisions in one durable repo-visible place so future Codex sessions can update the same ledger instead of scattering plugin conclusions across chats and separate docs | evaluation chat: current plugin-governance thread | reasoning response: accepted. The cleaner move is to extend the active Codex impact memo instead of creating another governance surface. `docs/codex-april-16-2026-impact.md` now carries the durable `Plugin decision ledger`, with tried/not-tried status, current stance, allowed use, forbidden use, and revisit triggers. `README.md` and `GUIDE.md` now point future sessions to that exact ledger. Other Codex conversations can update it, but only if their prompt/read-scope includes the doc or the task is explicitly to revise plugin decisions. | decision status: accepted | implementation/disposition chat: current plugin-governance thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53
 - 2026-04-16 | feedback source: Trevor request to convert the April 16, 2026 Codex update discussion into a concrete repo-local memo and plugin-fit review | feedback summary: capture the update in a durable repo artifact that says what the repo should adopt now, what should wait for v1 or later, and what should remain explicitly rejected, while also evaluating the currently enabled plugin set against this repo's actual scope | evaluation chat: current Codex-update impact thread | reasoning response: accepted. The right landing is a non-authoritative memo in `docs/` rather than a silent canonical-architecture rewrite. The update improves operator workflow, long-running Codex use, review loops, and context gathering, but it does not justify weakening single-writer discipline, Playwright ownership, or repo-truth requirements. `Linear` and `GitHub` are the strongest plugin fits now; `Figma`, `Vercel`, and `Cloudflare` are later-phase or conditional; `Gmail` and `Google Calendar` are peripheral. | decision status: accepted | implementation/disposition chat: current Codex-update impact thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-16 `GIL-51` | by: Codex | linear: GIL-51
 - 2026-04-16 | feedback source: Trevor request to make Codex critically review another AI's feedback and prompt instructions before acting | feedback summary: outside-AI prompts and review comments should not be treated as things Codex blindly carries out; Codex should think critically first, decide what it agrees with, and only then implement the grounded subset | evaluation chat: current live Linear/runtime review thread | reasoning response: accepted with a tighter execution rule. The right behavior is not vague skepticism; it is an evidence-first classification step. Outside-AI prompts, findings, and fix suggestions are now advisory until Codex checks them against repo truth, current artifacts, and task scope and classifies material items as `accepted`, `narrowed`, `rejected`, or `needs more evidence`. This keeps the system critical without making it slow or indecisive. The same thread also confirmed that the live Linear board is only partially aligned with the repo contract: workflow/statuses exist, active-state assignee drift was fixed where safely editable, the `prompt-review` label is still missing, and the repo still has no executable supervisor/queue implementation files yet. The runtime gap remains covered by existing phase issues rather than new redundant tickets, while the remaining workspace drift is tracked in `GIL-49`. | decision status: accepted | implementation/disposition chat: current live Linear/runtime review thread | linked branch / audit / suggestion / test evidence: `AGENTS.project.md`; `CLAUDE.md`; `PROMPTS.md`; `LINEAR.md`; `RULES.md`; `todo.md`; `Work Record Log` 2026-04-16 `GIL-48`; `Test Evidence Log` 2026-04-16 `GIL-48`; `GIL-48`; `GIL-49` | by: Codex | linear: GIL-48
 - 2026-04-16 | feedback source: Trevor request to audit the queue/process work again from different angles, make sure it is logged in Linear so later AIs can audit it, and implement anything else needed to make the process stronger | feedback summary: do not stop at rereading the unattended queue contract; verify the durable repo and Linear trail from multiple angles, fix anything still inconsistent or under-documented, and upgrade the process if the remaining weakness is the auditability path itself rather than the queue prose | evaluation chat: current multi-angle queue/process audit thread | reasoning response: accepted. The useful next angle was not more feature work inside the queue contract; it was the reliability of the closeout evidence path other AIs will read. The audit therefore tightened closeout-evidence scoping across the active rule surfaces, backfilled real SHAs and missing entries in `todo.md`, reconstructed the missing `14407f8` provenance-gap follow-up, and filed `GIL-46` so the remaining weakness is a tracked automation problem rather than an undocumented process hope. | decision status: accepted | implementation/disposition chat: current multi-angle queue/process audit thread | linked branch / audit / suggestion / test evidence: `AGENTS.project.md`, `CONTINUITY.md`, `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `todo.md`; `Work Record Log` 2026-04-16 `GIL-45`; `Audit Record Log` 2026-04-16 `GIL-45`; `Test Evidence Log` 2026-04-16 `GIL-45`; `GIL-46` | by: Codex | linear: GIL-45

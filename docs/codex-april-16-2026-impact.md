@@ -11,6 +11,10 @@ authoritative. If this memo conflicts with those docs, the canonical docs win.
 This memo is an interpretation and prioritization aid, not a hidden architecture
 change.
 
+The `Plugin decision ledger` section below is the durable place to track plugin
+conclusions for this repo. Future Codex conversations should update that ledger
+instead of creating a second plugin tracker in another governing doc.
+
 ## What changed in the April 16 update
 
 OpenAI's April 16, 2026 Codex update expands Codex beyond code editing alone.
@@ -144,29 +148,35 @@ normalization.
 The update improves tooling breadth, not the repo's acceptance of auto-merge or
 production deployment in v1.
 
-## Plugin fit for this repo
+## Plugin decision ledger
 
-The plugins currently enabled in this environment are unevenly useful for this
-repository.
+This is the durable plugin tracker for this repository. When a later Codex
+conversation discusses a plugin, runs a real plugin-backed task, or changes the
+conclusion, update the matching row here instead of starting a second tracker.
 
-| Plugin | Fit now | Best use here | Why not more |
-|---|---|---|---|
-| `Linear` | High | issue creation, queue hygiene, routing metadata, provenance checks | must remain routing-only, never workflow authority |
-| `GitHub` | High | PR review comments, CI context, review loops, audit follow-up | GitHub is still an external validator, not the owner |
-| `Figma` | Medium later | future operator UI or app-supervisor UI design work | low immediate value while the repo is still mostly docs/governance |
-| `Vercel` | Medium later | preview environments, frontend verification, AI SDK experiments | v1 explicitly avoids auto-deploy and hosted-platform dependence |
-| `Cloudflare` | Medium later | webhook intake hosting, Workers experiments, possible workflow substrate exploration | platform choice is not settled here and should not be backdoored by plugin availability |
-| `Gmail` | Low now | operator follow-up and automation experiments | does not materially advance the core runtime design |
-| `Google Calendar` | Low now | reminders, review cadence, operator scheduling | useful operationally, not architecturally central |
+`Tried here?` means the repo has a durable record of real plugin use or a
+repo-side workflow trial. Merely having a plugin available in the session does
+not count as tried.
+
+| Plugin | Tried here? | Current stance | Use now for | Do not use for | Revisit trigger |
+|---|---|---|---|---|---|
+| `Linear` | Yes | Use now, bounded | issue creation, queue hygiene, routing metadata, provenance checks | workflow authority or storing acceptance criteria and decisions in Linear | only if the queue contract or Linear boundary changes |
+| `GitHub` | No durable repo-side trial yet | Use now, bounded when needed | PR review comments, CI context, and audit follow-up in real target-repo work | making GitHub the owner of repo truth, queue legality, or task acceptance | when target-repo PR and CI work becomes active |
+| `Superpowers` | Yes | Use now, selectively | governance/design discipline, planning, review, and honest closeout checks | turning docs-only work into heavy process, branch churn, or subagent theater | when this repo becomes implementation-heavy enough to justify broader skill stacks |
+| `Figma` | No | Later / conditional | operator UI or app-supervisor UI design work | early-stage governance work where it adds no leverage | when a real UI surface is in scope |
+| `Vercel` | No | Later / conditional | preview environments, frontend verification, and AI SDK experiments | auto-deploy authority or hosted-platform dependence in the v1 core | when preview or frontend workflow becomes real |
+| `Cloudflare` | No | Later / conditional | webhook intake hosting, Workers experiments, and possible workflow-substrate exploration | backdooring the hosting/runtime decision through plugin availability | when the runtime hosting choice is actively being made |
+| `Gmail` | No | Low now | operator follow-up and reminder workflows | core runtime or control-plane responsibilities | when operator follow-up pain becomes concrete |
+| `Google Calendar` | No | Low now | review cadence, reminders, and operator scheduling | core runtime or repo-authority work | when scheduling friction becomes a real bottleneck |
+| `Hugging Face` | No | Not yet evaluated; do not adopt by default | model/dataset research or remote-job experiments only if a concrete repo need appears | widening the repo around hosted ML tooling without a specific architecture need | when a real model-eval, dataset, or remote-job task exists |
 
 Notes:
 
-- The April 16 update also highlights more plugins in general, but the repo
-  should still adopt only the narrow set that supports routing, review, or
-  tightly bounded operator workflows.
-- `Superpowers` is discussed separately in
-  `docs/superpowers-playbook.md`. It is relevant to workflow discipline, but it
-  is not one of the enabled plugins listed for this session.
+- The current allow-now set is deliberately narrow: `Linear`, `GitHub`, and
+  `Superpowers`, each within the limits stated above.
+- `docs/superpowers-playbook.md` remains the detailed usage guide for
+  `Superpowers`; this ledger records the decision status, not the full
+  workflow.
 
 ## Recommended next stance
 
@@ -186,5 +196,6 @@ No new canonical-architecture change is required from this memo alone.
 - Existing Phase 2 work already covers the core Codex integration question.
 - Existing queue and governance docs already cover why Linear and GitHub remain
   bounded surfaces.
-- Plugin expansion beyond `Linear` and `GitHub` is deferred unless a later task
-  proves a concrete need.
+- Plugin adoption remains bounded by the ledger above. Anything outside the
+  allow-now set stays deferred, low-priority, or not-yet-evaluated until a
+  later task proves a concrete need.

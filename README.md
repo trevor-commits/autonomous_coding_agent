@@ -45,9 +45,9 @@ Read these when working on the current system:
    documentation-first architecture/governance repo and when they add overhead.
 
 11. [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md)
-   Repo-local impact memo for the April 16, 2026 Codex update, including what
-   to adopt now, what to defer for v1, and which currently enabled plugins
-   actually help this repository.
+   Repo-local impact memo for the April 16, 2026 Codex update and the ongoing
+   plugin decision ledger, including what to adopt now, what to defer for v1,
+   and where future plugin use/not-use decisions should be updated.
 
 12. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.

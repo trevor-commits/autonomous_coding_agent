@@ -539,6 +539,7 @@
     }
   ],
   "user_overrides": {
+    "preferred_language": "en",
     "selected_packs": [
       "memory-bank",
       "responsibility-map",

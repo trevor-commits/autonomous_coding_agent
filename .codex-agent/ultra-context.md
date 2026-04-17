@@ -1,19 +1,19 @@
-# Ультра-контекст
+# Ultra Context
 
-Сначала читай этот файл. Остальные файлы открывай только если без них нельзя решить текущий шаг.
+Read this file first. Open the other files only if the current step cannot be completed without them.
 
-- Цель: Build a narrow, reliable autonomous coding harness for this repository that accepts a coding objective or eligible Linear issue, executes bounded implementation work through a deterministic Python supervisor, verifies results locally including UI checks, and produces readiness evidence.
-- Фаза: `approval`
-- Основной архетип: `automation-script`
-- Вторичные архетипы: `api-integration-worker`
+- Goal: Build a narrow, reliable autonomous coding harness for this repository that accepts a coding objective or eligible Linear issue, executes bounded implementation work through a deterministic Python supervisor, verifies results locally including UI checks, and produces readiness evidence.
+- Phase: `approval`
+- Primary archetype: `automation-script`
+- Secondary archetypes: `api-integration-worker`
 - Capabilities: `automation, api, ai`
-- Режим оркестрации: `solo`
+- Orchestration mode: `solo`
 - Soul system: `morecil-souls-v1`
-- План заморожен: `нет`
-- Выбранный вариант плана: `оптимально`
-- Режим объяснений: `включен`
-- Режим scope: `один-главный-сценарий-и-минимум-лишнего`
-- Политика docs: `summary-first, quiz-first, docs-last`
-- Следующий шаг: `approval` -> Получить одно явное подтверждение плана до начала продуктовых правок
-- Нужен ответ пользователя: `да`
-- Сначала открой: `phase-card.md, ultra-context.md, plan-variants.md, implementation-plan.md`
+- Plan frozen: `no`
+- Selected plan variant: `optimal`
+- Explanation mode: `enabled`
+- Scope mode: `one main scenario, minimal extra scope`
+- Docs policy: `summary-first, quiz-first, docs-last`
+- Next step: `approval` -> Get one explicit plan approval before product changes begin
+- User answer needed: `yes`
+- Open first: `phase-card.md, ultra-context.md, plan-variants.md, implementation-plan.md`

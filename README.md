@@ -86,6 +86,13 @@ This repo keeps durable governance records instead of leaving them in chat:
 - `todo.md` `Audit Record Log`: audits and review outcomes
 - `todo.md` `Feedback Decision Log`: requests, plan refinements, accepted/rejected guidance
 
+## Review Tooling
+
+This repo's CodeRabbit PR-review config lives at
+[.coderabbit.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml).
+Use it as the repo-local source for CodeRabbit review behavior. GitHub App
+installation and authorization remain a manual operator step outside the repo.
+
 ## Current Direction
 
 The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, structured evidence for readiness decisions, and supervisor-mediated unattended queue execution that treats Linear as routing metadata rather than a command surface. The current queue direction is webhook-first intake, pre-queue normalization, explicit risk and approval gates, and trace-linked observability plus eval evidence before autonomy expands.

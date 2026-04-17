@@ -25,6 +25,7 @@ Use these files for current truth:
 - [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md): approved design baseline for the first runnable local single-run harness on top of the current supervisor foundation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
 - [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md): step-by-step Linear setup runbook and known-pitfalls list for bootstrapping new projects.
+- [.coderabbit.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml): repo-local CodeRabbit PR-review configuration; GitHub App installation remains a manual operator step.
 
 Use `todo.md` for durable working records:
 
@@ -193,6 +194,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Which Superpowers skills fit this repo versus adding overhead? | `docs/superpowers-playbook.md` |
 | How should the April 16, 2026 Codex update affect this repo? | `docs/codex-april-16-2026-impact.md` |
 | Where do plugin use/not-use and tried/not-tried decisions live? | `docs/codex-april-16-2026-impact.md` section `Plugin decision ledger` |
+| Where does the repo's CodeRabbit setup live? | `.coderabbit.yaml` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |
 | What should an agent read first? | `AGENTS.md`, then `AGENTS.project.md` |

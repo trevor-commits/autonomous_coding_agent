@@ -170,6 +170,7 @@ Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title �
 - [x] 2026-04-15: corrected the archive-handling mistake from `8a0ded1` by restoring the superseded wording in archived `design-history/` docs, keeping the active `schemas/README.md` and governance-record updates, and adding a `PROMPTS.md` rule that verification greps must exclude `design-history/` unless the task is explicitly rewriting history. Commit: `392d686b77d829f6bc83e3624ce14536379fb888`.
 - [x] 2026-04-15: closed four open findings from Code's 17-commit audit (cbc701a..03aa9ed) — indexed `LINEAR-BOOTSTRAP.md` in `GUIDE.md` and `README.md`, added a verification note to LINEAR.md's Skip/Ignore Escape Hatch section, tightened LINEAR.md's Blocked Discipline to require committed repo artifacts, and normalized two earlier Completed entries to the `- [x]` style. Also added a new `## Audit Watermarks` section to `todo.md` so Code, Cowork, Pro, and Codex can each track their last-audited commit across sessions. Files modified: `GUIDE.md`, `README.md`, `LINEAR.md`, `todo.md`. Landing commit: TBD — staged for Trevor review.
 - [x] 2026-04-17 | self-contained: add repo-local CodeRabbit PR review config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: add CodeRabbit discoverability notes to README and GUIDE — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 
 ## Work Record Log
 If it's not here, it isn't remembered. This section implements `CONTINUITY.md`; each Self-audit also carries the Ripple Check required by `COHERENCE.md`, and each entry resolves the `linear:` coverage required by `LINEAR.md` `## Linear-at-the-core`.
@@ -1160,6 +1161,62 @@ landing commit SHA recorded in the immediate closeout; `.coderabbit.yaml`
 linear:
 self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
 
+### 2026-04-17 | self-contained | by: Codex
+
+Problem:
+The repo had a committed `.coderabbit.yaml`, but there was still no obvious
+pointer in the main discovery docs showing that CodeRabbit is present here or
+where its configuration lives. That made the setup easy to miss unless someone
+already knew to inspect the repo root directly.
+
+Reasoning:
+The right fix was a minimal discoverability note in `README.md` and `GUIDE.md`,
+not a change to authority docs like `RULES.md` or `AGENTS.project.md`.
+CodeRabbit is tooling metadata for PR review, so it should be easy to find
+without being promoted into the repo's core governance contract.
+
+Diagnosis inputs:
+Direct rereads of `README.md`, `GUIDE.md`, `.coderabbit.yaml`, and the clean
+working-tree state for those docs; plus the prior CodeRabbit bootstrap landing
+already present in `todo.md`.
+
+Implementation inputs:
+Updated `README.md`, `GUIDE.md`, and `todo.md`.
+
+Fix:
+Added a short `README.md` `Review Tooling` note pointing at `.coderabbit.yaml`
+and clarifying that GitHub App installation stays manual. Added `.coderabbit.yaml`
+to `GUIDE.md`'s quick-reference file list and added a direct quick-reference row
+for "Where does the repo's CodeRabbit setup live?"
+
+Self-audit:
+1. Re-read `README.md`; confirmed the new `Review Tooling` section points to
+   `.coderabbit.yaml` and does not overstate CodeRabbit's role.
+2. Re-read `GUIDE.md`; confirmed `.coderabbit.yaml` is now present both in the
+   quick-reference file list and the final lookup table.
+3. Ran `git diff --check -- README.md GUIDE.md todo.md`; output empty; the
+   follow-up note and durable record are whitespace-clean.
+4. Did not re-validate `.coderabbit.yaml` against the external schema because
+   this task only adds discoverability references for the already-landed config.
+Ripple Check attestation: the discoverability change touched the repo's two
+main navigation surfaces, so both `README.md` and `GUIDE.md` were updated in the
+same commit and the durable record was appended in `todo.md`.
+Linear-coverage disposition: self-contained: this was a direct follow-up to make
+the already-landed CodeRabbit config discoverable in the repo docs.
+
+by:
+Codex
+
+triggered by:
+Trevor clarification on 2026-04-17 that CodeRabbit should be referenced
+somewhere in the repo so people know it is present
+
+led to:
+landing commit SHA recorded in the immediate closeout; `README.md`; `GUIDE.md`
+
+linear:
+self-contained: make the already-landed CodeRabbit config discoverable in repo docs
+
 ### 2026-04-16 | GIL-32 | by: Codex
 
 Problem:
@@ -1435,6 +1492,7 @@ If it's not here, it isn't remembered.
 | Phase 1 mid-build architecture checkpoint | Paired audit: Pro (strategic) + Claude Code (line-by-line against schemas, action set, and invariants) | After subphase 1.2 lands, before 1.3 begins | Both auditors return clean; tiebreaker per ADR-0002 if they disagree |
 
 - 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml` | result: pass — the new CodeRabbit config parses, validates against the current live CodeRabbit schema, and is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
+- 2026-04-17 | command(s): `git diff --check -- README.md GUIDE.md todo.md`; direct reread of `README.md`; direct reread of `GUIDE.md` | result: pass — the repo discovery docs now point to `.coderabbit.yaml`, the new note stays minimal and non-authoritative, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
 
 ## Feedback Decision Log
 If it's not here, it isn't remembered.
@@ -1479,3 +1537,4 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-16 | feedback source: Trevor request to search for current external guidance, implement worthwhile unattended-queue upgrades thoroughly, review the result heavily, and preserve the reasoning in a repo-visible place other AIs can audit later | feedback summary: the unattended queue should improve where current external guidance makes it stronger, but the upgrade must preserve the repo's supervisor-owned model, keep Claude audit/test work as a separate lane, and leave behind a durable account of the reasoning rather than a chat-only summary | evaluation chat: current queue-upgrade implementation thread | reasoning response: accepted. Current external guidance strengthened the queue in the expected places: webhook-first intake instead of polling-first intake, pre-queue normalization instead of first-touch discovery at claim time, explicit risk and approval posture, durable claim/trace state for resume, trace-linked observability, and benchmark/eval evidence before autonomy expands. The better path was not to make Linear more powerful; it was to make the supervisor contract more explicit and preserve the reasoning in `design-history/queue-upgrade-research-2026-04-16.md` so later AIs can audit both the conclusions and the route taken to reach them. | decision status: accepted | implementation/disposition chat: current queue-upgrade implementation thread | linked branch / audit / suggestion / test evidence: `canonical-architecture.md`, `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `IMPLEMENTATION-PLAN.md`, `README.md`, `GUIDE.md`, `STRUCTURE.md`, `design-history/queue-upgrade-research-2026-04-16.md`, `Audit Record Log` 2026-04-16 `GIL-42`, `Test Evidence Log` 2026-04-16 `GIL-42`, `GIL-35` | by: Codex | linear: GIL-42
 - 2026-04-16 | feedback source: Trevor implementation-direction decisions during the Superpowers design session | feedback summary: keep this repo as the implementation repo, make the first runnable milestone a local single-run harness instead of queue-first or browser-first work, require strong Linear involvement and durable repo writeback from day one, and add branch lifecycle visibility so old branches stop becoming mystery state | evaluation chat: current Superpowers brainstorming and design-spec session | reasoning response: accepted. The approved baseline is now the local single-run harness design in `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, explicitly aligned to the already-landed `supervisor/` foundation. The design makes `linear_issue_id` mandatory for real runs, preserves repo truth over Linear truth, and defines branch lifecycle tracking across git, `todo.md`, and a Linear mirror rather than letting any one surface become overloaded. | decision status: accepted | implementation/disposition chat: current Superpowers brainstorming and design-spec session | linked branch / audit / suggestion / test evidence: `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `Work Record Log` 2026-04-16 `GIL-52`; `Test Evidence Log` 2026-04-16 `GIL-52`
 - 2026-04-17 | feedback source: Trevor request to implement CodeRabbit in this repository using the best bounded setup | feedback summary: enable CodeRabbit here without turning it into a noisy generic reviewer, a CI replacement, or a second workflow owner | evaluation chat: current CodeRabbit integration thread | reasoning response: accepted. The right first landing is a repo-local `.coderabbit.yaml` that keeps CodeRabbit in PR-review mode, teaches it the difference between supervisor code, tests, schemas, live governance docs, and archive docs, and scopes knowledge locally to this repository. Activation beyond that still requires manual GitHub/CodeRabbit app installation and a short calibration period before any blocking behavior is enabled. | decision status: accepted | implementation/disposition chat: current CodeRabbit integration thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Suggested Recommendation Log` 2026-04-17 CodeRabbit activation follow-up | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
+- 2026-04-17 | feedback source: Trevor clarification that CodeRabbit should be referenced somewhere in the repo docs so people know it is present | feedback summary: do not treat the `.coderabbit.yaml` landing as enough on its own; add a visible pointer in the repo's discovery docs | evaluation chat: current CodeRabbit discoverability follow-up thread | reasoning response: accepted. The minimal, correct place is the repo's navigation layer: `README.md` and `GUIDE.md`. That makes CodeRabbit easy to find without expanding authority docs or pretending it is part of the system's canonical architecture. | decision status: accepted | implementation/disposition chat: current CodeRabbit discoverability follow-up thread | linked branch / audit / suggestion / test evidence: `README.md`; `GUIDE.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs

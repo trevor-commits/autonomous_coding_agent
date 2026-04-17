@@ -19,3 +19,9 @@ v1 is done when the system can be run as the narrow, reliable harness described 
 ## Relationship to other docs
 
 Use this file as the entry-point statement of intent, then go to `canonical-architecture.md` for the authoritative architecture, `RULES.md` for enforceable constraints, `LOGIC.md` for the control-flow explanation, `STRUCTURE.md` for where implementation pieces belong, `LINEAR.md` for work routing and live-issue coverage rules, `todo.md` for the durable execution record and issue-provenance ledger, and `GUIDE.md` for navigation, fast lookup, and the recommended reading order across the repo. This document names what the project is for; the other documents explain how that purpose is constrained, structured, implemented, and durably tracked.
+
+## Reconciliation record
+
+Preserved per `COHERENCE.md` § "Enforcement" when a Ripple Check was not honored in the original landing.
+
+- **2026-04-16 `9c2a861` → backfilled under `GIL-73`:** `9c2a861` hardened the unattended-queue contract across `canonical-architecture.md` (new §§ 3.7–3.8), `QUEUE-RUNS.md`, `LINEAR.md`, and `PROMPTS.md` without the same-commit companion update in this doc that the Dependency Map requires whenever canonical architecture changes. On review, the queue-contract hardening was operational rather than intent-level — it did not change this repo's purpose, primary users, non-goals, or success metrics — so no content change was required here. This note records the Ripple Check resolution (no edit needed) so the audit trail is durable rather than silent.

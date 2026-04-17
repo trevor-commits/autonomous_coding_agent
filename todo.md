@@ -45,6 +45,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-73` | status: `AI Audit` | todo home: `Work Record Log` 2026-04-17 (Ripple Check reconciliation-note backfill landing; awaiting Cowork spec-alignment and Trevor verify) | why this exists: add small "Reconciliation record" footers to `LOGIC.md` and `PROJECT_INTENT.md` that name the delayed-reconcile history Cowork flagged in pass-2 — `42847da` (action-set trim in canonical) was reconciled late for LOGIC.md by `95a6271`, and `9c2a861` (queue-contract hardening) never required a content change in PROJECT_INTENT.md but the Ripple Check resolution was never recorded — so the same-commit-companion invariant has a durable retrospective trail per `COHERENCE.md` § "Enforcement" | origin source: Cowork 2026-04-17 pass-2 full-repo audit (range `21b8898..7258c90`) flagged two P1 Ripple misses on the Cross-doc coherence stream and recommended backfill notes as the honest fix
 - `GIL-72` | status: `AI Audit` | todo home: `Work Record Log` 2026-04-17 (queue landing-contract enforcement landing; awaiting Cowork spec-alignment pass and Trevor verify) | why this exists: enforce the `QUEUE-RUNS.md` landing contract in `supervisor/queue_intake.py` so `AI Audit` is unreachable until the landing commit is actually pushed and the live Linear issue still matches the snapshot captured at claim time; closes the two CodeRabbit/Brooks-Lint findings that the runtime diverged from the documented commit → push → `AI Audit` flow and that the captured `issue_snapshot_hash`/`staleness_deadline` were never revalidated before landing | origin source: CodeRabbit PR review + Brooks-Lint scan on branch `codex/coderabbit-flow-docs` on 2026-04-17 that Trevor forwarded to Claude Code with instructions to audit, implement, and land the fix directly because Codex was over budget
 - `GIL-71` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 re-audit follow-up; blocked by `GIL-68` audit review) | why this exists: the repaired `UIVerifier` now emits one defect packet per UI failure, but `summary.command_results` and the final readiness report still keep only the first failure fingerprint, so multi-defect UI runs lose the full fingerprint set before later audit/debug tooling can see it | origin source: 2026-04-17 Codex follow-up runtime audit after the `GIL-59`–`GIL-62` repairs landed; direct repro produced 2 distinct defect-packet fingerprints while `summary.command_results[0].failure_fingerprint` and `report.failures` contained only the first
 - `GIL-70` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 re-audit follow-up; blocked by `GIL-68` audit review) | why this exists: `execute_run` currently trusts the external `repo_root` / `--repo-path` input and never validates it against `run_contract.repo_path`, so a stale or incorrect run contract can silently execute against the wrong repository root; the supervisor must reject mismatched repo roots with a clear blocking reason before any build action runs | origin source: 2026-04-17 Codex follow-up runtime audit after the `GIL-59`–`GIL-62` repairs landed; direct repro completed successfully with `run_contract.repo_path` pointing at a different absolute path than the actual repo passed to `execute_run`
@@ -141,6 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-72: enforce queue landing contract — push-before-`AI Audit` + pre-land snapshot revalidation in `supervisor/queue_intake.py` — landed as `346ae4c`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-24: verify local Codex/Claude/Python/Playwright readiness for the first implementation pass — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-22: add the `bible-ai` CI-parity note for the contract-first path — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
@@ -230,6 +232,130 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-73 | by: Claude Code
+
+Problem:
+Cowork's 2026-04-17 pass-2 full-repo audit (range `21b8898..7258c90`)
+flagged two P1 Ripple misses on the Cross-doc coherence stream:
+
+1. `42847da` (2026-04-16 "docs(scope): trim the smallest v1 surface")
+   removed `checkpoint`, `rollback`, and `resume` from the v1 action set
+   in `canonical-architecture.md` but did not update `LOGIC.md`'s "Typed
+   Action Graph" section in the same commit. The drift was compensated
+   later by `95a6271` (2026-04-17 "fix(strategy): repair Phase 1 action
+   contract drift"), which brought the action list in `LOGIC.md` in line
+   with the trimmed architecture.
+2. `9c2a861` (2026-04-16 "docs(governance): harden queue contract and
+   audit trail") added canonical-architecture.md §§ 3.7 and 3.8 and
+   touched `QUEUE-RUNS.md`, `LINEAR.md`, and `PROMPTS.md` without the
+   same-commit companion update in `PROJECT_INTENT.md` that the
+   Dependency Map in `COHERENCE.md` promises whenever canonical
+   architecture changes.
+
+The content of both docs is now correct; the violation is historical.
+But `COHERENCE.md` § "Enforcement" is explicit that "a repo that drifts
+is a repo that dies," and Cowork's recommended remediation was a
+durable retrospective trail rather than silent closure.
+
+Reasoning:
+The honest fix is to add a short "Reconciliation record" footer to each
+affected doc that names the drift commit, the reconcile commit (or
+notes "no content change required"), and the backfill landing. Keeping
+the record inside the affected doc makes the trail visible to any
+reader of that doc rather than buried in the `Audit Record Log`, and
+the footer is small enough not to pollute the doc's primary content.
+Crucially, `PROJECT_INTENT.md` is an intent-level statement — the
+queue-contract hardening in `9c2a861` was operational rather than
+intent-level, so no content edit was required; the note records the
+Ripple Check resolution honestly rather than pretending a change was
+needed.
+
+Diagnosis inputs:
+Direct reread of `COHERENCE.md` § "Enforcement" and § "Dependency Map";
+`git show --stat 42847da` showed it touched `canonical-architecture.md`
+but not `LOGIC.md`; `git show --stat 9c2a861` showed it touched
+`canonical-architecture.md`, `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`
+but not `PROJECT_INTENT.md`; `git show 9c2a861 -- canonical-architecture.md`
+showed the new sections were operational (Typed Control-Plane Outputs,
+Webhook-First Reconciled Intake) rather than intent-level; `git show --stat 95a6271`
+confirmed LOGIC.md was updated in that later commit alongside
+schemas/strategy-decision.schema.json, supervisor/actions.py, and the
+tests; direct reread of current `LOGIC.md` lines 114–122 confirmed the
+action list already matches the trimmed architecture; direct reread of
+current `PROJECT_INTENT.md` confirmed no content change was needed.
+
+Implementation inputs:
+Appended a new "## Reconciliation record" section to `LOGIC.md`
+documenting the `42847da` → `95a6271` reconcile; appended a new
+"## Reconciliation record" section to `PROJECT_INTENT.md` documenting
+that `9c2a861` did not require a content change but its Ripple Check
+resolution had not been recorded; updated `todo.md` `Linear Issue Ledger`
+`Started / verify queue` with the new `GIL-73` row, the `Completed`
+one-line index, and this `Work Record Log` entry.
+
+Fix:
+Added a two-line "Reconciliation record" footer in both `LOGIC.md` (at
+EOF under the existing closing paragraph about the supervisor/AI/builder
+roles) and `PROJECT_INTENT.md` (at EOF under the "Relationship to other
+docs" section). Each footer references `COHERENCE.md § "Enforcement"`,
+names the original commit(s), and names the reconcile SHA (for LOGIC)
+or explicitly records "no content change required" (for PROJECT_INTENT).
+`GIL-73` was filed in Linear team `GIL` with `Execution lane: Claude
+Code`, `Execution mode: Manual`, `Risk level: Low`, and state `AI Audit`.
+
+Self-audit:
+1. Re-read the new `LOGIC.md` footer; confirmed it names `42847da`, the
+   later reconcile `95a6271`, and `GIL-73` as the backfill landing, and
+   references `COHERENCE.md § "Enforcement"`.
+2. Re-read the new `PROJECT_INTENT.md` footer; confirmed it names
+   `9c2a861`, lists the four docs that were updated (`canonical-architecture.md`,
+   `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`), records the "no content
+   change required" finding, and names `GIL-73` as the backfill landing.
+3. Ran `git show 9c2a861 -- canonical-architecture.md | head -60` and
+   confirmed the added sections (§ 3.7 Typed Control-Plane Outputs, § 3.8
+   Webhook-First Reconciled Intake) are operational rather than
+   intent-level, which justifies the "no content change required"
+   disposition for `PROJECT_INTENT.md`.
+4. Ran `grep -n "checkpoint\|rollback\|resume" LOGIC.md` and confirmed
+   the only remaining matches are the trimmed 7-action list in the Typed
+   Action Graph section and the new Reconciliation record entry, which
+   is the current (trimmed) state — no stale references to the old
+   action set remain.
+5. Confirmed no runtime code was touched and no verification pack is
+   required for this docs-only landing.
+6. Ran `git diff --check LOGIC.md PROJECT_INTENT.md todo.md`; result:
+   clean (no whitespace errors or conflict markers).
+Ripple Check attestation: because this landing adds retrospective
+reconciliation notes to `LOGIC.md` and `PROJECT_INTENT.md`, I updated
+`todo.md` (`Linear Issue Ledger`, `Completed`, `Work Record Log`) in the
+same landing per `COHERENCE.md` § "Enforcement." I deliberately did not
+touch `canonical-architecture.md`, `QUEUE-RUNS.md`, `LINEAR.md`, or
+`PROMPTS.md` — those were the drift *sources*, not the drift *victims*,
+and their content is already correct. The Dependency Map itself in
+`COHERENCE.md` was not amended: the map's promise is still the correct
+target, and this landing honors that promise retrospectively rather
+than weakening it.
+Linear-coverage disposition: `GIL-73` in team `GIL`, state `AI Audit`,
+`Execution lane: Claude Code`, `Execution mode: Manual`. No follow-up
+issue was created because the fix closes both Cowork Ripple findings in
+a single landing.
+
+by:
+Claude Code (primary auditor; authored this fix directly under
+`CLAUDE.md` § "Roles" narrow-targeted-fix provision because Codex was
+over budget when Trevor forwarded Cowork's pass-2 audit findings).
+
+triggered by:
+Trevor request on 2026-04-17 to "do what you suggested" after Cowork's
+pass-2 audit recommended backfill notes for the two P1 Ripple misses.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+`GIL-73` — backfill Ripple Check reconciliation notes for `42847da`
+(`LOGIC.md`) + `9c2a861` (`PROJECT_INTENT.md`).
 
 ### 2026-04-17 | full-repo audit pass 2 — ledger + continuity backfill + watermark refresh | by: Cowork
 

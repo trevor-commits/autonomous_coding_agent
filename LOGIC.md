@@ -222,3 +222,9 @@ Human writes run contract
 ```
 
 The supervisor is the spine. The AI is the brain for strategy. The builder is the hands. The verifier is the eyes. The reviewer is the auditor. Each has exactly one job, bounded permissions, and no ability to override the others.
+
+## Reconciliation record
+
+Preserved per `COHERENCE.md` § "Enforcement" when a Ripple Check was not honored in the original landing.
+
+- **2026-04-16 `42847da` → 2026-04-17 `95a6271` → backfilled under `GIL-73`:** `42847da` trimmed the v1 action set in `canonical-architecture.md` (removed `checkpoint`, `rollback`, `resume`) but did not update this doc's "Typed Action Graph" section in the same commit. The drift was compensated by `95a6271` (Phase 1 action-contract repair), which brought the action list in this doc in line with the trimmed architecture. This note exists so the late reconcile is durable rather than silent.

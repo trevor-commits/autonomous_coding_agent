@@ -32,7 +32,7 @@ should stay documented here.
 ## Supported settings in repo config
 
 These are the settings currently encoded in
-[`/.coderabbit.yaml`](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml).
+[`.coderabbit.yaml`](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml).
 They are listed in the same order used during the operator setup pass.
 
 | Setting | Value | Why |
@@ -68,6 +68,8 @@ They are listed in the same order used during the operator setup pass.
 | `path_instructions` | five scoped instruction blocks | Teach `CodeRabbit` the difference between supervisor code, tests, schemas, live governance docs, and archive docs. |
 | `abort_on_close` | `true` | Do not let stale review jobs keep running after PR close/merge. |
 | `disable_cache` | `false` | No reason to pay the cost of always-fresh dependency/code fetches during the trial. |
+| `slop_detection.enabled` | `true` | Encode the repo's desired anti-slop preference even though it is a no-op on private repos today; it turns on automatically if CodeRabbit ships private-repo support later. |
+| `slop_detection.label` | `"slop"` | Matches the repo's documented slop label. |
 
 ## Summary instructions
 
@@ -149,10 +151,31 @@ Do not suggest normalizing superseded terminology or rewriting history to match 
 Only flag changes for accidental corruption, broken references, or factual mistakes introduced by the current diff.
 ```
 
-## UI-only and caveated settings
+## Caveated settings
 
-These settings were discussed in chat and are intentionally preserved here even
-when they are not encoded in repo config or need a support caveat.
+These settings are encoded in repo config but carry a known product caveat.
+
+### Anti-Slop (`slop_detection`)
+
+Current repo config:
+
+- `slop_detection.enabled: true`
+- `slop_detection.label: "slop"`
+
+Important caveat:
+
+According to CodeRabbit's live schema description, slop detection is only for
+public GitHub repositories as of the current docs refresh. Because this repo
+is private, the field is expected to be a no-op today even though it is
+encoded. Preserving it in config captures the operator's intended review
+preference and opts the repo in automatically if CodeRabbit ships private-repo
+support later.
+
+## UI-only settings
+
+These settings live in the CodeRabbit dashboard only. They are intentionally
+preserved here so later AI reviewers can audit the operator-facing choices
+without reconstructing them from chat.
 
 ### Leave blank
 
@@ -185,20 +208,80 @@ Instruction:
 Suggest this label only when the PR appears low-quality, overly noisy, mechanically generated without sufficient repo-specific reasoning, or bundles unrelated changes with weak verification. Do not suggest it for normal large diffs, docs-heavy PRs, or intentionally broad refactors that are still coherent and verified.
 ```
 
-### Anti-Slop
+## Defaults we accept
 
-Desired UI setting:
+The CodeRabbit schema declares several top-level and `reviews.*` configuration
+blocks that this repo does not currently encode. Their defaults therefore
+apply. That is an intentional trial-scope choice, not an oversight. Future
+calibration passes may harden these into explicit repo config once 3-5 real
+PRs show where the defaults fit or hurt.
 
-- enabled
-- label: `slop`
+### `reviews.tools`
 
-Important caveat:
+- **Default posture:** 49 tools are enabled by default, including
+  secret scanners (`gitleaks`, `trufflehog`), static analyzers (`semgrep`,
+  `opengrep`, `checkov`, `actionlint`), and language linters (`ruff`, `flake8`,
+  `eslint`, `markdownlint`, `yamllint`, `shellcheck`, `hadolint`, etc.).
+- **Why accept defaults for now:** the repo wants broad mechanical signal
+  during the trial and has not yet seen enough real PR output to know which
+  tools are high-value versus noise here.
+- **Known risk:** on a docs-heavy repo, `markdownlint` and `yamllint` output
+  may drown the higher-value review signal the `path_instructions` were
+  designed to surface. If that happens, disable specific tools in a future
+  `reviews.tools` block rather than broadening suppression in prose.
 
-According to CodeRabbit's configuration reference, slop detection is only for
-public GitHub repositories as of the current docs refresh. That means this
-setting should be treated as a desired review preference, not a core part of
-the repo's trusted workflow unless the hosting/support conditions actually
-match.
+### `reviews.pre_merge_checks`
+
+- **Default posture:** `docstrings`, `title`, `description`, and
+  `issue_assessment` sub-checks default to `mode: warning`.
+- **Why accept defaults for now:** `request_changes_workflow` is `false`,
+  so none of these warnings block merge. Warnings are acceptable as trial
+  noise; errors would not be.
+- **Known risk:** warning output appears on every PR and can train the
+  operator to dismiss CodeRabbit comments. If dismissal becomes habit,
+  explicitly set the warning modes to `off` for checks the repo does not care
+  about (for example, `title` and `description` if summaries are already strong).
+
+### `reviews.finishing_touches`
+
+- **Default posture:** `docstrings.enabled: true` and `unit_tests.enabled:
+  true`. Per the schema these are user-triggered per PR via checkbox or
+  `@coderabbitai` command, not auto-run on every review, so the practical
+  risk is lower than it first appears. `simplify.enabled: false`.
+- **Why accept defaults for now:** no active PR flow yet, so the feature
+  surface is latent. Leaving defaults lets the operator try a finishing touch
+  on a single real PR before deciding whether to harden.
+- **Known risk:** if an operator accidentally toggles `Generate docstrings`
+  or `Generate unit tests` on a PR, CodeRabbit may open a follow-up PR that
+  does not match the repo's documentation or TDD discipline. Treat any
+  auto-generated follow-up PR as review input, not as repo truth.
+
+### Top-level `code_generation`
+
+- **Default posture:** `docstrings` and `unit_tests` generation sub-blocks
+  default to their schema defaults.
+- **Why accept defaults for now:** the repo has no committed stance on
+  auto-generated code style here; the supervisor/tests surface is
+  intentionally thin during the governance phase.
+- **Known risk:** once real implementation PRs start landing through
+  CodeRabbit, the defaults may clash with the repo's existing docstring and
+  test-writing conventions. Revisit before unblocking broader implementation.
+
+### Top-level `issue_enrichment`
+
+- **Default posture:** `auto_enrich`, `planning`, and `labeling` sub-blocks
+  default to their schema defaults.
+- **Why accept defaults for now:** this repo keeps issue truth in `todo.md`
+  and Linear, not in GitHub Issues, so most issue-enrichment behavior is
+  inert here.
+- **Known risk:** if CodeRabbit enriches a GitHub issue that duplicates a
+  Linear record, operators must treat the Linear entry as authoritative per
+  the Linear-Core principle.
+
+### Review cadence
+
+Review these defaults during the 3-5 PR calibration window before enabling
+stronger gating such as `request_changes_workflow`.
 
 ## What remains manual
 

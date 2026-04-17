@@ -48,7 +48,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-63` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex app-marketplace evaluation memo landing; awaiting Cowork/Trevor state move) | why this exists: capture the reviewed Codex marketplace apps in one durable repo-visible memo with the current operator-fit judgment for each so later sessions do not have to re-score the same screenshot surfaces from scratch | origin source: Trevor request on 2026-04-17 to record all reviewed apps and Codex's thoughts on them in the repo
 - `GIL-57` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (manual queue intake and drain runner landing; awaiting Cowork/Trevor state move) | why this exists: add the first supervisor-owned manual Linear intake/claim path, normalize queue metadata into run contracts, and drain eligible Codex issues sequentially on top of the existing single-run executor | origin source: Trevor request on 2026-04-17 to implement the first manual queue-drain slice before webhook wakeups
 - `GIL-55` | status: `Building` | todo home: `Active Next Steps` Branch lifecycle policy reset | why this exists: restore automatic task branches as the default edit workflow, make branch lifecycle state visible in both `todo.md` and Linear, and remove the old checkout-first/no-branch rules from the global stack, local overlays, and scaffolding | origin source: Trevor request on 2026-04-17 to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup
-- `GIL-54` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin operator cheat sheet + expanded plugin research landing; awaiting Cowork/Trevor state move) | why this exists: add a durable repo-local operating guide for the installed workflow plugins, expand the plugin decision ledger with stronger current-state conclusions, and capture additional high-signal Codex plugin candidates for implementation, handoff, testing, review, and enforcement work | origin source: Trevor request on 2026-04-17 to land the cheat sheet in the repo, commit it, and research harder for additional Codex plugins that could help automate implementation and review workflows
+- `GIL-54` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin operator cheat sheet + expanded plugin research landing plus installed workflow-plugin state capture; awaiting Cowork/Trevor state move) | why this exists: add a durable repo-local operating guide for the installed workflow plugins, expand the plugin decision ledger with stronger current-state conclusions, capture additional high-signal Codex plugin candidates for implementation, handoff, testing, review, and enforcement work, and record the actual Codex install state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` | origin source: Trevor request on 2026-04-17 to land the cheat sheet in the repo, commit it, and research harder for additional Codex plugins that could help automate implementation and review workflows; followed by Trevor report that the manually added workflow plugins were now actually installable and should be documented thoroughly
 - `GIL-53` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin decision ledger landing; awaiting Cowork/Trevor state move) | why this exists: add one durable governing-doc section that tracks the plugins discussed for this repo, whether they have been tried here, and the current use/not-use conclusion so future Codex chats update the same ledger instead of scattering plugin decisions | origin source: Trevor request on 2026-04-17 to add a plugin-tracking section to the governing docs
 - `GIL-52` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (local single-run harness design baseline landing; awaiting Cowork/Trevor state move) | why this exists: write the approved design baseline for the first runnable local single-run supervisor slice on top of the current `supervisor/` foundation, with required Linear linkage and branch lifecycle visibility | origin source: Trevor request on 2026-04-16 during the Superpowers brainstorming/design session
 - `GIL-51` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (April 16 Codex update impact memo landing; awaiting Cowork/Trevor state move) | why this exists: turn the April 16, 2026 Codex update and currently enabled plugin surface into a durable repo-local memo that separates adopt-now operator workflow gains from v1 runtime scope changes the repo should still defer or reject | origin source: Trevor request on 2026-04-16 to convert the April 16 Codex update analysis into a concrete repo-local impact memo
@@ -126,12 +126,13 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-17 | GIL-63: add durable Codex marketplace-app evaluation memo — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-57: implement manual queue intake, normalization, and drain runner — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-54: capture installed workflow-plugin state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: land Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup) — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-63: add durable Codex marketplace-app evaluation memo — landed as `4a90d6f`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landed as `17a61e9`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landed as `17a61e9`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landed as `514ac1a`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-57: implement manual queue intake, normalization, and drain runner — landed as `bd55fb1`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-54: capture installed workflow-plugin state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` — landed as `07c1374`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-28: add the first runnable Codex builder loop — landed as `bea68f6`; full record in Work Record Log 2026-04-17
@@ -205,6 +206,152 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained Claude Code second-pass audit follow-up | by: Claude Code
+
+Problem:
+The first-pass Codex self-audit of `.coderabbit.yaml` and
+`docs/coderabbit-review-settings.md` attested to field-by-field coverage of
+CodeRabbit settings, but a schema-aware second-pass audit by Claude Code
+surfaced two substantive gaps and several low-severity durable-trail defects
+that the self-audit could not catch:
+
+1. `slop_detection` is a repo-config-supported `reviews.*` field per the
+   live CodeRabbit schema, not a UI-only setting. The companion doc
+   previously classified it under `UI-only and caveated settings` and called
+   the desired enabled/label pair a `Desired UI setting`.
+2. Four configurable surfaces were declared in the schema but not encoded
+   or acknowledged in the companion doc: `reviews.tools` (49 tools default
+   to enabled), `reviews.pre_merge_checks` (four sub-checks default to
+   `warning` mode), `reviews.finishing_touches` (per-PR docstring/unit-test
+   generation toggles), top-level `code_generation`, and top-level
+   `issue_enrichment`. The companion doc's "field-by-field" framing implied
+   coverage it did not actually have.
+3. The `GIL-54` `Linear Issue Ledger` `todo home:` description still
+   referenced only the earlier cheat-sheet landing and did not reflect the
+   installed-workflow-plugin state capture that extended the same issue.
+4. The `codex/coderabbit-flow-docs` branch exit checklist had items 1-5
+   unchecked despite the underlying work being complete.
+5. Six `Completed` index entries used the placeholder wording "landing
+   commit SHA recorded in immediate closeout" instead of the repo's stated
+   `landed as <SHA>` format, even though the landing SHAs now exist.
+6. `docs/coderabbit-review-settings.md` carried a cosmetic leading-slash
+   in the display text of the `/.coderabbit.yaml` link.
+
+Reasoning:
+The correct fix is doc-first, not config-first: reclassify `slop_detection`
+as repo-config-supported with the public-repo caveat preserved, encode the
+operator's documented enabled/label preference in `.coderabbit.yaml` so it
+survives future CodeRabbit product changes, and add an explicit `Defaults
+we accept` section naming every schema surface the repo chose not to encode
+plus the known trial-scope risk each default carries. Leaving tool selection
+to the operator during the 3-5 PR calibration window is intentional, so the
+gap is best closed by honest documentation rather than speculative per-tool
+overrides. Trail items are mechanical and belong in the same landing to
+satisfy the Ripple Check invariant.
+
+Diagnosis inputs:
+Direct rereads of `.coderabbit.yaml`, `docs/coderabbit-review-settings.md`,
+`docs/plugin-intake.md`, `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/codex-workflow-plugin-setup.md`,
+`README.md`, `GUIDE.md`, and `todo.md`; resolved
+`#/definitions/schema` from
+`https://coderabbit.ai/integrations/schema.v2.json`; enumerated
+`reviews.*` and top-level properties; computed set-difference between the
+live schema's declared fields and `.coderabbit.yaml` keys; enumerated
+`reviews.tools` sub-keys with their `enabled.default` values; verified all
+`path_instructions` globs and `knowledge_base.code_guidelines.filePatterns`
+against the filesystem; verified plugin install claims against
+`~/.codex/config.toml`.
+
+Implementation inputs:
+Updated `.coderabbit.yaml` to add `reviews.slop_detection`; updated
+`docs/coderabbit-review-settings.md` to reclassify `slop_detection`, add the
+`Defaults we accept` section, and fix the cosmetic link display text;
+appended a new audit-follow-up entry to `docs/plugin-intake.md`; updated
+`todo.md` to refresh the `GIL-54` ledger description, check the branch
+exit-checklist items, backfill six `Completed` index SHAs, and record this
+Work Record Log plus `Completed`, `Test Evidence Log`, and `Feedback
+Decision Log` entries.
+
+Fix:
+Encoded the operator's documented anti-slop preference directly in
+`.coderabbit.yaml` even though it is a no-op on private repos today; moved
+`slop_detection` into the `Supported settings in repo config` table in the
+companion doc with the public-repo caveat preserved; added a `Defaults we
+accept` section naming `reviews.tools`, `reviews.pre_merge_checks`,
+`reviews.finishing_touches`, `code_generation`, and `issue_enrichment`,
+each with default posture, trial-scope reasoning, and known risk; fixed
+the cosmetic link display text; appended the audit follow-up to the
+intake log; refreshed the Linear ledger description, the branch exit
+checklist, and six `Completed` index entries with real SHAs; added this
+durable Work Record entry plus matching `Completed`, `Test Evidence Log`,
+and `Feedback Decision Log` entries.
+
+Self-audit:
+1. Re-read `.coderabbit.yaml`; confirmed `slop_detection: {enabled: true,
+   label: "slop"}` is present directly under `reviews` and the rest of the
+   config is unchanged.
+2. Ran `python3 -c "import yaml, json, urllib.request, ssl, jsonschema;
+   ..."` to strict-validate the updated YAML against the resolved
+   `#/definitions/schema` from
+   `https://coderabbit.ai/integrations/schema.v2.json`; result: pass.
+3. Re-read `docs/coderabbit-review-settings.md`; confirmed
+   `slop_detection` now appears in the `Supported settings in repo config`
+   table with two rows (`.enabled`, `.label`) and the prior `Anti-Slop`
+   UI-only block is gone; confirmed a new `Caveated settings` section
+   preserves the public-repo caveat; confirmed the `Defaults we accept`
+   section exists and names five unconfigured surfaces with default
+   posture and known risk; confirmed the display text now reads
+   `.coderabbit.yaml` without a leading slash.
+4. Re-read `docs/plugin-intake.md`; confirmed the new audit-follow-up
+   entry follows the append-only template, records
+   `Canonical ledger updated: No`, and does not silently rewrite prior
+   entries.
+5. Re-read `todo.md`; confirmed the `GIL-54` ledger `todo home:` now names
+   both the cheat-sheet landing and the installed-workflow-plugin state
+   capture; confirmed the `codex/coderabbit-flow-docs` exit checklist has
+   items 1-6 checked and items 7-8 left unchecked because merge and
+   branch cleanup remain pending; confirmed six `Completed` entries now
+   carry real SHAs (`514ac1a`, `17a61e9`, `17a61e9`, `07c1374`, `bd55fb1`,
+   `4a90d6f`); confirmed the matching `Completed`, `Test Evidence Log`,
+   and `Feedback Decision Log` entries are present.
+6. Ran `git diff --check` across all touched files; result: pass (no
+   whitespace or conflict markers).
+7. Did not add explicit `reviews.tools`, `reviews.pre_merge_checks`,
+   `reviews.finishing_touches`, `code_generation`, or `issue_enrichment`
+   blocks to `.coderabbit.yaml`. The operator judgment about which
+   individual tools or checks to override belongs to the 3-5 PR
+   calibration window, not to this audit-follow-up landing. The
+   `Defaults we accept` doc section records that choice honestly.
+8. Did not verify a live CodeRabbit PR review because GitHub App
+   activation remains a manual operator step outside this repo task.
+Ripple Check attestation: because this landing changes what the companion
+doc documents about `slop_detection` and adds the explicit `Defaults we
+accept` section, I updated `.coderabbit.yaml` to match the reclassified
+configuration, updated the companion doc directly, appended the audit
+follow-up entry to the intake log, and recorded the durable trail in
+`todo.md` `Work Record Log`, `Completed`, `Test Evidence Log`, and
+`Feedback Decision Log` in the same landing. The canonical plugin ledger
+row in `docs/codex-april-16-2026-impact.md` was intentionally left
+unchanged because its wording about "bug/security/lint/test signal"
+already matches the expanded reality.
+Linear-coverage disposition: self-contained audit follow-up from the
+Claude Code second-pass audit on 2026-04-17; no new future-work issue was
+created because the fixes close the audit findings in the same landing.
+
+triggered by:
+Trevor request on 2026-04-17 after the Claude Code second-pass audit to
+execute the recommended disposition (reclassify `slop_detection`, add a
+`Defaults we accept` section, and clear the four low-severity trail items).
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: Claude Code second-pass audit follow-up for CodeRabbit
+settings (slop_detection reclassification, `Defaults we accept` section,
+cosmetic link fix, and trail cleanup)
 
 ### 2026-04-17 | GIL-63 | by: Codex
 
@@ -2136,16 +2283,16 @@ Each active branch entry should include:
 
 ### `codex/coderabbit-flow-docs`
 - source chat: 2026-04-17 "Im going to try rabbit. Document our thinking process in the repo and update the documents to include again the rabbit flow in the repo"
-- last refreshed by chat: 2026-04-17 "CodeRabbit settings and rationale capture"
+- last refreshed by chat: 2026-04-17 "Claude Code second-pass audit follow-up for CodeRabbit settings"
 - purpose: Record the CodeRabbit-versus-Copilot decision trail, restore CodeRabbit as the active bounded review trial in the repo's plugin docs, and preserve the exact settings and rationale for later AI review.
 - merge expectation: merge
 - exit checklist:
-  - [ ] Plugin memo updated coherently
-  - [ ] Operator cheat sheet updated coherently
-  - [ ] CodeRabbit config/settings companion updated coherently
-  - [ ] Plugin-intake log appended
-  - [ ] Durable repo record updated in `todo.md`
-  - [ ] Commit pushed on this branch
+  - [x] Plugin memo updated coherently
+  - [x] Operator cheat sheet updated coherently
+  - [x] CodeRabbit config/settings companion updated coherently
+  - [x] Plugin-intake log appended
+  - [x] Durable repo record updated in `todo.md`
+  - [x] Commit pushed on this branch
   - [ ] Merge or explicit no-merge closeout decided
   - [ ] Local/remote branch cleanup completed
 - delete when: After merge or explicit closeout and branch cleanup completes
@@ -2218,6 +2365,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -c "import yaml, json, urllib.request, ssl, jsonschema; ..."` strict-validating `.coderabbit.yaml` against the resolved `#/definitions/schema` at `https://coderabbit.ai/integrations/schema.v2.json` (including the new `reviews.slop_detection` block); `rg -n "slop_detection|Defaults we accept|reviews.tools|pre_merge_checks|finishing_touches|code_generation|issue_enrichment" .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md`; `git diff --check -- .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md todo.md` | result: pass — the updated CodeRabbit config validates against the live schema, the companion doc now encodes `slop_detection` as repo-supported and explicitly names the five unconfigured schema surfaces under `Defaults we accept`, the intake log carries the audit follow-up entry, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | command(s): `rg -n "Slack|Notion|Google Drive|Sentry|Jam|Stripe|Amplitude|Neon Postgres|Help Scout|Readwise|Attio|Scite" docs/codex-app-marketplace-evaluations.md`; `rg -n "codex-app-marketplace-evaluations.md" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-app-marketplace-evaluations.md README.md GUIDE.md todo.md` | result: pass — the new marketplace-app memo contains the intended high-leverage shortlist and detailed app judgments, both discovery docs point to it, the durable repo trail references it, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-63` | by: Codex | linear: GIL-63
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake tests.test_contracts tests.test_verifier tests.test_main`; `git diff --check -- supervisor/contracts.py schemas/run-contract.schema.json supervisor/verifier.py supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md` | result: pass — the new queue eligibility, normalization, manual drain, and verification-pack behavior are covered by the targeted supervisor suite, the pre-existing single-run path still passes, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
 - 2026-04-17 | command(s): `rg -n "Autopilot|HOTL|Cavekit|gillettes-local-plugins|ck" docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md`; `git diff --check -- docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md todo.md` | result: pass — the new setup companion, canonical ledger, operator cheat sheet, intake log, and discovery surfaces all reflect the installed-and-enabled state for `Autopilot`, `HOTL`, and `Cavekit`, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
@@ -2297,6 +2445,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor request to execute the recommended disposition from the Claude Code second-pass audit of CodeRabbit settings | feedback summary: after the second-pass audit found that `slop_detection` was mis-categorized as UI-only, that four configurable schema surfaces were left undocumented, and that four low-severity durable-trail items remained open, land the fixes in one bounded follow-up commit rather than queuing them as separate Codex prompts | evaluation chat: current Claude Code second-pass audit and follow-up landing thread | reasoning response: accepted. The bounded, audit-surfaced fixes fall within the Claude Code narrow-fix allowance defined in `CLAUDE.md` `Roles`, so routing them through a fresh Codex handoff would add ceremony without adding review value. The right shape is: encode the operator's documented `slop_detection` preference in `.coderabbit.yaml` even though it is a no-op on private repos today, move `slop_detection` into the `Supported settings in repo config` table with the public-repo caveat preserved, add an explicit `Defaults we accept` section that names `reviews.tools`, `reviews.pre_merge_checks`, `reviews.finishing_touches`, `code_generation`, and `issue_enrichment` with default posture and known risk, append the audit follow-up to the intake log, and clear the Linear ledger description, exit-checklist, Completed-index, and cosmetic-link trail defects in the same landing. Explicit per-tool overrides were intentionally deferred to the 3-5 PR calibration window so the landing does not bake in unreviewed product judgments. | decision status: accepted | implementation/disposition chat: current Claude Code second-pass audit and follow-up landing thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up; `Test Evidence Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | feedback source: Trevor request to do both the architecture checkpoint and the next implementation slice, while keeping the work in this repository instead of moving into target-repo contract work | feedback summary: do not stop at choosing between `GIL-9` and `GIL-28`; land the checkpoint and then immediately carry that result into the next repo-local runtime slice | evaluation chat: current Phase 2 runtime thread | reasoning response: accepted with one correction. The checkpoint could not be treated as a pure paperwork stop because the repo still had real action-boundary drift, so `GIL-9` had to become a repair-backed ADR before Phase 2 continued. Once that was repaired, the right move was to build the smallest runnable Codex builder loop immediately instead of waiting for more docs work. This keeps the work in the control-plane repo, respects the user direction not to switch into target-repo contract work yet, and avoids hardening the wrong abstractions before a real loop exists. | decision status: accepted | implementation/disposition chat: current Phase 2 runtime thread | linked branch / audit / suggestion / test evidence: `design-history/ADR-0003-phase-1-architecture-checkpoint.md`; `supervisor/builder_adapter.py`; `supervisor/strategy_simple.py`; `supervisor/main.py`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-9`; `Test Evidence Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-9 + GIL-28
 - 2026-04-17 | feedback source: Trevor request to land the plugin operator cheat sheet in the repo, commit it, and research additional Codex plugins that could help with implementation, handoffs, testing, reviewing, and enforcement | feedback summary: move the Autopilot/HOTL/Cavekit operating guidance out of chat memory into repo docs, then broaden the plugin research beyond the first pass so the repo captures real next candidates instead of a shallow list | evaluation chat: current plugin-operator and broader-plugin-research thread | reasoning response: accepted. The better split is not one giant plugin writeup. The repo now keeps the decision ledger in `docs/codex-april-16-2026-impact.md` and adds a separate operator cheat sheet for how to use the locally installed workflow plugins without overlap. The broader research was expanded from "available official plugins" to primary-source inspection of local installs and candidate repos relevant to implementation discipline, deterministic review, session orchestration, handoffs, and delegation. | decision status: accepted | implementation/disposition chat: current plugin-operator and broader-plugin-research thread | linked branch / audit / suggestion / test evidence: `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Suggested Recommendation Log` 2026-04-17 `plugin-eval` / orchestration follow-ups; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | feedback source: Trevor request to add a governing-doc section that tracks plugins discussed for this repo, whether they have been tried, and the current use/not-use conclusion | feedback summary: centralize plugin decisions in one durable repo-visible place so future Codex sessions can update the same ledger instead of scattering plugin conclusions across chats and separate docs | evaluation chat: current plugin-governance thread | reasoning response: accepted. The cleaner move is to extend the active Codex impact memo instead of creating another governance surface. `docs/codex-april-16-2026-impact.md` now carries the durable `Plugin decision ledger`, with tried/not-tried status, current stance, allowed use, forbidden use, and revisit triggers. `README.md` and `GUIDE.md` now point future sessions to that exact ledger. Other Codex conversations can update it, but only if their prompt/read-scope includes the doc or the task is explicitly to revise plugin decisions. | decision status: accepted | implementation/disposition chat: current plugin-governance thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53

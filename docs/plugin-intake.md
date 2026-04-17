@@ -253,3 +253,49 @@ Notes:
 This still does not count as a task-backed plugin trial. The durable change is
 about install state and operating guidance, not proof that any of the three
 improves real repo work yet.
+
+### 2026-04-17 | source: Claude Code second-pass audit of CodeRabbit settings | by: Claude Code
+
+Plugins:
+`CodeRabbit`
+
+Observation:
+A deeper schema-aware audit of `.coderabbit.yaml` and
+`docs/coderabbit-review-settings.md` surfaced two kinds of gap the first-pass
+Codex self-audit did not catch:
+
+1. `slop_detection` is a repo-config-supported `reviews.*` field per the live
+   CodeRabbit schema, not a UI-only setting. The companion doc previously
+   classified it under "UI-only and caveated settings" and described the
+   desired enabled/label pair as a "Desired UI setting."
+2. Four configurable surfaces are declared in the schema but not encoded in
+   `.coderabbit.yaml`: `reviews.tools` (49 tools default to enabled),
+   `reviews.pre_merge_checks` (docstring/title/description/issue_assessment
+   checks default to warning mode), `reviews.finishing_touches` (per-PR
+   docstring/unit-test generation toggles), top-level `code_generation`, and
+   top-level `issue_enrichment`. The companion doc's "field-by-field" framing
+   implied coverage it did not actually have.
+
+Evidence:
+Resolved `#/definitions/schema` from
+`https://coderabbit.ai/integrations/schema.v2.json`; `jsonschema.validate`
+against the full resolved schema; enumeration of `reviews.tools` sub-keys
+with their `enabled.default` values; `.coderabbit.yaml`;
+`docs/coderabbit-review-settings.md`.
+
+Recommended ledger delta:
+No stance change on the canonical plugin ledger. The repo still treats
+`CodeRabbit` as the active bounded review trial. The fixes are settings-detail
+corrections, not a new trial decision.
+
+Canonical ledger updated:
+No
+
+Notes:
+The companion doc was updated in the same landing to (a) move
+`slop_detection` into the repo-supported settings table with the
+public-repo caveat preserved, and (b) add a "Defaults we accept" section that
+names the four unconfigured schema surfaces, the default behavior they imply,
+and the known trial-scope risks they carry. `.coderabbit.yaml` gained an
+explicit `slop_detection` block so the operator's documented preference is
+encoded even if it is a no-op on private repos today.

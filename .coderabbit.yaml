@@ -82,6 +82,9 @@ reviews:
         Only flag changes for accidental corruption, broken references, or factual mistakes introduced by the current diff.
   abort_on_close: true
   disable_cache: false
+  slop_detection:
+    enabled: true
+    label: "slop"
 
 chat:
   art: false

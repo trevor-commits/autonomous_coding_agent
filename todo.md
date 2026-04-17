@@ -133,7 +133,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-17 | GIL-58: audit the landed Phase 3 runtime after GIL-29 and file tracked fix slices — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-58: audit the landed Phase 3 runtime after GIL-29 and file tracked fix slices — landed as `fff2b8a`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-23: add the first benchmark run-contract suite and invariant coverage floor — landed as `408b0b0`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-29: add app launch, UI verification, and defect routing — landed as `9f1b693`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -291,8 +291,7 @@ think critically from different angles to find issues that the original
 implementation pass missed.
 
 led to:
-`GIL-59`; `GIL-60`; `GIL-61`; `GIL-62`; landing commit SHA recorded in
-immediate closeout
+`fff2b8a`; `GIL-59`; `GIL-60`; `GIL-61`; `GIL-62`
 
 linear:
 GIL-58

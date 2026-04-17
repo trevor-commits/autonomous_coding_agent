@@ -169,6 +169,7 @@ Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title �
 - [x] 2026-04-15: closed four P1 housekeeping findings from the 2026-04-15 repo audit, removed the resolved `PROJECT_INTENT.md` open question, refreshed the April 15, 2026 dates in `STRUCTURE.md` and `GUIDE.md`, and moved `codex-repair-prompt.md` into `design-history/` as a historical record. Commit: `b3dc40d7cd12459014261916f1dd653d5e78e6fa`.
 - [x] 2026-04-15: corrected the archive-handling mistake from `8a0ded1` by restoring the superseded wording in archived `design-history/` docs, keeping the active `schemas/README.md` and governance-record updates, and adding a `PROMPTS.md` rule that verification greps must exclude `design-history/` unless the task is explicitly rewriting history. Commit: `392d686b77d829f6bc83e3624ce14536379fb888`.
 - [x] 2026-04-15: closed four open findings from Code's 17-commit audit (cbc701a..03aa9ed) — indexed `LINEAR-BOOTSTRAP.md` in `GUIDE.md` and `README.md`, added a verification note to LINEAR.md's Skip/Ignore Escape Hatch section, tightened LINEAR.md's Blocked Discipline to require committed repo artifacts, and normalized two earlier Completed entries to the `- [x]` style. Also added a new `## Audit Watermarks` section to `todo.md` so Code, Cowork, Pro, and Codex can each track their last-audited commit across sessions. Files modified: `GUIDE.md`, `README.md`, `LINEAR.md`, `todo.md`. Landing commit: TBD — staged for Trevor review.
+- [x] 2026-04-17 | self-contained: add repo-local CodeRabbit PR review config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 
 ## Work Record Log
 If it's not here, it isn't remembered. This section implements `CONTINUITY.md`; each Self-audit also carries the Ripple Check required by `COHERENCE.md`, and each entry resolves the `linear:` coverage required by `LINEAR.md` `## Linear-at-the-core`.
@@ -1080,6 +1081,85 @@ led to:
 linear:
 GIL-36
 
+### 2026-04-17 | self-contained | by: Codex
+
+Problem:
+This repo had no committed CodeRabbit configuration, so enabling CodeRabbit at
+the GitHub level would fall back to generic defaults. In this repository that
+would likely create noisy reviews, because the live surface mixes Python
+supervisor code, JSON schemas, governance docs, and archive material with very
+different review expectations.
+
+Reasoning:
+The best first landing is a repo-local `.coderabbit.yaml` that keeps CodeRabbit
+in a bounded PR-review role. That gives the repository versioned review rules,
+lets CodeRabbit use the existing agent/governance docs as code-guideline input,
+and avoids prematurely turning CodeRabbit into a merge gate, CI replacement, or
+second workflow owner before there is any real review history to calibrate
+against.
+
+Diagnosis inputs:
+Direct reads of `AGENTS.md`, `AGENTS.project.md`, `PROJECT_INTENT.md`,
+`CONTINUITY.md`, `COHERENCE.md`, `LINEAR.md`, `README.md`,
+`docs/superpowers-playbook.md`, and the current repo tree; verification that no
+existing `.coderabbit.yaml` or prior CodeRabbit references existed in the live
+docs; and current CodeRabbit documentation covering GitHub-app setup, YAML
+configuration, path instructions, code-guideline inputs, and custom/pre-merge
+check behavior.
+
+Implementation inputs:
+Added root `.coderabbit.yaml` only. The config keeps automatic PR review on for
+non-draft PRs, disables request-changes workflow, disables auto-reply art/noise
+in comment chat, narrows path instructions across `supervisor/`, `tests/`,
+`schemas/`, live governance docs, and `design-history/`, and explicitly points
+CodeRabbit's code-guideline knowledge at the repo's existing rule-bearing docs.
+
+Fix:
+Committed a repo-local CodeRabbit configuration that matches the repo's actual
+shape and authority boundaries. The config treats CodeRabbit as a PR review
+layer, not a verifier or merge controller; tells it how to review the
+deterministic supervisor/runtime code differently from tests, schemas, live
+governance docs, and historical archive docs; scopes learnings/issues/PR
+knowledge locally to this repository; and filters out tracked Python bytecode
+artifacts from review noise.
+
+Self-audit:
+1. Ran `python3` with `yaml.safe_load` against `.coderabbit.yaml`; output
+   confirmed the file parses and exposes the intended top-level keys
+   (`reviews`, `chat`, `knowledge_base`, plus general settings).
+2. Ran `python3` with `jsonschema.validate` against the live
+   `https://coderabbit.ai/integrations/schema.v2.json`; output `schema: ok`;
+   the committed config matches CodeRabbit's current schema.
+3. Ran `git diff --check -- .coderabbit.yaml`; output empty; the new config is
+   whitespace-clean.
+4. Re-read `.coderabbit.yaml` against the repo structure; confirmed the path
+   instructions separate live docs from archive docs and keep CodeRabbit in a
+   bounded review role rather than enabling blocking or code-generation
+   workflows by default.
+5. Did not install or authorize the CodeRabbit GitHub App because that requires
+   a manual GitHub/CodeRabbit UI step outside this local checkout.
+Ripple Check attestation: this landing adds a bounded root tool-config file but
+does not change canonical architecture, repo governance rules, or live doc
+semantics, so no companion-document rewrite was required for coherence in the
+same commit.
+Linear-coverage disposition: self-contained: Trevor requested a bounded
+repo-local CodeRabbit bootstrap directly, and the remaining activation step is
+operator-side GitHub/App installation rather than a new repo implementation
+task.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to implement CodeRabbit in this repository using a
+bounded, repo-specific setup
+
+led to:
+landing commit SHA recorded in the immediate closeout; `.coderabbit.yaml`
+
+linear:
+self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
+
 ### 2026-04-16 | GIL-32 | by: Codex
 
 Problem:
@@ -1222,6 +1302,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - 2026-04-14: Add GitHub governance hardening only after executable control-plane surfaces exist (`supervisor/`, `schemas/`, tests, workflows). Minimum expected later set: CODEOWNERS for control-plane files, required checks, Dependabot, CodeQL, and secret-scanning hygiene. Status: deferred until after Phase 0A and initial implementation scaffolding.
 - 2026-04-16: Codex update review (see `design-history/codex-update-review-2026-04-16.md`). Six adoption candidates from the Codex CLI v0.121.0 / v0.122.0-alpha release, staged for Trevor selection before any `GIL-N` issue is opened: (1) skills-ify the repo prompt system under `.agents/skills/repo-prompts/`; (2) adopt `/review` presets inside Codex Self-audit; (3) require MCP namespacing and sandbox-state in queue run contracts; (4) adopt the devcontainer/bubblewrap sandbox profile and forbid the removed `danger-full-access` denylist-only networking mode in `RULES.md`; (5) extend `design-history/queue-upgrade-research-2026-04-16.md § Still Intentionally Open` to track `codex exec-server`, subagents, thread automations, realtime V2, and memory controls; (6) record the rejections of `spawn_agents_on_csv`, in-app browser/computer-use, cross-thread memory carryover, and bulk-plugin installs so they cannot be resurrected without re-opening the argument. Status: staged; awaiting Trevor selection. Source: 2026-04-16 Cowork research pass over the Codex update. by: Cowork. linear: self-contained until selected.
 - 2026-04-16: Land three root-level repo principles — Continuity, Coherence, and Linear-Core — as a unified governance commit. Creates `CONTINUITY.md` and `COHERENCE.md` at repo root; adds `## Linear-at-the-core` section and extended Coverage Invariant to `LINEAR.md`; introduces a six-field `## Work Record Log` in `todo.md` with Self-audit attestation (method-not-claim + Code spot-check); adds a Ripple Check ripple-consistency gate on commits and a Linear-coverage gate on state moves; extends the Codex prompt header from four to five parts (adding `Durable record`); layers Continuity / Ripple / Linear-coverage gates into `AGENTS.md § Completion Authority` for Codex, Claude Code, and Cowork; seeds a Dependency Map in `COHERENCE.md`; adds thirteen rules to `RULES.md` (R-CONT-01..05, R-COH-01..03, R-LIN-01..05); indexes the new principle docs from `GUIDE.md`, `STRUCTURE.md`, and `README.md`; prepends all three principles to the global `~/.claude/CLAUDE.md`. Full Codex prompt, Cowork UI project-instructions block, and Claude Code post-commit audit sweep preserved at `SCOPING-three-pillar-principles.md` at repo root. Status: completed via `GIL-32`; see `Completed` 2026-04-16, `Work Record Log` 2026-04-16, and `Audit Record Log` 2026-04-16. Source: 2026-04-16 Feedback Decision Log entry (Trevor three-pillar governance request).
+- 2026-04-17: Install and authorize the CodeRabbit GitHub App on this repository, then calibrate against 3-5 real PRs before enabling `request_changes_workflow` or any `error`-mode pre-merge checks. Status: pending operator action. Source: current CodeRabbit integration task. by: Codex. linear: self-contained: operator-side activation needed after repo-local `.coderabbit.yaml` landing.
 
 ## Active Branch Ledger
 Keep one entry per non-trivial active branch so any chat can see why it exists, which chat opened or resumed it, what work is active, what must happen before merge or closeout, and whether the branch should be deleted or intentionally retained.
@@ -1353,6 +1434,8 @@ If it's not here, it isn't remembered.
 | Phase boundary strategic audit | ChatGPT Pro strategic/governance audit against PROJECT_INTENT, canonical-architecture, ADR record, and commit-range fingerprint; orchestrator-prepared brief | Every phase exit (0A, 0B, 0C, 1, 2, 3, 4); quarterly whole-repo review; ad hoc on drift | Pro returns GREEN, or YELLOW with accepted deferrals recorded in Feedback Decision Log |
 | Phase 1 mid-build architecture checkpoint | Paired audit: Pro (strategic) + Claude Code (line-by-line against schemas, action set, and invariants) | After subphase 1.2 lands, before 1.3 begins | Both auditors return clean; tiebreaker per ADR-0002 if they disagree |
 
+- 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml` | result: pass — the new CodeRabbit config parses, validates against the current live CodeRabbit schema, and is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
+
 ## Feedback Decision Log
 If it's not here, it isn't remembered.
 Record outside feedback and the resulting reasoning once, then update the same entry as the decision evolves.
@@ -1395,3 +1478,4 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-16 | feedback source: Trevor follow-up request for unattended queue drift guardrails | feedback summary: after the initial unattended queue contract, add stronger guardrails so Codex does not drift, does not go beyond its scope, but also does not freeze when it discovers an unspecced issue that is necessary to finish the current task. The system should distinguish between discoveries that may be fixed immediately and discoveries that must be split or deferred. | evaluation chat: current queue-guardrails thread | reasoning response: accepted. The contract now freezes an issue snapshot and records queue/prompt versions per run, treats post-claim authority drift as an invalidating event, and adds a strict adjacent-blocker test for unspecced discoveries. A discovery may be repaired in-run only when it directly blocks acceptance, stays inside the same allowed paths, does not require a new decision owner or lane, and can be verified by the same pack. Everything else must become a new Linear issue or an explicit `no-action:` / `self-contained:` disposition. This preserves autonomy without allowing opportunistic backlog absorption. | decision status: accepted | implementation/disposition chat: current queue-guardrails thread | linked branch / audit / suggestion / test evidence: `QUEUE-RUNS.md` guardrail update; `todo.md` Work Record Log 2026-04-16 `GIL-36`; Test Evidence Log 2026-04-16 `GIL-36`; Claude Code audit remains `GIL-35`
 - 2026-04-16 | feedback source: Trevor request to search for current external guidance, implement worthwhile unattended-queue upgrades thoroughly, review the result heavily, and preserve the reasoning in a repo-visible place other AIs can audit later | feedback summary: the unattended queue should improve where current external guidance makes it stronger, but the upgrade must preserve the repo's supervisor-owned model, keep Claude audit/test work as a separate lane, and leave behind a durable account of the reasoning rather than a chat-only summary | evaluation chat: current queue-upgrade implementation thread | reasoning response: accepted. Current external guidance strengthened the queue in the expected places: webhook-first intake instead of polling-first intake, pre-queue normalization instead of first-touch discovery at claim time, explicit risk and approval posture, durable claim/trace state for resume, trace-linked observability, and benchmark/eval evidence before autonomy expands. The better path was not to make Linear more powerful; it was to make the supervisor contract more explicit and preserve the reasoning in `design-history/queue-upgrade-research-2026-04-16.md` so later AIs can audit both the conclusions and the route taken to reach them. | decision status: accepted | implementation/disposition chat: current queue-upgrade implementation thread | linked branch / audit / suggestion / test evidence: `canonical-architecture.md`, `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`, `RULES.md`, `IMPLEMENTATION-PLAN.md`, `README.md`, `GUIDE.md`, `STRUCTURE.md`, `design-history/queue-upgrade-research-2026-04-16.md`, `Audit Record Log` 2026-04-16 `GIL-42`, `Test Evidence Log` 2026-04-16 `GIL-42`, `GIL-35` | by: Codex | linear: GIL-42
 - 2026-04-16 | feedback source: Trevor implementation-direction decisions during the Superpowers design session | feedback summary: keep this repo as the implementation repo, make the first runnable milestone a local single-run harness instead of queue-first or browser-first work, require strong Linear involvement and durable repo writeback from day one, and add branch lifecycle visibility so old branches stop becoming mystery state | evaluation chat: current Superpowers brainstorming and design-spec session | reasoning response: accepted. The approved baseline is now the local single-run harness design in `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, explicitly aligned to the already-landed `supervisor/` foundation. The design makes `linear_issue_id` mandatory for real runs, preserves repo truth over Linear truth, and defines branch lifecycle tracking across git, `todo.md`, and a Linear mirror rather than letting any one surface become overloaded. | decision status: accepted | implementation/disposition chat: current Superpowers brainstorming and design-spec session | linked branch / audit / suggestion / test evidence: `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `Work Record Log` 2026-04-16 `GIL-52`; `Test Evidence Log` 2026-04-16 `GIL-52`
+- 2026-04-17 | feedback source: Trevor request to implement CodeRabbit in this repository using the best bounded setup | feedback summary: enable CodeRabbit here without turning it into a noisy generic reviewer, a CI replacement, or a second workflow owner | evaluation chat: current CodeRabbit integration thread | reasoning response: accepted. The right first landing is a repo-local `.coderabbit.yaml` that keeps CodeRabbit in PR-review mode, teaches it the difference between supervisor code, tests, schemas, live governance docs, and archive docs, and scopes knowledge locally to this repository. Activation beyond that still requires manual GitHub/CodeRabbit app installation and a short calibration period before any blocking behavior is enabled. | decision status: accepted | implementation/disposition chat: current CodeRabbit integration thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Suggested Recommendation Log` 2026-04-17 CodeRabbit activation follow-up | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor

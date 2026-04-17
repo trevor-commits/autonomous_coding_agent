@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  review_details: false
+  poem: false
+  in_progress_fortune: false
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+  path_filters:
+    - "!**/__pycache__/**"
+    - "!**/*.pyc"
+  path_instructions:
+    - path: "supervisor/**/*.py"
+      instructions: |
+        Treat this as deterministic supervisor/runtime code, not app-layer glue.
+        Prioritize correctness findings over style suggestions.
+        Focus on:
+        - illegal phase transitions, terminal-state invariants, and stop conditions
+        - single-writer / single-browser ownership assumptions
+        - evidence, report, and artifact correctness
+        - path, shell, contract, and worktree safety regressions
+        - prompt text not replacing code-level enforcement
+    - path: "tests/**/*.py"
+      instructions: |
+        Focus on invariant coverage and regression protection.
+        Flag missing tests when the diff changes:
+        - illegal transitions or forbidden operations
+        - failure fingerprinting or report/evidence behavior
+        - contract parsing, policy guardrails, or worktree safety
+        Avoid asking for duplicate coverage when existing tests already cover the behavior.
+    - path: "schemas/**/*.json"
+      instructions: |
+        Focus on contract compatibility and source-of-truth drift.
+        Flag:
+        - required-field or enum changes without coordinated companion updates
+        - schema/example/name mismatches versus supervisor code
+        - changes that silently widen or weaken validation semantics
+    - path: "{README.md,AGENTS.md,AGENTS.project.md,CLAUDE.md,CONTINUITY.md,COHERENCE.md,GUIDE.md,IMPLEMENTATION-PLAN.md,LINEAR.md,LOGIC.md,PROJECT_INTENT.md,PROMPTS.md,QUEUE-RUNS.md,RULES.md,STRUCTURE.md,canonical-architecture.md,todo.md,docs/**/*.md}"
+      instructions: |
+        Treat these as live governance or source-of-truth documents.
+        Focus on:
+        - contradictions against canonical-architecture.md, RULES.md, CONTINUITY.md, COHERENCE.md, and LINEAR.md
+        - missing Ripple Check companion updates across live docs
+        - broken cross-references, stale process claims, or governance drift
+        Avoid low-value prose nitpicks when the meaning is already clear.
+    - path: "design-history/**/*.md"
+      instructions: |
+        Treat this directory as archive material, not live source-of-truth docs.
+        Do not suggest normalizing superseded terminology or rewriting history to match current docs unless the pull request explicitly intends archive repair.
+        Only flag changes for accidental corruption, broken references, or factual mistakes introduced by the current diff.
+
+chat:
+  art: false
+  auto_reply: false
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/AGENTS.md"
+      - "AGENTS.project.md"
+      - "**/CLAUDE.md"
+      - "CONTINUITY.md"
+      - "COHERENCE.md"
+      - "LINEAR.md"
+      - "PROJECT_INTENT.md"
+      - "PROMPTS.md"
+      - "QUEUE-RUNS.md"
+      - "RULES.md"
+      - "canonical-architecture.md"
+      - "docs/superpowers-playbook.md"
+  learnings:
+    scope: "local"
+  issues:
+    scope: "local"
+  pull_requests:
+    scope: "local"

@@ -90,3 +90,34 @@ Yes
 Notes:
 Installation, docs review, and operator-fit research do not count as
 task-backed proof that a plugin improves real repo work.
+
+### 2026-04-17 | source: CodeRabbit versus Copilot comparison and re-activation | by: Codex
+
+Plugins:
+`CodeRabbit`, `GitHub Copilot`
+
+Observation:
+Compared the two specifically as code-review options for this small private
+repo. The conclusion was not "Copilot is bad"; it was "Copilot likely wins on
+price and GitHub-native convenience, but CodeRabbit is still the likelier
+stronger dedicated PR-review tool." Trevor chose to try CodeRabbit anyway
+because review quality is the variable worth testing first.
+
+Evidence:
+Current CodeRabbit/Copilot comparison chat; `.coderabbit.yaml`;
+`docs/codex-april-16-2026-impact.md`;
+`docs/codex-plugin-operator-cheatsheet.md`
+
+Recommended ledger delta:
+Move `CodeRabbit` from passive "configured, not yet proven" wording to the
+active bounded review-trial path; keep GitHub App activation as the remaining
+manual step; preserve Copilot only as the cheaper GitHub-native fallback
+baseline in the narrative rather than making it the active review lane.
+
+Canonical ledger updated:
+Yes
+
+Notes:
+This is still not a task-backed PR-review success record. It is the durable
+decision trail for why the repo is trying CodeRabbit first despite the cost
+argument in Copilot's favor.

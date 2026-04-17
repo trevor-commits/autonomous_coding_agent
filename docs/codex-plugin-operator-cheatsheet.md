@@ -22,15 +22,21 @@ This is the operational companion to
 | `Autopilot` | project intake, discovery questions, briefing, route selection, final handoff framing | the work starts as a vague or multi-surface idea and the route is still unclear | `Cavekit` if a real spec is needed; `HOTL` once implementation should begin | `Use Autopilot to turn this rough idea into a project brief, ask what is missing, and recommend a build route. Do not start coding yet.` |
 | `Cavekit` | requirements, acceptance criteria, dependency-aware build-task decomposition | the general direction is known but the spec and build packets are still weak | `HOTL` for execution, or `CodeRabbit` once a local diff exists | `Use Cavekit to turn this approved direction into requirements, acceptance criteria, and build tasks. I want the spec before implementation.` |
 | `HOTL` | bounded implementation discipline, review, verification, and resume | a real task or plan exists and code work is about to start | `CodeRabbit` or Claude Code review after the implementation slice lands | `Use HOTL to execute this bounded plan with verification gates. Verify each step and do not claim success without evidence.` |
-| `CodeRabbit` | deterministic pre-audit: mechanical bugs, security signals, missing tests, lint-style findings | local changes already exist and you want fast review signal before higher-cost human or Claude review | Claude Code, Trevor, or a HOTL repair loop | `@coderabbit Review the current changes for mechanical bugs, security issues, and missing tests.` |
+| `CodeRabbit` | deterministic pre-audit: PR review, mechanical bugs, security signals, missing tests, lint-style findings | a bounded diff or PR already exists and you want fast review signal before higher-cost human or Claude review | Claude Code, Trevor, or a HOTL repair loop | `@coderabbit Review this diff for mechanical bugs, security issues, and missing tests.` |
 | `plugin-eval` | evidence-backed comparison of plugin, model, or workflow choices | the question is whether a new plugin or workflow actually helps | the impact memo, an ADR, or a follow-up spike | `Use plugin-eval to compare baseline versus [plugin/workflow] on representative tasks and report where it helps, hurts, or adds noise.` |
 
 ## Current repo status
 
 - `CodeRabbit` has committed repo-local settings at `.coderabbit.yaml`.
+- The repo decision is to try `CodeRabbit` first for dedicated PR-review
+  quality. `GitHub Copilot` remains the cheaper GitHub-native fallback, not
+  the active trial.
+- The intended review flow is: Codex or `HOTL` lands a bounded diff, then
+  `CodeRabbit` reviews the diff for mechanical issues, then Claude Code or
+  Trevor handles the deeper architectural and acceptance pass.
 - The remaining activation step is still manual: GitHub App install and
   authorization for this repository.
-- Until that is active, treat `CodeRabbit` as configured-but-not-yet-proven here
+- Until that is active, treat `CodeRabbit` as chosen-but-not-yet-proven here
   and fall back to Claude Code or Trevor review for the same pre-audit slot.
 - After activation, calibrate it on 3-5 real PRs before enabling stronger
   request-changes or pre-merge gating behavior.

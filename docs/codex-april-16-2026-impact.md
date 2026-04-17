@@ -167,7 +167,7 @@ not count as tried.
 | `Autopilot` | Installed locally; no task-backed repo-side run yet | Use selectively for fuzzy project intake | discovery questions, brief creation, route selection, and handoff framing when a project starts as an idea instead of a bounded issue | routine bounded repo tasks or implementation execution once direction is already known | when a real project starts from a vague idea and needs route shaping before spec or build work |
 | `HOTL` | Installed locally; no task-backed repo-side run yet | Use now, selectively | implementation discipline, review, verification, and resumable execution once a bounded plan exists | replacing repo truth, acting as queue authority, or forcing heavy ceremony on trivial fixes | when a real implementation slice or risky repair needs stronger execution guardrails |
 | `Cavekit` | Installed locally; no task-backed repo-side run yet | Use selectively for spec-heavy work | requirements, acceptance criteria, build-task decomposition, and pre-build traceability; current Blueprint-family candidate | rediscovering already-approved plans or owning the whole implementation loop | when a fuzzy or large feature needs real spec/decomposition before code |
-| `CodeRabbit` | Repo-side config landed; no durable GitHub PR-review trial yet | Use now, bounded after GitHub App activation | deterministic/mechanical pre-audit, bug/security/lint/test signal before Claude or human review | replacing repo-truth review, architectural audit, or completion authority | after 3-5 real PRs show whether stronger gates are worth enabling |
+| `CodeRabbit` | Repo-side config landed; operator chose to trial it first; live GitHub PR-review run still pending | Use now, bounded as the active dedicated-review trial | dedicated PR review, deterministic/mechanical pre-audit, and bug/security/lint/test signal before Claude or human review | replacing repo-truth review, architectural audit, or completion authority | after 3-5 real PRs show whether its review quality justifies the cost and any stronger gates |
 | `plugin-eval` | No durable repo-side run yet | Use now, bounded | benchmarking plugins, models, or workflow variants before adoption decisions | replacing architectural judgment with a single score or installing plugins on vibes | whenever a plugin or workflow choice is contested and evidence is cheaper than debate |
 | `Brooks Lint` | No | Run a spike later | second-pass code review with a maintainability and test-quality lens | default review ownership or a substitute for deterministic/scanner review | if `CodeRabbit` plus Claude review still misses maintainability or test-quality issues |
 | `Session Orchestrator` | No | Study / spike later | wave execution, quality gates, and clean session close-out as a possible execution envelope | becoming the default queue or supervisor substrate before this repo resolves its own execution model | if real implementation work shows the current execution envelope is too thin |
@@ -189,9 +189,15 @@ Notes:
   `plugin-eval` are usable now inside the limits above.
 - `Autopilot` and `Cavekit` are installed locally but should remain selective
   phase owners, not default workflow owners.
+- The current code-review comparison call for this repo is: `GitHub Copilot`
+  still looks better on cost and GitHub-native integration for a small private
+  repo, but `CodeRabbit` is still the likelier stronger dedicated PR-review
+  product. Trevor chose to test review quality first, so `CodeRabbit` is the
+  active trial path and Copilot remains the cheaper fallback baseline for later
+  re-evaluation.
 - `CodeRabbit` now has repo-local configuration at `.coderabbit.yaml`, but the
-  GitHub App installation and first live PR-review trial are still manual
-  operator work rather than a completed repo-side automation step.
+  GitHub App installation and first live PR review are still manual operator
+  work rather than a completed repo-side automation step.
 - `docs/superpowers-playbook.md` remains the detailed usage guide for
   `Superpowers`; this ledger records the decision status, not the full
   workflow.

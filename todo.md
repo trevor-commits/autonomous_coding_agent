@@ -124,6 +124,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-28: add the first runnable Codex builder loop — landed as `bea68f6`; full record in Work Record Log 2026-04-17
@@ -197,6 +198,78 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained CodeRabbit re-activation docs | by: Codex
+
+Problem:
+The repo already had CodeRabbit config and discoverability notes, but the live
+plugin docs still framed it as merely configured and not yet proven. That left
+the repo missing the actual comparison logic from the chat and did not say
+clearly that Trevor chose to try CodeRabbit first despite the cheaper Copilot
+alternative.
+
+Reasoning:
+The right correction is not a config rewrite. `.coderabbit.yaml` already says
+what CodeRabbit should do. What was missing was the durable decision trail:
+Copilot looks better on price and GitHub-native integration, CodeRabbit likely
+looks better on dedicated PR-review quality, and this repo is testing review
+quality first. That belongs in the plugin memo, the operator cheat sheet, the
+append-only plugin-intake log, and the durable repo log.
+
+Diagnosis inputs:
+Direct rereads of `README.md`, `GUIDE.md`, `.coderabbit.yaml`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`; plus the current chat thread comparing CodeRabbit with GitHub
+Copilot and clarifying that Trevor wants to try Rabbit.
+
+Implementation inputs:
+Updated `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md` on branch `codex/coderabbit-flow-docs`.
+
+Fix:
+Changed the canonical plugin memo so `CodeRabbit` is now the active bounded
+review trial instead of a passive configured placeholder, added the explicit
+CodeRabbit-versus-Copilot reasoning to the repo narrative, updated the
+operator cheat sheet to show the intended Rabbit review flow, and appended the
+comparison outcome to the plugin-intake log so later sessions can see why the
+repo chose to trial Rabbit first.
+
+Self-audit:
+1. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the `CodeRabbit`
+   ledger row now reflects an active bounded trial and the notes record the
+   review-quality-versus-cost tradeoff without overstating live activation.
+2. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed the operator
+   flow now says Rabbit is the chosen pre-audit lane once activated and keeps
+   Claude Code or Trevor as the deeper review/acceptance path.
+3. Re-read `docs/plugin-intake.md`; confirmed the new entry preserves the
+   Rabbit-versus-Copilot reasoning as append-only evidence rather than silently
+   rewriting current truth.
+4. Re-read `README.md`, `GUIDE.md`, and `.coderabbit.yaml`; confirmed they
+   remain accurate without further edits because discoverability and bounded
+   review configuration were already landed.
+5. Did not verify a live GitHub PR review because GitHub App installation and
+   first PR activation are still manual operator steps outside this repo task.
+Ripple Check attestation: because this task changed the repo's live plugin
+stance narrative for CodeRabbit, I updated the canonical plugin memo, the
+operator cheat sheet, the append-only plugin-intake log, and the durable repo
+record in the same task, then confirmed the existing README/GUIDE/config
+surfaces still matched without further edits.
+Linear-coverage disposition: self-contained direct Trevor request; no new
+future-work issue was created by the doc correction itself.
+
+triggered by:
+Trevor decision on 2026-04-17 to try CodeRabbit after discussing the
+CodeRabbit-versus-GitHub-Copilot tradeoff and asking that the thinking process
+be written into the repo.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: Trevor chose CodeRabbit as the active review trial after the
+Copilot comparison
 
 ### 2026-04-17 | GIL-54 | by: Codex
 
@@ -1640,6 +1713,22 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
+### `codex/coderabbit-flow-docs`
+- source chat: 2026-04-17 "Im going to try rabbit. Document our thinking process in the repo and update the documents to include again the rabbit flow in the repo"
+- last refreshed by chat: 2026-04-17 "CodeRabbit trial docs and reasoning update"
+- purpose: Record the CodeRabbit-versus-Copilot decision trail and restore CodeRabbit as the active bounded review trial in the repo's plugin docs.
+- merge expectation: merge
+- exit checklist:
+  - [ ] Plugin memo updated coherently
+  - [ ] Operator cheat sheet updated coherently
+  - [ ] Plugin-intake log appended
+  - [ ] Durable repo record updated in `todo.md`
+  - [ ] Commit pushed on this branch
+  - [ ] Merge or explicit no-merge closeout decided
+  - [ ] Local/remote branch cleanup completed
+- delete when: After merge or explicit closeout and branch cleanup completes
+- retain reason: n/a
+
 ## Branch History
 - No closed branch entries recorded yet.
 
@@ -1763,6 +1852,7 @@ If it's not here, it isn't remembered.
 
 - 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml` | result: pass — the new CodeRabbit config parses, validates against the current live CodeRabbit schema, and is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
 - 2026-04-17 | command(s): `git diff --check -- README.md GUIDE.md todo.md`; direct reread of `README.md`; direct reread of `GUIDE.md` | result: pass — the repo discovery docs now point to `.coderabbit.yaml`, the new note stays minimal and non-authoritative, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
+- 2026-04-17 | command(s): `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/codex-april-16-2026-impact.md`; direct reread of `docs/codex-plugin-operator-cheatsheet.md`; direct reread of `docs/plugin-intake.md`; direct reread of `README.md`; direct reread of `GUIDE.md`; direct reread of `.coderabbit.yaml` | result: pass — the Rabbit trial wording is now consistent across the canonical memo and operator guide, the comparison logic is preserved in the append-only intake log, the patch is whitespace-clean, and the existing discovery/config surfaces still match without further edits | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
 
 ## Feedback Decision Log
 If it's not here, it isn't remembered.
@@ -1810,3 +1900,4 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-16 | feedback source: Trevor implementation-direction decisions during the Superpowers design session | feedback summary: keep this repo as the implementation repo, make the first runnable milestone a local single-run harness instead of queue-first or browser-first work, require strong Linear involvement and durable repo writeback from day one, and add branch lifecycle visibility so old branches stop becoming mystery state | evaluation chat: current Superpowers brainstorming and design-spec session | reasoning response: accepted. The approved baseline is now the local single-run harness design in `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, explicitly aligned to the already-landed `supervisor/` foundation. The design makes `linear_issue_id` mandatory for real runs, preserves repo truth over Linear truth, and defines branch lifecycle tracking across git, `todo.md`, and a Linear mirror rather than letting any one surface become overloaded. | decision status: accepted | implementation/disposition chat: current Superpowers brainstorming and design-spec session | linked branch / audit / suggestion / test evidence: `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `Work Record Log` 2026-04-16 `GIL-52`; `Test Evidence Log` 2026-04-16 `GIL-52`
 - 2026-04-17 | feedback source: Trevor request to implement CodeRabbit in this repository using the best bounded setup | feedback summary: enable CodeRabbit here without turning it into a noisy generic reviewer, a CI replacement, or a second workflow owner | evaluation chat: current CodeRabbit integration thread | reasoning response: accepted. The right first landing is a repo-local `.coderabbit.yaml` that keeps CodeRabbit in PR-review mode, teaches it the difference between supervisor code, tests, schemas, live governance docs, and archive docs, and scopes knowledge locally to this repository. Activation beyond that still requires manual GitHub/CodeRabbit app installation and a short calibration period before any blocking behavior is enabled. | decision status: accepted | implementation/disposition chat: current CodeRabbit integration thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Suggested Recommendation Log` 2026-04-17 CodeRabbit activation follow-up | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
 - 2026-04-17 | feedback source: Trevor clarification that CodeRabbit should be referenced somewhere in the repo docs so people know it is present | feedback summary: do not treat the `.coderabbit.yaml` landing as enough on its own; add a visible pointer in the repo's discovery docs | evaluation chat: current CodeRabbit discoverability follow-up thread | reasoning response: accepted. The minimal, correct place is the repo's navigation layer: `README.md` and `GUIDE.md`. That makes CodeRabbit easy to find without expanding authority docs or pretending it is part of the system's canonical architecture. | decision status: accepted | implementation/disposition chat: current CodeRabbit discoverability follow-up thread | linked branch / audit / suggestion / test evidence: `README.md`; `GUIDE.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
+- 2026-04-17 | feedback source: Trevor decision after the CodeRabbit-versus-GitHub-Copilot comparison | feedback summary: keep the CodeRabbit path in the repo docs, document the actual tradeoff instead of only the final preference, and present Rabbit as the active bounded review trial again | evaluation chat: current CodeRabbit re-activation thread | reasoning response: accepted. The durable repo position is not "Copilot was wrong"; it is "Copilot is still the stronger value/integration baseline for a small private repo, while CodeRabbit is still the likelier stronger dedicated PR-review tool." Because Trevor wants to test review quality first, the repo now treats CodeRabbit as the active bounded review trial, keeps Copilot only as the cheaper fallback baseline in the narrative, and leaves GitHub App activation plus 3-5 real PRs as the remaining proof step. | decision status: accepted | implementation/disposition chat: current CodeRabbit re-activation thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison

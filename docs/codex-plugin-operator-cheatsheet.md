@@ -27,6 +27,11 @@ This is the operational companion to
 
 ## Current repo status
 
+- `Autopilot`, `HOTL`, and `Cavekit` are now actually installed and enabled in
+  Codex through the personal marketplace `gillettes-local-plugins`.
+- `Cavekit` is installed under the plugin id `ck`.
+- The exact install state, identifiers, and settings posture for those three
+  plugins now live in `docs/codex-workflow-plugin-setup.md`.
 - `CodeRabbit` has committed repo-local settings at `.coderabbit.yaml`.
 - The exact field-by-field settings and rationale now live in
   `docs/coderabbit-review-settings.md`.
@@ -42,6 +47,16 @@ This is the operational companion to
   and fall back to Claude Code or Trevor review for the same pre-audit slot.
 - After activation, calibrate it on 3-5 real PRs before enabling stronger
   request-changes or pre-merge gating behavior.
+
+## Settings rule
+
+- `Autopilot`, `HOTL`, and `Cavekit` currently have no repo-committed settings
+  file; their settings posture here is operational, not YAML-driven.
+- `CodeRabbit` is the opposite: its active repo-local behavior is expected to
+  live in `.coderabbit.yaml`.
+- Do not invent repo-local config for the three workflow plugins unless we
+  actually decide their behavior should become part of repo truth instead of
+  operator preference.
 
 ## Do not overlap them like this
 

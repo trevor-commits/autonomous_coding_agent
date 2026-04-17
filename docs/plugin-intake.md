@@ -218,3 +218,38 @@ scores do not count as "tried here." The `Autopilot` row in the canonical
 ledger was not disambiguated to `AlexMi64/codex-project-autopilot` because
 the chat did not establish that the locally installed `Autopilot` and that
 repository are the same artifact.
+
+### 2026-04-17 | source: GIL-54 installed workflow-plugin state capture | by: Codex
+
+Plugins:
+`Autopilot`, `HOTL`, `Cavekit`
+
+Observation:
+The repo previously documented these as locally installed workflow plugins, but
+did not yet capture their actual successful Codex install state, marketplace
+identifier, enabled state, or the fact that `Cavekit` is installed under the
+plugin id `ck`. The repo also lacked one durable setup companion explaining
+that these three have no repo-committed config and are governed here by an
+operational split rather than a checked-in settings file.
+
+Evidence:
+`~/.agents/plugins/marketplace.json`; `~/.codex/config.toml`;
+`/Users/gillettes/plugins/codex-project-autopilot/.codex-plugin/plugin.json`;
+`/Users/gillettes/plugins/hotl/.codex-plugin/plugin.json`;
+`/Users/gillettes/plugins/cavekit/.codex-plugin/plugin.json`;
+`docs/codex-workflow-plugin-setup.md`; `todo.md` `Work Record Log`
+2026-04-17 `GIL-54`
+
+Recommended ledger delta:
+Update the canonical plugin ledger rows for `Autopilot`, `HOTL`, and
+`Cavekit` from generic "installed locally" wording to "installed and enabled
+in Codex", and add a durable companion-doc pointer for the exact install
+state and settings posture.
+
+Canonical ledger updated:
+Yes
+
+Notes:
+This still does not count as a task-backed plugin trial. The durable change is
+about install state and operating guidance, not proof that any of the three
+improves real repo work yet.

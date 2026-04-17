@@ -127,6 +127,7 @@ Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title �
 - [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-54: capture installed workflow-plugin state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-28: add the first runnable Codex builder loop — landed as `bea68f6`; full record in Work Record Log 2026-04-17
@@ -510,6 +511,88 @@ help automate implementation, handoffs, testing, reviewing, and enforcement.
 led to:
 landing commit SHA recorded in immediate closeout; suggested follow-up spikes
 preserved in `Suggested Recommendation Log` 2026-04-17
+
+linear:
+GIL-54
+
+### 2026-04-17 | GIL-54 | by: Codex
+
+Problem:
+The repo already had the plugin decision ledger and the operator cheat sheet,
+but it still did not capture the actual successful Codex install state for the
+three workflow plugins Trevor cared about most. Future sessions could see the
+intended role split, but not the exact marketplace, plugin ids, enabled-state
+expectation, or the important distinction that these three currently have no
+repo-committed config and are governed here by operating rules instead.
+
+Reasoning:
+That gap is too operational to leave in chat and too specific to squeeze into
+the canonical ledger row notes alone. The correct split is: keep the canonical
+use/defer stance in `docs/codex-april-16-2026-impact.md`, keep phase ownership
+rules in `docs/codex-plugin-operator-cheatsheet.md`, and add one setup
+companion that records the actual installed state and settings posture for
+`Autopilot`, `HOTL`, and `Cavekit`. That makes the repo durable without
+pretending these operator home-directory files are themselves repo truth.
+
+Diagnosis inputs:
+Direct rereads of `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`,
+`README.md`, `GUIDE.md`, and `todo.md`; local Codex state from
+`~/.agents/plugins/marketplace.json` and `~/.codex/config.toml`; and each
+installed plugin's local `.codex-plugin/plugin.json`.
+
+Implementation inputs:
+Created `docs/codex-workflow-plugin-setup.md`; updated
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`,
+`README.md`, `GUIDE.md`, and `todo.md`.
+
+Fix:
+Added a durable setup companion for the installed workflow plugins that records
+the marketplace name, plugin ids, display names, local roots, enabled state,
+and the repo's settings posture for `Autopilot`, `HOTL`, and `Cavekit`.
+Updated the canonical plugin ledger so those three now reflect "installed and
+enabled in Codex" instead of only "installed locally", added a companion-doc
+pointer from the ledger and discovery surfaces, and appended the install-state
+capture to the plugin-intake log.
+
+Self-audit:
+1. Re-read `docs/codex-workflow-plugin-setup.md`; confirmed it distinguishes
+   install state from task-backed proof, records `ck` as the actual Cavekit
+   plugin id, and says clearly that these three have no repo-committed config
+   file today.
+2. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the canonical
+   ledger rows for `Autopilot`, `HOTL`, and `Cavekit` now match the real
+   installed-and-enabled state without overstating task-backed usage.
+3. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed it now points
+   to the setup companion and makes the settings split clear: workflow plugins
+   are governed operationally here, while `CodeRabbit` has committed config.
+4. Re-read `README.md` and `GUIDE.md`; confirmed the new setup companion is
+   discoverable from the repo entry surfaces and quick-reference map.
+5. Re-read `docs/plugin-intake.md`; confirmed the new entry captures the
+   install-state evidence and marks the canonical ledger as updated.
+6. Ran `git diff --check -- docs/codex-workflow-plugin-setup.md
+   docs/codex-april-16-2026-impact.md
+   docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md
+   GUIDE.md todo.md`; no whitespace or patch-hygiene errors.
+7. Did not run a real plugin-backed repo task. This landing documents install
+   state and repo usage expectations only.
+Ripple Check attestation: because this task changed the repo's live plugin
+guidance and discovery surface, I added the setup companion, updated the
+canonical ledger, refreshed the operator cheat sheet, refreshed both discovery
+surfaces, appended the raw intake evidence, and recorded the durable trail in
+`todo.md` in the same landing.
+Linear-coverage disposition: `GIL-54` already covers durable operating
+guidance for the installed workflow plugins, so this install-state and
+settings capture extends the same bounded issue rather than creating a new one.
+
+triggered by:
+Trevor report on 2026-04-17 that the manually added plugins were now actually
+installable in Codex and the repo should document the appropriate sections,
+settings, and usage of those plugins thoroughly.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
 
 linear:
 GIL-54
@@ -1962,6 +2045,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `rg -n "Autopilot|HOTL|Cavekit|gillettes-local-plugins|ck" docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md`; `git diff --check -- docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md todo.md` | result: pass — the new setup companion, canonical ledger, operator cheat sheet, intake log, and discovery surfaces all reflect the installed-and-enabled state for `Autopilot`, `HOTL`, and `Cavekit`, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `git diff --check -- supervisor/builder_adapter.py supervisor/main.py supervisor/strategy_simple.py tests/test_builder_adapter.py tests/test_strategy_simple.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the new builder adapter, simple strategy, and main loop pass their focused tests; the broader supervisor suite still passes with the builder loop wired on top; and the final patch is whitespace-clean | log/PR reference: `bea68f6`; `Work Record Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-28
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_actions tests.test_strategy_schema`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|record_failure_signature" LOGIC.md RULES.md schemas/strategy-decision.schema.json`; `git diff --check -- supervisor/actions.py schemas/strategy-decision.schema.json RULES.md LOGIC.md tests/test_actions.py tests/test_strategy_schema.py design-history/ADR-0003-phase-1-architecture-checkpoint.md design-history/README.md todo.md` | result: pass — the action validator and strategy schema agree on the live payload contract, the stale checkpoint/failure-signature strategy actions are gone from the active docs/schema boundary, and the closeout patch is whitespace-clean | log/PR reference: `95a6271`; `Work Record Log` 2026-04-17 `GIL-9` | by: Codex | linear: GIL-9
 - 2026-04-17 | command(s): `rg -n "One-owner rule|Default split|Autopilot|HOTL|Cavekit|CodeRabbit|plugin-eval|Brooks Lint|Session Orchestrator|Agent Message Queue|Registry Broker|Claude Code for Codex|ECC" docs/codex-plugin-operator-cheatsheet.md docs/codex-april-16-2026-impact.md`; `rg -n "codex-plugin-operator-cheatsheet.md|Plugin decision ledger|CodeRabbit|plugin-eval" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-plugin-operator-cheatsheet.md docs/codex-april-16-2026-impact.md README.md GUIDE.md todo.md` | result: pass — the new cheat sheet contains the intended role split and candidate shortlist, the discovery docs point to both the operator guide and the decision ledger, and the patch is whitespace-clean. `supervisor.closeout_evidence validate` was intentionally not run pre-commit because `GIL-54` does not have a final landed SHA yet. | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
@@ -2069,3 +2153,4 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-17 | feedback source: Trevor clarification that CodeRabbit should be referenced somewhere in the repo docs so people know it is present | feedback summary: do not treat the `.coderabbit.yaml` landing as enough on its own; add a visible pointer in the repo's discovery docs | evaluation chat: current CodeRabbit discoverability follow-up thread | reasoning response: accepted. The minimal, correct place is the repo's navigation layer: `README.md` and `GUIDE.md`. That makes CodeRabbit easy to find without expanding authority docs or pretending it is part of the system's canonical architecture. | decision status: accepted | implementation/disposition chat: current CodeRabbit discoverability follow-up thread | linked branch / audit / suggestion / test evidence: `README.md`; `GUIDE.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
 - 2026-04-17 | feedback source: Trevor decision after the CodeRabbit-versus-GitHub-Copilot comparison | feedback summary: keep the CodeRabbit path in the repo docs, document the actual tradeoff instead of only the final preference, and present Rabbit as the active bounded review trial again | evaluation chat: current CodeRabbit re-activation thread | reasoning response: accepted. The durable repo position is not "Copilot was wrong"; it is "Copilot is still the stronger value/integration baseline for a small private repo, while CodeRabbit is still the likelier stronger dedicated PR-review tool." Because Trevor wants to test review quality first, the repo now treats CodeRabbit as the active bounded review trial, keeps Copilot only as the cheaper fallback baseline in the narrative, and leaves GitHub App activation plus 3-5 real PRs as the remaining proof step. | decision status: accepted | implementation/disposition chat: current CodeRabbit re-activation thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
 - 2026-04-17 | feedback source: Trevor request to preserve the exact CodeRabbit settings and the detailed reasoning in the repo so later AIs can review them | feedback summary: do not leave the settings only in chat; make the specific values, blank fields, caveats, and rationale durable in repo docs and, where supported, in the repo config itself | evaluation chat: current CodeRabbit settings capture thread | reasoning response: accepted. The right shape is `.coderabbit.yaml` plus a dedicated operator companion doc. Repo-supported settings belong in config; blank UI fields and product caveats belong in a doc. That gives later AI reviewers both machine-readable truth and the human rationale without forcing them to infer hidden settings from chat. | decision status: accepted | implementation/disposition chat: current CodeRabbit settings capture thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
+- 2026-04-17 | feedback source: Trevor confirmation that the manually added workflow plugins now install in Codex and should be documented thoroughly in the repo | feedback summary: stop treating `Autopilot`, `HOTL`, and `Cavekit` as merely "locally installed" abstractions; make the repo record the actual Codex install state, plugin ids, settings posture, and intended usage thoroughly enough that later sessions do not have to reconstruct it from chat or home-directory files | evaluation chat: current installed-workflow-plugin docs thread | reasoning response: accepted. The durable split is three-layered: keep use/defer truth in `docs/codex-april-16-2026-impact.md`, keep phase ownership in `docs/codex-plugin-operator-cheatsheet.md`, and add a dedicated setup companion for the actual install state and settings posture. Because these three have no repo-committed config today, their "settings" here are procedural: enabled in Codex, phase-bounded invocation, no workflow authority, no repo-truth authority, and no claim that installation alone means "tried here." | decision status: accepted | implementation/disposition chat: current installed-workflow-plugin docs thread | linked branch / audit / suggestion / test evidence: `docs/codex-workflow-plugin-setup.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54

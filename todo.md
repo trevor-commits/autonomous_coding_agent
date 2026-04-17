@@ -195,7 +195,7 @@ Added a critical-review requirement across the live governance surfaces so Codex
 
 Self-audit:
 1. Re-read the touched sections in `AGENTS.project.md`, `CLAUDE.md`, `PROMPTS.md`, `LINEAR.md`, and `RULES.md`; confirmed the same critical-review rule now appears consistently across implementor authority, prompt design, prompt drafting workflow, and enforceable repo rules.
-2. Re-read the updated `todo.md` sections; confirmed `GIL-48` and `GIL-49` now exist in `Linear Issue Ledger`, `GIL-48` has a `Completed` index entry placeholder ready for SHA backfill, and this Work Record plus the forthcoming Feedback Decision / Test Evidence entries keep the durable trail complete.
+2. Re-read the updated `todo.md` sections; confirmed `GIL-48` and `GIL-49` now exist in `Linear Issue Ledger`, `GIL-48` has a backfilled `Completed` index entry plus the matching `led to:` reference, and this Work Record plus the Feedback Decision / Test Evidence entries keep the durable trail complete.
 3. Live-checked Linear through the connector; confirmed the active-state assignee drift has been reduced by assigning the clearly active unassigned issues I could safely normalize from the current tool surface.
 4. Runtime inspection result is still unchanged: no executable supervisor or queue implementation files are present yet in this repo, so queue execution remains doc-defined rather than runnable. Existing phase issues `GIL-25` through `GIL-29` already cover that gap; I did not create redundant runtime tickets.
 5. Did not verify workspace-level Triage or webhook configuration directly because the current Linear tool surface in this session cannot inspect those settings. Filed `GIL-49` so that gap is tracked instead of implied.

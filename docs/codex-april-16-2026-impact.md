@@ -163,6 +163,17 @@ not count as tried.
 | `Linear` | Yes | Use now, bounded | issue creation, queue hygiene, routing metadata, provenance checks | workflow authority or storing acceptance criteria and decisions in Linear | only if the queue contract or Linear boundary changes |
 | `GitHub` | No durable repo-side trial yet | Use now, bounded when needed | PR review comments, CI context, and audit follow-up in real target-repo work | making GitHub the owner of repo truth, queue legality, or task acceptance | when target-repo PR and CI work becomes active |
 | `Superpowers` | Yes | Use now, selectively | governance/design discipline, planning, review, and honest closeout checks | turning docs-only work into heavy process, branch churn, or subagent theater | when this repo becomes implementation-heavy enough to justify broader skill stacks |
+| `Autopilot` | Installed locally; no task-backed repo-side run yet | Use selectively for fuzzy project intake | discovery questions, brief creation, route selection, and handoff framing when a project starts as an idea instead of a bounded issue | routine bounded repo tasks or implementation execution once direction is already known | when a real project starts from a vague idea and needs route shaping before spec or build work |
+| `HOTL` | Installed locally; no task-backed repo-side run yet | Use now, selectively | implementation discipline, review, verification, and resumable execution once a bounded plan exists | replacing repo truth, acting as queue authority, or forcing heavy ceremony on trivial fixes | when a real implementation slice or risky repair needs stronger execution guardrails |
+| `Cavekit` | Installed locally; no task-backed repo-side run yet | Use selectively for spec-heavy work | requirements, acceptance criteria, build-task decomposition, and pre-build traceability; current Blueprint-family candidate | rediscovering already-approved plans or owning the whole implementation loop | when a fuzzy or large feature needs real spec/decomposition before code |
+| `CodeRabbit` | Repo-side config landed; no durable GitHub PR-review trial yet | Use now, bounded after GitHub App activation | deterministic/mechanical pre-audit, bug/security/lint/test signal before Claude or human review | replacing repo-truth review, architectural audit, or completion authority | after 3-5 real PRs show whether stronger gates are worth enabling |
+| `plugin-eval` | No durable repo-side run yet | Use now, bounded | benchmarking plugins, models, or workflow variants before adoption decisions | replacing architectural judgment with a single score or installing plugins on vibes | whenever a plugin or workflow choice is contested and evidence is cheaper than debate |
+| `Brooks Lint` | No | Run a spike later | second-pass code review with a maintainability and test-quality lens | default review ownership or a substitute for deterministic/scanner review | if `CodeRabbit` plus Claude review still misses maintainability or test-quality issues |
+| `Session Orchestrator` | No | Study / spike later | wave execution, quality gates, and clean session close-out as a possible execution envelope | becoming the default queue or supervisor substrate before this repo resolves its own execution model | if real implementation work shows the current execution envelope is too thin |
+| `Agent Message Queue` | No | Later / conditional | file-based agent handoffs and cross-session messaging if real multi-agent collaboration appears | adding a messaging bus before cross-session handoff is a concrete bottleneck | if cross-project or cross-session handoffs become recurring operational pain |
+| `Registry Broker` | No | Do not adopt now | specialist delegation only if later proven necessary | introducing brokered delegation before local subagents and the repo role chain are exhausted | if the repo later needs external specialist pools beyond local subagents |
+| `Claude Code for Codex` | No | Later / conditional | tracked Claude review, rescue, or background jobs launched from Codex | duplicating the existing Codex-to-Claude bridge and audit chain without a concrete tracked-job need | if background Claude review or rescue jobs become operationally valuable |
+| `ECC` | No | Study as a source library only | harvesting specific TDD, security, or verification ideas from a large skill catalog | wholesale install that lets a giant external workflow redefine this repo | if a specific capability is needed and smaller plugins do not cover it |
 | `Figma` | No | Later / conditional | operator UI or app-supervisor UI design work | early-stage governance work where it adds no leverage | when a real UI surface is in scope |
 | `Vercel` | No | Later / conditional | preview environments, frontend verification, and AI SDK experiments | auto-deploy authority or hosted-platform dependence in the v1 core | when preview or frontend workflow becomes real |
 | `Cloudflare` | No | Later / conditional | webhook intake hosting, Workers experiments, and possible workflow-substrate exploration | backdooring the hosting/runtime decision through plugin availability | when the runtime hosting choice is actively being made |
@@ -172,11 +183,19 @@ not count as tried.
 
 Notes:
 
-- The current allow-now set is deliberately narrow: `Linear`, `GitHub`, and
-  `Superpowers`, each within the limits stated above.
+- The current allow-now set is still role-bounded rather than plugin-maximal:
+  `Linear`, `GitHub`, `Superpowers`, `HOTL`, `CodeRabbit`, and
+  `plugin-eval` are usable now inside the limits above.
+- `Autopilot` and `Cavekit` are installed locally but should remain selective
+  phase owners, not default workflow owners.
+- `CodeRabbit` now has repo-local configuration at `.coderabbit.yaml`, but the
+  GitHub App installation and first live PR-review trial are still manual
+  operator work rather than a completed repo-side automation step.
 - `docs/superpowers-playbook.md` remains the detailed usage guide for
   `Superpowers`; this ledger records the decision status, not the full
   workflow.
+- `docs/codex-plugin-operator-cheatsheet.md` is the operational companion for
+  `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval`.
 
 ## Recommended next stance
 

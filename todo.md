@@ -13,25 +13,25 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | Not started |
 | **5** | Operational memory hardening (v1.1) | Benchmark suite rerun shows clear reliability gains | GIL-31 | Not started |
 
-**Shortest valid path:** target repo chosen (`bible-ai`) → finish Phase 0 → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
+**Shortest valid path:** `bible-ai` Phase 0 proof landed → finish the remaining repo-local Phase 0 and lifecycle work → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: keep the repo implementation-ready while finishing the repo-local Phase 0/1/2 control-plane work in this repository and starting the first target-repo contract path in `bible-ai`.
+Current goal: keep the repo implementation-ready while finishing the repo-local Phase 0/1/2 control-plane work in this repository after the first truthful target-repo Phase 0 proof in `bible-ai`.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
 - [ ] Branch lifecycle policy reset (GIL-55): restore automatic task branches as the default for edit work, make Linear the live branch mirror alongside `todo.md`, and update the global plus repo-local governance/scaffolding surfaces that still stamp the old no-branch flow.
 - [x] Audit follow-up (GIL-46): automate durable closeout-evidence backfill and validation so queue/provenance landings cannot leave placeholder SHAs, missing Work Record entries, or misattributed completion comments in the repo or Linear audit trail.
 - [x] Phase 0A.5 (GIL-19): trim the initial implementation surface to a smaller v1 by reducing externally visible action families and collapsing operational memory to a minimal first-pass shape; push the heavier Phase 5 hardening items behind a later v1.1-style threshold.
-- [ ] Phase 0.1 (GIL-20): write `bible-ai`'s `.agent/contract.yml` using the canonical repo-contract shape and keep the initial scope intentionally narrow.
-- [ ] Phase 0.2 (GIL-21): manually validate the `bible-ai` contract end-to-end on a clean checkout. "Clean" is defined as: fresh clone into an empty directory, no cached dependencies, no prior `.autoclaw/` state, no prior `.agent/` artifacts beyond the committed `contract.yml`. Validation covers setup, test, app launch, and health check, each recorded as a passed checklist step.
-- [ ] Phase 0.2a (GIL-22): document CI parity for `bible-ai` so GitHub Actions reuses repo-contract commands, fast/unit/smoke gates, and structured artifacts instead of inventing repo behavior in workflow YAML.
+- [x] Phase 0.1 (GIL-20): `bible-ai`'s first `.agent/contract.yml` landed on `agent/codex/2026-04-17/bible-ai-contract` as `c7760dab553a843a3be413c00bd148c6db7ba3be`.
+- [x] Phase 0.2 (GIL-21): the `bible-ai` clean-checkout proof landed on `agent/codex/2026-04-17/bib-9-clean-checkout-ci-parity` as `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; a fresh clone passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state.
+- [x] Phase 0.2a (GIL-22): the `bible-ai` CI-parity note landed at `.agent/ci-parity.md` on `agent/codex/2026-04-17/bib-9-clean-checkout-ci-parity` as `99198863a4ea2e10db19f74f59608d7b3cbd40d7`.
 - [ ] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
 - [ ] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
 - [x] Phase 0.6 (GIL-9): draft ADR-0003 "Phase 1 Subphase 2 Architecture Checkpoint" — after supervisor subphases 1.1 and 1.2 land (contract parsing, run directory, shell/path guardrails, single-writer lock), pause before subphase 1.3 and run an architecture audit against the schemas, action set, and invariants. If the design still fits, continue. If not, rescope before deepening the Phase 1.3 runtime surface on top of a shaky foundation.
 - [ ] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
 - [ ] Phase 0.8 (GIL-11): draft ADR-0005 "Codex Conversation Lifecycle" — fresh Codex conversation per bounded task; repo docs are the persistent memory, not Codex chat history. Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round, every ADR that changes an operating decision, whenever Codex begins hallucinating or contradicting the repo. Permitted same conversation: mid-task repair within one bounded task before the commit lands; active debugging of a single issue with ongoing context; multi-commit prompts where sub-commits depend on context. Hard caps: one prompt + its immediate repair loops per conversation, never spanning two prompts; repair loops hitting round 3 in the same conversation must close and restart with the auditor's latest findings as the brief; never reuse a Codex conversation across a phase boundary. Rationale: avoid context rot, stale memory, prompt pollution, and audit-scope ambiguity.
-- [ ] Phase 0.4 (GIL-24): verify local tool readiness for the first implementation pass: Codex CLI auth path works, Claude access path works, Python is ready, and Playwright is installable.
+- [x] Phase 0.4 (GIL-24): local tool-readiness checks passed for `codex`, `claude`, `python3`, and `npx playwright`; see `Test Evidence Log` 2026-04-17.
 - [ ] Phase 1.1 (GIL-25): build the deterministic supervisor foundation before any bounded strategy-layer integration.
 - [x] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
 - [x] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
@@ -78,7 +78,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-39` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (portfolio rollout blocker; waiting on remote/init decision) | why this exists: decide whether `Trevor Stack` is a canonical portfolio repo and either attach an `origin` remote so the repo-principles baseline can land, or record an explicit non-landing/exclusion decision | origin source: `GIL-37` landing audit surfaced `Trevor Stack` as a no-remote repo during the portfolio rollout
 - `GIL-35` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (Claude-only audit follow-up; intentionally outside the Codex queue lane) | why this exists: run an independent Claude Code audit of the unattended queue contract and the related Linear/prompt/rules changes before implementation begins | origin source: follow-up surfaced while landing `GIL-34` on 2026-04-16
 - `GIL-19` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-16 (trimmed-v1 envelope landing; awaiting Cowork/Trevor state move) | why this exists: trim the v1 implementation surface before the heavier Phase 5 memory hardening work | origin source: phase-plan refinement accepted in `Feedback Decision Log` 2026-04-15
-- `GIL-24` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.4 | why this exists: verify local tool readiness before the first implementation pass | origin source: Phase 0 prerequisites in `IMPLEMENTATION-PLAN.md` and `todo.md`
+- `GIL-24` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (local tool-readiness proof recorded; awaiting Cowork/Trevor state move) | why this exists: verify local tool readiness before the first implementation pass | origin source: Phase 0 prerequisites in `IMPLEMENTATION-PLAN.md` and `todo.md`
 - `GIL-11` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.8 | why this exists: codify the Codex conversation lifecycle before longer implementation work starts | origin source: Trevor Codex conversation lifecycle request recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-10` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.7 | why this exists: codify the ChatGPT Pro strategic audit cadence | origin source: Trevor request to integrate ChatGPT Pro recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-9` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (architecture checkpoint repair landed as `95a6271`; awaiting Cowork/Trevor state move) | why this exists: force an architecture checkpoint before deeper Phase 1 buildout | origin source: 2026-04-15 Claude Code plan-review finding
@@ -99,9 +99,9 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-47` | status: `Inbox` | todo home: `Linear Issue Ledger` (portfolio rollout correction; audit follow-up to `GIL-37`/`GIL-43`) | why this exists: replace the temporary `/Users/gillettes/Downloads/taxes-principles-main/` scratch-worktree paths still embedded in the `Taxes` repo's `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.md` with the canonical `/Users/gillettes/Coding Projects/Taxes/` path so the principle docs' "Where The Rules Live" pointers remain findable | origin source: 2026-04-16 Claude Code portfolio-wide audit following the `GIL-37`/`GIL-43` rollout grepped every canonical repo for `/Users/gillettes/Downloads/` path leakage and found `Taxes` as the only remaining offender
 - `GIL-44` | status: `Inbox` | todo home: `Linear Issue Ledger` (audit follow-up backlog) | why this exists: close three coherence/ripple findings Claude Code surfaced during the 2026-04-16 line-by-line audit of the `GIL-32..GIL-38` landings — duplicate `## Repo Principles` heading in `AGENTS.project.md`, unmoved post-retirement `SCOPING-three-pillar-principles.md` at repo root, and a stale `AGENTS.md` read-scope reference in `IMPLEMENTATION-PLAN.md:319` after the AGENTS split | origin source: 2026-04-16 Claude Code line-by-line audit of commits `69aa003..b4adccb`, with details recorded in audit comments on `GIL-37`, `GIL-38`, `GIL-35`
 - `GIL-43` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (automation enforcement landed as `.codex` `438bc3e1`; awaiting Cowork/Trevor state move) | why this exists: update the portfolio remediation / validation path so repo-principles rollouts either backfill a local durable record in each touched repo or explicitly enforce a documented non-redundant exception path | origin source: third-pass audit on 2026-04-16 found that multiple touched repos had the new principle surfaces but still showed empty `Work Record Log` / `Linear Issue Ledger` sections until manual backfill
-- `GIL-20` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.1 | why this exists: write `bible-ai`'s first target-repo `.agent/contract.yml` | origin source: implementation roadmap; target repo selected by Trevor on 2026-04-17
-- `GIL-21` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2 | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
-- `GIL-22` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2a | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
+- `GIL-20` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` contract landed as `bible-ai` `c7760dab`; awaiting Cowork/Trevor state move) | why this exists: write `bible-ai`'s first target-repo `.agent/contract.yml` | origin source: implementation roadmap; target repo selected by Trevor on 2026-04-17
+- `GIL-21` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` clean-checkout proof landed as `bible-ai` `99198863`; awaiting Cowork/Trevor state move) | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
+- `GIL-22` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` CI-parity note landed as `bible-ai` `99198863`; awaiting Cowork/Trevor state move) | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
 - `GIL-23` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.3 | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
 - `GIL-25` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.1 | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
 - `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
@@ -136,6 +136,10 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-24: verify local Codex/Claude/Python/Playwright readiness for the first implementation pass — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-22: add the `bible-ai` CI-parity note for the contract-first path — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-21: prove the `bible-ai` clean-checkout contract baseline — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-20: land the first `bible-ai` repo contract — landed as `bible-ai` `c7760dab`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-65: audit current accessible app surfaces and record missing intended-use guidance — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-64: approve the `Optimal` autopilot route and lock `bible-ai` as the first implementation repo — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -220,6 +224,77 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-20 + GIL-21 + GIL-22 + GIL-24 | by: Codex
+
+Problem:
+The approved route had already been carried out in `bible-ai`, but this
+coordinator repo still presented the target-repo contract work and the local
+tool-readiness proof as open next steps. That drift would invite later sessions
+to redo finished work or mis-sequence the next real milestone.
+
+Reasoning:
+The right move was not to rerun onboarding or leave the truth stranded in a
+different repo. The coordinator repo needed one durable sync pass that points
+each affected issue at the real `bible-ai` landings and updates the short
+autopilot surfaces so execution no longer looks blocked on target-repo start.
+Because Codex may not move Linear state here, the repo also needed to preserve
+the current live statuses honestly while marking the state move as awaiting
+Cowork/Trevor.
+
+Diagnosis inputs:
+Re-read `todo.md` `Active Next Steps`, `Linear Issue Ledger`, and `Completed`;
+re-read `.codex-agent/phase-card.md`, `.codex-agent/ultra-context.md`,
+`.codex-agent/active-context.md`, `.codex-agent/progress.md`, and
+`.codex-agent/implementation-plan.md`; fetched the live Linear issue details
+for `GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24`; and compared those against the
+already-landed `bible-ai` commits `c7760dab553a843a3be413c00bd148c6db7ba3be`
+and `99198863a4ea2e10db19f74f59608d7b3cbd40d7`.
+
+Implementation inputs:
+Updated `todo.md`, `.codex-agent/phase-card.md`,
+`.codex-agent/ultra-context.md`, `.codex-agent/active-context.md`,
+`.codex-agent/progress.md`, and `.codex-agent/implementation-plan.md`.
+
+Fix:
+Marked `GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24` complete in the active queue
+with the real branch/commit references, moved their ledger homes from open
+queue items to this work record, added the cross-repo evidence trail, and
+advanced the Autopilot execution summaries so the next truthful work is the
+repo-local lifecycle reset plus the remaining Phase 0/Phase 3 sequence instead
+of "start `bible-ai` onboarding."
+
+Self-audit:
+1. Method: re-read the patched `todo.md` queue, ledger, and `Completed` lines
+   for `GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24`. Output: each issue now
+   points at landed work or recorded evidence instead of a stale open step.
+2. Method: re-read the patched `.codex-agent` short surfaces. Output: the
+   Autopilot summary now says the `bible-ai` Phase 0 baseline is proven and the
+   next sequencing question is the remaining repo-local work, not target-repo
+   startup.
+3. Method: fetched live Linear issue details before the edit. Output: the live
+   states remain `Inbox` / `Ready for Build`, so the repo preserves those
+   current statuses and explicitly records that only the repo-side truth moved
+   in this landing.
+4. Method: rerun the Autopilot validator plus `git diff --check` after the
+   patch. Output: the active `.codex-agent` surfaces still validate for this
+   workspace and the final patch is whitespace-clean.
+5. Did not move Linear state because `AGENTS.project.md` reserves state moves
+   for Cowork/Trevor.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to complete the next approved execution steps
+after locking `bible-ai` as the first implementation repo.
+
+led to:
+`GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24` now point at the real `bible-ai`
+and ACA evidence trail; landing commit SHA recorded in immediate closeout.
+
+linear:
+GIL-20 + GIL-21 + GIL-22 + GIL-24
 
 ### 2026-04-17 | GIL-65 | by: Codex
 
@@ -2739,6 +2814,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `npm ci && pnpm bootstrap:convex:frontend`; `pnpm test`; `pnpm preview --host 127.0.0.1 --port 4173 --strictPort`; `curl -fsS http://127.0.0.1:4173/login`; `APP_URL=http://127.0.0.1:4173 bun run --bun scripts/smoke-public.ts`; `codex --version`; `codex login status`; `claude --version`; `claude auth status`; `python3 --version`; `npx playwright --version`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- todo.md .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md` | result: pass — in a disposable fresh `bible-ai` clone the contract-first path passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state; local `codex` / `claude` / `python3` / `npx playwright` readiness checks all passed; the updated ACA autopilot surfaces still validate; and the final patch is whitespace-clean | log/PR reference: `bible-ai` `c7760dab553a843a3be413c00bd148c6db7ba3be`; `bible-ai` `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; `Work Record Log` 2026-04-17 `GIL-20 + GIL-21 + GIL-22 + GIL-24` | by: Codex | linear: GIL-20 + GIL-21 + GIL-22 + GIL-24
 - 2026-04-17 | command(s): `python3 -m json.tool .codex-agent/state.json`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md .codex-agent/context-bundle.md .codex-agent/state.json .codex-agent/approval-snapshot.json todo.md` | result: pass — the local Autopilot state is valid in the locked execution phase, the approved `Optimal` route is frozen, `bible-ai` is recorded as the first implementation repo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-64` | by: Codex | linear: GIL-64
 - 2026-04-17 | command(s): `rg -n "## Current accessible app audit|### Directly usable or enabled now|Build Web Apps|Computer Use|Jam|Stripe|MarcoPolo" docs/codex-app-marketplace-evaluations.md docs/codex-april-16-2026-impact.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-app-marketplace-evaluations.md todo.md` | result: pass — the repo now has one durable current-access audit section, the missing plugin stances for `Build Web Apps` and `Computer Use` are present in the canonical plugin ledger, the searchable-connector gap surfaces are named explicitly in the app memo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
 - 2026-04-17 | command(s): `python3 -c "import yaml, json, urllib.request, ssl, jsonschema; ..."` strict-validating `.coderabbit.yaml` against the resolved `#/definitions/schema` at `https://coderabbit.ai/integrations/schema.v2.json` (including the new `reviews.slop_detection` block); `rg -n "slop_detection|Defaults we accept|reviews.tools|pre_merge_checks|finishing_touches|code_generation|issue_enrichment" .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md`; `git diff --check -- .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md todo.md` | result: pass — the updated CodeRabbit config validates against the live schema, the companion doc now encodes `slop_detection` as repo-supported and explicitly names the five unconfigured schema surfaces under `Defaults we accept`, the intake log carries the audit follow-up entry, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)

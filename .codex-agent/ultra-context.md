@@ -14,6 +14,6 @@ Read this file first. Open the other files only if the current step cannot be co
 - Explanation mode: `enabled`
 - Scope mode: `one main scenario, minimal extra scope`
 - Docs policy: `summary-first, quiz-first, docs-last`
-- Next step: `execution` -> land the repo-local unblockers and start the truthful Phase 0 path in `bible-ai`
+- Next step: `execution` -> keep the proven `bible-ai` Phase 0 baseline synced, finish the remaining repo-local lifecycle and Phase 0 work, then move into the first truthful Phase 3 slice
 - User answer needed: `no`
 - Open first: `phase-card.md, ultra-context.md, active-context.md, implementation-plan.md`

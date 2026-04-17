@@ -2,9 +2,10 @@
 
 ## Summary
 
-The route is now approved and anchored to a real target repo: finish the
-repo-local unblockers, onboard `bible-ai` as the first implementation repo, and
-unlock the first truthful Phase 3 slice instead of expanding generic autonomy.
+The route is approved and the first target-repo proof now exists: keep the
+repo-local lifecycle and remaining Phase 0 work honest, preserve the `bible-ai`
+baseline as the real external proof, and unlock the first truthful Phase 3
+slice instead of repeating onboarding or expanding generic autonomy.
 
 ## Project DNA
 
@@ -28,17 +29,23 @@ unlock the first truthful Phase 3 slice instead of expanding generic autonomy.
 - Local `.codex-agent` state and bounded approval path for this repo
 - Branch/Linear lifecycle reset (`GIL-55`) so future execution uses the right
   branch discipline again
-- First implementation repo selection plus Phase 0 contract/manual baseline
+- First implementation repo proof preserved in repo truth, including the
+  contract, clean-checkout baseline, and CI-parity note
 - One bounded Phase 3 app-launch and Playwright verification slice on a real repo
 - Durable evidence in repo docs and Linear throughout the flow
 
 ## First-Version Limit
 
-- `deliverable 1`: truthful autopilot state and approval checkpoint in this repo
-- `deliverable 2`: repo-local lifecycle/governance unblocker (`GIL-55`)
-- `deliverable 3`: `bible-ai` onboarded as the first real target repo and its
-  Phase 0 baseline completed
-- `deliverable 4`: one bounded Phase 3 verification slice proven against that repo
+- `deliverable 1` (done): truthful autopilot state and approval checkpoint in
+  this repo
+- `deliverable 2` (remaining): repo-local lifecycle/governance unblocker
+  (`GIL-55`)
+- `deliverable 3` (done): `bible-ai` onboarded as the first real target repo
+  and its Phase 0 baseline completed
+- `deliverable 4` (remaining): the remaining repo-local Phase 0 control items
+  either landed or explicitly deferred
+- `deliverable 5` (next): one bounded Phase 3 verification slice proven
+  against that repo
 
 ## What Stays Out
 
@@ -79,18 +86,22 @@ unlock the first truthful Phase 3 slice instead of expanding generic autonomy.
 ## Stages
 
 1. Freeze the approved plan in `.codex-agent`, with `Optimal` locked and
-   `bible-ai` named as the first implementation repo.
-2. Land the repo-local lifecycle/governance unblocker without widening scope.
-3. Complete the truthful Phase 0 baseline in `bible-ai`.
+   `bible-ai` named as the first implementation repo. Done.
+2. Complete the truthful Phase 0 baseline in `bible-ai`. Done.
+3. Land the repo-local lifecycle/governance unblocker and finish the remaining
+   Phase 0 control items without widening scope. Remaining.
 4. Return to this repo's next real milestone: one Phase 3 app-launch/UI
-   verification slice backed by artifacts.
+   verification slice backed by artifacts. Next.
 
 ## Acceptance Criteria
 
-- The approved plan names `bible-ai` as the first implementation repo and does
-  not blur repo-local work with target-repo work.
+- The approved plan names `bible-ai` as the first implementation repo, records
+  its completed Phase 0 proof, and does not blur repo-local work with
+  target-repo work.
 - `.codex-agent` artifacts agree on the same goal, open question, and
   approved variant.
+- The plan and progress surfaces distinguish clearly between what is already
+  proven, what is still queue work, and what is intentionally deferred.
 - The plan explicitly names what is deferred instead of implying "later magic."
 - The next execution step is blocked only by real implementation work, not by a
   missing operator decision.
@@ -106,8 +117,9 @@ unlock the first truthful Phase 3 slice instead of expanding generic autonomy.
 
 - If `GIL-55` stays open, future execution could keep drifting away from the
   restored branch/Linear lifecycle policy.
-- If `bible-ai` onboarding stalls after approval, the project can still drift
-  back into repo-local polish without proving the end-to-end harness.
+- If the coordinator repo keeps advertising `GIL-20` / `GIL-21` / `GIL-22` /
+  `GIL-24` as open after the `bible-ai` proof landed, later sessions may redo
+  solved work or skip the remaining real blockers.
 - If the plan jumps into broader autonomy before one real repo succeeds, the
   repo may accumulate more control-plane scope than trustworthy proof.
 

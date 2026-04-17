@@ -1,0 +1,615 @@
+{
+  "project_type": "automation-script",
+  "project_archetype": "automation-script",
+  "secondary_archetypes": [
+    "api-integration-worker"
+  ],
+  "capabilities": [
+    "automation",
+    "api",
+    "ai"
+  ],
+  "token_mode": "ultra",
+  "quality_mode": "сбалансированно",
+  "content_language": "en",
+  "goal": "Build a narrow, reliable autonomous coding harness for this repository that accepts a coding objective or eligible Linear issue, executes bounded implementation work through a deterministic Python supervisor, verifies results locally including UI checks, and produces readiness evidence.",
+  "audience": "Trevor, the operator validating an autonomous delivery harness",
+  "plan_variants": [
+    {
+      "id": "минимум",
+      "title": "Минимум",
+      "summary": "закрыть только repo-local unblockers и не трогать target-repo onboarding",
+      "when_to_choose": "Когда нужно быстро навести порядок в текущем репо и пока не выбирать первый implementation repo."
+    },
+    {
+      "id": "оптимально",
+      "title": "Оптимально",
+      "summary": "закрыть repo-local unblockers и выбрать первый target repo, чтобы честно открыть путь к Phase 3",
+      "when_to_choose": "Когда нужен реальный прогресс к первому end-to-end доказательству, а не только внутренняя подготовка."
+    },
+    {
+      "id": "с-запасом",
+      "title": "С запасом",
+      "summary": "оптимальный путь плюс webhook-ready intake и усиленные audit surfaces до Claude strategy",
+      "when_to_choose": "Когда можно расширить control-plane до следующего слоя надежности, но всё ещё не тащить Phase 5 hardening."
+    }
+  ],
+  "selected_plan_variant": "оптимально",
+  "beginner_explanation_mode": "включен",
+  "phase": "approval",
+  "phase_history": [
+    "discovery",
+    "planning",
+    "approval"
+  ],
+  "answers": {
+    "project_kind": "Autonomous coding harness with deterministic supervisor control, not a generic SaaS app.",
+    "audience": "Trevor as operator, plus later audit sessions that need durable repo-visible context.",
+    "problem": "Autonomous coding work is only useful if legality, scope, verification, and closeout stay deterministic and inspectable.",
+    "outcome": "A bounded harness that can accept a coding objective or eligible Linear issue, execute through Codex as sole writer, verify locally, and emit truthful readiness evidence.",
+    "v1_must_have": [
+      "repo-local governance and branch/Linear lifecycle alignment",
+      "first target repo chosen and contract/manual baseline completed",
+      "deterministic supervisor path preserved",
+      "Phase 3 app launch and Playwright verification unlocked for one real repo"
+    ],
+    "v1_not_now": [
+      "multi-writer execution",
+      "auto-merge or auto-deploy",
+      "Phase 4 bounded Claude strategy",
+      "Phase 5 memory/resume hardening"
+    ],
+    "core_flow": "Operator chooses a bounded repo task or queue issue -> supervisor normalizes inputs -> Codex writes inside bounded scope -> deterministic verification and UI checks run -> repo and Linear receive durable closeout evidence.",
+    "required_integrations": [
+      "Linear",
+      "Codex CLI",
+      "Claude audit path",
+      "Git",
+      "Python runtime",
+      "Playwright"
+    ],
+    "critical_open_question": "Which real target repo should be the first implementation repo once repo-local unblockers are cleared?"
+  },
+  "assumptions": [
+    "The current repo remains the source of truth and control-plane implementation home.",
+    "The first truthful milestone is one end-to-end success on a real target repo, not more internal abstraction.",
+    "Choosing the first implementation repo is the main dependency that still blocks the wider Phase 0 path."
+  ],
+  "selected_stack": {
+    "runtime": "Python 3.10+ local supervisor",
+    "builder": "Codex CLI as sole writer",
+    "audit_path": "Claude Code plus Cowork plus Trevor verify",
+    "queue_and_routing": "Linear issues normalized by supervisor",
+    "verification": "deterministic command runners plus Playwright UI checks",
+    "persistence": "repo docs plus local run artifacts; no external memory service in v1"
+  },
+  "active_roles": [
+    "project-discovery",
+    "solution-architect",
+    "backend-builder",
+    "automation-builder",
+    "qa-reviewer",
+    "deploy-operator"
+  ],
+  "recommended_skills": [
+    "playwright",
+    "openai-docs",
+    "security-best-practices"
+  ],
+  "selected_packs": [
+    "memory-bank",
+    "responsibility-map",
+    "scope-discipline"
+  ],
+  "playbook": "./playbooks/automation-script.md",
+  "supporting_playbooks": [
+    "./playbooks/api-integration-worker.md"
+  ],
+  "quality_gates": [
+    "repo-truth-aligned",
+    "queue-contract-bounded",
+    "single-writer-preserved",
+    "failure-paths-defined",
+    "env-documented",
+    "dependency-hygiene"
+  ],
+  "verification_required": [
+    "codex-agent-validation",
+    "phase-doc-consistency-check",
+    "todo-linear-coverage-check",
+    "env-audit",
+    "dependency-vulnerability-check"
+  ],
+  "approval_status": "pending",
+  "approval_snapshot": {
+    "locked": false,
+    "artifact": ".codex-agent/approval-snapshot.json",
+    "locked_fields": [
+      "project_type",
+      "project_archetype",
+      "secondary_archetypes",
+      "capabilities",
+      "selected_stack",
+      "active_roles",
+      "recommended_skills",
+      "selected_packs",
+      "playbook",
+      "supporting_playbooks",
+      "quality_gates",
+      "verification_required",
+      "execution_strategy",
+      "orchestration_mode",
+      "delegation_policy",
+      "delegation_targets",
+      "delegation_packets",
+      "quality_mode"
+    ]
+  },
+  "execution_strategy": "сначала закрыть repo-local unblockers и честно выбрать первый target repo, потом переходить к реальной end-to-end Phase 3 работе",
+  "orchestration_mode": "solo",
+  "delegation_policy": {
+    "solo": {
+      "summary": "Один агент ведёт проект последовательно по ролям без запуска под-агентов.",
+      "when_to_use": [
+        "Короткий или средний проект.",
+        "Нет явной пользы от параллельной работы.",
+        "Критичный путь требует плотной связки решений."
+      ],
+      "guardrails": [
+        "Не дроби работу ради видимости многозадачности.",
+        "Держи контекст компактным и не пересылай всё каждой роли заново."
+      ]
+    },
+    "delegated": {
+      "summary": "Оркестратор может запускать отдельные под-агенты для независимых ролей и интегрировать результат обратно.",
+      "when_to_use": [
+        "Есть хотя бы две независимые подсистемы.",
+        "Фронтенд, бэкенд, data или verification можно вести параллельно.",
+        "Следующий шаг не блокируется полностью одной ролью."
+      ],
+      "guardrails": [
+        "Не делегируй discovery и final handoff как фоновый шум — это ответственность оркестратора.",
+        "Не делегируй блокирующую задачу, если без неё нельзя сделать следующий шаг локально.",
+        "Каждому под-агенту нужен чёткий write scope и формат handoff."
+      ]
+    }
+  },
+  "delegation_targets": [
+    {
+      "role": "automation-builder",
+      "ownership": "scripts, workers, dry-run, retries, safe side effects",
+      "spawn_when": "Когда automation pipeline можно строить отдельно от UI."
+    },
+    {
+      "role": "qa-reviewer",
+      "ownership": "findings, verification report, scorecard, release readiness",
+      "spawn_when": "Когда реализация уже есть и review может идти параллельно с финальным полишем."
+    }
+  ],
+  "scope_mode": "один-главный-сценарий-и-минимум-лишнего",
+  "recommendation_policy": "предлагай-усиления-как-отложенные-идеи-и-не-реализуй-их-молча",
+  "scope_guardrails": [
+    "Не добавляй функции, которые пользователь явно не просил, без отдельного блока рекомендаций.",
+    "В первую версию включай только то, что нужно для одного рабочего сценария.",
+    "Советы по улучшению отделяй от обязательного scope.",
+    "Любое расширение scope после плана требует явного подтверждения пользователя."
+  ],
+  "role_system_version": "morecil-role-system-v1",
+  "souls_version": "morecil-souls-v1",
+  "design_profile": {
+    "visual_intensity": "спокойный",
+    "composition_mode": "служебный и объяснимый",
+    "shape_language": "минимальный",
+    "allow_complex_shapes": false,
+    "allow_bold_art_direction": false,
+    "style_source_policy": "использовать внешние style-файлы как ориентир, а не как шаблон",
+    "font_policy": "подбирать шрифты под язык контента, а не только по красоте",
+    "font_support": "латиница обязательна; декоративные гарнитуры допустимы только при нормальной читаемости"
+  },
+  "style_inputs": [],
+  "project_dna": {
+    "core_promise": "дать автономии полезную силу без потери deterministic control",
+    "interface_energy": "служебная и доказательная",
+    "trust_signal": "артефакты, guardrails, queue legality, repo-visible closeout",
+    "uniqueness_axis": "runtime-owned correctness instead of AI-owned workflow theater",
+    "template_rejection": "не изображать generic AI swarm или generic SaaS control plane там, где нужен узкий проверяемый harness",
+    "visual_intensity": "спокойный",
+    "shape_language": "минимальный"
+  },
+  "security_profile": {
+    "security_level": "базовые-дефолты",
+    "data_minimization": "не собирать лишние персональные данные и не тянуть базу без сценария",
+    "secret_policy": "секреты только через env; service_role, PAT и сильные ключи не уходят в клиент",
+    "query_policy": "никакой конкатенации SQL; только parameterized queries или ORM",
+    "dependency_policy": "перед handoff проверить зависимости через OSV, npm audit или pip-audit по стеку",
+    "logging_policy": "логи полезны для отладки, но без токенов, паролей и пользовательских секретов",
+    "access_policy": "не вводить сложную авторизацию без причины; если данных нет, не добавлять лишний access-layer",
+    "integration_policy": "payload валидируется, webhook secrets документируются, retries не раскрывают чувствительные данные"
+  },
+  "security_guardrails": [
+    "Секреты хранятся только в env или панели провайдера, а не в коде и не в репозитории.",
+    "Собирай и храни только те данные, без которых не работает главный сценарий.",
+    "Не логируй токены, пароли, cookie, service_role ключи и другой чувствительный ввод.",
+    "Перед handoff проверь зависимости и уязвимости, а не только happy path приложения.",
+    "Перед handoff должна быть хотя бы одна проверка зависимостей и уязвимостей проекта."
+  ],
+  "uniqueness_rules": [
+    "Не существует одного универсального шаблона, который подходит всем проектам.",
+    "Не выбирай решение только потому, что оно дефолтное для библиотеки или фреймворка.",
+    "Не повторяй один и тот же визуальный стиль во всех проектах.",
+    "Не заполняй пробелы типичным SaaS-набором без продуктового обоснования.",
+    "Сначала фиксируй главный сценарий и характер продукта, потом выбирай визуал и архитектуру."
+  ],
+  "deliverable_templates": {
+    "project-discovery": [
+      "главный сценарий",
+      "аудитория",
+      "что входит в MVP",
+      "что не входит в MVP",
+      "неизвестные ответы"
+    ],
+    "solution-architect": [
+      "стек",
+      "deliverables",
+      "acceptance criteria",
+      "known risks",
+      "ручные входы"
+    ],
+    "backend-builder": [
+      "stable inputs and outputs",
+      "observable failure paths",
+      "bounded integrations",
+      "execution-log.md"
+    ],
+    "design-director": [
+      "выбранное направление",
+      "палитра",
+      "типографика",
+      "motion rules",
+      "anti-generic rules"
+    ],
+    "qa-reviewer": [
+      "findings",
+      "что проверено",
+      "что не проверено",
+      "scorecard"
+    ],
+    "deploy-operator": [
+      "env checklist",
+      "manual steps",
+      "launch path",
+      "residual risks"
+    ],
+    "automation-builder": [
+      "dry-run",
+      "логи",
+      "side effects",
+      "правила повторного запуска"
+    ]
+  },
+  "role_contracts": {
+    "project-discovery": {
+      "mission": "Превращает смутную идею в понятный стартовый контекст без перегруза терминами.",
+      "primary_outputs": [
+        "discovery-questionnaire.md",
+        "project-brief.md",
+        "product-intelligence.md",
+        "plan-variants.md",
+        "beginner-guide.md"
+      ],
+      "done_criteria": [
+        "Понятен один главный сценарий первой версии.",
+        "Явно записано, что не входит в MVP.",
+        "Пользователь может выбрать вариант плана без технических догадок."
+      ],
+      "handoff_to": [
+        "solution-architect"
+      ],
+      "forbidden": [
+        "Начинать реализацию или спорить с потребностью пользователя.",
+        "Подменять вопрос новичка архитектурным допросом."
+      ]
+    },
+    "solution-architect": {
+      "mission": "Собирает маленький, выполнимый и проверяемый маршрут вместо разросшейся схемы.",
+      "primary_outputs": [
+        "implementation-plan.md",
+        "active-context.md",
+        "progress.md",
+        "plan-variants.md"
+      ],
+      "done_criteria": [
+        "Первая версия ограничена 3-5 обязательными deliverables.",
+        "Зоны frontend, backend, data и automation разделены явно.",
+        "Есть acceptance criteria и список ручных входов от пользователя."
+      ],
+      "handoff_to": [
+        "design-director",
+        "frontend-builder",
+        "backend-builder",
+        "database-designer",
+        "automation-builder"
+      ],
+      "forbidden": [
+        "Раздувать MVP до мини-enterprise.",
+        "Молча превращать рекомендации в обязательные задачи."
+      ]
+    },
+    "backend-builder": {
+      "mission": "Делает серверную и интеграционную логику наблюдаемой, валидируемой и пригодной к отладке.",
+      "primary_outputs": [
+        "backend-code",
+        "execution-log.md"
+      ],
+      "done_criteria": [
+        "Входные данные валидируются.",
+        "Ключевые события и ошибки логируются.",
+        "Секреты не утекли в код, логи или клиентский слой.",
+        "Failure-path и интеграционные риски хотя бы базово обработаны."
+      ],
+      "handoff_to": [
+        "automation-builder",
+        "qa-reviewer",
+        "deploy-operator"
+      ],
+      "forbidden": [
+        "Хранить секреты в коде.",
+        "Оставлять silent failure без сигнала в логах."
+      ]
+    },
+    "design-director": {
+      "mission": "Даёт продукту характер и визуальную логику вместо дефолтного шаблона.",
+      "primary_outputs": [
+        "design-direction.md",
+        "active-context.md"
+      ],
+      "done_criteria": [
+        "Выбрано одно направление с понятным обоснованием.",
+        "Есть anti-generic правила и правила для mobile/readability.",
+        "Дизайн поддерживает задачу продукта, а не отвлекает от неё."
+      ],
+      "handoff_to": [
+        "frontend-builder"
+      ],
+      "forbidden": [
+        "Оставлять дефолтный вид библиотек как финальный дизайн.",
+        "Делать красивый, но нечитабельный интерфейс."
+      ]
+    },
+    "qa-reviewer": {
+      "mission": "Говорит правду о готовности и ловит слабые места перед handoff.",
+      "primary_outputs": [
+        "verification-report.md",
+        "scorecard.md",
+        "findings"
+      ],
+      "done_criteria": [
+        "Проверен happy path и хотя бы один failure path.",
+        "Непроверенные зоны отмечены явно.",
+        "Security-проверки не пропущены, если проект касается данных, auth, платежей или интеграций.",
+        "Scorecard отражает реальное состояние, а не оптимизм."
+      ],
+      "handoff_to": [
+        "deploy-operator",
+        "autonomous-project-orchestrator"
+      ],
+      "forbidden": [
+        "Писать пустое 'всё ок'.",
+        "Игнорировать handoff, UX или безопасность."
+      ]
+    },
+    "deploy-operator": {
+      "mission": "Превращает результат в понятный путь до реального запуска.",
+      "primary_outputs": [
+        "env-secrets-checklist.md",
+        "final-handoff.md",
+        "scorecard.md"
+      ],
+      "done_criteria": [
+        "Все обязательные ручные шаги перечислены.",
+        "Секреты разделены на обязательные и опциональные.",
+        "Пользователь может запустить проект без догадок."
+      ],
+      "handoff_to": [
+        "user"
+      ],
+      "forbidden": [
+        "Закрывать проект без env checklist.",
+        "Скрывать остаточные риски и ручные действия."
+      ]
+    },
+    "automation-builder": {
+      "mission": "Собирает безопасные автоматизации, которые не превращаются в чёрный ящик.",
+      "primary_outputs": [
+        "automation-code",
+        "execution-log.md"
+      ],
+      "done_criteria": [
+        "Есть dry-run или безопасный preview при side effects.",
+        "Логи позволяют понять, что произошло.",
+        "Повторный запуск не создаёт хаос без причины."
+      ],
+      "handoff_to": [
+        "qa-reviewer",
+        "deploy-operator"
+      ],
+      "forbidden": [
+        "Скрывать side effects от пользователя.",
+        "Строить автоматизацию без наблюдаемости."
+      ]
+    }
+  },
+  "handoff_rules": [
+    "Каждый handoff обязан коротко перечислить: что готово, что не готово, какие решения заморожены, какие риски остались.",
+    "Следующей роли нужно явно назвать 1-3 файла-источника истины, а не отправлять её 'читать всё'.",
+    "Если роль не выполнила done criteria, оркестратор возвращает работу на доработку, а не двигается дальше."
+  ],
+  "phase_context_targets": [
+    "phase-card.md",
+    "ultra-context.md",
+    "plan-variants.md",
+    "implementation-plan.md",
+    "state.json",
+    "active-context.md"
+  ],
+  "doc_read_policy": "summary-first, quiz-first, docs-last",
+  "doc_open_triggers": [
+    "только если выбранный вариант плана меняет ближайший execution slice",
+    "только если без имени первого target repo нельзя закрыть следующий шаг честно",
+    "только если короткой approval-сводки уже недостаточно для решения"
+  ],
+  "cross_checks": [
+    "solution-architect -> backend-builder: repo-local work и target-repo onboarding разделены явно",
+    "backend-builder -> automation-builder: queue/webhook logic не расширяет authority beyond canonical rules",
+    "qa-reviewer -> deploy-operator: env prerequisites, verification evidence, и target-repo blocker названы явно"
+  ],
+  "delegation_packets": [
+    {
+      "role": "qa-reviewer",
+      "mission": "Говорит правду о готовности и ловит слабые места перед handoff.",
+      "read_first": [
+        "phase-card.md",
+        "ultra-context.md",
+        "state.json",
+        "implementation-plan.md",
+        "execution-log.md",
+        "verification-report.md",
+        "env-secrets-checklist.md"
+      ],
+      "write_scope": [
+        "verification-report.md",
+        "scorecard.md"
+      ],
+      "must_return": {
+        "deliverables": [
+          "findings",
+          "что проверено",
+          "что не проверено",
+          "scorecard"
+        ],
+        "handoff_format": [
+          "что готово",
+          "что не готово",
+          "какие решения заморожены",
+          "какие риски остались",
+          "что читать следующей роли"
+        ]
+      },
+      "stop_if": [
+        "Писать пустое 'всё ок'.",
+        "Игнорировать handoff, UX или безопасность."
+      ]
+    },
+    {
+      "role": "automation-builder",
+      "mission": "Собирает безопасные автоматизации, которые не превращаются в чёрный ящик.",
+      "read_first": [
+        "phase-card.md",
+        "ultra-context.md",
+        "state.json",
+        "implementation-plan.md",
+        "tech-context.md",
+        "active-context.md"
+      ],
+      "write_scope": [
+        "scripts",
+        "workers",
+        "schedulers",
+        "execution-log.md"
+      ],
+      "must_return": {
+        "deliverables": [
+          "dry-run",
+          "логи",
+          "side effects",
+          "правила повторного запуска"
+        ],
+        "handoff_format": [
+          "что готово",
+          "что не готово",
+          "какие решения заморожены",
+          "какие риски остались",
+          "что читать следующей роли"
+        ]
+      },
+      "stop_if": [
+        "Скрывать side effects от пользователя.",
+        "Строить автоматизацию без наблюдаемости."
+      ]
+    }
+  ],
+  "user_overrides": {
+    "selected_packs": [
+      "memory-bank",
+      "responsibility-map",
+      "scope-discipline"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "discovery",
+      "title": "Провести понятный discovery-квиз и зафиксировать scope первой версии",
+      "owner": "project-discovery",
+      "status": "done"
+    },
+    {
+      "id": "planning",
+      "title": "Собрать план реализации, выбрать knowledge packs и зафиксировать маршрут",
+      "owner": "solution-architect",
+      "status": "done"
+    },
+    {
+      "id": "approval",
+      "title": "Получить одно явное подтверждение плана до начала продуктовых правок",
+      "owner": "autonomous-project-orchestrator",
+      "status": "in_progress"
+    },
+    {
+      "id": "execution",
+      "title": "Реализовать одобренный repo-local slice и только потом расширяться в target-repo execution",
+      "owner": "automation-builder",
+      "status": "pending"
+    },
+    {
+      "id": "verification",
+      "title": "Провести QA-проверку и пройти критерии качества",
+      "owner": "qa-reviewer",
+      "status": "pending"
+    },
+    {
+      "id": "handoff",
+      "title": "Подготовить отчёт по проверке, чеклист секретов и финальный handoff",
+      "owner": "deploy-operator",
+      "status": "pending"
+    }
+  ],
+  "blocked_on_user": true,
+  "manual_inputs": [
+    "approve_one_plan_variant",
+    "name_first_target_repo_if_not_minimum"
+  ],
+  "artifacts": {
+    "phase-card.md": ".codex-agent/phase-card.md",
+    "ultra-context.md": ".codex-agent/ultra-context.md",
+    "context-bundle.md": ".codex-agent/context-bundle.md",
+    "discovery-questionnaire.md": ".codex-agent/discovery-questionnaire.md",
+    "plan-variants.md": ".codex-agent/plan-variants.md",
+    "beginner-guide.md": ".codex-agent/beginner-guide.md",
+    "project-brief.md": ".codex-agent/project-brief.md",
+    "design-system.json": ".codex-agent/design-system.json",
+    "product-intelligence.md": ".codex-agent/product-intelligence.md",
+    "product-context.md": ".codex-agent/product-context.md",
+    "tech-context.md": ".codex-agent/tech-context.md",
+    "active-context.md": ".codex-agent/active-context.md",
+    "progress.md": ".codex-agent/progress.md",
+    "implementation-plan.md": ".codex-agent/implementation-plan.md",
+    "design-direction.md": ".codex-agent/design-direction.md",
+    "data-model.md": ".codex-agent/data-model.md",
+    "execution-log.md": ".codex-agent/execution-log.md",
+    "verification-report.md": ".codex-agent/verification-report.md",
+    "scorecard.md": ".codex-agent/scorecard.md",
+    "env-secrets-checklist.md": ".codex-agent/env-secrets-checklist.md",
+    "final-handoff.md": ".codex-agent/final-handoff.md",
+    "approval-snapshot.json": ".codex-agent/approval-snapshot.json"
+  }
+}

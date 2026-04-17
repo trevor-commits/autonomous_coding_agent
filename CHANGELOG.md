@@ -2,6 +2,12 @@
 
 ## 2026-04-17
 
+- Added the first `GIL-57` manual queue-intake slice:
+  - added `supervisor/queue_intake.py` with Linear issue parsing, eligibility filtering, local claim storage, run-contract normalization, a manual drain runner, and a GraphQL-backed Linear client
+  - extended `supervisor/verifier.py` and the run-contract schema/parser so queue-normalized verification packs can constrain deterministic gates per issue-run
+  - extended `supervisor/main.py` with a manual `--queue-drain` entrypoint alongside the existing single-run path
+  - documented the queue-mode issue metadata needed for the first manual drain slice in `QUEUE-RUNS.md` and `LINEAR.md`
+  - added queue-focused supervisor coverage in `tests/test_queue_intake.py`
 - Added the first `GIL-28` builder-loop slice:
   - added a real Codex CLI builder adapter in `supervisor/builder_adapter.py`
   - added a minimal rule-based builder strategy in `supervisor/strategy_simple.py`

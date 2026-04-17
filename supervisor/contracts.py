@@ -153,6 +153,7 @@ class QueueMetadata:
     approval_required: bool | None = None
     retry_budget: int | None = None
     staleness_deadline: str | None = None
+    verification_pack: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -166,7 +167,54 @@ class RunContract:
     queue: QueueMetadata
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        payload = {
+            "run_id": self.run_id,
+            "repo_path": self.repo_path,
+            "objective": self.objective,
+            "scope": {
+                "allowed_paths": list(self.scope.allowed_paths),
+                "forbidden_paths": list(self.scope.forbidden_paths),
+            },
+            "acceptance": {
+                "functional": list(self.acceptance.functional),
+                "quality_gates": list(self.acceptance.quality_gates),
+                "ui_checks": list(self.acceptance.ui_checks),
+            },
+            "constraints": {
+                "single_writer": self.constraints.single_writer,
+                "max_repair_loops": self.constraints.max_repair_loops,
+                "max_iterations": self.constraints.max_iterations,
+                "max_cost_dollars": self.constraints.max_cost_dollars,
+                "hard_timeout_seconds": self.constraints.hard_timeout_seconds,
+                "auto_push": self.constraints.auto_push,
+                "auto_merge": self.constraints.auto_merge,
+            },
+        }
+        if self.queue.claim_id is not None:
+            payload["claim_id"] = self.queue.claim_id
+        if self.queue.run_trace_id is not None:
+            payload["run_trace_id"] = self.queue.run_trace_id
+        if self.queue.queue_entry_reason is not None:
+            payload["queue_entry_reason"] = self.queue.queue_entry_reason
+        if self.queue.queue_contract_version is not None:
+            payload["queue_contract_version"] = self.queue.queue_contract_version
+        if self.queue.prompt_template_version is not None:
+            payload["prompt_template_version"] = self.queue.prompt_template_version
+        if self.queue.issue_snapshot_hash is not None:
+            payload["issue_snapshot_hash"] = self.queue.issue_snapshot_hash
+        if self.queue.follow_up_policy is not None:
+            payload["follow_up_policy"] = self.queue.follow_up_policy
+        if self.queue.risk_level is not None:
+            payload["risk_level"] = self.queue.risk_level
+        if self.queue.approval_required is not None:
+            payload["approval_required"] = self.queue.approval_required
+        if self.queue.retry_budget is not None:
+            payload["retry_budget"] = self.queue.retry_budget
+        if self.queue.staleness_deadline is not None:
+            payload["staleness_deadline"] = self.queue.staleness_deadline
+        if self.queue.verification_pack:
+            payload["verification_pack"] = list(self.queue.verification_pack)
+        return payload
 
 
 def load_repo_contract(repo_root: Path | str) -> RepoContract:
@@ -218,6 +266,7 @@ def load_run_contract(contract_path: Path | str) -> RunContract:
             approval_required=validated.get("approval_required"),
             retry_budget=validated.get("retry_budget"),
             staleness_deadline=validated.get("staleness_deadline"),
+            verification_pack=tuple(validated.get("verification_pack", [])),
         ),
     )
 

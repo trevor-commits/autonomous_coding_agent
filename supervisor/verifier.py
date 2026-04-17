@@ -109,7 +109,7 @@ class Verifier:
     ) -> VerificationSummary:
         changed = tuple(str(path) for path in changed_files)
         results: list[CommandExecutionResult] = []
-        for name in self.COMMAND_ORDER:
+        for name in self._command_sequence():
             command = getattr(self.repo_contract.commands, name)
             if not command:
                 continue
@@ -124,6 +124,11 @@ class Verifier:
             commands=tuple(results),
             changed_files=changed,
         )
+
+    def _command_sequence(self) -> tuple[str, ...]:
+        if self.run_contract.queue.verification_pack:
+            return tuple(self.run_contract.queue.verification_pack)
+        return self.COMMAND_ORDER
 
     def _run_command(
         self,

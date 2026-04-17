@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shlex
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,6 +11,7 @@ from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuild
 from supervisor.contracts import RepoContract, RunContract, load_repo_contract, load_run_contract
 from supervisor.fingerprints import FailureFingerprintStore
 from supervisor.models import Phase, ReadinessVerdict, RunSnapshot
+from supervisor.queue_intake import LinearGraphQLClient, ManualQueueRunner
 from supervisor.policy import (
     PolicyViolationError,
     ShellClass,
@@ -265,15 +267,49 @@ def _normalize_builder_command(command: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the Phase 2 supervisor loop.")
+    parser = argparse.ArgumentParser(description="Run the supervisor loop or manual queue drain.")
     parser.add_argument("--repo-path", required=True)
-    parser.add_argument("--run-contract", required=True)
+    parser.add_argument("--run-contract")
+    parser.add_argument("--queue-drain", action="store_true")
+    parser.add_argument("--team-key")
+    parser.add_argument("--linear-token-env", default="LINEAR_API_TOKEN")
+    parser.add_argument("--limit", type=int)
     parser.add_argument("--strategy", default="simple", choices=("simple",))
     parser.add_argument("--cleanup-worktree", action="store_true")
     args = parser.parse_args()
 
     if args.strategy != "simple":
         raise SystemExit("Only `simple` strategy is implemented in the smallest Phase 2.")
+
+    if args.queue_drain:
+        if not args.team_key:
+            raise SystemExit("`--team-key` is required with `--queue-drain`.")
+        token = os.environ.get(args.linear_token_env)
+        if not token:
+            raise SystemExit(
+                f"Set `{args.linear_token_env}` before running manual queue drain mode."
+            )
+        summary = ManualQueueRunner(
+            repo_root=Path(args.repo_path),
+            linear_client=LinearGraphQLClient(token=token),
+            builder_adapter=CodexBuilderAdapter(),
+            strategy=SimpleStrategy(),
+            team_key=args.team_key,
+            cleanup_success_worktree=args.cleanup_worktree,
+        ).drain(limit=args.limit)
+        print(
+            json.dumps(
+                {
+                    "processed_count": summary.processed_count,
+                    "completed_count": summary.completed_count,
+                    "blocked_count": summary.blocked_count,
+                }
+            )
+        )
+        return 0
+
+    if not args.run_contract:
+        raise SystemExit("`--run-contract` is required unless `--queue-drain` is set.")
 
     outcome = execute_run(
         repo_root=Path(args.repo_path),

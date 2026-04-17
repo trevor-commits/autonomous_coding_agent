@@ -10,8 +10,8 @@ company good?"
 
 Already-enabled core apps such as `GitHub`, `Linear`, `Gmail`,
 `Google Calendar`, `Figma`, `Vercel`, `Hugging Face`, `Superpowers`,
-`Cloudflare`, `Build Web Apps`, `CodeRabbit`, and `plugin-eval` are treated as
-the current baseline and are only mentioned below when they create a
+`Cloudflare`, `Build Web Apps`, `CodeRabbit`, `plugin-eval`, and `Sentry` are
+treated as the current baseline and are only mentioned below when they create a
 redundancy call for another app.
 
 ## Current accessible app audit
@@ -26,6 +26,11 @@ This audit is based on the current Codex session surfaces:
 - directly loaded connector tool namespaces already present in the session
 - searchable connector inventory available through the current tool-discovery
   surface
+
+Operator-local config may enable additional plugins that are not surfaced as
+callable tools in a given Codex thread. Those belong in
+`docs/codex-workflow-plugin-setup.md`, not in this current-thread accessibility
+table.
 
 ### Directly usable or enabled now
 
@@ -72,6 +77,8 @@ reports become worth re-enabling.
 
 - `Add now` — likely immediate leverage if Trevor wants to widen the app
   surface soon.
+- `Enabled now` — already enabled in the operator setup; the remaining work is
+  auth, calibration, or first real usage rather than marketplace enablement.
 - `Strong conditional` — valuable when the matching workflow becomes real.
 - `Conditional` — useful in a narrower operating mode; otherwise noise.
 - `Redundant` — overlaps a tool or stack already chosen.
@@ -81,13 +88,15 @@ reports become worth re-enabling.
 
 ## Quick take
 
-- Highest-leverage general adds: `Slack`, `Notion`, `Google Drive`, `Sentry`,
-  `Jam`, `Stripe`, `Amplitude`, `Neon Postgres`, `Help Scout`, `Readwise`.
+- Highest-leverage general adds: `Slack`, `Notion`, `Google Drive`, `Jam`,
+  `Stripe`, `Amplitude`, `Neon Postgres`, `Help Scout`, `Readwise`.
 - Strong research add if Trevor wants evidence-sensitive literature support:
   `Scite`.
 - Strong lightweight CRM add if relationship tracking becomes messy: `Attio`.
 - Strong "only if needed" infra add: `Render` or `Netlify`, but not as casual
   extras if `Vercel` and `Cloudflare` already cover the real deployment paths.
+- `Sentry` is no longer a future add in the operator config. It is enabled
+  locally now; the remaining gap is local auth and first real project use.
 - Biggest redundancy traps: Microsoft collaboration apps while already using
   Google; `Atlassian Rovo`, `ClickUp`, `Monday.com`, and `Teamwork.com` while
   already using `Linear`; multiple meeting-summary tools at once; multiple CRMs
@@ -130,7 +139,7 @@ reports become worth re-enabling.
 | `Netlify` | Conditional | Good only if Trevor actually deploys there; otherwise redundant with `Vercel` and `Cloudflare`. |
 | `Game Studio` | Conditional | Useful only if browser-game prototyping becomes a real workstream. |
 | `CircleCI` | Redundant | Only worth adding if Trevor wants CircleCI specifically instead of current CI/GitHub workflows. |
-| `Sentry` | Add now | One of the clearest adds. Error monitoring plus tracing is real leverage once software is shipped. |
+| `Sentry` | Enabled now | Already enabled in local Codex config. The remaining work is local auth plus a real project/org before it becomes useful for production triage. |
 | `Build iOS Apps` | Conditional | Useful only when native iOS work exists. |
 | `Build macOS Apps` | Conditional | Useful only when a macOS app becomes an actual target. |
 | `Test Android Apps` | Conditional | Only relevant if Android app work exists. |

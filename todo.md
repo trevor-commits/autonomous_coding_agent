@@ -137,6 +137,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-17 | GIL-65: audit current accessible app surfaces and record missing intended-use guidance — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-64: approve the `Optimal` autopilot route and lock `bible-ai` as the first implementation repo — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-64: bootstrap repo-local Codex Project Autopilot state and capture approval-ready plan variants — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: land Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup) — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -292,6 +293,90 @@ Landing commit SHA recorded in immediate closeout.
 
 linear:
 GIL-65
+
+### 2026-04-17 | self-contained | by: Codex
+
+Problem:
+The repo's plugin docs had drifted behind the actual operator environment for
+`Brooks Lint` and `Sentry`. Local Codex config already had both plugins
+enabled, but the canonical plugin ledger still treated `Brooks Lint` mainly as
+a later spike and did not record `Sentry` as part of the enabled operator set.
+The repo also lacked one durable explanation of what "setup correctly" means
+for each plugin inside this repository.
+
+Reasoning:
+The right fix was not to invent repo-local config everywhere. `Brooks Lint`
+has a legitimate repo config surface, so the repo should carry a minimal
+`.brooks-lint.yaml` that encodes the same archive/runtime boundaries the repo
+already enforces elsewhere. `Sentry` is the opposite: its correct setup is
+auth-local, not repo-local, so the docs should make that explicit instead of
+pretending a checked-in config file belongs here. The canonical ledger,
+operator guide, setup companion, intake log, and discovery docs all needed the
+same update in one coherence pass.
+
+Diagnosis inputs:
+Direct rereads of `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`,
+`docs/codex-workflow-plugin-setup.md`,
+`docs/codex-app-marketplace-evaluations.md`, and `docs/plugin-intake.md`;
+inspection of `~/.codex/config.toml`; direct reads of the installed
+`brooks-lint` and `sentry` plugin manifests; direct read of Brooks Lint's
+example `.brooks-lint.example.yaml`; and direct read of the repo `.gitignore`.
+
+Implementation inputs:
+Updated `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`,
+`docs/codex-workflow-plugin-setup.md`,
+`docs/codex-app-marketplace-evaluations.md`,
+`docs/plugin-intake.md`, `.gitignore`, and `todo.md`; added
+`.brooks-lint.yaml`.
+
+Fix:
+Synced the canonical plugin ledger and operator docs so they now record
+`Brooks Lint` and `Sentry` as actually enabled in local Codex config, with the
+correct use boundaries for each. Added a minimal repo-local `.brooks-lint.yaml`
+that excludes `design-history/`, `.autoclaw/`, and `worktrees/` from default
+Brooks analysis, and gitignored `.brooks-lint-history.json` so auto-written
+trend files do not become repo noise by accident. Documented the opposite
+boundary for `Sentry`: no repo config, local-only auth via `SENTRY_AUTH_TOKEN`
+and optional org/project defaults, and no committed secrets.
+
+Self-audit:
+1. Re-read `~/.codex/config.toml`; confirmed
+   `brooks-lint@codex-local-plugins` and `sentry@openai-curated` are both
+   enabled in the operator environment.
+2. Re-read the installed plugin manifests for `brooks-lint` and `sentry`;
+   confirmed the plugin ids, display names, and intended surfaces recorded in
+   the docs match the installed metadata.
+3. Re-read `.brooks-lint.yaml`; confirmed it only encodes boundary exclusions
+   and does not silently add repo-specific risk disables or severity
+   overrides.
+4. Re-read the updated live companion docs (`README.md`, `GUIDE.md`,
+   `docs/codex-april-16-2026-impact.md`,
+   `docs/codex-plugin-operator-cheatsheet.md`,
+   `docs/codex-workflow-plugin-setup.md`,
+   `docs/codex-app-marketplace-evaluations.md`, and `docs/plugin-intake.md`);
+   confirmed they now agree on the enabled state, allowed use, and "config
+   versus local auth" split.
+5. Did not run a live Brooks review or Sentry API query. This landing records
+   setup truth and boundaries only, not task-backed proof that either plugin
+   improves real repo work yet.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to add `Brooks Lint` and `Sentry` into the repo
+docs, make sure they are set up correctly, and make the documentation match
+the actual setup.
+
+led to:
+Landing commit SHA recorded in immediate closeout; `.brooks-lint.yaml`
+
+linear:
+self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup
 
 ### 2026-04-17 | self-contained full-repo audit — ledger backfill and GIL-55 status correction | by: Cowork
 
@@ -2556,7 +2641,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - 2026-04-17: Install and authorize the CodeRabbit GitHub App on this repository, then calibrate against 3-5 real PRs before enabling `request_changes_workflow` or any `error`-mode pre-merge checks. Status: pending operator action. Source: current CodeRabbit integration task. by: Codex. linear: self-contained: operator-side activation needed after repo-local `.coderabbit.yaml` landing.
 - 2026-04-17: Run a small `plugin-eval` comparison across baseline, `CodeRabbit`, and the `Autopilot` / `Cavekit` / `HOTL` stack on 3-5 real bounded tasks before promoting any of them from "available" to "proven". Status: deferred until Trevor wants evidence-backed plugin adoption. Source: `GIL-54` plugin research and operator-cheat-sheet landing. by: Codex. linear: self-contained until selected.
 - 2026-04-17: Revisit `Session Orchestrator` and `Agent Message Queue` only after a real implementation repo exposes multi-session or cross-agent handoff pain that the current queue/supervisor model cannot handle cleanly. Status: deferred until Phase 2+ implementation work surfaces that pressure. Source: `GIL-54` plugin research and operator-cheat-sheet landing. by: Codex. linear: self-contained until selected.
-- 2026-04-17: If Trevor widens the Codex app surface beyond the current enabled baseline, start with `Slack`, `Notion`, `Google Drive`, `Sentry`, `Jam`, `Stripe`, `Amplitude`, `Neon Postgres`, `Help Scout`, and `Readwise`; treat `Attio` and `Scite` as the next conditional adds if CRM clutter or research-heavy work becomes real. Status: deferred until Trevor wants app-surface expansion. Source: `GIL-63` marketplace-app evaluation memo. by: Codex. linear: self-contained until selected.
+- 2026-04-17: If Trevor widens the Codex app surface beyond the current enabled baseline, start with `Slack`, `Notion`, `Google Drive`, `Jam`, `Stripe`, `Amplitude`, `Neon Postgres`, `Help Scout`, and `Readwise`; treat `Sentry` as already enabled locally but still awaiting auth plus first real project use, and treat `Attio` and `Scite` as the next conditional adds if CRM clutter or research-heavy work becomes real. Status: deferred until Trevor wants app-surface expansion. Source: `GIL-63` marketplace-app evaluation memo, later corrected by the Brooks Lint + Sentry setup-sync follow-up. by: Codex. linear: self-contained until selected.
 
 ## Active Branch Ledger
 Keep one entry per non-trivial active branch so any chat can see why it exists, which chat opened or resumed it, what work is active, what must happen before merge or closeout, and whether the branch should be deleted or intentionally retained.
@@ -2715,6 +2800,7 @@ If it's not here, it isn't remembered.
 | Phase 1 mid-build architecture checkpoint | Paired audit: Pro (strategic) + Claude Code (line-by-line against schemas, action set, and invariants) | After subphase 1.2 lands, before 1.3 begins | Both auditors return clean; tiebreaker per ADR-0002 if they disagree |
 
 - 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml` | result: pass — the new CodeRabbit config parses, validates against the current live CodeRabbit schema, and is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
+- 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.brooks-lint.yaml') ... PY`; `rg -n '\[plugins\."brooks-lint@codex-local-plugins"\]|\[plugins\."sentry@openai-curated"\]' ~/.codex/config.toml`; `git diff --check -- .gitignore .brooks-lint.yaml README.md GUIDE.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/codex-workflow-plugin-setup.md docs/codex-app-marketplace-evaluations.md docs/plugin-intake.md todo.md`; `test -f package.json && echo package.json-present || echo no-package-json` | result: pass — `.brooks-lint.yaml` parses as the intended boundary-only config, the operator config confirms both `brooks-lint` and `sentry` are enabled, the full doc/config patch is whitespace-clean, and this repo still has no `package.json`, so no `pnpm check`/`pnpm test`/`pnpm build` surface exists for this docs/config task | log/PR reference: `Work Record Log` 2026-04-17 self-contained Brooks Lint + Sentry setup sync | by: Codex | linear: self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup
 - 2026-04-17 | command(s): `git diff --check -- README.md GUIDE.md todo.md`; direct reread of `README.md`; direct reread of `GUIDE.md` | result: pass — the repo discovery docs now point to `.coderabbit.yaml`, the new note stays minimal and non-authoritative, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
 - 2026-04-17 | command(s): `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/codex-april-16-2026-impact.md`; direct reread of `docs/codex-plugin-operator-cheatsheet.md`; direct reread of `docs/plugin-intake.md`; direct reread of `README.md`; direct reread of `GUIDE.md`; direct reread of `.coderabbit.yaml` | result: pass — the Rabbit trial wording is now consistent across the canonical memo and operator guide, the comparison logic is preserved in the append-only intake log, the patch is whitespace-clean, and the existing discovery/config surfaces still match without further edits | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
 - 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml README.md GUIDE.md docs/coderabbit-review-settings.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/coderabbit-review-settings.md` | result: pass — the expanded CodeRabbit config parses, validates against the current live schema, the settings doc is indexed from the discovery and plugin-governance surfaces, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
@@ -2770,5 +2856,6 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-17 | feedback source: Trevor decision after the CodeRabbit-versus-GitHub-Copilot comparison | feedback summary: keep the CodeRabbit path in the repo docs, document the actual tradeoff instead of only the final preference, and present Rabbit as the active bounded review trial again | evaluation chat: current CodeRabbit re-activation thread | reasoning response: accepted. The durable repo position is not "Copilot was wrong"; it is "Copilot is still the stronger value/integration baseline for a small private repo, while CodeRabbit is still the likelier stronger dedicated PR-review tool." Because Trevor wants to test review quality first, the repo now treats CodeRabbit as the active bounded review trial, keeps Copilot only as the cheaper fallback baseline in the narrative, and leaves GitHub App activation plus 3-5 real PRs as the remaining proof step. | decision status: accepted | implementation/disposition chat: current CodeRabbit re-activation thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
 - 2026-04-17 | feedback source: Trevor request to preserve the exact CodeRabbit settings and the detailed reasoning in the repo so later AIs can review them | feedback summary: do not leave the settings only in chat; make the specific values, blank fields, caveats, and rationale durable in repo docs and, where supported, in the repo config itself | evaluation chat: current CodeRabbit settings capture thread | reasoning response: accepted. The right shape is `.coderabbit.yaml` plus a dedicated operator companion doc. Repo-supported settings belong in config; blank UI fields and product caveats belong in a doc. That gives later AI reviewers both machine-readable truth and the human rationale without forcing them to infer hidden settings from chat. | decision status: accepted | implementation/disposition chat: current CodeRabbit settings capture thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
 - 2026-04-17 | feedback source: Trevor request to record all reviewed marketplace apps and Codex's thoughts on them in the repo | feedback summary: do not leave the app recommendations fragmented across several chat replies; preserve the reviewed app names, the top priorities, the redundancy warnings, and the niche-only calls in one durable repo-visible place | evaluation chat: current marketplace-app documentation thread | reasoning response: accepted. The right shape is a reusable memo instead of another plugin-only intake entry because the reviewed app set is broader than the existing plugin governance docs. The memo should preserve operator-fit judgments, highlight the short list actually worth enabling later, and make the "choose one" and "redundant with the current stack" calls explicit so later sessions do not restart the same sorting exercise from screenshots. | decision status: accepted | implementation/disposition chat: current marketplace-app documentation thread | linked branch / audit / suggestion / test evidence: `docs/codex-app-marketplace-evaluations.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-63`; `Suggested Recommendation Log` 2026-04-17 app-surface shortlist | by: Codex | linear: GIL-63
+- 2026-04-17 | feedback source: Trevor request to add `Brooks Lint` and `Sentry` to the repo docs and make sure the repo setup reflects reality | feedback summary: stop leaving the enabled-state truth split across local config and partial docs; record whether each plugin is actually enabled, what its repo-local setup surface is, and where its boundary lives | evaluation chat: current Brooks Lint + Sentry setup-sync thread | reasoning response: accepted. The correct move is asymmetric: add a minimal `.brooks-lint.yaml` because Brooks has a real repo config surface and this repo benefits from explicit archive/runtime exclusions, but do not invent committed Sentry config because Sentry's correct setup is local auth (`SENTRY_AUTH_TOKEN` plus optional org/project defaults) and secrets do not belong in repo files. The canonical ledger, operator guide, setup companion, intake log, discovery docs, and app memo all needed the same update so the repo stops contradicting the actual enabled operator environment. | decision status: accepted | implementation/disposition chat: current Brooks Lint + Sentry setup-sync thread | linked branch / audit / suggestion / test evidence: `.brooks-lint.yaml`; `.gitignore`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-workflow-plugin-setup.md`; `docs/codex-app-marketplace-evaluations.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained Brooks Lint + Sentry setup sync | by: Codex | linear: self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup
 - 2026-04-17 | feedback source: Trevor request to make this repo implement eligible Linear issues one after the other, starting with a manual drain slice instead of jumping to webhook wakeups | feedback summary: land the first supervisor-owned Linear intake/claim layer, queue normalization into real run contracts, and a sequential drain runner on top of the current single-run executor | evaluation chat: current `GIL-57` queue implementation thread | reasoning response: accepted. The better path is not to let Linear directly drive execution or to wait for the full unattended webhook stack. The repo now lands the narrower manual-drain-first slice: strict eligibility filtering, frozen claim metadata, queue-written run contracts, issue-by-issue execution, one landing commit per successful run, and blocker/closeout comments owned by the supervisor. Webhook wakeups remain the next layer rather than a prerequisite for this first runtime slice. | decision status: accepted | implementation/disposition chat: current `GIL-57` queue implementation thread | linked branch / audit / suggestion / test evidence: `supervisor/queue_intake.py`; `supervisor/main.py`; `supervisor/contracts.py`; `supervisor/verifier.py`; `schemas/run-contract.schema.json`; `tests/test_queue_intake.py`; `QUEUE-RUNS.md`; `LINEAR.md`; `Test Evidence Log` 2026-04-17 `GIL-57`; `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
 - 2026-04-17 | feedback source: Trevor confirmation that the manually added workflow plugins now install in Codex and should be documented thoroughly in the repo | feedback summary: stop treating `Autopilot`, `HOTL`, and `Cavekit` as merely "locally installed" abstractions; make the repo record the actual Codex install state, plugin ids, settings posture, and intended usage thoroughly enough that later sessions do not have to reconstruct it from chat or home-directory files | evaluation chat: current installed-workflow-plugin docs thread | reasoning response: accepted. The durable split is three-layered: keep use/defer truth in `docs/codex-april-16-2026-impact.md`, keep phase ownership in `docs/codex-plugin-operator-cheatsheet.md`, and add a dedicated setup companion for the actual install state and settings posture. Because these three have no repo-committed config today, their "settings" here are procedural: enabled in Codex, phase-bounded invocation, no workflow authority, no repo-truth authority, and no claim that installation alone means "tried here." | decision status: accepted | implementation/disposition chat: current installed-workflow-plugin docs thread | linked branch / audit / suggestion / test evidence: `docs/codex-workflow-plugin-setup.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54

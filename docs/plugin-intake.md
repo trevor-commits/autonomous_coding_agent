@@ -299,3 +299,44 @@ names the four unconfigured schema surfaces, the default behavior they imply,
 and the known trial-scope risks they carry. `.coderabbit.yaml` gained an
 explicit `slop_detection` block so the operator's documented preference is
 encoded even if it is a no-op on private repos today.
+
+### 2026-04-17 | source: current Brooks Lint and Sentry setup sync | by: Codex
+
+Plugins:
+`Brooks Lint`, `Sentry`
+
+Observation:
+The repo docs had drifted behind the actual operator environment. Local Codex
+config already had both `brooks-lint` and `sentry` enabled, but the canonical
+plugin ledger and setup companion still treated `Brooks Lint` mainly as a
+future spike and did not record `Sentry` as part of the enabled operator set.
+The repo also lacked one explicit answer to "what is the repo-local setup
+surface, if any?" for each plugin.
+
+Evidence:
+`~/.codex/config.toml`;
+`/Users/gillettes/.codex/plugins/cache/codex-local-plugins/brooks-lint/1.0.0/.codex-plugin/plugin.json`;
+`/Users/gillettes/.codex/plugins/cache/openai-curated/sentry/314574a046f21938025ae443f9c6dbbd0c2c9b7a/.codex-plugin/plugin.json`;
+`/Users/gillettes/.codex/.tmp/plugins/brooks-lint/.brooks-lint.example.yaml`;
+`.brooks-lint.yaml`;
+`docs/codex-april-16-2026-impact.md`;
+`docs/codex-plugin-operator-cheatsheet.md`;
+`docs/codex-workflow-plugin-setup.md`
+
+Recommended ledger delta:
+- Move `Brooks Lint` from "later spike" language to "installed and enabled in
+  Codex; use selectively as a second-pass review layer".
+- Add a `Sentry` row to the canonical plugin ledger reflecting that it is
+  enabled locally but only usable after local auth and a real project/org
+  exist.
+- Record the repo-local setup split explicitly: Brooks has a boundary-only
+  `.brooks-lint.yaml`; Sentry has no repo config and must stay auth-local.
+
+Canonical ledger updated:
+Yes
+
+Notes:
+This still does not count as a task-backed trial for either plugin. The Brooks
+config added here is intentionally minimal and only expresses repo boundary
+truth, not a project-specific risk taxonomy. The Sentry setup remains
+non-repo-local on purpose because committed auth would be a mistake.

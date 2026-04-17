@@ -50,14 +50,14 @@ Read these when working on the current system:
    and where future plugin use/not-use decisions should be updated.
 
 12. [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md)
-   Operational split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and
-   `plugin-eval`, plus the current shortlist of further plugin candidates worth
-   spiking later.
+   Operational split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`,
+   `Brooks Lint`, `Sentry`, and `plugin-eval`, plus the current shortlist of
+   further plugin candidates worth spiking later.
 
 13. [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md)
-   Exact install state, plugin ids, enabled-state expectations, and settings
-   posture for the installed workflow plugins `Autopilot`, `HOTL`, and
-   `Cavekit`.
+   Exact install state, plugin ids, auth prerequisites, and settings posture
+   for the installed operator plugins `Autopilot`, `HOTL`, `Cavekit`,
+   `Brooks Lint`, and `Sentry`.
 
 14. [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md)
    Durable marketplace-app evaluation memo covering the reviewed app surfaces,
@@ -114,6 +114,17 @@ installation and authorization remain a manual operator step outside the repo.
 The detailed settings rationale, UI caveats, and field-by-field review posture
 live in
 [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md).
+
+This repo's Brooks Lint boundary config lives at
+[.brooks-lint.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.brooks-lint.yaml).
+It keeps archive and runtime-output directories out of default Brooks review
+scope without changing the plugin's risk model. The plugin's generated
+`.brooks-lint-history.json` is intentionally gitignored here.
+
+`Sentry` is enabled in the local Codex operator config, but it has no
+repo-committed settings file. Its usable setup is intentionally local-only:
+`SENTRY_AUTH_TOKEN` is required, `SENTRY_ORG` and `SENTRY_PROJECT` are the
+normal optional defaults, and no secrets belong in this repository.
 
 ## Current Direction
 

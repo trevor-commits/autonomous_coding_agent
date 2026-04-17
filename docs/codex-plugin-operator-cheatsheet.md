@@ -23,6 +23,8 @@ This is the operational companion to
 | `Cavekit` | requirements, acceptance criteria, dependency-aware build-task decomposition | the general direction is known but the spec and build packets are still weak | `HOTL` for execution, or `CodeRabbit` once a local diff exists | `Use Cavekit to turn this approved direction into requirements, acceptance criteria, and build tasks. I want the spec before implementation.` |
 | `HOTL` | bounded implementation discipline, review, verification, and resume | a real task or plan exists and code work is about to start | `CodeRabbit` or Claude Code review after the implementation slice lands | `Use HOTL to execute this bounded plan with verification gates. Verify each step and do not claim success without evidence.` |
 | `CodeRabbit` | deterministic pre-audit: PR review, mechanical bugs, security signals, missing tests, lint-style findings | a bounded diff or PR already exists and you want fast review signal before higher-cost human or Claude review | Claude Code, Trevor, or a HOTL repair loop | `@coderabbit Review this diff for mechanical bugs, security issues, and missing tests.` |
+| `Brooks Lint` | second-pass structural review: decay risks, architecture smells, maintainability, and test-quality signal | a bounded diff, PR, or repo slice exists and you want a book-grounded design-quality pass after the fast mechanical review | Codex or `HOTL` for fixes; Claude Code or Trevor for final judgment | `Use Brooks Lint to review this diff for decay risks, maintainability issues, and test-quality smells. Keep the report evidence-backed and non-blocking.` |
+| `Sentry` | read-only production triage: recent issues, issue events, and error summarization | a real Sentry org/project exists and local auth is configured, and the task is operational debugging rather than architecture work | Codex or `HOTL` repair work once a concrete defect is identified | `Use Sentry to inspect recent production issues for this project and summarize the top unresolved errors without changing anything.` |
 | `plugin-eval` | evidence-backed comparison of plugin, model, or workflow choices | the question is whether a new plugin or workflow actually helps | the impact memo, an ADR, or a follow-up spike | `Use plugin-eval to compare baseline versus [plugin/workflow] on representative tasks and report where it helps, hurts, or adds noise.` |
 
 ## Current repo status
@@ -30,8 +32,13 @@ This is the operational companion to
 - `Autopilot`, `HOTL`, and `Cavekit` are now actually installed and enabled in
   Codex through the personal marketplace `gillettes-local-plugins`.
 - `Cavekit` is installed under the plugin id `ck`.
-- The exact install state, identifiers, and settings posture for those three
-  plugins now live in `docs/codex-workflow-plugin-setup.md`.
+- `Brooks Lint` is installed and enabled through `codex-local-plugins`, and
+  this repo now carries a minimal `.brooks-lint.yaml` boundary config so
+  archive/runtime output paths do not pollute default Brooks review scope.
+- `Sentry` is enabled through `openai-curated`, but it still requires local
+  `SENTRY_AUTH_TOKEN` auth plus a real org/project before it becomes usable.
+- The exact install state, identifiers, auth prerequisites, and settings
+  posture for these plugins now live in `docs/codex-workflow-plugin-setup.md`.
 - `CodeRabbit` has committed repo-local settings at `.coderabbit.yaml`.
 - The exact field-by-field settings and rationale now live in
   `docs/coderabbit-review-settings.md`.
@@ -52,11 +59,17 @@ This is the operational companion to
 
 - `Autopilot`, `HOTL`, and `Cavekit` currently have no repo-committed settings
   file; their settings posture here is operational, not YAML-driven.
+- `Brooks Lint` is the middle case: it supports optional repo-local tuning via
+  `.brooks-lint.yaml`, and this repo currently uses that only for boundary
+  exclusions (`design-history/`, `.autoclaw/`, `worktrees/`) rather than risk
+  tuning.
 - `CodeRabbit` is the opposite: its active repo-local behavior is expected to
   live in `.coderabbit.yaml`.
-- Do not invent repo-local config for the three workflow plugins unless we
-  actually decide their behavior should become part of repo truth instead of
-  operator preference.
+- `Sentry` has no repo-committed config here; keep auth and org/project
+  defaults in local environment variables, not in tracked files.
+- Do not invent extra repo-local config for `Autopilot`, `HOTL`, `Cavekit`, or
+  `Sentry` unless we actually decide their behavior should become part of repo
+  truth instead of operator preference.
 
 ## Do not overlap them like this
 
@@ -66,6 +79,9 @@ This is the operational companion to
   settled upstream.
 - Do not let `CodeRabbit`, `Brooks Lint`, or `plugin-eval` become workflow
   owners. They are review or measurement layers.
+- Do not let `Sentry` turn into a vague "monitoring plugin" placeholder in
+  docs-first work. It only earns runtime attention when there is a real Sentry
+  project and a real production issue to inspect.
 - For small repo-local doc edits or narrow fixes, skip `Autopilot` and
   `Cavekit`; start with direct execution or `HOTL`.
 
@@ -73,7 +89,6 @@ This is the operational companion to
 
 | Plugin | Why it could help | Current stance |
 |---|---|---|
-| `Brooks Lint` | Adds a second-pass maintainability and test-quality review lens grounded in explicit engineering-source heuristics instead of only generic AI review. | Worth a bounded spike if `CodeRabbit` plus Claude review still misses decay/test-quality issues. Not a default reviewer yet. |
 | `Session Orchestrator` | Offers wave execution, quality gates, bootstrap checks, VCS integration, and clean close-out as a full session envelope. | Interesting, but too close to this repo's unresolved queue and supervisor substrate questions to adopt casually. Study later. |
 | `Agent Message Queue` | Provides a real file-based handoff bus for multi-agent or cross-session work instead of ad hoc messages in docs or chat. | Useful only if cross-session agent handoffs become a real bottleneck. Premature for the current repo. |
 | `Claude Code for Codex` | Lets Codex launch tracked Claude review, rescue, and background work from inside the same Codex thread. | Later or conditional. It overlaps the current Codex-to-Claude review bridge unless tracked Claude jobs become concretely valuable. |

@@ -21,8 +21,8 @@ Use these files for current truth:
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
 - [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md): repo-specific guidance for which Superpowers skills are worth using in this architecture/governance repo.
 - [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md): repo-local guidance for how the April 16, 2026 Codex update should change operator workflow and where plugin use/not-use decisions now live.
-- [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md): practical operating split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval`, plus the current shortlist of further plugin candidates worth spiking later.
-- [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md): exact install state, plugin ids, enabled-state expectations, and settings posture for the installed workflow plugins `Autopilot`, `HOTL`, and `Cavekit`.
+- [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md): practical operating split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, `Brooks Lint`, `Sentry`, and `plugin-eval`, plus the current shortlist of further plugin candidates worth spiking later.
+- [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md): exact install state, plugin ids, auth prerequisites, and settings posture for the installed operator plugins `Autopilot`, `HOTL`, `Cavekit`, `Brooks Lint`, and `Sentry`.
 - [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md): durable memo for the marketplace-app screenshots already reviewed in chat, including top adds, redundancy traps, and category-by-category app judgments.
 - [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md): exact CodeRabbit settings, path instructions, UI-only caveats, and the repo-specific rationale for the current review-trial posture.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
@@ -30,6 +30,7 @@ Use these files for current truth:
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
 - [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md): step-by-step Linear setup runbook and known-pitfalls list for bootstrapping new projects.
 - [.coderabbit.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml): repo-local CodeRabbit PR-review configuration; GitHub App installation remains a manual operator step.
+- [.brooks-lint.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.brooks-lint.yaml): repo-local Brooks Lint boundary config; keeps archive/runtime directories out of default Brooks review scope while leaving decay-risk defaults intact.
 
 Use `todo.md` for durable working records:
 
@@ -121,14 +122,15 @@ rejected.
 
 The plugin operator cheat sheet. Read this when deciding which installed plugin
 should own discovery, spec-writing, implementation discipline, deterministic
-pre-audit, or plugin-evaluation work, and when you need the current shortlist
-of additional workflow plugins worth later spikes.
+pre-audit, observability triage, or plugin-evaluation work, and when you need
+the current shortlist of additional workflow plugins worth later spikes.
 
 ### [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md)
 
 The installed workflow-plugin setup companion. Read this when you need the
-actual Codex install state, marketplace id, plugin ids, enabled-state
-expectations, or settings posture for `Autopilot`, `HOTL`, and `Cavekit`.
+actual Codex install state, marketplace id, plugin ids, auth prerequisites, or
+settings posture for `Autopilot`, `HOTL`, `Cavekit`, `Brooks Lint`, and
+`Sentry`.
 
 ### [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md)
 
@@ -144,6 +146,13 @@ The detailed CodeRabbit settings companion. Read this when you need the exact
 field-by-field `CodeRabbit` settings, which values are encoded in
 `.coderabbit.yaml`, which UI fields are intentionally blank, and which settings
 carry support caveats such as slop detection.
+
+### [.brooks-lint.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.brooks-lint.yaml)
+
+The repo-local Brooks Lint boundary config. Read this when you need to know
+which archive and runtime-output paths are intentionally excluded from default
+Brooks review scope, or when deciding whether Brooks should gain repo-specific
+risk tuning beyond the current boundary-only setup.
 
 ### [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
 
@@ -226,10 +235,11 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Which Superpowers skills fit this repo versus adding overhead? | `docs/superpowers-playbook.md` |
 | How should the April 16, 2026 Codex update affect this repo? | `docs/codex-april-16-2026-impact.md` |
 | Where do plugin use/not-use and tried/not-tried decisions live? | `docs/codex-april-16-2026-impact.md` section `Plugin decision ledger` |
-| How should `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval` be split operationally? | `docs/codex-plugin-operator-cheatsheet.md` |
-| Where do the actual install state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` live? | `docs/codex-workflow-plugin-setup.md` |
+| How should `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, `Brooks Lint`, `Sentry`, and `plugin-eval` be split operationally? | `docs/codex-plugin-operator-cheatsheet.md` |
+| Where do the actual install state, plugin ids, auth prerequisites, and settings posture for `Autopilot`, `HOTL`, `Cavekit`, `Brooks Lint`, and `Sentry` live? | `docs/codex-workflow-plugin-setup.md` |
 | Where does the repo's CodeRabbit setup live? | `.coderabbit.yaml` |
 | Where do the exact CodeRabbit settings and rationale live? | `docs/coderabbit-review-settings.md` |
+| Where does the repo's Brooks Lint boundary config live? | `.brooks-lint.yaml` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |
 | What should an agent read first? | `AGENTS.md`, then `AGENTS.project.md` |

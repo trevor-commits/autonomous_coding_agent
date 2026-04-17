@@ -170,7 +170,7 @@ not count as tried.
 | `Cavekit` | Installed and enabled in Codex as plugin id `ck`; no task-backed repo-side run yet | Use selectively for spec-heavy work | requirements, acceptance criteria, build-task decomposition, and pre-build traceability; current Blueprint-family candidate | rediscovering already-approved plans or owning the whole implementation loop | when a fuzzy or large feature needs real spec/decomposition before code |
 | `CodeRabbit` | Repo-side config landed; operator chose to trial it first; live GitHub PR-review run still pending | Use now, bounded as the active dedicated-review trial | dedicated PR review, deterministic/mechanical pre-audit, and bug/security/lint/test signal before Claude or human review | replacing repo-truth review, architectural audit, or completion authority | after 3-5 real PRs show whether its review quality justifies the cost and any stronger gates |
 | `plugin-eval` | No durable repo-side run yet | Use now, bounded | benchmarking plugins, models, or workflow variants before adoption decisions | replacing architectural judgment with a single score or installing plugins on vibes | whenever a plugin or workflow choice is contested and evidence is cheaper than debate |
-| `Brooks Lint` | No | Run a spike later | second-pass code review with a maintainability and test-quality lens | default review ownership or a substitute for deterministic/scanner review | if `CodeRabbit` plus Claude review still misses maintainability or test-quality issues |
+| `Brooks Lint` | Installed and enabled in Codex; repo-local boundary config landed; no task-backed repo-side run yet | Use now, selectively as a second-pass review layer | maintainability, architecture-decay, tech-debt, and test-quality review after a bounded diff or repo slice exists | default review ownership, blocking merge authority, or replacing deterministic/scanner review | after 2-3 real review comparisons show whether it adds signal beyond `CodeRabbit` plus Claude review |
 | `Session Orchestrator` | No | Study / spike later | wave execution, quality gates, and clean session close-out as a possible execution envelope | becoming the default queue or supervisor substrate before this repo resolves its own execution model | if real implementation work shows the current execution envelope is too thin |
 | `Agent Message Queue` | No | Later / conditional | file-based agent handoffs and cross-session messaging if real multi-agent collaboration appears | adding a messaging bus before cross-session handoff is a concrete bottleneck | if cross-project or cross-session handoffs become recurring operational pain |
 | `Registry Broker` | No | Do not adopt now | specialist delegation only if later proven necessary | introducing brokered delegation before local subagents and the repo role chain are exhausted | if the repo later needs external specialist pools beyond local subagents |
@@ -178,6 +178,7 @@ not count as tried.
 | `ECC` | No | Study as a source library only | harvesting specific TDD, security, or verification ideas from a large skill catalog | wholesale install that lets a giant external workflow redefine this repo | if a specific capability is needed and smaller plugins do not cover it |
 | `Figma` | No | Later / conditional | operator UI or app-supervisor UI design work | early-stage governance work where it adds no leverage | when a real UI surface is in scope |
 | `Computer Use` | No durable repo-side trial yet | Later / conditional | OS-level app interactions, manual reproduction of desktop-only flows, and exploratory UI/system work when CLI/browser helpers are not enough | authoritative verification, routine code tasks, or replacing deterministic browser/test tooling | when real desktop-app interaction or OS-level reproduction becomes a recurring operator bottleneck |
+| `Sentry` | Enabled in Codex; no repo-side authenticated triage run yet | Use now, bounded once local auth and a real project exist | read-only production issue triage, recent-event inspection, and error summarization when a real Sentry org/project is available | committing auth secrets, write actions, or pretending observability belongs in the v1 core runtime contract | when `SENTRY_AUTH_TOKEN` plus a real org/project are configured locally and the first triage pass lands |
 | `Vercel` | No | Later / conditional | preview environments, frontend verification, and AI SDK experiments | auto-deploy authority or hosted-platform dependence in the v1 core | when preview or frontend workflow becomes real |
 | `Cloudflare` | No | Later / conditional | webhook intake hosting, Workers experiments, and possible workflow-substrate exploration | backdooring the hosting/runtime decision through plugin availability | when the runtime hosting choice is actively being made |
 | `Gmail` | No | Low now | operator follow-up and reminder workflows | core runtime or control-plane responsibilities | when operator follow-up pain becomes concrete |
@@ -188,12 +189,18 @@ Notes:
 
 - The current allow-now set is still role-bounded rather than plugin-maximal:
   `Linear`, `GitHub`, `Superpowers`, `Build Web Apps`, `HOTL`,
-  `CodeRabbit`, and `plugin-eval` are usable now inside the limits above.
-- `Autopilot`, `HOTL`, and `Cavekit` are installed and enabled in Codex but
-  should remain selective phase owners, not default workflow owners.
+  `CodeRabbit`, `Brooks Lint`, and `plugin-eval` are usable now inside the
+  limits above.
+- `Autopilot`, `HOTL`, `Cavekit`, `Brooks Lint`, and `Sentry` are installed
+  and enabled in Codex, but they should remain bounded helpers rather than new
+  workflow owners.
+- `Sentry` is enabled locally but is not genuinely usable until the operator
+  has local `SENTRY_AUTH_TOKEN` auth and a real org/project to inspect. That
+  setup stays out of repo files.
 - `docs/codex-workflow-plugin-setup.md` is the detailed operator companion for
-  the actual install state, identifiers, settings posture, and intended repo
-  usage of `Autopilot`, `HOTL`, and `Cavekit`.
+  the actual install state, identifiers, auth prerequisites, settings posture,
+  and intended repo usage of `Autopilot`, `HOTL`, `Cavekit`, `Brooks Lint`,
+  and `Sentry`.
 - The current code-review comparison call for this repo is: `GitHub Copilot`
   still looks better on cost and GitHub-native integration for a small private
   repo, but `CodeRabbit` is still the likelier stronger dedicated PR-review

@@ -1,0 +1,41 @@
+{
+  "run_id": "benchmark-009",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Introduce and then repair a broken estimate-form validation change; the supervisor rollback path must restore the last passing state before the next repair attempt continues.",
+  "scope": {
+    "allowed_paths": [
+      "client/src/pages/site/",
+      "client/src/lib/",
+      "tests/e2e/",
+      "tests/unit/"
+    ],
+    "forbidden_paths": [
+      "server/",
+      "client/src/components/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "Rollback restores the last known passing estimate-form state before the next repair loop begins.",
+      "The repaired run ends with the intended estimate validation behavior.",
+      "Rollback artifacts identify both the broken attempt and the restored baseline."
+    ],
+    "quality_gates": [
+      "pnpm check passes after the final repair.",
+      "pnpm test:smoke passes after the final repair."
+    ],
+    "ui_checks": [
+      "The estimate form remains usable on /estimate after rollback and repair.",
+      "No console errors appear while replaying the repaired estimate flow."
+    ]
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 3,
+    "max_iterations": 30,
+    "max_cost_dollars": 8.0,
+    "hard_timeout_seconds": 1800
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "run_id": "benchmark-004",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Prevent duplicate contact submissions while the request is already in flight so users cannot accidentally create repeated leads with rapid repeated clicks.",
+  "scope": {
+    "allowed_paths": [
+      "client/src/pages/site/",
+      "client/src/lib/",
+      "tests/e2e/",
+      "tests/unit/"
+    ],
+    "forbidden_paths": [
+      "server/",
+      "client/src/components/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "Submitting the contact form twice rapidly does not create two independent requests.",
+      "The submit affordance communicates the in-flight state clearly until the first request resolves.",
+      "The page returns to a valid post-submit state without trapping the user in a disabled form."
+    ],
+    "quality_gates": [
+      "pnpm check passes.",
+      "pnpm test:unit passes.",
+      "pnpm test:smoke passes."
+    ],
+    "ui_checks": [
+      "The contact form remains usable on /contact after a successful submit.",
+      "No console errors appear while the in-flight guard is exercised."
+    ]
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 4,
+    "max_iterations": 40,
+    "max_cost_dollars": 9.0,
+    "hard_timeout_seconds": 2100
+  }
+}

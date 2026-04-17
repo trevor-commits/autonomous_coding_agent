@@ -1,0 +1,37 @@
+{
+  "run_id": "benchmark-001",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Add delivery-channel readiness details to the Gillette website /api/health response so operators can see which durable lead paths are available without reading logs.",
+  "scope": {
+    "allowed_paths": [
+      "server/",
+      "shared/",
+      "tests/unit/"
+    ],
+    "forbidden_paths": [
+      "client/",
+      "scripts/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "GET /api/health includes a stable delivery readiness summary for the configured lead channels.",
+      "The existing ok/unhealthy semantics stay backward compatible for callers that already read the endpoint.",
+      "The response continues to match the repo's current Express API conventions."
+    ],
+    "quality_gates": [
+      "pnpm check passes.",
+      "pnpm test:unit passes."
+    ],
+    "ui_checks": []
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 3,
+    "max_iterations": 30,
+    "max_cost_dollars": 8.0,
+    "hard_timeout_seconds": 1800
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "run_id": "benchmark-008",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Start a second builder session against the same contact-page task while the primary writer lease is still active; the supervisor must deny the second writer and preserve single-writer isolation.",
+  "scope": {
+    "allowed_paths": [
+      "client/src/pages/site/",
+      "tests/e2e/"
+    ],
+    "forbidden_paths": [
+      "server/",
+      "shared/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "The second writer session is denied while the primary lease remains active.",
+      "Only one writable worktree exists for the run.",
+      "The lock-violation reason is recorded in the run report."
+    ],
+    "quality_gates": [
+      "Single-writer enforcement records a blocked decision for the competing writer.",
+      "The primary writer session remains intact after the rejection."
+    ],
+    "ui_checks": []
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 0,
+    "max_iterations": 8,
+    "max_cost_dollars": 2.0,
+    "hard_timeout_seconds": 600
+  }
+}

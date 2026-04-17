@@ -1,0 +1,40 @@
+{
+  "run_id": "benchmark-003",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Add aria-live announcements to the Gillette website EstimatePage projected total and summary updates so recalculated pricing is announced accessibly.",
+  "scope": {
+    "allowed_paths": [
+      "client/src/pages/site/",
+      "tests/e2e/",
+      "tests/ui/"
+    ],
+    "forbidden_paths": [
+      "server/",
+      "client/src/components/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "Projected pricing updates are exposed through an aria-live region on the estimate page.",
+      "Summary updates that change with user selections are announced accessibly.",
+      "The estimate UI keeps its current visual behavior while adding the accessibility hooks."
+    ],
+    "quality_gates": [
+      "pnpm check passes.",
+      "pnpm test:smoke passes."
+    ],
+    "ui_checks": [
+      "The estimate page still renders and responds to selections at /estimate.",
+      "No console errors appear while exercising the estimate form."
+    ]
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 3,
+    "max_iterations": 35,
+    "max_cost_dollars": 8.0,
+    "hard_timeout_seconds": 1800
+  }
+}

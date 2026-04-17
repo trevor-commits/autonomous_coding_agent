@@ -1,0 +1,37 @@
+{
+  "run_id": "benchmark-010",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Trigger the same lead-processing failure across repeated retries with slightly different stderr formatting so the supervisor collapses them into one normalized failure fingerprint instead of treating them as novel errors.",
+  "scope": {
+    "allowed_paths": [
+      "server/",
+      "scripts/",
+      "tests/unit/"
+    ],
+    "forbidden_paths": [
+      "client/",
+      "shared/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "Repeated instances of the same underlying failure normalize to one fingerprint.",
+      "The fingerprint record includes enough context to diagnose the repeated lead-processing failure.",
+      "Retry routing changes after the normalized fingerprint exceeds its threshold."
+    ],
+    "quality_gates": [
+      "The failure-fingerprint report contains one normalized signature for the repeated error.",
+      "The run report distinguishes normalized repeats from truly novel failures."
+    ],
+    "ui_checks": []
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 2,
+    "max_iterations": 20,
+    "max_cost_dollars": 5.0,
+    "hard_timeout_seconds": 1200
+  }
+}

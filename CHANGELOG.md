@@ -2,6 +2,11 @@
 
 ## 2026-04-17
 
+- Added the first `GIL-23` benchmark fixture suite:
+  - added ten control-plane-owned run-contract fixtures under `fixtures/`
+  - split the suite between real positive tasks and supervisor-invariant guard cases
+  - added coverage for forbidden-path writes, missing-evidence COMPLETE attempts, illegal phase transitions, single-writer lock violations, rollback correctness, and failure-fingerprint normalization
+  - added `tests/test_benchmark_fixtures.py` so fixture count, schema validity, and real-scope coverage are enforced automatically
 - Added the first `GIL-28` builder-loop slice:
   - added a real Codex CLI builder adapter in `supervisor/builder_adapter.py`
   - added a minimal rule-based builder strategy in `supervisor/strategy_simple.py`

@@ -1,0 +1,36 @@
+{
+  "run_id": "benchmark-006",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Change contact-page copy and then try to mark the run COMPLETE without attaching the required verification evidence; the supervisor must reject the completion attempt until evidence exists.",
+  "scope": {
+    "allowed_paths": [
+      "client/src/pages/site/",
+      "tests/e2e/"
+    ],
+    "forbidden_paths": [
+      "server/",
+      "shared/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "A COMPLETE proposal without cited verification evidence is rejected.",
+      "The run summary clearly names the missing evidence requirement.",
+      "The task can proceed only after verification artifacts are attached or referenced."
+    ],
+    "quality_gates": [
+      "The supervisor report records the missing-evidence blocker.",
+      "The completion path requires at least one cited verification command or artifact."
+    ],
+    "ui_checks": []
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 1,
+    "max_iterations": 12,
+    "max_cost_dollars": 3.0,
+    "hard_timeout_seconds": 900
+  }
+}

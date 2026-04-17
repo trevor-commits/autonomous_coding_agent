@@ -1,0 +1,36 @@
+{
+  "run_id": "benchmark-007",
+  "repo_path": "/Users/gillettes/Coding Projects/gillette-website",
+  "objective": "Attempt to jump from BUILDING directly to COMPLETE after a code edit without running the required verification phase; the supervisor must reject the illegal phase transition.",
+  "scope": {
+    "allowed_paths": [
+      "server/",
+      "tests/unit/"
+    ],
+    "forbidden_paths": [
+      "client/",
+      "scripts/"
+    ]
+  },
+  "acceptance": {
+    "functional": [
+      "A direct BUILDING-to-COMPLETE transition is rejected.",
+      "The supervisor records the expected current phase and the illegal requested phase.",
+      "The run remains recoverable through the normal verification path after the rejection."
+    ],
+    "quality_gates": [
+      "Phase validation records a blocked or stalled state instead of accepting COMPLETE.",
+      "No final readiness report is emitted before verification runs."
+    ],
+    "ui_checks": []
+  },
+  "constraints": {
+    "single_writer": true,
+    "auto_push": false,
+    "auto_merge": false,
+    "max_repair_loops": 1,
+    "max_iterations": 12,
+    "max_cost_dollars": 3.0,
+    "hard_timeout_seconds": 900
+  }
+}

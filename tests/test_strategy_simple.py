@@ -135,6 +135,38 @@ class SimpleStrategyTests(unittest.TestCase):
         self.assertEqual("BLOCKED", action.payload["run_state"])
         self.assertIn("local-verify-test-login-failed", action.payload["reason"])
 
+    def test_app_launch_repair_action_includes_health_failure(self) -> None:
+        strategy = SimpleStrategy()
+
+        action = strategy.app_launch_repair_action(
+            _run_contract(),
+            failure_reason="Health check never returned 200.",
+            failure_fingerprint="app-launch-app-health-timeout",
+        )
+
+        self.assertEqual(ActionType.REQUEST_BUILDER_TASK, action.action_type)
+        self.assertIn("Health check never returned 200.", action.payload["description"])
+        self.assertIn("app-launch-app-health-timeout", action.payload["description"])
+
+    def test_ui_repair_action_includes_defect_packet_context(self) -> None:
+        strategy = SimpleStrategy()
+
+        action = strategy.ui_repair_action(
+            _run_contract(),
+            defect_packets=(
+                {
+                    "summary": "Save button disabled after valid input",
+                    "suspected_scope": ["src/components/SettingsForm.tsx"],
+                    "failure_fingerprint": "ui-verify-ui-smoke-save-disabled",
+                },
+            ),
+        )
+
+        self.assertEqual(ActionType.REQUEST_BUILDER_TASK, action.action_type)
+        self.assertIn("Save button disabled after valid input", action.payload["description"])
+        self.assertIn("src/components/SettingsForm.tsx", action.payload["description"])
+        self.assertIn("ui-verify-ui-smoke-save-disabled", action.payload["description"])
+
 
 if __name__ == "__main__":
     unittest.main()

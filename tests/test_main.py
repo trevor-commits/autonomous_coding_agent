@@ -6,9 +6,12 @@ from pathlib import Path
 
 import yaml
 
+from supervisor.app_supervisor import AppLaunchSummary, AppSession
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, BuilderSession
 from supervisor.main import execute_run
+from supervisor.ui_verifier import UIVerificationSummary
 from supervisor.strategy_simple import SimpleStrategy
+from supervisor.verifier import CommandExecutionResult
 
 
 def _git(repo_root: Path, *args: str) -> None:
@@ -21,7 +24,7 @@ def _git(repo_root: Path, *args: str) -> None:
     )
 
 
-def _init_target_repo(repo_root: Path) -> Path:
+def _init_target_repo(repo_root: Path, *, with_ui: bool = False) -> Path:
     _git(repo_root, "init")
     _git(repo_root, "config", "user.name", "Codex")
     _git(repo_root, "config", "user.email", "codex@example.com")
@@ -29,20 +32,21 @@ def _init_target_repo(repo_root: Path) -> Path:
     (repo_root / "scripts").mkdir()
     (repo_root / "src").mkdir()
     (repo_root / ".gitignore").write_text(".autoclaw/\nworktrees/\n")
-    (repo_root / ".agent" / "contract.yml").write_text(
-        yaml.safe_dump(
-            {
-                "version": 1,
-                "stack": "fullstack-web",
-                "commands": {
-                    "setup": "python3 scripts/setup.py",
-                    "test": "python3 scripts/test.py",
-                    "app_up": "python3 -m http.server 3000",
-                    "app_health": "http://127.0.0.1:3000/health",
-                },
-            }
-        )
-    )
+    contract_payload = {
+        "version": 1,
+        "stack": "fullstack-web",
+        "commands": {
+            "setup": "python3 scripts/setup.py",
+            "test": "python3 scripts/test.py",
+            "app_up": "python3 -m http.server 3000",
+            "app_health": "http://127.0.0.1:3000/health",
+        },
+    }
+    if with_ui:
+        contract_payload["commands"]["ui_smoke"] = "python3 scripts/ui_smoke.py"
+        contract_payload["ui"] = {"base_url": "http://127.0.0.1:3000", "breakpoints": ["390x844"]}
+        (repo_root / "scripts" / "ui_smoke.py").write_text("print('ui smoke placeholder')\n")
+    (repo_root / ".agent" / "contract.yml").write_text(yaml.safe_dump(contract_payload))
     (repo_root / "scripts" / "setup.py").write_text("print('setup ok')\n")
     (repo_root / "scripts" / "test.py").write_text(
         "\n".join(
@@ -124,6 +128,154 @@ class FakeBuilderAdapter(BuilderAdapter):
         return None
 
 
+class FakeAppSupervisor:
+    def __init__(self, launches: list[AppLaunchSummary]) -> None:
+        self.launches = launches
+        self.stopped_sessions: list[AppSession] = []
+
+    def launch(self) -> AppLaunchSummary:
+        return self.launches.pop(0)
+
+    def stop(self, session: AppSession | None) -> None:
+        if session is not None:
+            self.stopped_sessions.append(session)
+
+
+class FakeUIVerifier:
+    def __init__(self, summaries: list[UIVerificationSummary]) -> None:
+        self.summaries = summaries
+
+    def run(self, *, changed_files: tuple[str, ...]) -> UIVerificationSummary:
+        return self.summaries.pop(0)
+
+
+def _healthy_launch() -> AppLaunchSummary:
+    return AppLaunchSummary(
+        healthy=True,
+        session=AppSession(
+            process=None,
+            health_url="http://127.0.0.1:3000/health",
+            stdout_log_path=Path("/tmp/app.stdout.log"),
+            stderr_log_path=Path("/tmp/app.stderr.log"),
+        ),
+        base_url="http://127.0.0.1:3000",
+        command_results=(
+            CommandExecutionResult(
+                name="app_up",
+                command="pnpm dev",
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_seconds=0.1,
+                scope="full",
+                run_trace_id="trace-123",
+            ),
+            CommandExecutionResult(
+                name="app_health",
+                command="http://127.0.0.1:3000/health",
+                exit_code=0,
+                stdout="ok",
+                stderr="",
+                duration_seconds=0.1,
+                scope="full",
+                run_trace_id="trace-123",
+            ),
+        ),
+        artifact_manifest=("artifacts/logs/app_up.stdout.log", "artifacts/logs/app_up.stderr.log"),
+    )
+
+
+def _failed_launch() -> AppLaunchSummary:
+    return AppLaunchSummary(
+        healthy=False,
+        session=None,
+        base_url="http://127.0.0.1:3000",
+        command_results=(
+            CommandExecutionResult(
+                name="app_up",
+                command="pnpm dev",
+                exit_code=0,
+                stdout="",
+                stderr="",
+                duration_seconds=0.1,
+                scope="full",
+                run_trace_id="trace-123",
+            ),
+            CommandExecutionResult(
+                name="app_health",
+                command="http://127.0.0.1:3000/health",
+                exit_code=1,
+                stdout="",
+                stderr="timeout waiting for health",
+                duration_seconds=0.2,
+                scope="full",
+                run_trace_id="trace-123",
+                failure_fingerprint="app-launch-app-health-timeout",
+            ),
+        ),
+        artifact_manifest=("artifacts/logs/app_up.stdout.log", "artifacts/logs/app_up.stderr.log"),
+        failure_fingerprint="app-launch-app-health-timeout",
+        failure_reason="timeout waiting for health",
+    )
+
+
+def _ui_pass() -> UIVerificationSummary:
+    return UIVerificationSummary(
+        passed=True,
+        command_results=(
+            CommandExecutionResult(
+                name="ui_smoke",
+                command="npx playwright test",
+                exit_code=0,
+                stdout="all ui smoke checks passed",
+                stderr="",
+                duration_seconds=0.4,
+                scope="full",
+                run_trace_id="trace-123",
+            ),
+        ),
+        defect_packets=(),
+        artifact_manifest=("artifacts/logs/ui_smoke.stdout.log",),
+    )
+
+
+def _ui_failure() -> UIVerificationSummary:
+    return UIVerificationSummary(
+        passed=False,
+        command_results=(
+            CommandExecutionResult(
+                name="ui_smoke",
+                command="npx playwright test",
+                exit_code=1,
+                stdout="",
+                stderr="Save button disabled after valid input",
+                duration_seconds=0.4,
+                scope="full",
+                run_trace_id="trace-123",
+                failure_fingerprint="ui-verify-ui-smoke-save-disabled",
+            ),
+        ),
+        defect_packets=(
+            {
+                "defect_id": "defect-001",
+                "severity": "P1",
+                "type": "ui-functional",
+                "summary": "Save button disabled after valid input",
+                "repro_steps": ["Open /settings", "Fill valid data", "Observe save button"],
+                "expected": "Save button enabled",
+                "observed": "Button remained disabled",
+                "evidence": {"console_log": "artifacts/logs/ui_smoke.stderr.log"},
+                "suspected_scope": ["src/components/SettingsForm.tsx"],
+                "failure_fingerprint": "ui-verify-ui-smoke-save-disabled",
+            },
+        ),
+        artifact_manifest=(
+            "artifacts/logs/ui_smoke.stderr.log",
+            "artifacts/screenshots/settings-save-disabled.png",
+        ),
+    )
+
+
 class SupervisorMainTests(unittest.TestCase):
     def test_execute_run_completes_after_single_builder_turn(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -182,6 +334,54 @@ class SupervisorMainTests(unittest.TestCase):
 
             self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
             self.assertIn("git push", "\n".join(outcome.report.unresolved_blockers))
+
+    def test_execute_run_retries_after_app_launch_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            adapter = FakeBuilderAdapter(["fixed", "fixed"])
+            app_supervisor = FakeAppSupervisor([_failed_launch(), _healthy_launch()])
+            ui_verifier = FakeUIVerifier([_ui_pass()])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                app_supervisor=app_supervisor,
+                ui_verifier=ui_verifier,
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(2, len(adapter.prompts))
+            self.assertIn("app-launch-app-health-timeout", adapter.prompts[1])
+            self.assertIn("APP_LAUNCH", outcome.report.phases_completed)
+            self.assertIn("UI_VERIFY", outcome.report.phases_completed)
+
+    def test_execute_run_routes_ui_defects_back_to_builder(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            adapter = FakeBuilderAdapter(["fixed", "fixed"])
+            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
+            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                app_supervisor=app_supervisor,
+                ui_verifier=ui_verifier,
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(2, len(adapter.prompts))
+            self.assertIn("Save button disabled after valid input", adapter.prompts[1])
+            self.assertIn("src/components/SettingsForm.tsx", adapter.prompts[1])
+            self.assertIn("ui-verify-ui-smoke-save-disabled", adapter.prompts[1])
 
 
 if __name__ == "__main__":

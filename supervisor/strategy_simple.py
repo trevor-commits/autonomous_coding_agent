@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, Sequence
+
 from supervisor.actions import Action
 from supervisor.models import ActionType
 from supervisor.contracts import RepoContract, RunContract
@@ -37,6 +39,50 @@ class SimpleStrategy:
         return Action(
             action_type=ActionType.REQUEST_BUILDER_TASK,
             payload={"description": description},
+        )
+
+    def app_launch_repair_action(
+        self,
+        run_contract: RunContract,
+        *,
+        failure_reason: str,
+        failure_fingerprint: str | None,
+    ) -> Action:
+        detail = failure_fingerprint or "app-launch-failure"
+        return Action(
+            action_type=ActionType.REQUEST_BUILDER_TASK,
+            payload={
+                "description": (
+                    f"Repair the objective `{run_contract.objective}` so the local app launches "
+                    f"and becomes healthy. App launch failure: {failure_reason}. "
+                    f"Relevant failure fingerprint: {detail}."
+                )
+            },
+        )
+
+    def ui_repair_action(
+        self,
+        run_contract: RunContract,
+        *,
+        defect_packets: Sequence[dict[str, Any]],
+    ) -> Action:
+        descriptions: list[str] = []
+        for defect in defect_packets:
+            summary = str(defect.get("summary", "UI defect"))
+            suspected_scope = ", ".join(str(path) for path in defect.get("suspected_scope", ())) or "n/a"
+            fingerprint = str(defect.get("failure_fingerprint", "n/a"))
+            descriptions.append(
+                f"{summary} | suspected scope: {suspected_scope} | fingerprint: {fingerprint}"
+            )
+        joined = "; ".join(descriptions) or "UI smoke suite failed without a structured defect."
+        return Action(
+            action_type=ActionType.REQUEST_BUILDER_TASK,
+            payload={
+                "description": (
+                    f"Repair the objective `{run_contract.objective}` by resolving these UI "
+                    f"defects from the smoke suite: {joined}."
+                )
+            },
         )
 
     def blocking_action_for_failure(

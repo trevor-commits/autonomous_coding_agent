@@ -2,6 +2,12 @@
 
 ## 2026-04-17
 
+- Added the first `GIL-29` app-launch and UI-verification slice:
+  - added `supervisor/app_supervisor.py` so the runtime can launch the target app, poll localhost health, capture lifecycle logs, and stop the process cleanly
+  - added `supervisor/ui_verifier.py` so the runtime can run the repo-owned `ui_smoke` command, pass isolated browser-profile and artifact env, and emit structured defect packets on failure
+  - extended `supervisor/main.py` to route `LOCAL_VERIFY -> APP_LAUNCH -> UI_VERIFY -> FINAL_GATE`, send app-health and UI defects back through bounded builder repair loops, and carry UI command results into the final readiness report
+  - extended `supervisor/strategy_simple.py` with targeted app-launch and UI-defect repair prompts instead of treating all failures like deterministic test failures
+  - added focused tests for app lifecycle, UI verifier artifacts/defect packets, strategy repair prompts, and main-loop app/UI repair routing
 - Added the first `GIL-23` benchmark fixture suite:
   - added ten control-plane-owned run-contract fixtures under `fixtures/`
   - split the suite between real positive tasks and supervisor-invariant guard cases

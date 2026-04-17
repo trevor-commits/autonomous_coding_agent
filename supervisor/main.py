@@ -6,6 +6,7 @@ import shlex
 from dataclasses import dataclass
 from pathlib import Path
 
+from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuilderAdapter, build_builder_prompt
 from supervisor.contracts import RepoContract, RunContract, load_repo_contract, load_run_contract
 from supervisor.fingerprints import FailureFingerprintStore
@@ -21,6 +22,7 @@ from supervisor.reports import ReadinessReport, build_readiness_report, write_re
 from supervisor.run_store import RunStore
 from supervisor.state_machine import StateMachine
 from supervisor.strategy_simple import SimpleStrategy
+from supervisor.ui_verifier import UIVerificationSummary, UIVerifier
 from supervisor.verifier import VerificationMode, VerificationSummary, Verifier
 from supervisor.worktree_manager import BuilderWorkspace, WorktreeManager
 
@@ -41,6 +43,8 @@ def execute_run(
     run_contract_path: Path | str,
     builder_adapter: BuilderAdapter,
     strategy: SimpleStrategy,
+    app_supervisor: AppSupervisor | None = None,
+    ui_verifier: UIVerifier | None = None,
     cleanup_worktree: bool = False,
     builder_timeout_seconds: int = 300,
 ) -> RunExecutionOutcome:
@@ -74,14 +78,33 @@ def execute_run(
         run_trace_id=run_contract.queue.run_trace_id or run_contract.run_id,
         fingerprint_store=fingerprint_store,
     )
+    app_supervisor = app_supervisor or AppSupervisor(
+        repo_root=workspace.worktree_path,
+        repo_contract=repo_contract,
+        run_contract=run_contract,
+        run_store=run_store,
+        run_trace_id=run_contract.queue.run_trace_id or run_contract.run_id,
+        fingerprint_store=fingerprint_store,
+    )
+    ui_verifier = ui_verifier or UIVerifier(
+        repo_root=workspace.worktree_path,
+        repo_contract=repo_contract,
+        run_contract=run_contract,
+        run_store=run_store,
+        run_trace_id=run_contract.queue.run_trace_id or run_contract.run_id,
+        fingerprint_store=fingerprint_store,
+    )
 
-    attempt = 0
+    repair_attempt = 0
     prior_failures: tuple[str, ...] = ()
     last_summary: VerificationSummary | None = None
     last_changed_files: tuple[str, ...] = ()
+    command_history = []
     artifact_manifest: set[str] = set()
     unresolved_blockers: tuple[str, ...] = ()
     queue_exit_reason: str | None = None
+    pending_build_description: str | None = None
+    active_app_session = None
 
     try:
         while True:
@@ -89,14 +112,18 @@ def execute_run(
                 machine.transition_to(Phase.BUILD, "Dispatching builder turn.")
                 run_store.write_state(machine.snapshot)
 
-            build_action = strategy.build_action(
-                run_contract,
-                repo_contract,
-                prior_failure_fingerprints=prior_failures,
-            )
+            if pending_build_description:
+                build_description = pending_build_description
+                pending_build_description = None
+            else:
+                build_description = strategy.build_action(
+                    run_contract,
+                    repo_contract,
+                    prior_failure_fingerprints=prior_failures,
+                ).payload["description"]
             prompt = build_builder_prompt(
                 session.run_context,
-                build_action.payload["description"],
+                build_description,
                 prior_failure_fingerprints=prior_failures,
             )
             builder_result = builder_adapter.send_task(session, prompt, timeout=builder_timeout_seconds)
@@ -122,10 +149,99 @@ def execute_run(
                 mode=_verification_mode_for(builder_result),
                 changed_files=builder_result.files_changed,
             )
+            command_history.extend(last_summary.commands)
             artifact_manifest.update(_verification_artifact_manifest(last_summary))
             artifact_manifest.add("reports/failure-fingerprints.json")
 
             if last_summary.all_passed:
+                if repo_contract.commands.ui_smoke:
+                    launch = _launch_app_for_ui_phase(
+                        machine=machine,
+                        run_store=run_store,
+                        app_supervisor=app_supervisor,
+                    )
+                    command_history.extend(launch.command_results)
+                    artifact_manifest.update(launch.artifact_manifest)
+                    if not launch.healthy:
+                        repair_attempt += 1
+                        if repair_attempt >= run_contract.constraints.max_repair_loops:
+                            reason = launch.failure_reason or "app launch failed"
+                            machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+                            queue_exit_reason = "blocked by app launch failure"
+                            unresolved_blockers = (reason,)
+                            break
+                        prior_failures = tuple(
+                            fingerprint
+                            for fingerprint in (launch.failure_fingerprint,)
+                            if fingerprint
+                        )
+                        pending_build_description = strategy.app_launch_repair_action(
+                            run_contract,
+                            failure_reason=launch.failure_reason or "App health failed.",
+                            failure_fingerprint=launch.failure_fingerprint,
+                        ).payload["description"]
+                        machine.transition_to(
+                            Phase.BUILD,
+                            "App health failed; routing back to builder.",
+                        )
+                        run_store.write_state(machine.snapshot)
+                        continue
+
+                    active_app_session = launch.session
+                    machine.transition_to(Phase.UI_VERIFY, "App is healthy; running UI smoke suite.")
+                    run_store.write_state(machine.snapshot)
+                    ui_summary = ui_verifier.run(changed_files=builder_result.files_changed)
+                    command_history.extend(ui_summary.command_results)
+                    artifact_manifest.update(ui_summary.artifact_manifest)
+
+                    if ui_summary.passed:
+                        machine.transition_to(Phase.FINAL_GATE, "UI verification passed.")
+                        machine.record_final_gate_evidence(
+                            required_artifacts_present=True,
+                            authoritative_checks_passed=True,
+                            unresolved_high_severity_findings=False,
+                        )
+                        machine.apply_final_gate_outcome(
+                            ReadinessVerdict.READY,
+                            "UI verification passed.",
+                        )
+                        queue_exit_reason = "ui verification passed"
+                        unresolved_blockers = ()
+                        if active_app_session is not None:
+                            app_supervisor.stop(active_app_session)
+                            active_app_session = None
+                        break
+
+                    if active_app_session is not None:
+                        app_supervisor.stop(active_app_session)
+                        active_app_session = None
+
+                    repair_attempt += 1
+                    if repair_attempt >= run_contract.constraints.max_repair_loops:
+                        reason = _ui_failure_reason(ui_summary)
+                        machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+                        queue_exit_reason = "blocked by ui verification failure"
+                        unresolved_blockers = tuple(
+                            defect["summary"] for defect in ui_summary.defect_packets
+                        ) or (reason,)
+                        break
+
+                    prior_failures = tuple(
+                        result.failure_fingerprint
+                        for result in ui_summary.command_results
+                        if result.failure_fingerprint
+                    )
+                    pending_build_description = strategy.ui_repair_action(
+                        run_contract,
+                        defect_packets=ui_summary.defect_packets,
+                    ).payload["description"]
+                    machine.transition_to(
+                        Phase.BUILD,
+                        "UI verification failed; routing defect packets back to builder.",
+                    )
+                    run_store.write_state(machine.snapshot)
+                    continue
+
                 machine.transition_to(Phase.FINAL_GATE, "Deterministic verification passed.")
                 machine.record_final_gate_evidence(
                     required_artifacts_present=True,
@@ -140,7 +256,7 @@ def execute_run(
                 unresolved_blockers = ()
                 break
 
-            attempt += 1
+            repair_attempt += 1
             repeated = tuple(
                 fingerprint
                 for fingerprint in last_summary.failures
@@ -162,7 +278,7 @@ def execute_run(
 
             terminal_action = strategy.blocking_action_for_failure(
                 last_summary,
-                attempt=attempt,
+                attempt=repair_attempt,
                 max_repair_loops=run_contract.constraints.max_repair_loops,
             )
             if terminal_action:
@@ -181,12 +297,14 @@ def execute_run(
         queue_exit_reason = "blocked by policy gate"
         unresolved_blockers = (str(exc),)
     finally:
+        if active_app_session is not None:
+            app_supervisor.stop(active_app_session)
         run_store.write_state(machine.snapshot)
         artifact_manifest.update({"reports/final-report.json", "reports/final-summary.md"})
         report = build_readiness_report(
             snapshot=machine.snapshot,
             run_contract=run_contract,
-            command_results=last_summary.commands if last_summary else (),
+            command_results=tuple(command_history),
             changed_files=last_changed_files,
             artifact_manifest=tuple(sorted(artifact_manifest)),
             unresolved_blockers=unresolved_blockers,
@@ -233,6 +351,24 @@ def _verification_artifact_manifest(summary: VerificationSummary) -> set[str]:
         artifacts.add(f"artifacts/logs/{result.name}.stdout.log")
         artifacts.add(f"artifacts/logs/{result.name}.stderr.log")
     return artifacts
+
+
+def _launch_app_for_ui_phase(
+    *,
+    machine: StateMachine,
+    run_store: RunStore,
+    app_supervisor: AppSupervisor,
+) -> AppLaunchSummary:
+    machine.transition_to(Phase.APP_LAUNCH, "Deterministic verification passed; launching app.")
+    run_store.write_state(machine.snapshot)
+    return app_supervisor.launch()
+
+
+def _ui_failure_reason(summary: UIVerificationSummary) -> str:
+    if summary.defect_packets:
+        return "; ".join(str(defect.get("summary", "UI smoke suite failed")) for defect in summary.defect_packets)
+    result = summary.command_results[-1]
+    return result.stderr.strip() or result.stdout.strip() or "UI smoke suite failed."
 
 
 def _enforce_builder_policies(

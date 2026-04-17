@@ -4,7 +4,9 @@ import time
 import unittest
 from pathlib import Path
 
-from supervisor.app_supervisor import AppSupervisor
+import subprocess
+
+from supervisor.app_supervisor import AppSession, AppSupervisor
 from supervisor.contracts import (
     QueueMetadata,
     RepoCommands,
@@ -119,6 +121,63 @@ class AppSupervisorTests(unittest.TestCase):
                 time.sleep(0.05)
             self.assertIsNotNone(launch.session.process.poll())
 
+    def test_stop_runs_app_down_command_before_fallback_shutdown(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            marker_path = repo_root / "app-down-ran.txt"
+            repo_contract = RepoContract(
+                version=1,
+                stack="fullstack-web",
+                commands=RepoCommands(
+                    setup="python3 -c \"print('setup ok')\"",
+                    test="python3 -c \"print('tests ok')\"",
+                    app_up="python3 -c \"import time; time.sleep(30)\"",
+                    app_health=f"http://127.0.0.1:{_free_port()}/health",
+                    app_down=(
+                        "python3 -c \"from pathlib import Path; "
+                        f"Path(r'{marker_path}').write_text('stopped', encoding='utf-8')\""
+                    ),
+                    ui_smoke="python3 -c \"print('ui ok')\"",
+                ),
+                ui=RepoUIConfig(base_url="http://127.0.0.1:3000"),
+                env=RepoEnvConfig(),
+            )
+            run_contract = _make_run_contract(repo_root)
+            run_store = RunStore(repo_root, run_contract.run_id)
+            run_store.initialize(repo_contract=repo_contract, run_contract=run_contract)
+
+            supervisor = AppSupervisor(
+                repo_root=repo_root,
+                repo_contract=repo_contract,
+                run_contract=run_contract,
+                run_store=run_store,
+                run_trace_id="trace-app-123",
+                health_timeout_seconds=0.1,
+                poll_interval_seconds=0.05,
+            )
+            process = subprocess.Popen(
+                repo_contract.commands.app_up,
+                cwd=repo_root,
+                shell=True,
+                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            session = AppSession(
+                process=process,
+                health_url=repo_contract.commands.app_health,
+                stdout_log_path=run_store.logs_dir / "app_up.stdout.log",
+                stderr_log_path=run_store.logs_dir / "app_up.stderr.log",
+            )
+
+            supervisor.stop(session)
+
+            self.assertTrue(marker_path.exists())
+            deadline = time.time() + 3.0
+            while session.process.poll() is None and time.time() < deadline:
+                time.sleep(0.05)
+            self.assertIsNotNone(session.process.poll())
+
     def test_launch_failure_records_health_fingerprint_and_stops_process(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -156,6 +215,42 @@ class AppSupervisorTests(unittest.TestCase):
             self.assertIn("app-launch-app-health", launch.failure_fingerprint)
             self.assertEqual(1, launch.command_results[-1].exit_code)
             self.assertTrue((run_store.reports_dir / "failure-fingerprints.json").exists())
+
+    def test_launch_failure_records_actual_app_up_exit_code_when_process_crashes_early(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            repo_contract = RepoContract(
+                version=1,
+                stack="fullstack-web",
+                commands=RepoCommands(
+                    setup="python3 -c \"print('setup ok')\"",
+                    test="python3 -c \"print('tests ok')\"",
+                    app_up="python3 -c \"raise SystemExit(7)\"",
+                    app_health=f"http://127.0.0.1:{_free_port()}/health",
+                    ui_smoke="python3 -c \"print('ui ok')\"",
+                ),
+                ui=RepoUIConfig(base_url="http://127.0.0.1:3000"),
+                env=RepoEnvConfig(),
+            )
+            run_contract = _make_run_contract(repo_root)
+            run_store = RunStore(repo_root, run_contract.run_id)
+            run_store.initialize(repo_contract=repo_contract, run_contract=run_contract)
+
+            supervisor = AppSupervisor(
+                repo_root=repo_root,
+                repo_contract=repo_contract,
+                run_contract=run_contract,
+                run_store=run_store,
+                run_trace_id="trace-app-123",
+                health_timeout_seconds=0.3,
+                poll_interval_seconds=0.05,
+            )
+            launch = supervisor.launch()
+
+            self.assertFalse(launch.healthy)
+            self.assertEqual(7, launch.command_results[0].exit_code)
+            self.assertGreater(launch.command_results[0].duration_seconds, 0.0)
+            self.assertIn("exited before health check", launch.command_results[0].stderr)
 
 
 if __name__ == "__main__":

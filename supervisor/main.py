@@ -95,10 +95,13 @@ def execute_run(
         fingerprint_store=fingerprint_store,
     )
 
-    repair_attempt = 0
+    local_verify_attempt = 0
+    app_launch_attempt = 0
+    ui_verify_attempt = 0
     prior_failures: tuple[str, ...] = ()
     last_summary: VerificationSummary | None = None
     last_changed_files: tuple[str, ...] = ()
+    cumulative_changed_files: set[str] = set()
     command_history = []
     artifact_manifest: set[str] = set()
     unresolved_blockers: tuple[str, ...] = ()
@@ -128,6 +131,7 @@ def execute_run(
             )
             builder_result = builder_adapter.send_task(session, prompt, timeout=builder_timeout_seconds)
             last_changed_files = builder_result.files_changed
+            cumulative_changed_files.update(builder_result.files_changed)
 
             if builder_result.status != "completed":
                 raise PolicyViolationError(
@@ -163,8 +167,8 @@ def execute_run(
                     command_history.extend(launch.command_results)
                     artifact_manifest.update(launch.artifact_manifest)
                     if not launch.healthy:
-                        repair_attempt += 1
-                        if repair_attempt >= run_contract.constraints.max_repair_loops:
+                        app_launch_attempt += 1
+                        if app_launch_attempt >= run_contract.constraints.max_repair_loops:
                             reason = launch.failure_reason or "app launch failed"
                             machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
                             queue_exit_reason = "blocked by app launch failure"
@@ -216,8 +220,8 @@ def execute_run(
                         app_supervisor.stop(active_app_session)
                         active_app_session = None
 
-                    repair_attempt += 1
-                    if repair_attempt >= run_contract.constraints.max_repair_loops:
+                    ui_verify_attempt += 1
+                    if ui_verify_attempt >= run_contract.constraints.max_repair_loops:
                         reason = _ui_failure_reason(ui_summary)
                         machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
                         queue_exit_reason = "blocked by ui verification failure"
@@ -256,7 +260,7 @@ def execute_run(
                 unresolved_blockers = ()
                 break
 
-            repair_attempt += 1
+            local_verify_attempt += 1
             repeated = tuple(
                 fingerprint
                 for fingerprint in last_summary.failures
@@ -278,7 +282,7 @@ def execute_run(
 
             terminal_action = strategy.blocking_action_for_failure(
                 last_summary,
-                attempt=repair_attempt,
+                attempt=local_verify_attempt,
                 max_repair_loops=run_contract.constraints.max_repair_loops,
             )
             if terminal_action:
@@ -305,7 +309,7 @@ def execute_run(
             snapshot=machine.snapshot,
             run_contract=run_contract,
             command_results=tuple(command_history),
-            changed_files=last_changed_files,
+            changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
             artifact_manifest=tuple(sorted(artifact_manifest)),
             unresolved_blockers=unresolved_blockers,
             queue_exit_reason=queue_exit_reason,

@@ -128,6 +128,42 @@ class FakeBuilderAdapter(BuilderAdapter):
         return None
 
 
+class MultiFileBuilderAdapter(BuilderAdapter):
+    def __init__(
+        self,
+        writes_per_turn: list[dict[str, str]],
+        commands_per_turn: list[tuple[str, ...]] | None = None,
+    ) -> None:
+        self.writes_per_turn = writes_per_turn
+        self.commands_per_turn = commands_per_turn or [tuple() for _ in writes_per_turn]
+        self.prompts: list[str] = []
+
+    def start_session(self, worktree_path: Path, run_context: dict) -> BuilderSession:
+        return BuilderSession(worktree_path=Path(worktree_path), run_context=run_context, session_id="multi")
+
+    def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
+        turn = session.turn_count
+        session.turn_count += 1
+        self.prompts.append(prompt)
+        write_batch = self.writes_per_turn[turn]
+        for relative_path, value in write_batch.items():
+            target = session.worktree_path / relative_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(value)
+        return BuilderResult(
+            session_id=session.session_id,
+            status="completed",
+            final_message="done",
+            files_changed=tuple(sorted(write_batch.keys())),
+            commands_run=self.commands_per_turn[turn],
+            duration_seconds=0.01,
+            raw_events=tuple(),
+        )
+
+    def close_session(self, session: BuilderSession) -> None:
+        return None
+
+
 class FakeAppSupervisor:
     def __init__(self, launches: list[AppLaunchSummary]) -> None:
         self.launches = launches
@@ -359,6 +395,28 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("APP_LAUNCH", outcome.report.phases_completed)
             self.assertIn("UI_VERIFY", outcome.report.phases_completed)
 
+    def test_execute_run_allows_app_launch_repair_after_local_verify_retry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            adapter = FakeBuilderAdapter(["broken", "fixed", "fixed"])
+            app_supervisor = FakeAppSupervisor([_failed_launch(), _healthy_launch()])
+            ui_verifier = FakeUIVerifier([_ui_pass()])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                app_supervisor=app_supervisor,
+                ui_verifier=ui_verifier,
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(3, len(adapter.prompts))
+            self.assertIn("app-launch-app-health-timeout", adapter.prompts[2])
+
     def test_execute_run_routes_ui_defects_back_to_builder(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -382,6 +440,66 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("Save button disabled after valid input", adapter.prompts[1])
             self.assertIn("src/components/SettingsForm.tsx", adapter.prompts[1])
             self.assertIn("ui-verify-ui-smoke-save-disabled", adapter.prompts[1])
+
+    def test_execute_run_allows_ui_repair_after_local_verify_retry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            adapter = FakeBuilderAdapter(["broken", "fixed", "fixed"])
+            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
+            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                app_supervisor=app_supervisor,
+                ui_verifier=ui_verifier,
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(3, len(adapter.prompts))
+            self.assertIn("Save button disabled after valid input", adapter.prompts[2])
+
+    def test_execute_run_reports_cumulative_changed_files_across_builder_turns(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            (repo_root / "scripts" / "test.py").write_text(
+                "\n".join(
+                    [
+                        "from pathlib import Path",
+                        "a_value = Path('src/a.txt').read_text().strip() if Path('src/a.txt').exists() else ''",
+                        "b_value = Path('src/b.txt').read_text().strip() if Path('src/b.txt').exists() else ''",
+                        "task_value = Path('src/task.txt').read_text().strip() if Path('src/task.txt').exists() else ''",
+                        "if a_value == 'seeded' and b_value == 'ready' and task_value == 'fixed':",
+                        "    print('tests passed')",
+                        "else:",
+                        "    raise SystemExit(1)",
+                    ]
+                )
+            )
+            _git(repo_root, "add", "scripts/test.py")
+            _git(repo_root, "commit", "-m", "adjust tests")
+            adapter = MultiFileBuilderAdapter(
+                [
+                    {"src/a.txt": "seeded", "src/task.txt": "broken"},
+                    {"src/b.txt": "ready", "src/task.txt": "fixed"},
+                ]
+            )
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(("src/a.txt", "src/b.txt", "src/task.txt"), outcome.report.changed_files)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import time
 from dataclasses import dataclass
@@ -87,16 +88,6 @@ class AppSupervisor:
             stdout_log_path=stdout_log_path,
             stderr_log_path=stderr_log_path,
         )
-        app_up_result = CommandExecutionResult(
-            name="app_up",
-            command=self.repo_contract.commands.app_up,
-            exit_code=0,
-            stdout="",
-            stderr="",
-            duration_seconds=0.0,
-            scope="full",
-            run_trace_id=self.run_trace_id,
-        )
 
         started = time.monotonic()
         deadline = started + self.health_timeout_seconds
@@ -109,6 +100,11 @@ class AppSupervisor:
                 with urlopen(health_url, timeout=max(1.0, self.poll_interval_seconds)) as response:
                     body = response.read().decode("utf-8", errors="replace")
                     if response.status == 200:
+                        app_up_result = self._build_app_up_result(
+                            session=session,
+                            started=started,
+                            exit_code=0,
+                        )
                         return AppLaunchSummary(
                             healthy=True,
                             session=session,
@@ -133,6 +129,7 @@ class AppSupervisor:
                 last_error = str(exc)
             time.sleep(self.poll_interval_seconds)
 
+        process_exit_code = process.poll()
         self.stop(session)
         failure_signature = last_error or "health check timed out"
         fingerprint = self.fingerprint_store.record(
@@ -143,6 +140,12 @@ class AppSupervisor:
             evidence_refs=self._artifact_manifest(),
             type="environment",
         ).fingerprint
+        app_up_result = self._build_app_up_result(
+            session=session,
+            started=started,
+            exit_code=1 if process_exit_code is None else process_exit_code,
+            stderr_override=failure_signature,
+        )
         return AppLaunchSummary(
             healthy=False,
             session=None,
@@ -170,6 +173,23 @@ class AppSupervisor:
         if session is None or session.process is None:
             return
         process = session.process
+        app_down_command = self.repo_contract.commands.app_down
+        if app_down_command:
+            subprocess.run(
+                app_down_command,
+                cwd=self.repo_root,
+                shell=True,
+                text=True,
+                capture_output=True,
+                check=False,
+                env={
+                    **os.environ.copy(),
+                    "AUTOCLAW_RUN_ID": self.run_contract.run_id,
+                    "AUTOCLAW_RUN_TRACE_ID": self.run_trace_id,
+                    "AUTOCLAW_APP_PID": str(process.pid),
+                    "AUTOCLAW_APP_HEALTH_URL": session.health_url,
+                },
+            )
         if process.poll() is None:
             process.terminate()
             try:
@@ -177,6 +197,32 @@ class AppSupervisor:
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=5)
+
+    def _build_app_up_result(
+        self,
+        *,
+        session: AppSession,
+        started: float,
+        exit_code: int,
+        stderr_override: str | None = None,
+    ) -> CommandExecutionResult:
+        stdout = self._read_log(session.stdout_log_path)
+        stderr = stderr_override or self._read_log(session.stderr_log_path)
+        return CommandExecutionResult(
+            name="app_up",
+            command=self.repo_contract.commands.app_up,
+            exit_code=exit_code,
+            stdout=stdout,
+            stderr=stderr,
+            duration_seconds=round(time.monotonic() - started, 3),
+            scope="full",
+            run_trace_id=self.run_trace_id,
+        )
+
+    def _read_log(self, path: Path) -> str:
+        if not path.exists():
+            return ""
+        return path.read_text(encoding="utf-8")
 
     def _base_url_for(self, health_url: str) -> str:
         if self.repo_contract.ui.base_url:

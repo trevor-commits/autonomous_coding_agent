@@ -2,6 +2,12 @@
 
 ## 2026-04-17
 
+- Fixed the `GIL-59` through `GIL-62` Phase 3 runtime follow-ups:
+  - split retry budgets in `supervisor/main.py` so deterministic verification, app launch, and UI verification no longer consume the same repair counter
+  - updated `supervisor/app_supervisor.py` to honor optional `commands.app_down` and record truthful `app_up` command results when launch fails early
+  - updated `supervisor/main.py` readiness reporting to preserve cumulative changed files across multi-turn runs
+  - updated `supervisor/ui_verifier.py` to emit per-failure defect packets and map expected behavior across multiple `ui_checks` instead of collapsing all `ui_smoke` failures into one packet
+  - extended the focused app/UI/main-loop tests with regressions covering all four audit findings
 - Added the first `GIL-29` app-launch and UI-verification slice:
   - added `supervisor/app_supervisor.py` so the runtime can launch the target app, poll localhost health, capture lifecycle logs, and stop the process cleanly
   - added `supervisor/ui_verifier.py` so the runtime can run the repo-owned `ui_smoke` command, pass isolated browser-profile and artifact env, and emit structured defect packets on failure

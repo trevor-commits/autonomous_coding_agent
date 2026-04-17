@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
+import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -62,6 +64,7 @@ class UIVerifier:
         browser_profile_dir = self.run_store.artifacts_dir / "browser-profile"
         browser_profile_dir.mkdir(parents=True, exist_ok=True)
 
+        started = time.monotonic()
         completed = subprocess.run(
             command,
             cwd=self.repo_root,
@@ -71,6 +74,7 @@ class UIVerifier:
             env=self._build_env(base_url=base_url, browser_profile_dir=browser_profile_dir),
             check=False,
         )
+        duration = round(time.monotonic() - started, 3)
         stdout = completed.stdout or ""
         stderr = completed.stderr or ""
         self._write_log("ui_smoke.stdout.log", stdout)
@@ -80,23 +84,27 @@ class UIVerifier:
         failure_fingerprint = None
         defect_packets: tuple[dict[str, Any], ...] = ()
         if completed.returncode != 0:
-            failure_fingerprint = self.fingerprint_store.record(
-                phase=Phase.UI_VERIFY.value,
-                command="ui_smoke",
-                error_signature=self._error_signature(completed.returncode, stdout, stderr),
-                relevant_paths=tuple(changed_files),
-                evidence_refs=artifact_manifest,
-                type="code",
-            ).fingerprint
-            defect = self._build_defect_packet(
-                changed_files=changed_files,
-                artifact_manifest=artifact_manifest,
-                failure_fingerprint=failure_fingerprint,
-                stdout=stdout,
-                stderr=stderr,
-            )
-            defect_packets = (defect,)
-            self.run_store.write_json(self.run_store.defects_dir / f"{defect['defect_id']}.json", defect)
+            defect_packet_list: list[dict[str, Any]] = []
+            for index, summary in enumerate(self._failure_summaries(stdout, stderr)):
+                packet_fingerprint = self.fingerprint_store.record(
+                    phase=Phase.UI_VERIFY.value,
+                    command="ui_smoke",
+                    error_signature=summary,
+                    relevant_paths=tuple(changed_files),
+                    evidence_refs=artifact_manifest,
+                    type="code",
+                ).fingerprint
+                defect = self._build_defect_packet(
+                    changed_files=changed_files,
+                    artifact_manifest=artifact_manifest,
+                    failure_fingerprint=packet_fingerprint,
+                    summary=summary,
+                    packet_index=index,
+                )
+                defect_packet_list.append(defect)
+                self.run_store.write_json(self.run_store.defects_dir / f"{defect['defect_id']}.json", defect)
+            defect_packets = tuple(defect_packet_list)
+            failure_fingerprint = defect_packets[0]["failure_fingerprint"] if defect_packets else None
 
         command_result = CommandExecutionResult(
             name="ui_smoke",
@@ -104,7 +112,7 @@ class UIVerifier:
             exit_code=completed.returncode,
             stdout=stdout,
             stderr=stderr,
-            duration_seconds=0.0,
+            duration_seconds=duration,
             scope="full",
             run_trace_id=self.run_trace_id,
             targeted_paths=tuple(changed_files),
@@ -119,7 +127,7 @@ class UIVerifier:
 
     def _build_env(self, *, base_url: str, browser_profile_dir: Path) -> dict[str, str]:
         env = {
-            **dict(**subprocess.os.environ),
+            **os.environ.copy(),
             "AUTOCLAW_RUN_ID": self.run_contract.run_id,
             "AUTOCLAW_RUN_TRACE_ID": self.run_trace_id,
             "AUTOCLAW_UI_BASE_URL": base_url,
@@ -171,31 +179,29 @@ class UIVerifier:
         changed_files: Sequence[str],
         artifact_manifest: Sequence[str],
         failure_fingerprint: str,
-        stdout: str,
-        stderr: str,
+        summary: str,
+        packet_index: int,
     ) -> dict[str, Any]:
-        summary = (stderr.strip() or stdout.strip() or "UI smoke suite failed").splitlines()[0]
         defect_type, severity = self._classify_defect(summary, artifact_manifest)
         evidence: dict[str, str] = {
             "console_log": "artifacts/logs/ui_smoke.stderr.log",
         }
-        screenshot = next(
-            (item for item in artifact_manifest if item.startswith("artifacts/screenshots/")),
-            None,
+        screenshot = self._indexed_artifact(
+            artifact_manifest,
+            prefix="artifacts/screenshots/",
+            index=packet_index,
         )
-        trace = next(
-            (item for item in artifact_manifest if item.startswith("artifacts/traces/")),
-            None,
+        trace = self._indexed_artifact(
+            artifact_manifest,
+            prefix="artifacts/traces/",
+            index=packet_index,
         )
         if screenshot:
             evidence["screenshot"] = screenshot
         if trace:
             evidence["trace"] = trace
 
-        expected = (
-            next(iter(self.run_contract.acceptance.ui_checks), None)
-            or "UI smoke suite passes without blocking defects."
-        )
+        expected = self._expected_behavior(packet_index)
         defect = {
             "defect_id": f"defect-{uuid.uuid4().hex[:8]}",
             "severity": severity,
@@ -236,6 +242,35 @@ class UIVerifier:
         if any(item.startswith("artifacts/screenshots/") for item in artifact_manifest):
             return ("ui-functional", "P1")
         return ("ui-functional", "P2")
+
+    def _failure_summaries(self, stdout: str, stderr: str) -> tuple[str, ...]:
+        source = stderr if stderr.strip() else stdout
+        lines = tuple(line.strip() for line in source.splitlines() if line.strip())
+        if lines:
+            return lines
+        return (f"ui_smoke exited with 1",)
+
+    def _expected_behavior(self, packet_index: int) -> str:
+        ui_checks = tuple(self.run_contract.acceptance.ui_checks)
+        if not ui_checks:
+            return "UI smoke suite passes without blocking defects."
+        if packet_index < len(ui_checks):
+            return ui_checks[packet_index]
+        return ui_checks[-1]
+
+    def _indexed_artifact(
+        self,
+        artifact_manifest: Sequence[str],
+        *,
+        prefix: str,
+        index: int,
+    ) -> str | None:
+        matches = sorted(item for item in artifact_manifest if item.startswith(prefix))
+        if not matches:
+            return None
+        if index < len(matches):
+            return matches[index]
+        return matches[-1]
 
     def _error_signature(self, exit_code: int, stdout: str, stderr: str) -> str:
         primary = stderr.strip() or stdout.strip() or f"ui_smoke exited with {exit_code}"

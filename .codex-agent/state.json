@@ -16,31 +16,32 @@
   "audience": "Trevor, the operator validating an autonomous delivery harness",
   "plan_variants": [
     {
-      "id": "минимум",
-      "title": "Минимум",
-      "summary": "закрыть только repo-local unblockers и не трогать target-repo onboarding",
-      "when_to_choose": "Когда нужно быстро навести порядок в текущем репо и пока не выбирать первый implementation repo."
+      "id": "minimum",
+      "title": "Minimum",
+      "summary": "close only the repo-local unblockers and do not start target-repo onboarding yet",
+      "when_to_choose": "Choose this when you want to stabilize the current repo first and intentionally defer the first implementation repo."
     },
     {
-      "id": "оптимально",
-      "title": "Оптимально",
-      "summary": "закрыть repo-local unblockers и выбрать первый target repo, чтобы честно открыть путь к Phase 3",
-      "when_to_choose": "Когда нужен реальный прогресс к первому end-to-end доказательству, а не только внутренняя подготовка."
+      "id": "optimal",
+      "title": "Optimal",
+      "summary": "close the repo-local unblockers and choose the first target repo so the path to Phase 3 is honest",
+      "when_to_choose": "Choose this when you want real progress toward the first end-to-end proof instead of more internal preparation."
     },
     {
-      "id": "с-запасом",
-      "title": "С запасом",
-      "summary": "оптимальный путь плюс webhook-ready intake и усиленные audit surfaces до Claude strategy",
-      "when_to_choose": "Когда можно расширить control-plane до следующего слоя надежности, но всё ещё не тащить Phase 5 hardening."
+      "id": "expanded",
+      "title": "Expanded",
+      "summary": "the optimal path plus webhook-ready intake and stronger audit surfaces before Claude strategy",
+      "when_to_choose": "Choose this when you can afford one extra reliability layer without pulling in Phase 5 hardening."
     }
   ],
-  "selected_plan_variant": "оптимально",
+  "selected_plan_variant": "optimal",
   "beginner_explanation_mode": "включен",
-  "phase": "approval",
+  "phase": "execution",
   "phase_history": [
     "discovery",
     "planning",
-    "approval"
+    "approval",
+    "execution"
   ],
   "answers": {
     "project_kind": "Autonomous coding harness with deterministic supervisor control, not a generic SaaS app.",
@@ -68,12 +69,12 @@
       "Python runtime",
       "Playwright"
     ],
-    "critical_open_question": "Which real target repo should be the first implementation repo once repo-local unblockers are cleared?"
+    "critical_open_question": "Answered: `bible-ai` is the first implementation repo for the approved route."
   },
   "assumptions": [
     "The current repo remains the source of truth and control-plane implementation home.",
     "The first truthful milestone is one end-to-end success on a real target repo, not more internal abstraction.",
-    "Choosing the first implementation repo is the main dependency that still blocks the wider Phase 0 path."
+    "`bible-ai` is the first implementation repo for the wider Phase 0 path."
   ],
   "selected_stack": {
     "runtime": "Python 3.10+ local supervisor",
@@ -120,9 +121,9 @@
     "env-audit",
     "dependency-vulnerability-check"
   ],
-  "approval_status": "pending",
+  "approval_status": "approved",
   "approval_snapshot": {
-    "locked": false,
+    "locked": true,
     "artifact": ".codex-agent/approval-snapshot.json",
     "locked_fields": [
       "project_type",
@@ -145,7 +146,7 @@
       "quality_mode"
     ]
   },
-  "execution_strategy": "сначала закрыть repo-local unblockers и честно выбрать первый target repo, потом переходить к реальной end-to-end Phase 3 работе",
+  "execution_strategy": "Close the repo-local unblockers, onboard `bible-ai` as the first target repo, then move into the first real end-to-end Phase 3 slice.",
   "orchestration_mode": "solo",
   "delegation_policy": {
     "solo": {
@@ -563,13 +564,13 @@
       "id": "approval",
       "title": "Получить одно явное подтверждение плана до начала продуктовых правок",
       "owner": "autonomous-project-orchestrator",
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": "execution",
       "title": "Реализовать одобренный repo-local slice и только потом расширяться в target-repo execution",
       "owner": "automation-builder",
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": "verification",
@@ -584,11 +585,8 @@
       "status": "pending"
     }
   ],
-  "blocked_on_user": true,
-  "manual_inputs": [
-    "approve_one_plan_variant",
-    "name_first_target_repo_if_not_minimum"
-  ],
+  "blocked_on_user": false,
+  "manual_inputs": [],
   "artifacts": {
     "phase-card.md": ".codex-agent/phase-card.md",
     "ultra-context.md": ".codex-agent/ultra-context.md",

@@ -6,14 +6,18 @@
   supporting concern.
 - Keep the orchestration mode `solo` until the first target repo is chosen and
   the critical path is no longer blocked by one operator decision.
-- Recommend the `Optimal` route: close repo-local unblockers and choose the
-  first real target repo instead of staying in endless internal prep.
+- The `Optimal` route is approved.
+- `bible-ai` is the first implementation repo for the truthful Phase 0 path.
+- The next bounded execution path is: close the repo-local unblockers, then
+  write and validate the first `bible-ai` repo contract instead of staying in
+  endless internal prep.
 
 ## Open Questions
 
-- Which first implementation repo Trevor wants to onboard.
-- Whether the next approved slice should stay repo-local only (`Minimum`) or
-  include target-repo onboarding (`Optimal` / `Expanded`).
+- Which `bible-ai` checkout and branch should host the first contract and
+  manual-baseline pass when execution begins.
+- Whether `GIL-55` should land immediately before the `bible-ai` contract slice
+  or in parallel as the next repo-local unblocker.
 
 ## Selected Packs
 
@@ -23,5 +27,5 @@
 
 ## Next Decision Point
 
-Approve one plan variant. If the choice is not `Minimum`, also name the first
-target repo so execution can proceed honestly.
+No further approval checkpoint is blocking execution. The next decision is
+sequencing: `GIL-55` first or the first `bible-ai` Phase 0 slice first.

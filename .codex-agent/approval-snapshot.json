@@ -1,3 +1,83 @@
 {
-  "locked": false
+  "locked": true,
+  "project_type": "automation-script",
+  "project_archetype": "automation-script",
+  "secondary_archetypes": [
+    "api-integration-worker"
+  ],
+  "capabilities": [
+    "automation",
+    "api",
+    "ai"
+  ],
+  "selected_stack": {
+    "runtime": "Python 3.10+ local supervisor",
+    "builder": "Codex CLI as sole writer",
+    "audit_path": "Claude Code plus Cowork plus Trevor verify",
+    "queue_and_routing": "Linear issues normalized by supervisor",
+    "verification": "deterministic command runners plus Playwright UI checks",
+    "persistence": "repo docs plus local run artifacts; no external memory service in v1"
+  },
+  "active_roles": [
+    "project-discovery",
+    "solution-architect",
+    "backend-builder",
+    "automation-builder",
+    "qa-reviewer",
+    "deploy-operator"
+  ],
+  "recommended_skills": [
+    "playwright",
+    "openai-docs",
+    "security-best-practices"
+  ],
+  "selected_packs": [
+    "memory-bank",
+    "responsibility-map",
+    "scope-discipline"
+  ],
+  "playbook": "./playbooks/automation-script.md",
+  "supporting_playbooks": [
+    "./playbooks/api-integration-worker.md"
+  ],
+  "quality_gates": [
+    "repo-truth-aligned",
+    "queue-contract-bounded",
+    "single-writer-preserved",
+    "failure-paths-defined",
+    "env-documented",
+    "dependency-hygiene"
+  ],
+  "verification_required": [
+    "codex-agent-validation",
+    "phase-doc-consistency-check",
+    "todo-linear-coverage-check",
+    "env-audit",
+    "dependency-vulnerability-check"
+  ],
+  "execution_strategy": "Close the repo-local unblockers, onboard `bible-ai` as the first target repo, then move into the first real end-to-end Phase 3 slice.",
+  "quality_mode": "сбалансированно",
+  "goal": "Build a narrow, reliable autonomous coding harness for this repository that accepts a coding objective or eligible Linear issue, executes bounded implementation work through a deterministic Python supervisor, verifies results locally including UI checks, and produces readiness evidence.",
+  "selected_plan_variant": "optimal",
+  "first_implementation_repo": "bible-ai",
+  "locked_fields": [
+    "project_type",
+    "project_archetype",
+    "secondary_archetypes",
+    "capabilities",
+    "selected_stack",
+    "active_roles",
+    "recommended_skills",
+    "selected_packs",
+    "playbook",
+    "supporting_playbooks",
+    "quality_gates",
+    "verification_required",
+    "execution_strategy",
+    "orchestration_mode",
+    "delegation_policy",
+    "delegation_targets",
+    "delegation_packets",
+    "quality_mode"
+  ]
 }

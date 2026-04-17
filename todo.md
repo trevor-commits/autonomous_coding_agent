@@ -13,19 +13,19 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | Not started |
 | **5** | Operational memory hardening (v1.1) | Benchmark suite rerun shows clear reliability gains | GIL-31 | Not started |
 
-**Shortest valid path:** choose target repo → finish Phase 0 → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
+**Shortest valid path:** target repo chosen (`bible-ai`) → finish Phase 0 → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: keep the repo implementation-ready while finishing the repo-local Phase 0/1/2 control-plane work in this repository and leaving target-repo contract work deferred until a first implementation repo is explicitly chosen.
+Current goal: keep the repo implementation-ready while finishing the repo-local Phase 0/1/2 control-plane work in this repository and starting the first target-repo contract path in `bible-ai`.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
 - [ ] Branch lifecycle policy reset (GIL-55): restore automatic task branches as the default for edit work, make Linear the live branch mirror alongside `todo.md`, and update the global plus repo-local governance/scaffolding surfaces that still stamp the old no-branch flow.
 - [x] Audit follow-up (GIL-46): automate durable closeout-evidence backfill and validation so queue/provenance landings cannot leave placeholder SHAs, missing Work Record entries, or misattributed completion comments in the repo or Linear audit trail.
 - [x] Phase 0A.5 (GIL-19): trim the initial implementation surface to a smaller v1 by reducing externally visible action families and collapsing operational memory to a minimal first-pass shape; push the heavier Phase 5 hardening items behind a later v1.1-style threshold.
-- [ ] Phase 0.1 (GIL-20): write the first target repo's `.agent/contract.yml` using the canonical repo-contract shape and keep the initial scope intentionally narrow.
-- [ ] Phase 0.2 (GIL-21): manually validate the target repo contract end-to-end on a clean checkout. "Clean" is defined as: fresh clone into an empty directory, no cached dependencies, no prior `.autoclaw/` state, no prior `.agent/` artifacts beyond the committed `contract.yml`. Validation covers setup, test, app launch, and health check, each recorded as a passed checklist step.
-- [ ] Phase 0.2a (GIL-22): document CI parity for the first implementation repo so GitHub Actions reuses repo-contract commands, fast/unit/smoke gates, and structured artifacts instead of inventing repo behavior in workflow YAML.
+- [ ] Phase 0.1 (GIL-20): write `bible-ai`'s `.agent/contract.yml` using the canonical repo-contract shape and keep the initial scope intentionally narrow.
+- [ ] Phase 0.2 (GIL-21): manually validate the `bible-ai` contract end-to-end on a clean checkout. "Clean" is defined as: fresh clone into an empty directory, no cached dependencies, no prior `.autoclaw/` state, no prior `.agent/` artifacts beyond the committed `contract.yml`. Validation covers setup, test, app launch, and health check, each recorded as a passed checklist step.
+- [ ] Phase 0.2a (GIL-22): document CI parity for `bible-ai` so GitHub Actions reuses repo-contract commands, fast/unit/smoke gates, and structured artifacts instead of inventing repo behavior in workflow YAML.
 - [ ] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
 - [ ] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
 - [x] Phase 0.6 (GIL-9): draft ADR-0003 "Phase 1 Subphase 2 Architecture Checkpoint" — after supervisor subphases 1.1 and 1.2 land (contract parsing, run directory, shell/path guardrails, single-writer lock), pause before subphase 1.3 and run an architecture audit against the schemas, action set, and invariants. If the design still fits, continue. If not, rescope before deepening the Phase 1.3 runtime surface on top of a shaky foundation.
@@ -46,7 +46,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 ### Started / verify queue
 
 - `GIL-65` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (accessible app-surface audit landing; awaiting Cowork/Trevor state move) | why this exists: audit the apps, connectors, and plugin surfaces currently accessible in this repo session and record the missing repo-visible guidance for what they should be used for here | origin source: Trevor request on 2026-04-17 to audit what apps this repo has access to and record them with intended use guidance if not already documented
-- `GIL-64` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex Project Autopilot bootstrap and approval-plan capture; awaiting Cowork/Trevor state move) | why this exists: bootstrap a local `.codex-agent` for this repo, correct the autopilot state to the real autonomous-harness architecture, and capture an approval-ready bounded plan instead of generic project defaults | origin source: Trevor invoked Codex Project Autopilot in this workspace on 2026-04-17
+- `GIL-64` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex Project Autopilot bootstrap, approval-plan capture, and approved `Optimal` route with `bible-ai` selected; awaiting Cowork/Trevor state move) | why this exists: bootstrap a local `.codex-agent` for this repo, correct the autopilot state to the real autonomous-harness architecture, and capture an approval-ready bounded plan instead of generic project defaults | origin source: Trevor invoked Codex Project Autopilot in this workspace on 2026-04-17
 - `GIL-63` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex app-marketplace evaluation memo landing; awaiting Cowork/Trevor state move) | why this exists: capture the reviewed Codex marketplace apps in one durable repo-visible memo with the current operator-fit judgment for each so later sessions do not have to re-score the same screenshot surfaces from scratch | origin source: Trevor request on 2026-04-17 to record all reviewed apps and Codex's thoughts on them in the repo
 - `GIL-58` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit after `GIL-29` landing; scheduled before the Phase 3 follow-up fixes `GIL-59`–`GIL-62`) | why this exists: audit the landed Phase 3 supervisor runtime critically before later phases build on top of it so runtime defects, defect-packet shape, and invariant drift are caught at the codebase/audit layer instead of rediscovered in later phases | origin source: Trevor request on 2026-04-17 to run a thorough audit on the current code from multiple angles
 - `GIL-57` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (manual queue intake and drain runner landing; awaiting Cowork/Trevor state move) | why this exists: add the first supervisor-owned manual Linear intake/claim path, normalize queue metadata into run contracts, and drain eligible Codex issues sequentially on top of the existing single-run executor | origin source: Trevor request on 2026-04-17 to implement the first manual queue-drain slice before webhook wakeups
@@ -85,10 +85,12 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-8` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.5 | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-15` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog governance follow-up, not on the active phase path yet) | why this exists: codify the Linear operating model details that were surfaced but not promoted into the main execution path | origin source: 2026-04-15 Linear governance buildout gap
 - `GIL-14` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog correction, not on the active phase path yet) | why this exists: deduplicate terminal-state, single-writer, and phase-machine restatements in companion docs | origin source: 2026-04-15 Claude Code audit finding `P2-7`
-- `GIL-12` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog docs correction, not on the active phase path yet) | why this exists: fix absolute local-path links in `design-history/README.md` | origin source: 2026-04-15 Claude Cowork audit follow-up
+- `GIL-12` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog docs correction, not on the active phase path yet) | why this exists: replace `/Users/gillettes/Coding Projects/Autonomous Coding Agent/…` absolute links with relative repo paths across live navigation/onboarding docs (`README.md`, `GUIDE.md`, `AGENTS.md`, `design-history/README.md`, and in-scope `docs/*.md`) so the repo is portable across checkout roots; preserve historical `design-history/` content and external-tool paths | origin source: 2026-04-15 Cowork audit finding on `design-history/README.md`, scope widened by the 2026-04-17 full-repo audit
 
 ### Inbox / blocked by predecessors
 
+- `GIL-67` | status: `Inbox` | todo home: `Linear Issue Ledger` (full-repo audit follow-up; tests-only, safe to sequence after `GIL-66` lands so the declared env is stable) | why this exists: add integration-level tests that assert the three supervisor invariants hold end-to-end — scope enforcement on the full `main.py` run flow, single-writer lease exclusion under concurrent access, and deny-list completeness against forbidden-command categories — beyond the current unit-test coverage | origin source: 2026-04-17 Claude Code line-level audit during the full-repo audit
+- `GIL-66` | status: `Inbox` | todo home: `Linear Issue Ledger` (full-repo audit follow-up; tooling scaffolding with no runtime behavior change) | why this exists: declare the Python 3.11+ floor and `jsonschema>=4` dependency floor the supervisor already requires (via `Draft202012Validator` and `datetime.UTC`) so contributors and CI do not have to infer the environment from import errors | origin source: 2026-04-17 Claude Code line-level audit during the full-repo audit surfaced import failures in an unpinned Python 3.10 / jsonschema 3.2 sandbox
 - `GIL-62` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: UI verification currently collapses every non-zero `ui_smoke` output into one defect packet and uses only the first `ui_check` as the expected behavior, losing failure granularity and weakening repair routing; per-failure defect packets will let the repair loop address each failing check independently | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
 - `GIL-61` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: multi-turn runs currently report only the last builder turn's changed files in the final readiness report even though the builder session already tracks cumulative changes, which hides the full repair surface from later review and audit | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
 - `GIL-60` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: app lifecycle currently ignores optional `commands.app_down` and reports `app_up` as exit 0 / duration 0 even when the app process dies before health is reached, which produces false-positive launch evidence in readiness reports | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
@@ -97,7 +99,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-47` | status: `Inbox` | todo home: `Linear Issue Ledger` (portfolio rollout correction; audit follow-up to `GIL-37`/`GIL-43`) | why this exists: replace the temporary `/Users/gillettes/Downloads/taxes-principles-main/` scratch-worktree paths still embedded in the `Taxes` repo's `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.md` with the canonical `/Users/gillettes/Coding Projects/Taxes/` path so the principle docs' "Where The Rules Live" pointers remain findable | origin source: 2026-04-16 Claude Code portfolio-wide audit following the `GIL-37`/`GIL-43` rollout grepped every canonical repo for `/Users/gillettes/Downloads/` path leakage and found `Taxes` as the only remaining offender
 - `GIL-44` | status: `Inbox` | todo home: `Linear Issue Ledger` (audit follow-up backlog) | why this exists: close three coherence/ripple findings Claude Code surfaced during the 2026-04-16 line-by-line audit of the `GIL-32..GIL-38` landings — duplicate `## Repo Principles` heading in `AGENTS.project.md`, unmoved post-retirement `SCOPING-three-pillar-principles.md` at repo root, and a stale `AGENTS.md` read-scope reference in `IMPLEMENTATION-PLAN.md:319` after the AGENTS split | origin source: 2026-04-16 Claude Code line-by-line audit of commits `69aa003..b4adccb`, with details recorded in audit comments on `GIL-37`, `GIL-38`, `GIL-35`
 - `GIL-43` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (automation enforcement landed as `.codex` `438bc3e1`; awaiting Cowork/Trevor state move) | why this exists: update the portfolio remediation / validation path so repo-principles rollouts either backfill a local durable record in each touched repo or explicitly enforce a documented non-redundant exception path | origin source: third-pass audit on 2026-04-16 found that multiple touched repos had the new principle surfaces but still showed empty `Work Record Log` / `Linear Issue Ledger` sections until manual backfill
-- `GIL-20` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.1 | why this exists: write the first target repo `.agent/contract.yml` | origin source: implementation roadmap; blocked until Trevor selects the first target repo
+- `GIL-20` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.1 | why this exists: write `bible-ai`'s first target-repo `.agent/contract.yml` | origin source: implementation roadmap; target repo selected by Trevor on 2026-04-17
 - `GIL-21` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2 | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
 - `GIL-22` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2a | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
 - `GIL-23` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.3 | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
@@ -135,6 +137,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-17 | GIL-65: audit current accessible app surfaces and record missing intended-use guidance — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-64: approve the `Optimal` autopilot route and lock `bible-ai` as the first implementation repo — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-64: bootstrap repo-local Codex Project Autopilot state and capture approval-ready plan variants — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: land Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup) — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-63: add durable Codex marketplace-app evaluation memo — landed as `4a90d6f`; full record in Work Record Log 2026-04-17
@@ -427,6 +430,68 @@ workspace on 2026-04-17.
 led to:
 GIL-64 autopilot bootstrap and approval-plan capture; landing commit SHA
 recorded in immediate closeout.
+
+linear:
+GIL-64
+
+### 2026-04-17 | GIL-64 | by: Codex
+
+Problem:
+The repo-local Autopilot state had reached an approval-ready checkpoint, but
+the decision itself still lived only in chat. Without a durable approval lock,
+the plugin surfaces would continue to present the project as waiting on user
+input even though Trevor had already approved `Optimal` and named `bible-ai` as
+the first implementation repo.
+
+Reasoning:
+This needed to be recorded as a state transition, not as another generic note.
+The approved route materially changes the active queue: the target-repo
+dependency is no longer hypothetical, `bible-ai` now anchors the truthful Phase
+0 path, and the next work can move from approval framing into execution prep.
+
+Diagnosis inputs:
+Re-read the active `.codex-agent` approval surfaces, the `GIL-64` durable
+record in `todo.md`, and the current `Active Next Steps` / `Linear Issue
+Ledger` entries for `GIL-20` through `GIL-22`. Compared those against Trevor's
+explicit approval message naming `bible-ai` and selecting `Optimal`.
+
+Implementation inputs:
+Updated the active `.codex-agent` execution-facing artifacts,
+`.codex-agent/state.json`, `.codex-agent/approval-snapshot.json`, and
+`todo.md`.
+
+Fix:
+Locked the approved Autopilot route, moved the local `.codex-agent` state from
+approval to execution, recorded `bible-ai` as the first implementation repo,
+and updated the repo's active queue so the next bounded work now points at the
+`bible-ai` Phase 0 path instead of an unresolved repo-selection question.
+
+Self-audit:
+1. Method: re-read the patched `.codex-agent` phase surfaces and approval
+   snapshot. Output: they now agree that the plan is frozen, the route is
+   `Optimal`, and `bible-ai` is the first implementation repo.
+2. Method: re-read the top of `todo.md` plus the `GIL-20` / `GIL-64` ledger
+   rows. Output: the active queue now treats the repo selection as resolved and
+   points Phase 0.1/0.2/0.2a at `bible-ai`.
+3. Method: ran JSON and validator checks after the patch. Output: the updated
+   `.codex-agent` state remained parseable and the validator accepted the
+   execution-phase lock.
+4. Ripple Check: updated the phase card, context summaries, implementation
+   plan, approval snapshot, and durable repo queue in the same landing so the
+   approval decision is not stranded in a single file or the chat transcript.
+5. did not verify the actual `bible-ai` checkout yet because this landing only
+   records the approved route; target-repo execution has not started.
+
+by:
+Codex
+
+triggered by:
+Trevor approved the `Optimal` autopilot route and named `bible-ai` as the
+first implementation repo on 2026-04-17.
+
+led to:
+GIL-64 approval lock and first-target-repo selection recorded durably; landing
+commit SHA recorded in immediate closeout.
 
 linear:
 GIL-64
@@ -2589,6 +2654,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -m json.tool .codex-agent/state.json`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md .codex-agent/context-bundle.md .codex-agent/state.json .codex-agent/approval-snapshot.json todo.md` | result: pass — the local Autopilot state is valid in the locked execution phase, the approved `Optimal` route is frozen, `bible-ai` is recorded as the first implementation repo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-64` | by: Codex | linear: GIL-64
 - 2026-04-17 | command(s): `rg -n "## Current accessible app audit|### Directly usable or enabled now|Build Web Apps|Computer Use|Jam|Stripe|MarcoPolo" docs/codex-app-marketplace-evaluations.md docs/codex-april-16-2026-impact.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-app-marketplace-evaluations.md todo.md` | result: pass — the repo now has one durable current-access audit section, the missing plugin stances for `Build Web Apps` and `Computer Use` are present in the canonical plugin ledger, the searchable-connector gap surfaces are named explicitly in the app memo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
 - 2026-04-17 | command(s): `python3 -c "import yaml, json, urllib.request, ssl, jsonschema; ..."` strict-validating `.coderabbit.yaml` against the resolved `#/definitions/schema` at `https://coderabbit.ai/integrations/schema.v2.json` (including the new `reviews.slop_detection` block); `rg -n "slop_detection|Defaults we accept|reviews.tools|pre_merge_checks|finishing_touches|code_generation|issue_enrichment" .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md`; `git diff --check -- .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md todo.md` | result: pass — the updated CodeRabbit config validates against the live schema, the companion doc now encodes `slop_detection` as repo-supported and explicitly names the five unconfigured schema surfaces under `Defaults we accept`, the intake log carries the audit follow-up entry, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | command(s): `rg -n "Slack|Notion|Google Drive|Sentry|Jam|Stripe|Amplitude|Neon Postgres|Help Scout|Readwise|Attio|Scite" docs/codex-app-marketplace-evaluations.md`; `rg -n "codex-app-marketplace-evaluations.md" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-app-marketplace-evaluations.md README.md GUIDE.md todo.md` | result: pass — the new marketplace-app memo contains the intended high-leverage shortlist and detailed app judgments, both discovery docs point to it, the durable repo trail references it, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-63` | by: Codex | linear: GIL-63

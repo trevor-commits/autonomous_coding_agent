@@ -10,13 +10,13 @@
 - Capabilities: `automation, api, ai`
 - Маршрут реализации: `./playbooks/automation-script.md`
 
-## Текущая фаза
+## Current Phase
 
-- Фаза: `approval`
+- Фаза: `execution`
 - Режим токенов: `ultra`
 - Режим оркестрации: `solo`
 - Политика чтения docs: `summary-first, quiz-first, docs-last`
-- Сначала открой: `phase-card.md, ultra-context.md, plan-variants.md, implementation-plan.md`
+- Сначала открой: `phase-card.md, ultra-context.md, active-context.md, implementation-plan.md`
 
 ## Product DNA
 
@@ -47,9 +47,9 @@
 
 ## Варианты плана
 
-- `минимум`: закрыть только repo-local unblockers и не трогать target-repo onboarding
-- `оптимально`: закрыть repo-local unblockers и выбрать первый target repo, чтобы честно открыть путь к Phase 3
-- `с-запасом`: оптимальный путь плюс webhook-ready intake и усиленные audit surfaces до Claude strategy
+- `minimum`: close only the repo-local unblockers and do not start target-repo onboarding yet
+- `optimal`: close the repo-local unblockers and onboard the first target repo so the path to Phase 3 is honest
+- `expanded`: the optimal path plus webhook-ready intake and stronger audit surfaces before Claude strategy
 
 ## Стек
 
@@ -91,10 +91,10 @@
 - только если без имени первого target repo нельзя закрыть следующий шаг честно
 - только если короткой approval-сводки уже недостаточно для решения
 
-## Текущая очередь
+## Current Queue
 
-- `approval` (in_progress): Получить одно явное подтверждение плана до начала продуктовых правок
-- `execution` (pending): Реализовать одобренный repo-local slice и только потом расширяться в target-repo execution
+- `approval` (done): Получить одно явное подтверждение плана до начала продуктовых правок
+- `execution` (in_progress): Реализовать одобренный repo-local slice и только потом расширяться в target-repo execution
 - `verification` (pending): Провести QA-проверку и пройти критерии качества
 - `handoff` (pending): Подготовить отчёт по проверке, чеклист секретов и финальный handoff
 

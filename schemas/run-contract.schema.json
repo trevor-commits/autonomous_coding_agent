@@ -153,6 +153,12 @@
       "type": "integer",
       "minimum": 0
     },
+    "verification_pack": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "staleness_deadline": {
       "type": "string"
     }
@@ -237,6 +243,10 @@
       "risk_level": "Low",
       "approval_required": false,
       "retry_budget": 3,
+      "verification_pack": [
+        "lint",
+        "test"
+      ],
       "staleness_deadline": "2026-04-17T00:00:00Z"
     }
   ]

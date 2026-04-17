@@ -168,6 +168,22 @@ Supervisor-gated phase transitions inside a Codex run are not represented in Lin
 
 Queue-mode issues deliberately do not carry free-form command text. The issue nominates the bounded work through repo links and routing metadata; the supervisor derives the executable run contract from the repo truth.
 
+Queue-mode issues may also carry normalization metadata when the supervisor
+needs bounded inputs that the authoritative spec path alone cannot supply
+safely:
+
+- `Allowed paths:` first manual drain implementation requires this line on
+  Codex queue issues so the supervisor can freeze a truthful write scope before
+  Codex starts.
+- `Forbidden paths:` optional override; if omitted, the supervisor falls back
+  to its default companion exclusions.
+- `Verification pack:` optional override naming the deterministic repo-contract
+  commands the queue run must execute before handoff.
+- `Retry budget:` optional override for the queue run's repair-loop ceiling.
+
+These are routing inputs, not acceptance criteria. The authoritative spec still
+lives in the repo doc named by `Authoritative spec path:`.
+
 ## Labels
 
 Labels are scoped to two groups and applied at issue creation. The taxonomy is small by design — labels are for filtering and routing, not for tracking state (state lives in the status) or acceptance criteria (those live in the authoritative repo spec linked from the issue).

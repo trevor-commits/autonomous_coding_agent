@@ -45,6 +45,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-57` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (manual queue intake and drain runner landing; awaiting Cowork/Trevor state move) | why this exists: add the first supervisor-owned manual Linear intake/claim path, normalize queue metadata into run contracts, and drain eligible Codex issues sequentially on top of the existing single-run executor | origin source: Trevor request on 2026-04-17 to implement the first manual queue-drain slice before webhook wakeups
 - `GIL-55` | status: `Building` | todo home: `Active Next Steps` Branch lifecycle policy reset | why this exists: restore automatic task branches as the default edit workflow, make branch lifecycle state visible in both `todo.md` and Linear, and remove the old checkout-first/no-branch rules from the global stack, local overlays, and scaffolding | origin source: Trevor request on 2026-04-17 to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup
 - `GIL-54` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin operator cheat sheet + expanded plugin research landing; awaiting Cowork/Trevor state move) | why this exists: add a durable repo-local operating guide for the installed workflow plugins, expand the plugin decision ledger with stronger current-state conclusions, and capture additional high-signal Codex plugin candidates for implementation, handoff, testing, review, and enforcement work | origin source: Trevor request on 2026-04-17 to land the cheat sheet in the repo, commit it, and research harder for additional Codex plugins that could help automate implementation and review workflows
 - `GIL-53` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin decision ledger landing; awaiting Cowork/Trevor state move) | why this exists: add one durable governing-doc section that tracks the plugins discussed for this repo, whether they have been tried here, and the current use/not-use conclusion so future Codex chats update the same ledger instead of scattering plugin decisions | origin source: Trevor request on 2026-04-17 to add a plugin-tracking section to the governing docs
@@ -127,6 +128,7 @@ Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title �
 - [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-57: implement manual queue intake, normalization, and drain runner — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: capture installed workflow-plugin state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
@@ -201,6 +203,100 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-57 | by: Codex
+
+Problem:
+The repo had the deterministic single-run supervisor loop, but the Linear queue
+path was still doc-only. There was no runtime layer that could read Linear
+issues, enforce the Ready-for-Build eligibility contract, freeze claim metadata,
+normalize queue inputs into a real run contract, and drain eligible Codex work
+one issue at a time.
+
+Reasoning:
+The right first implementation slice stays narrower than the full webhook-first
+design: manual drain mode first, webhook wakeups later. That keeps the repo
+aligned with the approved local single-run design direction while still landing
+the core queue mechanics now. Linear remains routing input only; the supervisor
+owns claim, normalization, execution, landing, blocker handling, and release.
+
+Diagnosis inputs:
+Re-read `QUEUE-RUNS.md`, `LINEAR.md`, `canonical-architecture.md`,
+`IMPLEMENTATION-PLAN.md`, and
+`docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`.
+Inspected the current supervisor implementation in `supervisor/main.py`,
+`supervisor/contracts.py`, `supervisor/verifier.py`,
+`supervisor/worktree_manager.py`, and the existing supervisor tests in
+`tests/test_main.py`, `tests/test_contracts.py`, and `tests/test_verifier.py`.
+Captured the red baseline with `python3 -m unittest tests.test_queue_intake`
+before the queue module existed.
+
+Implementation inputs:
+Added `supervisor/queue_intake.py` and `tests/test_queue_intake.py`. Updated
+`supervisor/contracts.py`, `schemas/run-contract.schema.json`,
+`supervisor/verifier.py`, `supervisor/main.py`, `QUEUE-RUNS.md`, `LINEAR.md`,
+`CHANGELOG.md`, and `todo.md`.
+
+Fix:
+Implemented a queue intake layer with strict eligibility filtering for
+`Ready for Build` / `Codex` / `Queue` / low-medium risk / no approval / no
+blocking labels; added a local claim store; added queue normalization that
+resolves the authoritative spec path, freezes issue snapshots, writes a real
+run-contract JSON with queue metadata and verification-pack fields, and derives
+retry budget deterministically; added a manual drain runner that claims one
+issue, executes the existing single-run supervisor loop, writes completion or
+blocker artifacts/comments, releases the claim, and proceeds to the next
+eligible issue. Successful runs now land exactly one supervisor-owned commit and
+fast-forward the repo root before the next issue is considered.
+
+Self-audit:
+1. Method: ran `python3 -m unittest tests.test_queue_intake
+   tests.test_contracts tests.test_verifier tests.test_main`.
+   Output: `Ran 13 tests ... OK`. This covers eligibility filtering,
+   normalization, sequential drain behavior, run-contract parsing, verification
+   pack handling, and the existing single-run supervisor flow.
+2. Method: re-read `supervisor/queue_intake.py`, `supervisor/main.py`,
+   `supervisor/contracts.py`, and `supervisor/verifier.py`.
+   Output: the queue runner owns claim/release/comment/state flow while the
+   existing `execute_run()` loop remains the inner single-run executor.
+3. Method: re-read `QUEUE-RUNS.md` and `LINEAR.md` after the edits.
+   Output: both now describe the manual-drain-first slice and the queue-mode
+   issue metadata that the normalizer expects, without turning Linear into an
+   authority surface.
+4. Method: re-read `README.md`, `GUIDE.md`, `RULES.md`, `CLAUDE.md`,
+   `AGENTS.project.md`, and `IMPLEMENTATION-PLAN.md` for drift.
+   Output: no wording change was required there because they already point queue
+   behavior at `QUEUE-RUNS.md` and still remain accurate after this landing.
+5. Method: re-read `todo.md` `Linear Issue Ledger`, `Completed`,
+   `Work Record Log`, `Test Evidence Log`, and `Feedback Decision Log`.
+   Output: `GIL-57` is now mirrored in the ledger and the durable records point
+   to the same bounded landing.
+6. Method: ran `git diff --check -- supervisor/contracts.py
+   schemas/run-contract.schema.json supervisor/verifier.py
+   supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py
+   QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md`.
+   Output: no whitespace errors.
+7. did not verify a live token-backed Linear GraphQL drain against the real
+   workspace because this repo task kept verification inside the local unit and
+   integration-style supervisor tests rather than mutating live queue issues.
+Ripple Check attestation: because this task changed queue execution behavior and
+queue-mode issue metadata, I checked `QUEUE-RUNS.md`, `LINEAR.md`, `README.md`,
+`GUIDE.md`, `RULES.md`, `CLAUDE.md`, `AGENTS.project.md`,
+`IMPLEMENTATION-PLAN.md`, and the queue/todo governance sections together, then
+updated only the two docs that actually drifted.
+Linear-coverage disposition: `GIL-57` tracks this bounded queue-runtime landing.
+No additional follow-up issue was opened in this commit because webhook wakeups
+remain the already-known later slice rather than a newly surfaced surprise.
+
+triggered by:
+Trevor request on 2026-04-17 to implement the first manual queue intake,
+normalization, and drain runner slice for sequential Linear issue execution.
+
+led to:
+landing commit SHA recorded in immediate closeout; `GIL-57`
+
+linear:
+GIL-57
 
 ### 2026-04-17 | self-contained CodeRabbit settings capture | by: Codex
 
@@ -2045,6 +2141,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake tests.test_contracts tests.test_verifier tests.test_main`; `git diff --check -- supervisor/contracts.py schemas/run-contract.schema.json supervisor/verifier.py supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md` | result: pass — the new queue eligibility, normalization, manual drain, and verification-pack behavior are covered by the targeted supervisor suite, the pre-existing single-run path still passes, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
 - 2026-04-17 | command(s): `rg -n "Autopilot|HOTL|Cavekit|gillettes-local-plugins|ck" docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md`; `git diff --check -- docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md todo.md` | result: pass — the new setup companion, canonical ledger, operator cheat sheet, intake log, and discovery surfaces all reflect the installed-and-enabled state for `Autopilot`, `HOTL`, and `Cavekit`, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `git diff --check -- supervisor/builder_adapter.py supervisor/main.py supervisor/strategy_simple.py tests/test_builder_adapter.py tests/test_strategy_simple.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the new builder adapter, simple strategy, and main loop pass their focused tests; the broader supervisor suite still passes with the builder loop wired on top; and the final patch is whitespace-clean | log/PR reference: `bea68f6`; `Work Record Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-28
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_actions tests.test_strategy_schema`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|record_failure_signature" LOGIC.md RULES.md schemas/strategy-decision.schema.json`; `git diff --check -- supervisor/actions.py schemas/strategy-decision.schema.json RULES.md LOGIC.md tests/test_actions.py tests/test_strategy_schema.py design-history/ADR-0003-phase-1-architecture-checkpoint.md design-history/README.md todo.md` | result: pass — the action validator and strategy schema agree on the live payload contract, the stale checkpoint/failure-signature strategy actions are gone from the active docs/schema boundary, and the closeout patch is whitespace-clean | log/PR reference: `95a6271`; `Work Record Log` 2026-04-17 `GIL-9` | by: Codex | linear: GIL-9
@@ -2153,4 +2250,5 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-17 | feedback source: Trevor clarification that CodeRabbit should be referenced somewhere in the repo docs so people know it is present | feedback summary: do not treat the `.coderabbit.yaml` landing as enough on its own; add a visible pointer in the repo's discovery docs | evaluation chat: current CodeRabbit discoverability follow-up thread | reasoning response: accepted. The minimal, correct place is the repo's navigation layer: `README.md` and `GUIDE.md`. That makes CodeRabbit easy to find without expanding authority docs or pretending it is part of the system's canonical architecture. | decision status: accepted | implementation/disposition chat: current CodeRabbit discoverability follow-up thread | linked branch / audit / suggestion / test evidence: `README.md`; `GUIDE.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
 - 2026-04-17 | feedback source: Trevor decision after the CodeRabbit-versus-GitHub-Copilot comparison | feedback summary: keep the CodeRabbit path in the repo docs, document the actual tradeoff instead of only the final preference, and present Rabbit as the active bounded review trial again | evaluation chat: current CodeRabbit re-activation thread | reasoning response: accepted. The durable repo position is not "Copilot was wrong"; it is "Copilot is still the stronger value/integration baseline for a small private repo, while CodeRabbit is still the likelier stronger dedicated PR-review tool." Because Trevor wants to test review quality first, the repo now treats CodeRabbit as the active bounded review trial, keeps Copilot only as the cheaper fallback baseline in the narrative, and leaves GitHub App activation plus 3-5 real PRs as the remaining proof step. | decision status: accepted | implementation/disposition chat: current CodeRabbit re-activation thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
 - 2026-04-17 | feedback source: Trevor request to preserve the exact CodeRabbit settings and the detailed reasoning in the repo so later AIs can review them | feedback summary: do not leave the settings only in chat; make the specific values, blank fields, caveats, and rationale durable in repo docs and, where supported, in the repo config itself | evaluation chat: current CodeRabbit settings capture thread | reasoning response: accepted. The right shape is `.coderabbit.yaml` plus a dedicated operator companion doc. Repo-supported settings belong in config; blank UI fields and product caveats belong in a doc. That gives later AI reviewers both machine-readable truth and the human rationale without forcing them to infer hidden settings from chat. | decision status: accepted | implementation/disposition chat: current CodeRabbit settings capture thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
+- 2026-04-17 | feedback source: Trevor request to make this repo implement eligible Linear issues one after the other, starting with a manual drain slice instead of jumping to webhook wakeups | feedback summary: land the first supervisor-owned Linear intake/claim layer, queue normalization into real run contracts, and a sequential drain runner on top of the current single-run executor | evaluation chat: current `GIL-57` queue implementation thread | reasoning response: accepted. The better path is not to let Linear directly drive execution or to wait for the full unattended webhook stack. The repo now lands the narrower manual-drain-first slice: strict eligibility filtering, frozen claim metadata, queue-written run contracts, issue-by-issue execution, one landing commit per successful run, and blocker/closeout comments owned by the supervisor. Webhook wakeups remain the next layer rather than a prerequisite for this first runtime slice. | decision status: accepted | implementation/disposition chat: current `GIL-57` queue implementation thread | linked branch / audit / suggestion / test evidence: `supervisor/queue_intake.py`; `supervisor/main.py`; `supervisor/contracts.py`; `supervisor/verifier.py`; `schemas/run-contract.schema.json`; `tests/test_queue_intake.py`; `QUEUE-RUNS.md`; `LINEAR.md`; `Test Evidence Log` 2026-04-17 `GIL-57`; `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
 - 2026-04-17 | feedback source: Trevor confirmation that the manually added workflow plugins now install in Codex and should be documented thoroughly in the repo | feedback summary: stop treating `Autopilot`, `HOTL`, and `Cavekit` as merely "locally installed" abstractions; make the repo record the actual Codex install state, plugin ids, settings posture, and intended usage thoroughly enough that later sessions do not have to reconstruct it from chat or home-directory files | evaluation chat: current installed-workflow-plugin docs thread | reasoning response: accepted. The durable split is three-layered: keep use/defer truth in `docs/codex-april-16-2026-impact.md`, keep phase ownership in `docs/codex-plugin-operator-cheatsheet.md`, and add a dedicated setup companion for the actual install state and settings posture. Because these three have no repo-committed config today, their "settings" here are procedural: enabled in Codex, phase-bounded invocation, no workflow authority, no repo-truth authority, and no claim that installation alone means "tried here." | decision status: accepted | implementation/disposition chat: current installed-workflow-plugin docs thread | linked branch / audit / suggestion / test evidence: `docs/codex-workflow-plugin-setup.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54

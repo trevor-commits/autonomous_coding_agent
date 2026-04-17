@@ -7,7 +7,7 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | Stage | Goal | Gate | Linear | Status |
 |-------|------|------|--------|--------|
 | **0** | Repo prep + manual baseline | Target repo demonstrably automation-ready | GIL-19 through GIL-24 + GIL-8 through GIL-11 | In progress |
-| **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | Not started |
+| **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | In progress |
 | **2** | Single builder loop (Codex) | Backend + fix benchmarks complete autonomously ≥2/3; supervisor enforces gates independently | GIL-28 | Not started |
 | **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | Not started |
 | **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | Not started |
@@ -16,7 +16,7 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 **Shortest valid path:** choose target repo → finish Phase 0 → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: keep the repo implementation-ready by finishing the remaining Phase 0 work on top of a clean, well-indexed documentation surface.
+Current goal: keep the repo implementation-ready while building the Phase 1 supervisor foundation in this repository and leaving target-repo contract work deferred until a first implementation repo is explicitly chosen.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
@@ -32,7 +32,7 @@ Current goal: keep the repo implementation-ready by finishing the remaining Phas
 - [ ] Phase 0.8 (GIL-11): draft ADR-0005 "Codex Conversation Lifecycle" — fresh Codex conversation per bounded task; repo docs are the persistent memory, not Codex chat history. Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round, every ADR that changes an operating decision, whenever Codex begins hallucinating or contradicting the repo. Permitted same conversation: mid-task repair within one bounded task before the commit lands; active debugging of a single issue with ongoing context; multi-commit prompts where sub-commits depend on context. Hard caps: one prompt + its immediate repair loops per conversation, never spanning two prompts; repair loops hitting round 3 in the same conversation must close and restart with the auditor's latest findings as the brief; never reuse a Codex conversation across a phase boundary. Rationale: avoid context rot, stale memory, prompt pollution, and audit-scope ambiguity.
 - [ ] Phase 0.4 (GIL-24): verify local tool readiness for the first implementation pass: Codex CLI auth path works, Claude access path works, Python is ready, and Playwright is installable.
 - [ ] Phase 1.1 (GIL-25): build the deterministic supervisor foundation before any bounded strategy-layer integration.
-- [ ] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
+- [x] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
 - [ ] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
 - [ ] Phase 2 (GIL-28): integrate Codex as sole writer — builder adapter, rule-based strategy, and a simple build → verify → retry loop with structured failure routing.
 - [ ] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
@@ -86,7 +86,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-22` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2a | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
 - `GIL-23` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.3 | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
 - `GIL-25` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.1 | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
-- `GIL-26` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.2 | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
+- `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-27` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.3 | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-28` | status: `Inbox` | todo home: `Active Next Steps` Phase 2 | why this exists: integrate Codex as the sole writer with a simple repair loop and bounded adapter | origin source: `IMPLEMENTATION-PLAN.md` Phase 2
 - `GIL-29` | status: `Inbox` | todo home: `Active Next Steps` Phase 3 | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
@@ -118,6 +118,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-26: add contract parsing, run-store scaffolding, shell policy, and worktree control — landed as `69cd3c2`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-19: trim the smallest v1 surface before implementation begins — landed as `42847da`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-52: approve the local single-run harness design baseline aligned to the current supervisor foundation — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-51: add April 16 Codex update impact memo and plugin-fit guidance — landed as `e228b3f`; full record in Work Record Log 2026-04-16
@@ -219,6 +220,42 @@ led to:
 
 linear:
 GIL-25
+
+### 2026-04-16 | GIL-26 | by: Codex
+
+Problem:
+The first `GIL-25` supervisor slice established deterministic runtime state and action legality, but the control plane still could not ingest real repo/run contracts, create supervisor-owned runtime storage, classify risky shell and path operations, or create a single-writer builder workspace. Without those pieces, the phase machine existed mostly as an isolated in-memory model instead of a runnable supervisor foundation.
+
+Reasoning:
+The right next slice was to complete the real control-plane boundary rather than jumping ahead to verification or builder-loop behavior. `GIL-26` is where the supervisor stops being only a state machine and becomes a runtime host: it needs machine-valid schemas for repo versus run contracts, parsers that turn those contracts into typed runtime objects, `.autoclaw/runs/<run_id>/` scaffolding for persistent per-run truth, shell/path/budget policy decisions that enforce the repo rules, and a worktree manager that can actually guarantee single-writer isolation. That is enough to make later verifier/report/main-loop work concrete without blurring into `GIL-27`.
+
+Diagnosis inputs:
+Direct rereads of `IMPLEMENTATION-PLAN.md` Phase 1.1 / 1.2 module list, `canonical-architecture.md` §8 (repo contract + run contract), §9 (phase responsibilities), `RULES.md` shell policy / contract rules / stop conditions, `STRUCTURE.md` `.autoclaw/` and worktree boundary rules, `schemas/run-contract.schema.json`, `schemas/README.md`, and the current `supervisor/` package plus the newly landed `GIL-25` runtime foundation modules.
+
+Implementation inputs:
+Added `schemas/repo-contract.schema.json`, `supervisor/contracts.py`, `supervisor/run_store.py`, `supervisor/policy.py`, `supervisor/worktree_manager.py`, `tests/test_contracts.py`, `tests/test_policy.py`, `tests/test_run_store.py`, and `tests/test_worktree.py`; updated `schemas/run-contract.schema.json`, `schemas/README.md`, and `CHANGELOG.md`.
+
+Fix:
+Completed the Phase 1.2 contract-and-guardrails slice. The schema layer now distinguishes repo contracts from run contracts instead of overloading `run-contract.schema.json` with the wrong shape. `supervisor/contracts.py` parses `.agent/contract.yml` and per-run JSON contracts with real schema validation and normalized path-scope enforcement. `supervisor/run_store.py` creates `.autoclaw/runs/<run_id>/` with the expected contract, state, log, artifact, and report paths. `supervisor/policy.py` classifies shell commands and file-path mutations into `auto_allow`, `auto_deny`, or `escalate`, enforces run scope, and enforces run budgets. `supervisor/worktree_manager.py` creates `worktrees/<run_id>/builder`, mints the `run/<task-slug>/<run_id>` branch name, and manages the single-writer lease. The new tests cover valid/invalid contract parsing, forbidden path enforcement, budget stops, run-store creation, and worktree lease discipline.
+
+Self-audit:
+Method-not-claim verification run before closeout:
+1. Ran `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; output `OK`; the new Phase 1.2 suites pass and the earlier supervisor foundation tests still pass after the contract-and-guardrails landing.
+2. Ran `git diff --check -- CHANGELOG.md schemas/README.md schemas/repo-contract.schema.json schemas/run-contract.schema.json supervisor/contracts.py supervisor/run_store.py supervisor/policy.py supervisor/worktree_manager.py tests/test_contracts.py tests/test_policy.py tests/test_run_store.py tests/test_worktree.py`; output empty; the new slice is whitespace-clean.
+3. Re-read `schemas/repo-contract.schema.json`, `schemas/run-contract.schema.json`, and `supervisor/contracts.py`; confirmed the repo contract and run contract are now distinct machine boundaries, and the parser uses the matching schema for each instead of relying on doc-only assumptions.
+4. Re-read `supervisor/policy.py` and `supervisor/worktree_manager.py` against `RULES.md`; confirmed dangerous git/network/install paths are classified as deny or escalate, scope violations block cleanly, and the single-writer lease sits under `.autoclaw/locks/` rather than being left to convention.
+5. Did not run a live end-to-end supervisor execution against a target repo because verifier wiring, app launch wiring, main-loop orchestration, and benchmark fixtures remain outside this issue and belong to the remaining `GIL-25` / `GIL-27` work.
+Ripple Check attestation: because this slice changed machine-crossing contract surfaces, I updated the companion schema index (`schemas/README.md`) and changelog in the same landing. The canonical architecture and rules remained the source inputs rather than being redefined in code comments or duplicate docs.
+Linear-coverage disposition: `GIL-26` is self-contained and landed. No new follow-up issue was opened because the remaining runtime work is already tracked in `GIL-25` and `GIL-27`.
+
+triggered by:
+Trevor request on 2026-04-16 to work on the next repo-local implementation task after the initial `GIL-25` foundation slice
+
+led to:
+`69cd3c2`
+
+linear:
+GIL-26
 
 ### 2026-04-16 | GIL-52 | by: Codex
 
@@ -1147,6 +1184,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | command(s): `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md schemas/README.md schemas/repo-contract.schema.json schemas/run-contract.schema.json supervisor/contracts.py supervisor/run_store.py supervisor/policy.py supervisor/worktree_manager.py tests/test_contracts.py tests/test_policy.py tests/test_run_store.py tests/test_worktree.py` | result: pass — the new contract parsing, run-store, policy, and worktree suites pass; the earlier supervisor foundation suites still pass; and the full `GIL-26` slice is whitespace-clean | log/PR reference: `69cd3c2`; `Work Record Log` 2026-04-16 `GIL-26` | by: Codex | linear: GIL-26
 - 2026-04-16 | command(s): `rg -n "TODO|TBD|docs-only|greenfield" docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `rg -n "2026-04-16-local-single-run-harness-design.md" README.md GUIDE.md todo.md`; `git diff --check`; `git status -sb` | result: pass — the written design spec has no unresolved placeholders, the discovery docs and durable record point to it correctly, the patch is whitespace-clean, and only the intended docs/log files changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-52` | by: Codex | linear: GIL-52
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md supervisor/__init__.py supervisor/models.py supervisor/actions.py supervisor/state_machine.py supervisor/strategy_api.py tests/test_state_machine.py tests/test_actions.py`; `git status -sb` | result: pass — the new deterministic supervisor foundation tests pass, the existing closeout-evidence suite still passes, the new patch is whitespace-clean, and the only concurrent out-of-scope edits were separate `design-history/` / `todo.md` research-task changes left untouched | log/PR reference: `3f9aa53`; `Work Record Log` 2026-04-16 `GIL-25` | by: Codex | linear: GIL-25
 - 2026-04-16 | command(s): `rg -n "smallest v1|Operational Memory Hardening \\(v1\\.1\\)|candidate review|run-local failure fingerprinting|simple build -> verify -> fix loop|alternate adapter path|direct Codex CLI" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|resume_from_checkpoint" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md`; `git diff --check -- canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md` | result: pass — trimmed-v1 vocabulary is present across the active architecture and governance surfaces, the old strategy-facing checkpoint/resume terms are absent from those live docs, and the patch is whitespace-clean | log/PR reference: `42847da`; `Work Record Log` 2026-04-16 `GIL-19` | by: Codex | linear: GIL-19

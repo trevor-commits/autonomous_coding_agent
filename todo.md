@@ -45,9 +45,12 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-64` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex Project Autopilot bootstrap and approval-plan capture; awaiting Cowork/Trevor state move) | why this exists: bootstrap a local `.codex-agent` for this repo, correct the autopilot state to the real autonomous-harness architecture, and capture an approval-ready bounded plan instead of generic project defaults | origin source: Trevor invoked Codex Project Autopilot in this workspace on 2026-04-17
 - `GIL-63` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex app-marketplace evaluation memo landing; awaiting Cowork/Trevor state move) | why this exists: capture the reviewed Codex marketplace apps in one durable repo-visible memo with the current operator-fit judgment for each so later sessions do not have to re-score the same screenshot surfaces from scratch | origin source: Trevor request on 2026-04-17 to record all reviewed apps and Codex's thoughts on them in the repo
+- `GIL-58` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit after `GIL-29` landing; scheduled before the Phase 3 follow-up fixes `GIL-59`–`GIL-62`) | why this exists: audit the landed Phase 3 supervisor runtime critically before later phases build on top of it so runtime defects, defect-packet shape, and invariant drift are caught at the codebase/audit layer instead of rediscovered in later phases | origin source: Trevor request on 2026-04-17 to run a thorough audit on the current code from multiple angles
 - `GIL-57` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (manual queue intake and drain runner landing; awaiting Cowork/Trevor state move) | why this exists: add the first supervisor-owned manual Linear intake/claim path, normalize queue metadata into run contracts, and drain eligible Codex issues sequentially on top of the existing single-run executor | origin source: Trevor request on 2026-04-17 to implement the first manual queue-drain slice before webhook wakeups
-- `GIL-55` | status: `Building` | todo home: `Active Next Steps` Branch lifecycle policy reset | why this exists: restore automatic task branches as the default edit workflow, make branch lifecycle state visible in both `todo.md` and Linear, and remove the old checkout-first/no-branch rules from the global stack, local overlays, and scaffolding | origin source: Trevor request on 2026-04-17 to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup
+- `GIL-56` | status: `Building` | todo home: `Linear Issue Ledger` (plugin-intake follow-up to the `GIL-54` plugin research and ledger work) | why this exists: add an append-only plugin intake surface next to the canonical plugin ledger in `docs/codex-april-16-2026-impact.md` so new plugin evidence has one non-CLI repo-visible home with a documented promotion path into the ledger instead of scattering across Codex chats | origin source: Trevor follow-up request on 2026-04-17 to implement a non-CLI shared plugin-knowledge workflow
+- `GIL-55` | status: `Human Verify` | todo home: `Active Next Steps` Branch lifecycle policy reset | why this exists: restore automatic task branches as the default edit workflow, make branch lifecycle state visible in both `todo.md` and Linear, and remove the old checkout-first/no-branch rules from the global stack, local overlays, and scaffolding | origin source: Trevor request on 2026-04-17 to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup
 - `GIL-54` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin operator cheat sheet + expanded plugin research landing plus installed workflow-plugin state capture; awaiting Cowork/Trevor state move) | why this exists: add a durable repo-local operating guide for the installed workflow plugins, expand the plugin decision ledger with stronger current-state conclusions, capture additional high-signal Codex plugin candidates for implementation, handoff, testing, review, and enforcement work, and record the actual Codex install state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` | origin source: Trevor request on 2026-04-17 to land the cheat sheet in the repo, commit it, and research harder for additional Codex plugins that could help automate implementation and review workflows; followed by Trevor report that the manually added workflow plugins were now actually installable and should be documented thoroughly
 - `GIL-53` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin decision ledger landing; awaiting Cowork/Trevor state move) | why this exists: add one durable governing-doc section that tracks the plugins discussed for this repo, whether they have been tried here, and the current use/not-use conclusion so future Codex chats update the same ledger instead of scattering plugin decisions | origin source: Trevor request on 2026-04-17 to add a plugin-tracking section to the governing docs
 - `GIL-52` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (local single-run harness design baseline landing; awaiting Cowork/Trevor state move) | why this exists: write the approved design baseline for the first runnable local single-run supervisor slice on top of the current `supervisor/` foundation, with required Linear linkage and branch lifecycle visibility | origin source: Trevor request on 2026-04-16 during the Superpowers brainstorming/design session
@@ -85,6 +88,10 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Inbox / blocked by predecessors
 
+- `GIL-62` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: UI verification currently collapses every non-zero `ui_smoke` output into one defect packet and uses only the first `ui_check` as the expected behavior, losing failure granularity and weakening repair routing; per-failure defect packets will let the repair loop address each failing check independently | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
+- `GIL-61` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: multi-turn runs currently report only the last builder turn's changed files in the final readiness report even though the builder session already tracks cumulative changes, which hides the full repair surface from later review and audit | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
+- `GIL-60` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: app lifecycle currently ignores optional `commands.app_down` and reports `app_up` as exit 0 / duration 0 even when the app process dies before health is reached, which produces false-positive launch evidence in readiness reports | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
+- `GIL-59` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: the current supervisor uses one shared repair counter across deterministic verify, app launch, and UI verify, which can block app/UI repair too early after an earlier local-verify retry and undermines the per-surface repair budgets the architecture expects | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
 - `GIL-49` | status: `Inbox` | todo home: `Linear Issue Ledger` (workspace-governance follow-up) | why this exists: restore the missing `prompt-review` workspace label and verify the live Linear workspace settings still match the repo's queue/prompt contract | origin source: Codex live Linear inspection on 2026-04-16 found workspace drift that the current tool surface could not repair directly
 - `GIL-47` | status: `Inbox` | todo home: `Linear Issue Ledger` (portfolio rollout correction; audit follow-up to `GIL-37`/`GIL-43`) | why this exists: replace the temporary `/Users/gillettes/Downloads/taxes-principles-main/` scratch-worktree paths still embedded in the `Taxes` repo's `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.md` with the canonical `/Users/gillettes/Coding Projects/Taxes/` path so the principle docs' "Where The Rules Live" pointers remain findable | origin source: 2026-04-16 Claude Code portfolio-wide audit following the `GIL-37`/`GIL-43` rollout grepped every canonical repo for `/Users/gillettes/Downloads/` path leakage and found `Taxes` as the only remaining offender
 - `GIL-44` | status: `Inbox` | todo home: `Linear Issue Ledger` (audit follow-up backlog) | why this exists: close three coherence/ripple findings Claude Code surfaced during the 2026-04-16 line-by-line audit of the `GIL-32..GIL-38` landings — duplicate `## Repo Principles` heading in `AGENTS.project.md`, unmoved post-retirement `SCOPING-three-pillar-principles.md` at repo root, and a stale `AGENTS.md` read-scope reference in `IMPLEMENTATION-PLAN.md:319` after the AGENTS split | origin source: 2026-04-16 Claude Code line-by-line audit of commits `69aa003..b4adccb`, with details recorded in audit comments on `GIL-37`, `GIL-38`, `GIL-35`
@@ -126,6 +133,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-64: bootstrap repo-local Codex Project Autopilot state and capture approval-ready plan variants — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: land Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup) — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-63: add durable Codex marketplace-app evaluation memo — landed as `4a90d6f`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landed as `17a61e9`; full record in Work Record Log 2026-04-17
@@ -206,6 +214,147 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained full-repo audit — ledger backfill and GIL-55 status correction | by: Cowork
+
+Problem:
+A routine full-repo audit (Linear coverage, cross-doc coherence, Continuity
++ Ripple, Claude Code line-level code audit) surfaced a Linear-coverage
+invariant break: six live Linear issues had no `Linear Issue Ledger` entry
+in `todo.md` (`GIL-56`, `GIL-58`, `GIL-59`, `GIL-60`, `GIL-61`, `GIL-62`),
+and one ledger entry was stale (`GIL-55` recorded as `Building` while Linear
+already had it in `Human Verify`). Per `LINEAR.md` Coverage Invariant and
+`CLAUDE.md` `## Linear (Core Workflow, Not Optional)`, every live issue
+must have a ledger entry and every ledger entry must match live status.
+
+Reasoning:
+Backfilling these six entries and correcting the `GIL-55` status row is a
+pure records move — no code, no schemas, no governance shape. Under
+`CLAUDE.md` `## Orchestrator Scope`, `todo.md` is one of the surfaces
+Cowork may edit directly, and a Coverage Invariant repair qualifies as
+light organization rather than substantive governance. This matches the
+pattern used for prior ledger backfills and avoids spinning up a Codex
+round-trip for a routine trail repair.
+
+Change:
+- `Linear Issue Ledger` → `Started / verify queue`: fixed `GIL-55` status
+  from `Building` to `Human Verify`; inserted `GIL-58` between `GIL-63`
+  and `GIL-57`; inserted `GIL-56` between `GIL-57` and `GIL-55`.
+- `Linear Issue Ledger` → `Inbox / blocked by predecessors`: inserted
+  `GIL-62`, `GIL-61`, `GIL-60`, `GIL-59` at the top of the section (newest
+  first) with `why this exists:` phrased in repo-visible terms and
+  `origin source:` naming the 2026-04-17 Codex runtime audit on
+  `codex/gil29-ui-verifier`.
+
+Self-audit:
+Re-read the ledger after the edits and confirmed each new row carries the
+four required fields (`status`, `todo home:`, `why this exists:`,
+`origin source:`). Verified live Linear state for all seven issues by
+calling `get_issue` on each: `GIL-55` Human Verify, `GIL-56` Building,
+`GIL-58` Building, `GIL-59` Inbox, `GIL-60` Inbox, `GIL-61` Inbox,
+`GIL-62` Inbox — ledger now matches.
+
+Ripple Check: changed surface is `todo.md` `Linear Issue Ledger`. Per
+`COHERENCE.md` Dependency Map row "`todo.md` log shapes", the dependent
+docs are `AGENTS.project.md` `## Reading Scope`, `CONTINUITY.md`
+`## Work Record format`, and `LINEAR.md` state-move preconditions.
+Verified by re-reading: this change adds rows in an existing shape and
+does not alter the shape itself, so no companion-doc update is required.
+The Coverage Invariant itself is enforced (no live issue now lacks a
+ledger row); no further ripple follows.
+
+did not verify X because Y: did not re-query live Linear state for the
+~50 issues not touched by this edit because the audit that triggered
+this fix already enumerated the full live set and the scope here is the
+seven delta issues only.
+
+by: Cowork
+triggered by: 2026-04-17 routine full-repo audit (four streams)
+led to: ledger rows for `GIL-56`, `GIL-58`, `GIL-59`, `GIL-60`, `GIL-61`,
+`GIL-62` added to `todo.md`; `GIL-55` ledger status corrected to
+`Human Verify`; no Linear state moves; no new Linear issues; commit
+pending on current branch
+linear: self-contained Cowork records repair — no owning Linear issue;
+disposition is Coverage Invariant backfill, recorded here per
+`LINEAR.md` `## Linear-at-the-core`
+
+### 2026-04-17 | GIL-64 | by: Codex
+
+Problem:
+The repo had no local `.codex-agent` state, so invoking Codex Project
+Autopilot here would have started from generic plugin defaults instead of the
+actual autonomous-harness architecture and current roadmap. That would have
+produced the wrong archetype, the wrong next step, and no durable approval
+checkpoint.
+
+Reasoning:
+The right move was to bootstrap locally first, then correct the raw seed
+against repo truth before presenting any plan. This repo is not a generic web
+product; it is a deterministic autonomous harness with Python supervisor code,
+Linear routing, Playwright verification, and a currently unresolved
+first-target-repo dependency. The plan therefore had to surface that real
+dependency instead of pretending execution could proceed blindly.
+
+Diagnosis inputs:
+Read global and repo-local governance surfaces, then grounded the autopilot
+bootstrap against `PROJECT_INTENT.md`, `canonical-architecture.md`,
+`IMPLEMENTATION-PLAN.md`, `QUEUE-RUNS.md`, and `todo.md`. Inspected the current
+repo shape and confirmed the live `supervisor/` and `tests/` surfaces so the
+autopilot archetype would match the actual implementation work instead of a
+template assumption.
+
+Implementation inputs:
+Created `GIL-64` in Linear. Bootstrapped and then corrected `.codex-agent`
+artifacts, updating `.codex-agent/state.json`,
+`.codex-agent/discovery-questionnaire.md`,
+`.codex-agent/project-brief.md`, `.codex-agent/plan-variants.md`,
+`.codex-agent/implementation-plan.md`, `.codex-agent/active-context.md`,
+`.codex-agent/progress.md`, `.codex-agent/beginner-guide.md`,
+`.codex-agent/product-context.md`, `.codex-agent/product-intelligence.md`,
+`.codex-agent/tech-context.md`, and regenerated `.codex-agent/phase-card.md`,
+`.codex-agent/ultra-context.md`, and `.codex-agent/context-bundle.md`.
+Updated `todo.md` for Linear coverage and the durable landing trail.
+
+Fix:
+Bootstrapped a local Codex Project Autopilot state for this repo, changed the
+autopilot archetype from generic app defaults to an automation harness with an
+API-routing sidecar, captured repo-grounded discovery answers, drafted three
+bounded plan variants, and moved the local autopilot state to the approval
+checkpoint. The recommended route is now explicit: close repo-local unblockers,
+choose the first real target repo, and only then continue toward the first
+truthful Phase 3 proof.
+
+Self-audit:
+1. Method: ran `python3 .../init_codex_agent.py` twice, first to bootstrap and
+   then with `--project-type automation-script --force` to correct the initial
+   generic archetype. Output: `.codex-agent/` was created locally and reseeded
+   to `automation-script`.
+2. Method: ran `python3 .../build_context_bundle.py --workspace ...`.
+   Output: `phase-card.md`, `ultra-context.md`, and `context-bundle.md` were
+   regenerated from the corrected state and now route to the approval step.
+3. Method: re-read the generated planning artifacts and `todo.md` updates.
+   Output: the same open dependency appears everywhere: the first target repo
+   remains unnamed, and the recommended variant is `Оптимально`.
+4. Ripple Check: checked the generated autopilot surfaces against
+   `.codex-agent/state.json` and updated the companion planning docs plus
+   `todo.md` in the same change so the repo-visible plan, phase routing, and
+   Linear coverage stay aligned.
+5. did not verify actual target-repo onboarding because no first implementation
+   repo has been chosen yet.
+
+by:
+Codex
+
+triggered by:
+Trevor invoked Codex Project Autopilot in the `Autonomous Coding Agent`
+workspace on 2026-04-17.
+
+led to:
+GIL-64 autopilot bootstrap and approval-plan capture; landing commit SHA
+recorded in immediate closeout.
+
+linear:
+GIL-64
 
 ### 2026-04-17 | self-contained Claude Code second-pass audit follow-up | by: Claude Code
 

@@ -337,6 +337,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
             client = RecordingLinearClient([issue])
             client.live_overrides["GIL-400"] = replace(
                 issue,
+                status="Building",
                 description=issue.description + "\n\n**Extra:** drifted",
             )
             adapter = QueueAwareBuilderAdapter({"GIL-400": ("fixed",)})
@@ -372,18 +373,30 @@ class QueueDrainRunnerTests(unittest.TestCase):
             repo_root.mkdir()
             _init_queue_repo(repo_root)
             _git(repo_root, "remote", "add", "origin", str(root / "does-not-exist.git"))
-            issue = LinearIssue(
-                id="GIL-500",
-                identifier="GIL-500",
-                title="Push to unreachable remote",
-                description=_description(verification_pack="`test`", retry_budget="2"),
-                status="Ready for Build",
-                priority=2,
-                updated_at="2026-04-17T01:00:00Z",
-                labels=tuple(),
-            )
-            client = RecordingLinearClient([issue])
-            adapter = QueueAwareBuilderAdapter({"GIL-500": ("fixed",)})
+            issues = [
+                LinearIssue(
+                    id="GIL-500",
+                    identifier="GIL-500",
+                    title="Push to unreachable remote",
+                    description=_description(verification_pack="`test`", retry_budget="2"),
+                    status="Ready for Build",
+                    priority=2,
+                    updated_at="2026-04-17T01:00:00Z",
+                    labels=tuple(),
+                ),
+                LinearIssue(
+                    id="GIL-501",
+                    identifier="GIL-501",
+                    title="Should never run after push failure",
+                    description=_description(verification_pack="`test`", retry_budget="2"),
+                    status="Ready for Build",
+                    priority=3,
+                    updated_at="2026-04-17T02:00:00Z",
+                    labels=tuple(),
+                ),
+            ]
+            client = RecordingLinearClient(issues)
+            adapter = QueueAwareBuilderAdapter({"GIL-500": ("fixed",), "GIL-501": ("fixed",)})
 
             summary = ManualQueueRunner(
                 repo_root=repo_root,
@@ -400,6 +413,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                 [("GIL-500", "Building"), ("GIL-500", "Blocked")],
                 client.transitions,
             )
+            self.assertEqual("Ready for Build", client.issues["GIL-501"].status)
             self.assertFalse(
                 any("AI Audit" in state for _issue_id, state in client.transitions)
             )
@@ -409,6 +423,91 @@ class QueueDrainRunnerTests(unittest.TestCase):
             blocker_comments = [body for _issue_id, body in client.comments if body.startswith("Blocker:")]
             self.assertTrue(blocker_comments)
             self.assertIn("push", blocker_comments[0].lower())
+            self.assertFalse(any(issue_id == "GIL-501" for issue_id, _body in client.comments))
+
+    def test_drain_blocks_when_issue_state_changes_after_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            remote_root = root / "remote.git"
+            _init_queue_repo(repo_root, remote_path=remote_root)
+            issue = LinearIssue(
+                id="GIL-600",
+                identifier="GIL-600",
+                title="Manual state change during execution",
+                description=_description(verification_pack="`test`", retry_budget="2"),
+                status="Ready for Build",
+                priority=2,
+                updated_at="2026-04-17T01:00:00Z",
+                labels=tuple(),
+            )
+            client = RecordingLinearClient([issue])
+            client.live_overrides["GIL-600"] = replace(issue, status="Canceled")
+            adapter = QueueAwareBuilderAdapter({"GIL-600": ("fixed",)})
+
+            summary = ManualQueueRunner(
+                repo_root=repo_root,
+                linear_client=client,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                team_key="GIL",
+            ).drain()
+
+            self.assertEqual(1, summary.processed_count)
+            self.assertEqual(0, summary.completed_count)
+            self.assertEqual(1, summary.blocked_count)
+            self.assertEqual(
+                [("GIL-600", "Building"), ("GIL-600", "Blocked")],
+                client.transitions,
+            )
+            blocker_comments = [body for _issue_id, body in client.comments if body.startswith("Blocker:")]
+            self.assertTrue(blocker_comments)
+            self.assertIn("state changed", blocker_comments[0].lower())
+            remote_log = _git(remote_root, "log", "--oneline", "main").stdout
+            self.assertNotIn("GIL-600", remote_log)
+
+    def test_successful_no_op_run_still_creates_landing_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            remote_root = root / "remote.git"
+            _init_queue_repo(repo_root, remote_path=remote_root)
+            (repo_root / "src" / "task.txt").write_text("fixed")
+            _git(repo_root, "add", "src/task.txt")
+            _git(repo_root, "commit", "-m", "pre-satisfy issue")
+            _git(repo_root, "push", "origin", "main")
+            before_sha = _git(repo_root, "rev-parse", "HEAD").stdout.strip()
+
+            issue = LinearIssue(
+                id="GIL-700",
+                identifier="GIL-700",
+                title="Already satisfied issue",
+                description=_description(verification_pack="`test`", retry_budget="2"),
+                status="Ready for Build",
+                priority=2,
+                updated_at="2026-04-17T01:00:00Z",
+                labels=tuple(),
+            )
+            client = RecordingLinearClient([issue])
+            adapter = QueueAwareBuilderAdapter({"GIL-700": ("fixed",)})
+
+            summary = ManualQueueRunner(
+                repo_root=repo_root,
+                linear_client=client,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                team_key="GIL",
+            ).drain()
+
+            after_sha = _git(repo_root, "rev-parse", "HEAD").stdout.strip()
+            self.assertEqual(1, summary.processed_count)
+            self.assertEqual(1, summary.completed_count)
+            self.assertEqual(0, summary.blocked_count)
+            self.assertNotEqual(before_sha, after_sha)
+            self.assertIn("GIL-700", _git(repo_root, "log", "--oneline", "-1").stdout)
+            self.assertIn("GIL-700", _git(remote_root, "log", "--oneline", "-1", "main").stdout)
 
 
 if __name__ == "__main__":

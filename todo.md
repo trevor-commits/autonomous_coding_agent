@@ -117,6 +117,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-16 | GIL-19: trim the smallest v1 surface before implementation begins — landed as `42847da`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-51: add April 16 Codex update impact memo and plugin-fit guidance — landed as `e228b3f`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-46: automate durable closeout-evidence backfill and validation — landed as `12f6b4c`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-50: add repo-specific Superpowers usage guide and discovery pointers — landed as `8cfbd58`; full record in Work Record Log 2026-04-16
@@ -245,6 +246,43 @@ led to:
 
 linear:
 GIL-50
+
+### 2026-04-16 | GIL-19 | by: Codex
+
+Problem:
+The repo kept saying v1 should be narrow, but the active architecture and implementation-plan surfaces still implied a much larger first pass than the operator intent justified. Strategy-facing action families still exposed checkpoint-oriented behavior, operational memory still read like a built-in first-pass layer instead of an optional later hardening surface, and multiple roadmap items still described Phase 1–4 in terms of checkpointing or resume-style features that the durable feedback record had already deferred to v1.1.
+
+Reasoning:
+The right fix was to cut the scope in the source-of-truth docs, not to add another advisory note. A believable first implementation pass needs deterministic orchestration, direct Codex integration, run-local evidence, and one end-to-end success path. It does not need cross-run memory promotion, rollback-oriented recovery, or adapter proliferation before the core harness exists. Shrinking the exposed action graph and moving the heavier reliability layer behind an explicit v1.1 boundary makes the plan more likely to ship and easier to audit.
+
+Diagnosis inputs:
+Direct rereads of `canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `PROJECT_INTENT.md`, `RULES.md`, `PROMPTS.md`, `STRUCTURE.md`, and `todo.md`; targeted `rg` across those active docs for `checkpoint`, `rollback_to_checkpoint`, `resume_from_checkpoint`, `.autoclaw/memory`, `acpx`, `candidate review`, `smallest v1`, and `Operational Memory Hardening (v1.1)`; and rereads of the existing `Feedback Decision Log` entries from 2026-04-15 that had already deferred Phase 5 hardening and kept Codex as the hard dependency.
+
+Implementation inputs:
+Updated `canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `PROJECT_INTENT.md`, `RULES.md`, `PROMPTS.md`, `STRUCTURE.md`, and `todo.md`.
+
+Fix:
+Trimmed the active v1 contract to the smallest credible scope. The canonical architecture now treats cross-run operational memory as deferred in the smallest v1, removes checkpoint and rollback behavior from the strategy-facing action graph, reframes checkpoint-heavy language as optional later hardening, and renames the review surface to candidate review. The implementation plan now includes an explicit Phase 0A.5 scope-cut step, narrows Phase 1 and Phase 2 away from resume and checkpoint-first behavior, and frames Phase 5 as v1.1 hardening rather than part of the first proof. The companion docs (`PROJECT_INTENT.md`, `RULES.md`, `PROMPTS.md`, `STRUCTURE.md`, and `todo.md`) now match that narrower envelope instead of implying a bigger day-one system.
+
+Self-audit:
+Method-not-claim verification run before closeout:
+1. Ran `rg -n "smallest v1|Operational Memory Hardening \\(v1\\.1\\)|candidate review|run-local failure fingerprinting|simple build -> verify -> fix loop|alternate adapter path|direct Codex CLI" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md`; output hit the intended updated surfaces and confirmed the trimmed-v1 vocabulary is present across architecture, plan, constraints, prompts, structure, and roadmap records.
+2. Ran `rg -n "checkpoint_candidate|rollback_to_checkpoint|resume_from_checkpoint" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md`; output empty; the old strategy-facing checkpoint and resume terms are no longer present in the active governance surfaces for the smallest v1.
+3. Ran `git diff --check -- canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md`; output empty; the trimmed-scope patch is whitespace-clean.
+4. Re-read the touched sections in `canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `PROJECT_INTENT.md`, `RULES.md`, `PROMPTS.md`, `STRUCTURE.md`, and `todo.md`; confirmed the same story now holds across purpose, action surface, runtime state, prompt contracts, roadmap items, and phase naming.
+5. Did not verify any live runtime behavior because this task intentionally narrows the implementation target and phase definitions before the runtime exists.
+Ripple Check attestation: the canonical architecture change rippled through the implementation plan, project intent, enforceable rules, prompt pack, runtime-boundary doc, and roadmap log in the same landing so the repo no longer advertises a wider v1 than the plan intends to build.
+Linear-coverage disposition: `GIL-19` tracks this scope-cut landing. No new follow-up issue was opened because the remaining work already lives in the existing phase issues (`GIL-27`, `GIL-28`, `GIL-30`, `GIL-31`) with refreshed wording.
+Did not verify or mutate the live Linear issue body itself because Codex is not the state-move owner here and the durable repo-side record is the authoritative closeout surface.
+
+triggered by:
+Trevor request on 2026-04-16 to keep working through the Linear queue after `GIL-46`, with `GIL-19` taken next as the highest-priority unstarted Phase 0 item
+
+led to:
+`42847da`; self-contained: existing phase issues `GIL-27`, `GIL-28`, `GIL-30`, and `GIL-31` refreshed in-place rather than split into new follow-up tickets
+
+linear:
+GIL-19
 
 ### 2026-04-16 | GIL-51 | by: Codex
 
@@ -1002,6 +1040,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | command(s): `rg -n "smallest v1|Operational Memory Hardening \\(v1\\.1\\)|candidate review|run-local failure fingerprinting|simple build -> verify -> fix loop|alternate adapter path|direct Codex CLI" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|resume_from_checkpoint" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md`; `git diff --check -- canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md` | result: pass — trimmed-v1 vocabulary is present across the active architecture and governance surfaces, the old strategy-facing checkpoint/resume terms are absent from those live docs, and the patch is whitespace-clean | log/PR reference: `42847da`; `Work Record Log` 2026-04-16 `GIL-19` | by: Codex | linear: GIL-19
 - 2026-04-16 | command(s): `git diff --check`; `rg -n "Codex update|adopt now|defer for v1|explicitly reject|Plugin fit" docs/codex-april-16-2026-impact.md`; `rg -n "codex-april-16-2026-impact.md" README.md GUIDE.md todo.md`; `git status -sb` | result: pass — the new memo contains the intended impact buckets and plugin-fit section, the discovery docs and durable record point to it correctly, and the patch is whitespace-clean with only the intended docs changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-51` | by: Codex | linear: GIL-51
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_closeout_evidence`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-34`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-36`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-37`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-42`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-45`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-48`; `python3 -m supervisor.closeout_evidence validate-comment --issue GIL-46 --comment-file /tmp/gil46-comment.md --landed 12f6b4c` | result: pass — the new closeout-evidence utility passes its unit tests, validates the current queue/provenance issue records after the `GIL-37` backfill, and confirms the generated `GIL-46` Linear completion-comment shape keeps landed refs scoped correctly | log/PR reference: `12f6b4c`; `Work Record Log` 2026-04-16 `GIL-46` | by: Codex | linear: GIL-46
 - 2026-04-16 | command(s): `rg -n "accepted|narrowed|rejected|needs more evidence|Feedback challenge gate|R-CONT-07" AGENTS.project.md CLAUDE.md PROMPTS.md LINEAR.md RULES.md`; `find . -maxdepth 3 \\( -name '*.py' -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.mjs' -o -name '*.go' -o -name '*.rs' -o -name 'package.json' -o -name 'pyproject.toml' -o -name 'Cargo.toml' -o -name 'go.mod' \\) | sort`; `git diff --check`; `git status -sb` | result: pass — the critical-review vocabulary is present across the intended live governance surfaces, the repo still has no current queue/supervisor implementation source files, and the patch is whitespace-clean with only the intended docs changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-48` | by: Codex | linear: GIL-48

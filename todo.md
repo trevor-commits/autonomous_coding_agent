@@ -117,7 +117,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-16 | GIL-51: add April 16 Codex update impact memo and plugin-fit guidance — landed as `TBD`; full record in Work Record Log 2026-04-16
+- [x] 2026-04-16 | GIL-51: add April 16 Codex update impact memo and plugin-fit guidance — landed as `e228b3f`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-46: automate durable closeout-evidence backfill and validation — landed as `12f6b4c`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-50: add repo-specific Superpowers usage guide and discovery pointers — landed as `8cfbd58`; full record in Work Record Log 2026-04-16
 - [x] 2026-04-16 | GIL-48: require critical review of AI feedback and prompts before Codex acts — landed as `65cbb1a`; full record in Work Record Log 2026-04-16
@@ -316,8 +316,8 @@ Trevor request on 2026-04-16 to turn the April 16, 2026 Codex update analysis
 and plugin review into a durable repo-local impact memo
 
 led to:
-`TBD`; self-contained: no new follow-up issue opened because existing phase and
-governance issues already cover the actionable future work
+`e228b3f`; self-contained: no new follow-up issue opened because existing phase
+and governance issues already cover the actionable future work
 
 linear:
 GIL-51

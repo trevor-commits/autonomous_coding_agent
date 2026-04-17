@@ -182,6 +182,42 @@ linear:
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
 
+### 2026-04-16 | GIL-25 | by: Codex
+
+Problem:
+The repo had architectural truth for a deterministic supervisor, but almost none of the executable foundation existed yet. After the closeout-evidence utility landed, the runtime surface was still missing the core run vocabulary, typed action contract, and the phase machine that is supposed to own workflow legality instead of leaving it implicit in prompts or future glue code.
+
+Reasoning:
+The right first code slice was the narrowest part of Phase 1.1 that actually creates a control plane: immutable run state, deterministic phase transitions, typed supervisor actions, and a manual strategy shim for early testing. That is the smallest honest foundation because it gives later modules a canonical runtime vocabulary and legality model without prematurely mixing in repo-contract parsing, worktree ownership, or shell policy logic that already belong to the next issue boundary in `GIL-26`.
+
+Diagnosis inputs:
+Direct rereads of `IMPLEMENTATION-PLAN.md` Phase 1.1 and Phase 1.2, `canonical-architecture.md` §9.1 through §9.3, `RULES.md` mandatory ordering / COMPLETE legality / stop-condition sections, `LOGIC.md` phase-flow explanation, the existing `supervisor/closeout_evidence.py` code style, and the current repository tree showing only the closeout utility under `supervisor/`.
+
+Implementation inputs:
+Added `CHANGELOG.md`, `supervisor/models.py`, `supervisor/actions.py`, `supervisor/state_machine.py`, `supervisor/strategy_api.py`, `tests/test_state_machine.py`, and `tests/test_actions.py`; updated `supervisor/__init__.py`.
+
+Fix:
+Added the first executable supervisor foundation slice. `supervisor/models.py` now defines the canonical phase, run-state, readiness-verdict, and action enums plus immutable run snapshots and transition records. `supervisor/state_machine.py` enforces the legal phase graph, terminal-state rules, COMPLETE legality, and the bounded `NEEDS_MORE_EVIDENCE` loop. `supervisor/actions.py` defines the typed action graph with phase-specific legality checks and rejects raw-shell payloads. `supervisor/strategy_api.py` adds a manual strategy parser so later Phase 1 work can exercise the supervisor without AI integration. The new tests cover happy-path transitions, illegal skips, final-gate invariants, evidence-loop exhaustion, and action validation semantics.
+
+Self-audit:
+Method-not-claim verification run before repo-log closeout:
+1. Ran `python3 -m unittest tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; output `OK`; the new supervisor foundation tests pass and the existing closeout-evidence tests still pass after the package changes.
+2. Ran `git diff --check -- CHANGELOG.md supervisor/__init__.py supervisor/models.py supervisor/actions.py supervisor/state_machine.py supervisor/strategy_api.py tests/test_state_machine.py tests/test_actions.py`; output empty; the foundation slice is whitespace-clean.
+3. Ran `git status -sb`; output showed the intended supervisor/test files plus unrelated concurrent `design-history/` and `todo.md` changes from another in-flight research task. I left those untouched and committed only the `GIL-25` code slice.
+4. Re-read the new modules against `canonical-architecture.md` §9 and `RULES.md`; confirmed the implementation keeps deterministic legality in code, keeps COMPLETE gated on final evidence, and leaves contract parsing / worktree / shell policy responsibilities for `GIL-26`.
+5. Did not verify a live supervisor run against a target repo because `.agent/contract.yml`, run-store wiring, worktree management, and repo-contract parsing are intentionally still outside this slice.
+Ripple Check attestation: this code slice adds runtime modules rather than changing canonical governance, so the only companion doc needed in the same landing was `CHANGELOG.md`; the architecture, rules, and plan remain authoritative and were used as implementation inputs rather than modified.
+Linear-coverage disposition: `GIL-25` remains the live issue for the rest of Phase 1.1. No new follow-up issue was opened because the remaining missing modules still belong to the existing `GIL-25` / `GIL-26` split.
+
+triggered by:
+Trevor request on 2026-04-16 to keep building out this repository rather than moving into target-repo contract work
+
+led to:
+`3f9aa53`; self-contained: initial deterministic supervisor foundation slice landed while `GIL-25` stays open for the remaining Phase 1.1 modules
+
+linear:
+GIL-25
+
 ### 2026-04-16 | no-linear (research memo) | by: Cowork
 
 Problem:
@@ -1073,6 +1109,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-16 | command(s): `python3 -m unittest tests.test_state_machine tests.test_actions tests.test_closeout_evidence`; `git diff --check -- CHANGELOG.md supervisor/__init__.py supervisor/models.py supervisor/actions.py supervisor/state_machine.py supervisor/strategy_api.py tests/test_state_machine.py tests/test_actions.py`; `git status -sb` | result: pass — the new deterministic supervisor foundation tests pass, the existing closeout-evidence suite still passes, the new patch is whitespace-clean, and the only concurrent out-of-scope edits were separate `design-history/` / `todo.md` research-task changes left untouched | log/PR reference: `3f9aa53`; `Work Record Log` 2026-04-16 `GIL-25` | by: Codex | linear: GIL-25
 - 2026-04-16 | command(s): `rg -n "smallest v1|Operational Memory Hardening \\(v1\\.1\\)|candidate review|run-local failure fingerprinting|simple build -> verify -> fix loop|alternate adapter path|direct Codex CLI" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|resume_from_checkpoint" canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md`; `git diff --check -- canonical-architecture.md IMPLEMENTATION-PLAN.md PROJECT_INTENT.md RULES.md PROMPTS.md STRUCTURE.md todo.md` | result: pass — trimmed-v1 vocabulary is present across the active architecture and governance surfaces, the old strategy-facing checkpoint/resume terms are absent from those live docs, and the patch is whitespace-clean | log/PR reference: `42847da`; `Work Record Log` 2026-04-16 `GIL-19` | by: Codex | linear: GIL-19
 - 2026-04-16 | command(s): `git diff --check`; `rg -n "Codex update|adopt now|defer for v1|explicitly reject|Plugin fit" docs/codex-april-16-2026-impact.md`; `rg -n "codex-april-16-2026-impact.md" README.md GUIDE.md todo.md`; `git status -sb` | result: pass — the new memo contains the intended impact buckets and plugin-fit section, the discovery docs and durable record point to it correctly, and the patch is whitespace-clean with only the intended docs changed before commit | log/PR reference: `Work Record Log` 2026-04-16 `GIL-51` | by: Codex | linear: GIL-51
 - 2026-04-16 | command(s): `python3 -m unittest tests.test_closeout_evidence`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-34`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-36`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-37`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-42`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-45`; `python3 -m supervisor.closeout_evidence validate --todo todo.md --issue GIL-48`; `python3 -m supervisor.closeout_evidence validate-comment --issue GIL-46 --comment-file /tmp/gil46-comment.md --landed 12f6b4c` | result: pass — the new closeout-evidence utility passes its unit tests, validates the current queue/provenance issue records after the `GIL-37` backfill, and confirms the generated `GIL-46` Linear completion-comment shape keeps landed refs scoped correctly | log/PR reference: `12f6b4c`; `Work Record Log` 2026-04-16 `GIL-46` | by: Codex | linear: GIL-46

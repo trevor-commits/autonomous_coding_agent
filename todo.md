@@ -45,6 +45,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
+- `GIL-72` | status: `AI Audit` | todo home: `Work Record Log` 2026-04-17 (queue landing-contract enforcement landing; awaiting Cowork spec-alignment pass and Trevor verify) | why this exists: enforce the `QUEUE-RUNS.md` landing contract in `supervisor/queue_intake.py` so `AI Audit` is unreachable until the landing commit is actually pushed and the live Linear issue still matches the snapshot captured at claim time; closes the two CodeRabbit/Brooks-Lint findings that the runtime diverged from the documented commit → push → `AI Audit` flow and that the captured `issue_snapshot_hash`/`staleness_deadline` were never revalidated before landing | origin source: CodeRabbit PR review + Brooks-Lint scan on branch `codex/coderabbit-flow-docs` on 2026-04-17 that Trevor forwarded to Claude Code with instructions to audit, implement, and land the fix directly because Codex was over budget
 - `GIL-65` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (accessible app-surface audit landing; awaiting Cowork/Trevor state move) | why this exists: audit the apps, connectors, and plugin surfaces currently accessible in this repo session and record the missing repo-visible guidance for what they should be used for here | origin source: Trevor request on 2026-04-17 to audit what apps this repo has access to and record them with intended use guidance if not already documented
 - `GIL-64` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex Project Autopilot bootstrap, approval-plan capture, and approved `Optimal` route with `bible-ai` selected; awaiting Cowork/Trevor state move) | why this exists: bootstrap a local `.codex-agent` for this repo, correct the autopilot state to the real autonomous-harness architecture, and capture an approval-ready bounded plan instead of generic project defaults | origin source: Trevor invoked Codex Project Autopilot in this workspace on 2026-04-17
 - `GIL-63` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex app-marketplace evaluation memo landing; awaiting Cowork/Trevor state move) | why this exists: capture the reviewed Codex marketplace apps in one durable repo-visible memo with the current operator-fit judgment for each so later sessions do not have to re-score the same screenshot surfaces from scratch | origin source: Trevor request on 2026-04-17 to record all reviewed apps and Codex's thoughts on them in the repo
@@ -136,6 +137,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-72: enforce queue landing contract — push-before-`AI Audit` + pre-land snapshot revalidation in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-24: verify local Codex/Claude/Python/Playwright readiness for the first implementation pass — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-22: add the `bible-ai` CI-parity note for the contract-first path — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-21: prove the `bible-ai` clean-checkout contract baseline — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
@@ -224,6 +226,172 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-72 | by: Claude Code
+
+Problem:
+A CodeRabbit / Brooks-Lint review of the manual queue runner on branch
+`codex/coderabbit-flow-docs` surfaced two contract violations in
+`supervisor/queue_intake.py` that made `AI Audit` reachable in states that
+`QUEUE-RUNS.md` explicitly forbids:
+
+1. P1 — `_land_successful_run` created a local landing commit and did a
+   fast-forward merge into `repo_root`, but never ran `git push`. Meanwhile
+   `_complete_issue` still posted the completion comment and transitioned the
+   issue to `AI Audit`. Per `QUEUE-RUNS.md` §§ "Issue-Run Lifecycle" step 9
+   and "Landing authority", a successful run must create the landing commit,
+   push it, and only then move the issue to `AI Audit`. The runtime flow
+   therefore diverged from the documented contract: Linear could show
+   `AI Audit` for a run whose commit existed only on the local machine,
+   breaking the audit handoff and leaving recovery ambiguous if the host died
+   before a manual push.
+2. P2 — The normalizer wrote `issue_snapshot_hash` and `staleness_deadline`
+   into the run contract at claim time, but the drain path never re-read the
+   live Linear state or authoritative inputs before calling
+   `_complete_issue`. A run could land after the issue body, labels, or
+   approval posture changed underneath it. That reintroduced exactly the
+   moving-target behavior the queue design was trying to prevent and turned
+   the recorded snapshot into dead metadata.
+
+Reasoning:
+The right move was to enforce the queue contract at the landing boundary in
+the runtime rather than bolt on workarounds. That meant three coupled
+changes, not three independent ones: (a) add the supervisor-owned push as
+part of the landing authority so `AI Audit` is unreachable without it, (b)
+revalidate the live Linear issue against the frozen claim snapshot before
+any landing side effects, and (c) fix the `--allow-empty` commit smell in
+`_land_successful_run` that always manufactured a commit even when the
+worktree was clean. Reordering `_complete_issue` so that revalidation and
+landing/push happen **before** the closeout artifact, completion comment,
+and state transition ensures a single atomic-looking boundary: either all
+three succeed and the issue moves to `AI Audit`, or any failure routes the
+issue to `Blocked` via the existing outer `except` in `drain`.
+
+Diagnosis inputs:
+Direct reread of `supervisor/queue_intake.py` lines 280-716;
+`supervisor/worktree_manager.py` for the `BuilderWorkspace` shape;
+`supervisor/contracts.py` for `QueueMetadata.issue_snapshot_hash` and
+`QueueMetadata.staleness_deadline`; `tests/test_queue_intake.py` for the
+existing claim-release-sequential drain test; `QUEUE-RUNS.md` §§
+"Issue-Run Lifecycle" step 9, "Failure modes", "Landing authority" lines
+175, 240, 296, 310, 317, 321-322, 334-339; the CodeRabbit
+`code-comment` lines at `supervisor/queue_intake.py:703-716` and
+`supervisor/queue_intake.py:425-436`; and the Brooks-Lint health-score
+summary naming the queue landing protocol divergence as Critical and the
+snapshot-not-enforced gap as Warning.
+
+Implementation inputs:
+Updated `supervisor/queue_intake.py` to add an abstract
+`QueueLinearClient.get_issue`, implement it on `LinearGraphQLClient`,
+introduce `ManualQueueRunner._revalidate_snapshot` and
+`_push_landing_commit`, reorder `_complete_issue` so revalidation + land +
+push run before closeout/comment/transition, refactor
+`_land_successful_run` to skip `--allow-empty` commits when the worktree is
+clean and reuse the existing HEAD SHA, and narrow `_issue_snapshot_hash` so
+supervisor-driven `status` and `updated_at` no longer trigger false drift.
+Extended `tests/test_queue_intake.py` with a bare-origin remote helper on
+`_init_queue_repo`, a `live_overrides` slot plus `get_issue` on
+`RecordingLinearClient`, a new happy-path assertion that the landing commit
+reaches the remote `main`, and two new tests that prove drift and push
+failure each route to `Blocked` without transitioning to `AI Audit`.
+
+Fix:
+Reworked `supervisor/queue_intake.py` so that `_complete_issue` now runs
+`self._revalidate_snapshot(issue, normalized)` →
+`_land_successful_run(repo_root, workspace, identifier)` →
+`_push_landing_commit(repo_root)` **before** writing the closeout artifact,
+posting the completion comment, or transitioning to `AI Audit`.
+`_revalidate_snapshot` re-fetches the live issue via
+`self.linear_client.get_issue(issue.id)`, recomputes the snapshot hash, and
+compares it plus `datetime.now(UTC)` against the values stored in
+`normalized.run_contract.queue.issue_snapshot_hash` and
+`normalized.run_contract.queue.staleness_deadline`, raising `QueueError` on
+mismatch or expiry. `_push_landing_commit` runs `git push origin HEAD` from
+`repo_root` and surfaces any non-zero exit as `QueueError` via the existing
+`_git` helper. `_land_successful_run` now only stages + commits when
+`git status --porcelain --untracked-files=all` is non-empty, and reuses the
+existing HEAD SHA otherwise. `_issue_snapshot_hash` filters `status` and
+`updated_at` out of the hashed payload so the supervisor's own transition
+to `Building` and its claim/completion comments no longer look like drift.
+Any `QueueError` from revalidation or push is caught by the existing outer
+`except` in `ManualQueueRunner.drain`, which routes the issue through
+`_block_issue(..., error=exc)` so the issue moves to `Blocked` with the
+real reason rendered into the blocker comment and the
+`.autoclaw/queue-blockers/<run_id>.json` artifact.
+
+Self-audit:
+1. Ran `python3 -m unittest discover tests -v` from the repo root; 68 tests
+   passed in 2.541s, including all five queue-intake tests.
+2. Ran `python3 -m unittest tests.test_queue_intake -v` specifically;
+   confirmed `test_drain_blocks_when_landing_push_fails`,
+   `test_drain_blocks_when_live_snapshot_drifts_from_claim`,
+   `test_manual_drain_claims_runs_and_releases_issues_sequentially`,
+   `test_normalizer_writes_real_run_contract_from_issue_metadata`, and
+   `test_selector_returns_only_strictly_eligible_issues` all passed.
+3. Re-read the final `supervisor/queue_intake.py::_complete_issue` body and
+   confirmed the execution order is revalidate → land → push → write
+   closeout → post completion comment → transition to `AI Audit`, with the
+   worktree cleanup attempt happening last and still guarded by a bare
+   `except Exception: pass`.
+4. Re-read `supervisor/queue_intake.py::_land_successful_run` and confirmed
+   the clean-tree branch reuses the existing HEAD SHA without calling
+   `commit --allow-empty`.
+5. Re-read `supervisor/queue_intake.py::_push_landing_commit` and confirmed
+   it executes `git push origin HEAD` from `repo_root` via the existing
+   `_git` helper that raises `QueueError` on non-zero exit.
+6. Re-read `supervisor/queue_intake.py::_revalidate_snapshot` and confirmed
+   it no-ops only when both `issue_snapshot_hash` and `staleness_deadline`
+   are `None`; otherwise it always fetches the live issue, recomputes the
+   hash, and compares against the frozen contract values.
+7. Re-read `supervisor/queue_intake.py::_issue_snapshot_hash` and confirmed
+   it now excludes `status` and `updated_at` from the hashed payload before
+   `json.dumps(..., sort_keys=True)` and `hashlib.sha256`.
+8. Spot-checked the push-failure test: pointed `origin` at a non-existent
+   bare repo path, drained the runner, and asserted the issue reached
+   `Blocked` (not `AI Audit`), that no "Implemented and advanced" comment
+   was posted, and that the blocker reason contained "push".
+9. Spot-checked the drift test: overrode the live issue body via
+   `RecordingLinearClient.live_overrides`, drained the runner, and asserted
+   the issue reached `Blocked`, that the blocker reason contained "snapshot
+   drifted", and that the remote `main` still did not contain the issue's
+   landing commit.
+10. Spot-checked the happy path: confirmed the existing drain test now
+    sets up a bare remote via `_init_queue_repo(remote_path=...)`, that
+    `GIL-300` moves through `Building → AI Audit`, and that
+    `_git(remote_root, "log", "--oneline", "-1", "main")` contains
+    `GIL-300`.
+Ripple Check attestation: because this landing changes runtime landing
+authority and snapshot-drift behavior in `supervisor/queue_intake.py`, I
+also updated `tests/test_queue_intake.py` (the only direct test surface
+for this module) in the same landing so coverage proves the new contract
+boundary, and I updated `todo.md` (`Linear Issue Ledger`, `Completed`,
+`Work Record Log`) in the same landing per `COHERENCE.md`. I deliberately
+did not touch `QUEUE-RUNS.md` because the doc is already authoritative
+about this flow and the audit finding was that the runtime had drifted
+away from it — bringing the code back to the doc is the correct direction
+of reconciliation. No other docs reference the broken behavior.
+Linear-coverage disposition: `GIL-72` in team `GIL`, state `AI Audit`,
+`Execution lane: Claude Code`, `Execution mode: Manual`. No follow-up
+issue was created because the fix closes both CodeRabbit findings in a
+single landing.
+
+by:
+Claude Code (primary auditor; authored this fix directly under
+`CLAUDE.md` § "Roles" narrow-targeted-fix provision because Codex was
+over budget when Trevor forwarded the CodeRabbit review).
+
+triggered by:
+Trevor request on 2026-04-17 after sharing the CodeRabbit / Brooks-Lint
+review output, explicitly asking Claude Code to "make the actual code
+fixes yourself" and then "fix everything yourself and do all the next
+remaining steps yourself" because Codex usage was exhausted.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+`GIL-72` — enforce queue landing contract: push before `AI Audit` +
+pre-land snapshot revalidation in `supervisor/queue_intake.py`.
 
 ### 2026-04-17 | GIL-20 + GIL-21 + GIL-22 + GIL-24 | by: Codex
 

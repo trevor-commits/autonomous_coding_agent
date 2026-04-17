@@ -30,8 +30,8 @@ def _git(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _init_queue_repo(repo_root: Path) -> None:
-    _git(repo_root, "init")
+def _init_queue_repo(repo_root: Path, *, remote_path: Path | None = None) -> None:
+    _git(repo_root, "init", "-b", "main")
     _git(repo_root, "config", "user.name", "Codex")
     _git(repo_root, "config", "user.email", "codex@example.com")
     (repo_root / ".agent").mkdir()
@@ -76,6 +76,11 @@ def _init_queue_repo(repo_root: Path) -> None:
     (repo_root / "README.md").write_text("# queue repo\n")
     _git(repo_root, "add", ".")
     _git(repo_root, "commit", "-m", "init")
+    if remote_path is not None:
+        remote_path.mkdir(parents=True, exist_ok=True)
+        _git(remote_path, "init", "--bare", "-b", "main")
+        _git(repo_root, "remote", "add", "origin", str(remote_path))
+        _git(repo_root, "push", "-u", "origin", "main")
 
 
 def _description(
@@ -123,6 +128,8 @@ class RecordingLinearClient(QueueLinearClient):
         self.issues = {issue.identifier: issue for issue in issues}
         self.comments: list[tuple[str, str]] = []
         self.transitions: list[tuple[str, str]] = []
+        self.get_issue_calls: list[str] = []
+        self.live_overrides: dict[str, LinearIssue] = {}
 
     def list_ready_for_build(self, team_key: str) -> list[LinearIssue]:
         return list(self.issues.values())
@@ -134,6 +141,12 @@ class RecordingLinearClient(QueueLinearClient):
 
     def create_comment(self, issue_id: str, body: str) -> None:
         self.comments.append((issue_id, body))
+
+    def get_issue(self, issue_id: str) -> LinearIssue:
+        self.get_issue_calls.append(issue_id)
+        if issue_id in self.live_overrides:
+            return self.live_overrides[issue_id]
+        return self.issues[issue_id]
 
 
 class QueueAwareBuilderAdapter(BuilderAdapter):
@@ -226,8 +239,11 @@ class QueueNormalizerTests(unittest.TestCase):
 class QueueDrainRunnerTests(unittest.TestCase):
     def test_manual_drain_claims_runs_and_releases_issues_sequentially(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir)
-            _init_queue_repo(repo_root)
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            remote_root = root / "remote.git"
+            _init_queue_repo(repo_root, remote_path=remote_root)
             issues = [
                 LinearIssue(
                     id="GIL-300",
@@ -297,6 +313,102 @@ class QueueDrainRunnerTests(unittest.TestCase):
             log = _git(repo_root, "log", "--oneline", "-1").stdout
             self.assertIn("GIL-300", log)
             self.assertNotIn("GIL-301", log)
+
+            remote_log = _git(remote_root, "log", "--oneline", "-1", "main").stdout
+            self.assertIn("GIL-300", remote_log)
+
+    def test_drain_blocks_when_live_snapshot_drifts_from_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            remote_root = root / "remote.git"
+            _init_queue_repo(repo_root, remote_path=remote_root)
+            issue = LinearIssue(
+                id="GIL-400",
+                identifier="GIL-400",
+                title="Drift during execution",
+                description=_description(verification_pack="`test`", retry_budget="2"),
+                status="Ready for Build",
+                priority=2,
+                updated_at="2026-04-17T01:00:00Z",
+                labels=tuple(),
+            )
+            client = RecordingLinearClient([issue])
+            client.live_overrides["GIL-400"] = replace(
+                issue,
+                description=issue.description + "\n\n**Extra:** drifted",
+            )
+            adapter = QueueAwareBuilderAdapter({"GIL-400": ("fixed",)})
+
+            summary = ManualQueueRunner(
+                repo_root=repo_root,
+                linear_client=client,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                team_key="GIL",
+            ).drain()
+
+            self.assertEqual(1, summary.processed_count)
+            self.assertEqual(0, summary.completed_count)
+            self.assertEqual(1, summary.blocked_count)
+            self.assertEqual(
+                [("GIL-400", "Building"), ("GIL-400", "Blocked")],
+                client.transitions,
+            )
+            self.assertFalse(
+                any("AI Audit" in state for _issue_id, state in client.transitions)
+            )
+            blocker_comments = [body for _issue_id, body in client.comments if body.startswith("Blocker:")]
+            self.assertTrue(blocker_comments)
+            self.assertIn("snapshot drifted", blocker_comments[0])
+            remote_log = _git(remote_root, "log", "--oneline", "main").stdout
+            self.assertNotIn("GIL-400", remote_log)
+
+    def test_drain_blocks_when_landing_push_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            _init_queue_repo(repo_root)
+            _git(repo_root, "remote", "add", "origin", str(root / "does-not-exist.git"))
+            issue = LinearIssue(
+                id="GIL-500",
+                identifier="GIL-500",
+                title="Push to unreachable remote",
+                description=_description(verification_pack="`test`", retry_budget="2"),
+                status="Ready for Build",
+                priority=2,
+                updated_at="2026-04-17T01:00:00Z",
+                labels=tuple(),
+            )
+            client = RecordingLinearClient([issue])
+            adapter = QueueAwareBuilderAdapter({"GIL-500": ("fixed",)})
+
+            summary = ManualQueueRunner(
+                repo_root=repo_root,
+                linear_client=client,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                team_key="GIL",
+            ).drain()
+
+            self.assertEqual(1, summary.processed_count)
+            self.assertEqual(0, summary.completed_count)
+            self.assertEqual(1, summary.blocked_count)
+            self.assertEqual(
+                [("GIL-500", "Building"), ("GIL-500", "Blocked")],
+                client.transitions,
+            )
+            self.assertFalse(
+                any("AI Audit" in state for _issue_id, state in client.transitions)
+            )
+            self.assertFalse(
+                any(body.startswith("Implemented and advanced") for _issue_id, body in client.comments)
+            )
+            blocker_comments = [body for _issue_id, body in client.comments if body.startswith("Blocker:")]
+            self.assertTrue(blocker_comments)
+            self.assertIn("push", blocker_comments[0].lower())
 
 
 if __name__ == "__main__":

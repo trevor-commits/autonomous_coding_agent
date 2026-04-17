@@ -115,6 +115,10 @@ class QueueLinearClient(ABC):
     def create_comment(self, issue_id: str, body: str) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def get_issue(self, issue_id: str) -> LinearIssue:
+        raise NotImplementedError
+
 
 class LinearGraphQLClient(QueueLinearClient):
     def __init__(
@@ -200,6 +204,36 @@ class LinearGraphQLClient(QueueLinearClient):
         }
         """
         self._graphql(mutation, {"issueId": issue_id, "body": body})
+
+    def get_issue(self, issue_id: str) -> LinearIssue:
+        query = """
+        query GetIssue($id: String!) {
+          issue(id: $id) {
+            id
+            identifier
+            title
+            description
+            priority
+            updatedAt
+            state { name }
+            labels { nodes { name } }
+          }
+        }
+        """
+        payload = self._graphql(query, {"id": issue_id})
+        node = payload.get("issue")
+        if node is None:
+            raise QueueError(f"Linear issue `{issue_id}` not found during revalidation.")
+        return LinearIssue(
+            id=node["id"],
+            identifier=node["identifier"],
+            title=node["title"],
+            description=node.get("description") or "",
+            status=node["state"]["name"],
+            priority=node.get("priority"),
+            updated_at=node["updatedAt"],
+            labels=tuple(label["name"] for label in node["labels"]["nodes"]),
+        )
 
     def _state_id_for(self, team_key: str, state_name: str) -> str:
         if team_key not in self._team_states:
@@ -456,7 +490,9 @@ class ManualQueueRunner:
         normalized: NormalizedQueueIssue,
         outcome: "RunExecutionOutcome",
     ) -> None:
+        self._revalidate_snapshot(issue, normalized)
         landing_sha = _land_successful_run(self.repo_root, outcome.workspace, issue.identifier)
+        _push_landing_commit(self.repo_root)
         run_store = RunStore(self.repo_root, normalized.ids.run_id)
         closeout_payload = {
             "issue_id": issue.identifier,
@@ -488,6 +524,30 @@ class ManualQueueRunner:
                 WorktreeManager(self.repo_root).remove_builder_worktree(outcome.workspace)
             except Exception:
                 pass
+
+    def _revalidate_snapshot(
+        self,
+        issue: LinearIssue,
+        normalized: NormalizedQueueIssue,
+    ) -> None:
+        claimed_hash = normalized.run_contract.queue.issue_snapshot_hash
+        deadline = normalized.run_contract.queue.staleness_deadline
+        if claimed_hash is None and deadline is None:
+            return
+        fresh = self.linear_client.get_issue(issue.id)
+        if claimed_hash is not None:
+            fresh_hash = _issue_snapshot_hash(fresh)
+            if fresh_hash != claimed_hash:
+                raise QueueError(
+                    f"Issue `{issue.identifier}` snapshot drifted since claim "
+                    f"(claimed `{claimed_hash}`, live `{fresh_hash}`)."
+                )
+        if deadline is not None:
+            deadline_ts = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
+            if datetime.now(UTC) > deadline_ts:
+                raise QueueError(
+                    f"Issue `{issue.identifier}` claim exceeded staleness deadline `{deadline}`."
+                )
 
     def _block_issue(
         self,
@@ -639,8 +699,11 @@ def _ui_checks_for_pack(repo_contract: RepoContract, verification_pack: tuple[st
 
 
 def _issue_snapshot_hash(issue: LinearIssue) -> str:
-    payload = json.dumps(issue.snapshot_payload(), sort_keys=True).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    payload = issue.snapshot_payload()
+    payload.pop("status", None)
+    payload.pop("updated_at", None)
+    encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _staleness_deadline(updated_at: str) -> str:
@@ -702,18 +765,21 @@ def _render_blocker_comment(ids: QueueRunIds, reason: str, artifact_path: Path) 
 
 def _land_successful_run(repo_root: Path, workspace: Any, issue_identifier: str) -> str:
     status = _git(workspace.worktree_path, "status", "--porcelain", "--untracked-files=all")
-    add_args = ["add", "-A"]
-    _git(workspace.worktree_path, *add_args)
-    commit_args = ["commit", "--allow-empty", "-m", f"chore(queue): land {issue_identifier}"]
     if status.stdout.strip():
-        _git(workspace.worktree_path, *commit_args)
-    else:
-        _git(workspace.worktree_path, *commit_args)
+        _git(workspace.worktree_path, "add", "-A")
+        _git(
+            workspace.worktree_path,
+            "commit",
+            "-m",
+            f"chore(queue): land {issue_identifier}",
+        )
     landing_sha = _git(workspace.worktree_path, "rev-parse", "HEAD").stdout.strip()
-    merge = _git(repo_root, "merge", "--ff-only", workspace.branch_name)
-    if merge.returncode != 0:
-        raise QueueError(f"Failed to fast-forward merge `{workspace.branch_name}` into `{repo_root}`.")
+    _git(repo_root, "merge", "--ff-only", workspace.branch_name)
     return landing_sha
+
+
+def _push_landing_commit(repo_root: Path) -> None:
+    _git(repo_root, "push", "origin", "HEAD")
 
 
 def _git(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:

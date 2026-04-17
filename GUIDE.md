@@ -21,6 +21,7 @@ Use these files for current truth:
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
 - [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md): repo-specific guidance for which Superpowers skills are worth using in this architecture/governance repo.
 - [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md): repo-local guidance for how the April 16, 2026 Codex update should change operator workflow and where plugin use/not-use decisions now live.
+- [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md): practical operating split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval`, plus the current shortlist of further plugin candidates worth spiking later.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md): approved design baseline for the first runnable local single-run harness on top of the current supervisor foundation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
@@ -113,6 +114,13 @@ later, or not at all. The `Plugin decision ledger` section is the durable place
 future sessions should update when a plugin is tried, approved, deferred, or
 rejected.
 
+### [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md)
+
+The plugin operator cheat sheet. Read this when deciding which installed plugin
+should own discovery, spec-writing, implementation discipline, deterministic
+pre-audit, or plugin-evaluation work, and when you need the current shortlist
+of additional workflow plugins worth later spikes.
+
 ### [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
 
 The launch-scope reconciliation note. Read this when you need to distinguish between rollout pieces that already exist as documentation/process and future runtime or production capabilities that do not exist yet.
@@ -194,6 +202,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Which Superpowers skills fit this repo versus adding overhead? | `docs/superpowers-playbook.md` |
 | How should the April 16, 2026 Codex update affect this repo? | `docs/codex-april-16-2026-impact.md` |
 | Where do plugin use/not-use and tried/not-tried decisions live? | `docs/codex-april-16-2026-impact.md` section `Plugin decision ledger` |
+| How should `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval` be split operationally? | `docs/codex-plugin-operator-cheatsheet.md` |
 | Where does the repo's CodeRabbit setup live? | `.coderabbit.yaml` |
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |

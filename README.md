@@ -49,23 +49,28 @@ Read these when working on the current system:
    plugin decision ledger, including what to adopt now, what to defer for v1,
    and where future plugin use/not-use decisions should be updated.
 
-12. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+12. [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md)
+   Operational split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and
+   `plugin-eval`, plus the current shortlist of further plugin candidates worth
+   spiking later.
+
+13. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
 
-13. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
+14. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
    Approved design baseline for the first runnable local single-run supervisor
    slice, aligned to the supervisor foundation already landed in `supervisor/`.
 
-14. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+15. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-15. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
+16. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
    Exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 
-16. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+17. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
    Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
 
-17. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+18. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History

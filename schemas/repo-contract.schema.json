@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/repo-contract.schema.json",
+  "title": "Repo Contract Schema",
+  "description": "Schema for the target repo's .agent/contract.yml automation surface. This shape is derived from canonical-architecture.md Section 8.1 \"Repo Contract\" and the Phase 0 contract example in IMPLEMENTATION-PLAN.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "stack",
+    "commands"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Contract version number. The current examples in canonical-architecture.md Section 8.1 and IMPLEMENTATION-PLAN.md Phase 0 use version 1."
+    },
+    "stack": {
+      "type": "string",
+      "description": "Supported stack or repo type declared by the repo contract, as required by canonical-architecture.md Section 8.1."
+    },
+    "commands": {
+      "type": "object",
+      "description": "Deterministic contract-defined commands and health mechanism for setup, verification, app launch, and UI smoke, from canonical-architecture.md Section 8.1.",
+      "additionalProperties": false,
+      "required": [
+        "setup",
+        "test",
+        "app_up",
+        "app_health"
+      ],
+      "properties": {
+        "setup": {
+          "type": "string"
+        },
+        "test": {
+          "type": "string"
+        },
+        "app_up": {
+          "type": "string"
+        },
+        "app_health": {
+          "type": "string"
+        },
+        "lint": {
+          "type": "string"
+        },
+        "typecheck": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "app_down": {
+          "type": "string"
+        },
+        "ui_smoke": {
+          "type": "string"
+        },
+        "seed_testdata": {
+          "type": "string"
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "type": "string"
+        },
+        "breakpoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "critical_flows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "route",
+              "assertions"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "route": {
+                "type": "string"
+              },
+              "assertions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "env": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required_vars": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "template": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": 1,
+      "stack": "fullstack-web",
+      "commands": {
+        "setup": "npm install",
+        "test": "npm run test -- --bail",
+        "app_up": "npm run dev",
+        "app_health": "http://127.0.0.1:3000/api/health"
+      }
+    }
+  ]
+}

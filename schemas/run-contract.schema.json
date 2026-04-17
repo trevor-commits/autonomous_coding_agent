@@ -2,194 +2,242 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://autonomous-coding-agent.local/schemas/run-contract.schema.json",
   "title": "Run Contract Schema",
-  "description": "Schema for the target repo's .agent/contract.yml automation surface. This shape is derived from canonical-architecture.md Section 8.1 \"Repo Contract\" and the Phase 0 contract example in IMPLEMENTATION-PLAN.md. Open question: canonical-architecture.md names required environment variables or templates, but it does not yet define any additional env metadata beyond required_vars and template.",
+  "description": "Schema for the per-run task contract described in canonical-architecture.md Section 8.2 \"Run Contract\" and IMPLEMENTATION-PLAN.md Phase 0 benchmark fixtures. Queue-mode metadata stays optional because not every run is queue-claimed.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "version",
-    "stack",
-    "commands"
+    "run_id",
+    "repo_path",
+    "objective",
+    "scope",
+    "acceptance",
+    "constraints"
   ],
   "properties": {
-    "version": {
-      "type": "integer",
-      "description": "Contract version number. The current examples in canonical-architecture.md Section 8.1 and IMPLEMENTATION-PLAN.md Phase 0 use version 1."
-    },
-    "stack": {
+    "run_id": {
       "type": "string",
-      "description": "Supported stack or repo type declared by the repo contract, as required by canonical-architecture.md Section 8.1."
+      "description": "Stable identifier for a specific run."
     },
-    "commands": {
+    "repo_path": {
+      "type": "string",
+      "description": "Absolute path to the target repo."
+    },
+    "objective": {
+      "type": "string",
+      "description": "The coding objective for this run."
+    },
+    "scope": {
       "type": "object",
-      "description": "Deterministic contract-defined commands and health mechanism for setup, verification, app launch, and UI smoke, from canonical-architecture.md Section 8.1.",
+      "description": "Bounded path scope enforced by the supervisor.",
       "additionalProperties": false,
       "required": [
-        "setup",
-        "test",
-        "app_up",
-        "app_health"
+        "allowed_paths",
+        "forbidden_paths"
       ],
       "properties": {
-        "setup": {
-          "type": "string",
-          "description": "Required setup command from canonical-architecture.md Section 8.1 \"Minimum v1 required fields\"."
-        },
-        "test": {
-          "type": "string",
-          "description": "Required test command from canonical-architecture.md Section 8.1 \"Minimum v1 required fields\"."
-        },
-        "app_up": {
-          "type": "string",
-          "description": "Required app launch command from canonical-architecture.md Section 8.1 \"Minimum v1 required fields\"."
-        },
-        "app_health": {
-          "type": "string",
-          "description": "Required app health mechanism from canonical-architecture.md Section 8.1. The examples use an HTTP health URL."
-        },
-        "lint": {
-          "type": "string",
-          "description": "Optional lint command named in canonical-architecture.md Section 8.1."
-        },
-        "typecheck": {
-          "type": "string",
-          "description": "Optional typecheck command named in canonical-architecture.md Section 8.1."
-        },
-        "format": {
-          "type": "string",
-          "description": "Optional format command named in canonical-architecture.md Section 8.1."
-        },
-        "app_down": {
-          "type": "string",
-          "description": "Optional app shutdown command named in canonical-architecture.md Section 8.1."
-        },
-        "ui_smoke": {
-          "type": "string",
-          "description": "Optional UI smoke command named in canonical-architecture.md Section 8.1."
-        },
-        "seed_testdata": {
-          "type": "string",
-          "description": "Optional test-data seeding command named in canonical-architecture.md Section 8.1."
-        }
-      }
-    },
-    "ui": {
-      "type": "object",
-      "description": "Optional UI automation configuration from canonical-architecture.md Section 8.1 and IMPLEMENTATION-PLAN.md Phase 3.1.",
-      "additionalProperties": false,
-      "properties": {
-        "base_url": {
-          "type": "string",
-          "description": "Base URL for app launch and UI verification, from canonical-architecture.md Section 8.1."
-        },
-        "breakpoints": {
+        "allowed_paths": {
           "type": "array",
-          "description": "Viewport breakpoints for UI verification, from canonical-architecture.md Section 8.1.",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
         },
-        "critical_flows": {
+        "forbidden_paths": {
           "type": "array",
-          "description": "Critical UI flows and assertions for deterministic UI verification, from canonical-architecture.md Section 8.1.",
           "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "id",
-              "route",
-              "assertions"
-            ],
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "Flow identifier from canonical-architecture.md Section 8.1."
-              },
-              "route": {
-                "type": "string",
-                "description": "Route to verify for the critical flow, from canonical-architecture.md Section 8.1."
-              },
-              "assertions": {
-                "type": "array",
-                "description": "Human-readable deterministic assertions attached to the critical flow, from canonical-architecture.md Section 8.1.",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string"
           }
         }
       }
     },
-    "env": {
+    "acceptance": {
       "type": "object",
-      "description": "Environment requirements and template hints from canonical-architecture.md Section 8.1.",
       "additionalProperties": false,
+      "required": [
+        "functional",
+        "quality_gates",
+        "ui_checks"
+      ],
       "properties": {
-        "required_vars": {
+        "functional": {
           "type": "array",
-          "description": "Required environment variable names, from canonical-architecture.md Section 8.1.",
           "items": {
             "type": "string"
           }
         },
-        "template": {
-          "type": "string",
-          "description": "Environment template path, from canonical-architecture.md Section 8.1."
+        "quality_gates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ui_checks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "single_writer",
+        "max_repair_loops",
+        "max_iterations",
+        "max_cost_dollars",
+        "hard_timeout_seconds"
+      ],
+      "properties": {
+        "single_writer": {
+          "type": "boolean"
+        },
+        "auto_push": {
+          "type": "boolean"
+        },
+        "auto_merge": {
+          "type": "boolean"
+        },
+        "max_repair_loops": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_iterations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_cost_dollars": {
+          "type": "number",
+          "minimum": 0
+        },
+        "hard_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "claim_id": {
+      "type": "string"
+    },
+    "run_trace_id": {
+      "type": "string"
+    },
+    "queue_entry_reason": {
+      "type": "string"
+    },
+    "queue_contract_version": {
+      "type": "string"
+    },
+    "prompt_template_version": {
+      "type": "string"
+    },
+    "issue_snapshot_hash": {
+      "type": "string"
+    },
+    "follow_up_policy": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ]
+    },
+    "approval_required": {
+      "type": "boolean"
+    },
+    "retry_budget": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "staleness_deadline": {
+      "type": "string"
     }
   },
   "examples": [
     {
-      "version": 1,
-      "stack": "fullstack-web",
-      "commands": {
-        "setup": "npm install",
-        "test": "npm run test -- --bail",
-        "app_up": "npm run dev",
-        "app_health": "http://127.0.0.1:3000/api/health"
+      "run_id": "benchmark-001",
+      "repo_path": "/path/to/repo",
+      "objective": "Add a GET /api/users/:id endpoint that returns user data by ID",
+      "scope": {
+        "allowed_paths": [
+          "src/api/",
+          "src/models/",
+          "tests/"
+        ],
+        "forbidden_paths": [
+          ".env",
+          "infra/",
+          "deploy/"
+        ]
+      },
+      "acceptance": {
+        "functional": [
+          "GET /api/users/1 returns user object with id, name, email",
+          "GET /api/users/999 returns 404"
+        ],
+        "quality_gates": [
+          "lint passes",
+          "typecheck passes",
+          "tests pass"
+        ]
+      },
+      "constraints": {
+        "single_writer": true,
+        "auto_push": false,
+        "auto_merge": false,
+        "max_repair_loops": 4,
+        "max_iterations": 50,
+        "max_cost_dollars": 10.0,
+        "hard_timeout_seconds": 3600
       }
     },
     {
-      "version": 1,
-      "stack": "fullstack-web",
-      "commands": {
-        "setup": "npm install",
-        "lint": "npm run lint -- --max-warnings 0",
-        "typecheck": "npm run typecheck",
-        "test": "npm run test -- --bail",
-        "app_up": "npm run dev",
-        "app_health": "http://127.0.0.1:3000/api/health",
-        "app_down": "npm run stop",
-        "ui_smoke": "npx playwright test",
-        "seed_testdata": "npm run seed:test"
-      },
-      "ui": {
-        "base_url": "http://127.0.0.1:3000",
-        "breakpoints": [
-          "390x844",
-          "1440x900"
+      "run_id": "queue-claim-001",
+      "repo_path": "/path/to/repo",
+      "objective": "Fix the login form validation bug",
+      "scope": {
+        "allowed_paths": [
+          "apps/web/",
+          "tests/"
         ],
-        "critical_flows": [
-          {
-            "id": "login",
-            "route": "/login",
-            "assertions": [
-              "login form visible",
-              "submit with test credentials succeeds",
-              "redirects to dashboard",
-              "no console errors"
-            ]
-          }
+        "forbidden_paths": [
+          ".env",
+          "infra/"
         ]
       },
-      "env": {
-        "required_vars": [
-          "DATABASE_URL",
-          "JWT_SECRET"
+      "acceptance": {
+        "functional": [
+          "Login validation message renders correctly"
         ],
-        "template": ".env.example"
-      }
+        "quality_gates": [
+          "tests pass"
+        ],
+        "ui_checks": [
+          "No console errors on /login"
+        ]
+      },
+      "constraints": {
+        "single_writer": true,
+        "max_repair_loops": 3,
+        "max_iterations": 40,
+        "max_cost_dollars": 8.0,
+        "hard_timeout_seconds": 1800
+      },
+      "claim_id": "claim-123",
+      "run_trace_id": "trace-123",
+      "queue_entry_reason": "Ready for Build queue claim",
+      "queue_contract_version": "2026-04-16",
+      "prompt_template_version": "2026-04-16",
+      "issue_snapshot_hash": "abc123",
+      "follow_up_policy": "adjacent-blocker-only",
+      "risk_level": "Low",
+      "approval_required": false,
+      "retry_budget": 3,
+      "staleness_deadline": "2026-04-17T00:00:00Z"
     }
   ]
 }

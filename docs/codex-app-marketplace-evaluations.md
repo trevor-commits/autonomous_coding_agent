@@ -39,7 +39,6 @@ This audit is based on the current Codex session surfaces:
 | `Vercel` | Plugin plus searchable connector tools | preview deploys, frontend verification support, env/log inspection, and AI SDK experiments | auto-deploy authority in the v1 core |
 | `Cloudflare` | Plugin plus searchable connector tools | Workers/Pages experiments, webhook-intake hosting exploration, and runtime-hosting evaluation | backdooring the hosting decision through tool availability |
 | `Figma` | Plugin | operator UI or app-supervisor UI design work | early-stage governance work where design tooling adds no leverage |
-| `Jam` | Searchable connector tools | frontend bug packets with replay, console, and network context when UI debugging becomes real | generic note-taking or replacing deterministic test evidence |
 | `Stripe` | Searchable connector tools | payments, billing, subscriptions, invoices, and integration planning when monetization work is real | casual enablement without an actual billing need |
 | `MarcoPolo` | Searchable connector tools | secure workspace/data-room style retrieval only if a concrete isolated-data workflow appears | becoming a default repo-memory layer |
 | `Computer Use` | Plugin plus searchable connector tools | OS-level app interaction or manual reproduction when CLI/browser helpers are insufficient | authoritative verification or routine coding tasks |
@@ -60,12 +59,14 @@ current-use surfaces in the repo's live docs:
   layer, not a generic workflow owner.
 - `Computer Use`: available now; should stay operator-assist only, not an
   authoritative verifier.
-- `Jam`: accessible connector; worth using for rich frontend bug reports if UI
-  debugging becomes a recurring pain point.
 - `Stripe`: accessible connector; should be used for real billing/payments work
   instead of being left implicit in the broader marketplace memo.
 - `MarcoPolo`: accessible connector; recorded here as conditional secure
   workspace access rather than leaving it as an unexplained searchable surface.
+
+`Jam` was removed after this audit pass, so it is no longer part of the
+accessible-now surface. It remains a strong later add if richer frontend bug
+reports become worth re-enabling.
 
 ## Recommendation key
 

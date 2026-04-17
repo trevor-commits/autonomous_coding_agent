@@ -2,6 +2,12 @@
 
 ## 2026-04-16
 
+- Added the first `GIL-27` verification-and-reporting slice:
+  - added deterministic verification runners in `supervisor/verifier.py`
+  - added run-local failure fingerprint persistence in `supervisor/fingerprints.py`
+  - added final JSON + markdown report generation in `supervisor/reports.py`
+  - normalized readiness and failure-fingerprint schemas to the current snake_case runtime contract
+  - added unit coverage for verifier, fingerprinting, and report generation
 - Added the first `GIL-26` contract-and-guardrails slice:
   - split repo-contract and run-contract schemas into distinct machine boundaries
   - added repo/run contract parsing in `supervisor/contracts.py`

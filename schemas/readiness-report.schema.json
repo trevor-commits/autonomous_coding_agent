@@ -7,20 +7,34 @@
   "additionalProperties": false,
   "required": [
     "run_id",
+    "claim_id",
+    "run_trace_id",
     "run_state",
     "readiness_verdict",
     "phases_completed",
     "commands_run",
     "failures",
     "changed_files",
-    "checkpoint_refs",
     "artifact_manifest",
-    "unresolved_blockers"
+    "unresolved_blockers",
+    "queue_entry_reason",
+    "queue_exit_reason"
   ],
   "properties": {
     "run_id": {
       "type": "string",
       "description": "Run identifier from canonical-architecture.md Section 20 \"Machine-readable report\"."
+    },
+    "claim_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Queue claim identifier required by RULES.md reporting rules. Non-queue runs may emit null."
+    },
+    "run_trace_id": {
+      "type": "string",
+      "description": "Trace identifier used to correlate reports, logs, and artifacts, from RULES.md trace-correlation rules."
     },
     "run_state": {
       "type": "string",
@@ -33,11 +47,15 @@
       "description": "Supervisor-level run_state from canonical-architecture.md Section 9.1 \"Terminal States and Readiness Verdict\"."
     },
     "readiness_verdict": {
-      "type": "string",
+      "type": [
+        "string",
+        "null"
+      ],
       "enum": [
         "READY",
         "NOT_READY",
-        "NEEDS_MORE_EVIDENCE"
+        "NEEDS_MORE_EVIDENCE",
+        null
       ],
       "description": "Final-gate readiness_verdict from canonical-architecture.md Section 9.1 \"Terminal States and Readiness Verdict\"."
     },
@@ -56,17 +74,17 @@
         "additionalProperties": false,
         "required": [
           "name",
-          "exit code",
+          "exit_code",
           "stdout",
           "stderr",
-          "duration"
+          "duration_seconds"
         ],
         "properties": {
           "name": {
             "type": "string",
             "description": "Executed contract or verification command name, from IMPLEMENTATION-PLAN.md Phase 1."
           },
-          "exit code": {
+          "exit_code": {
             "type": "integer",
             "description": "Process exit code, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
           },
@@ -78,7 +96,7 @@
             "type": "string",
             "description": "Captured stderr, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
           },
-          "duration": {
+          "duration_seconds": {
             "type": "number",
             "description": "Execution duration, from IMPLEMENTATION-PLAN.md Phase 1 verifier capture guidance."
           },
@@ -105,7 +123,7 @@
     },
     "checkpoint_refs": {
       "type": "array",
-      "description": "Checkpoint references from canonical-architecture.md Section 20 and IMPLEMENTATION-PLAN.md Phase 1 reports.py.",
+      "description": "Optional checkpoint references from canonical-architecture.md Section 20. RULES.md marks this field optional in the smallest v1.",
       "items": {
         "type": "string"
       }
@@ -123,11 +141,27 @@
       "items": {
         "type": "string"
       }
+    },
+    "queue_entry_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Why the run entered the queue or supervisor intake path, from RULES.md reporting rules."
+    },
+    "queue_exit_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Why the run exited the queue or terminalized, from RULES.md reporting rules."
     }
   },
   "examples": [
     {
       "run_id": "benchmark-001",
+      "claim_id": "claim-001",
+      "run_trace_id": "trace-001",
       "run_state": "COMPLETE",
       "readiness_verdict": "READY",
       "phases_completed": [
@@ -140,10 +174,10 @@
       "commands_run": [
         {
           "name": "test",
-          "exit code": 0,
+          "exit_code": 0,
           "stdout": "all tests passed",
           "stderr": "",
-          "duration": 12.4
+          "duration_seconds": 12.4
         }
       ],
       "failures": [],
@@ -151,17 +185,18 @@
         "src/api/users.ts",
         "tests/users.test.ts"
       ],
-      "checkpoint_refs": [
-        "[autoclaw/benchmark-001] feat: add user endpoint"
-      ],
       "artifact_manifest": [
         "artifacts/logs/test.txt",
         "reports/final-summary.md"
       ],
-      "unresolved_blockers": []
+      "unresolved_blockers": [],
+      "queue_entry_reason": "Ready for Build queue claim",
+      "queue_exit_reason": "final gate ready"
     },
     {
       "run_id": "benchmark-004",
+      "claim_id": "claim-004",
+      "run_trace_id": "trace-004",
       "run_state": "BLOCKED",
       "readiness_verdict": "NOT_READY",
       "phases_completed": [
@@ -176,10 +211,10 @@
       "commands_run": [
         {
           "name": "ui_smoke",
-          "exit code": 1,
+          "exit_code": 1,
           "stdout": "",
           "stderr": "1 test failed",
-          "duration": 44.8,
+          "duration_seconds": 44.8,
           "failure_fingerprint": "settings-save-disabled-after-valid-input"
         }
       ],
@@ -199,7 +234,9 @@
       ],
       "unresolved_blockers": [
         "Unresolved high-severity UI finding remains at final gate."
-      ]
+      ],
+      "queue_entry_reason": "Ready for Build queue claim",
+      "queue_exit_reason": "blocked by final gate"
     }
   ]
 }

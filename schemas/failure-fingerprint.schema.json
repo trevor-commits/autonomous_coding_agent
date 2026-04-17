@@ -9,8 +9,8 @@
     "fingerprint",
     "phase",
     "command",
-    "error signature",
-    "relevant paths"
+    "error_signature",
+    "relevant_paths"
   ],
   "properties": {
     "fingerprint": {
@@ -25,11 +25,11 @@
       "type": "string",
       "description": "Command associated with the failure, from IMPLEMENTATION-PLAN.md Phase 1 fingerprint normalization guidance."
     },
-    "error signature": {
+    "error_signature": {
       "type": "string",
       "description": "Normalized error signature used to group equivalent failures, from IMPLEMENTATION-PLAN.md Phase 1 fingerprint normalization guidance."
     },
-    "relevant paths": {
+    "relevant_paths": {
       "type": "array",
       "description": "Relevant file or artifact paths used during normalization, from IMPLEMENTATION-PLAN.md Phase 1 fingerprint normalization guidance.",
       "items": {
@@ -64,7 +64,7 @@
     },
     "last_seen": {
       "type": "string",
-      "format": "date",
+      "format": "date-time",
       "description": "Last-seen date recorded in cross-run memory, from IMPLEMENTATION-PLAN.md Phase 5.1."
     },
     "occurrence_count": {
@@ -78,8 +78,8 @@
       "fingerprint": "test-auth-empty-email",
       "phase": "LOCAL_VERIFY",
       "command": "test",
-      "error signature": "AssertionError: empty email rejected",
-      "relevant paths": [
+      "error_signature": "AssertionError: empty email rejected",
+      "relevant_paths": [
         "tests/auth.test.ts"
       ]
     },
@@ -87,8 +87,8 @@
       "fingerprint": "settings-save-disabled-after-valid-input",
       "phase": "UI_VERIFY",
       "command": "ui_smoke",
-      "error signature": "save button disabled after valid input",
-      "relevant paths": [
+      "error_signature": "save button disabled after valid input",
+      "relevant_paths": [
         "src/components/SettingsForm.tsx",
         "artifacts/logs/console.txt"
       ],
@@ -99,7 +99,7 @@
       ],
       "root_cause": "SettingsForm validation state never transitions to valid after input change.",
       "resolution": "Update validation state handling and add a regression test for the enabled button path.",
-      "last_seen": "2026-04-14",
+      "last_seen": "2026-04-14T10:15:00Z",
       "occurrence_count": 3
     }
   ]

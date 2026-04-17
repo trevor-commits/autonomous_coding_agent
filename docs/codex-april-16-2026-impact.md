@@ -11,9 +11,10 @@ authoritative. If this memo conflicts with those docs, the canonical docs win.
 This memo is an interpretation and prioritization aid, not a hidden architecture
 change.
 
-The `Plugin decision ledger` section below is the durable place to track plugin
-conclusions for this repo. Future Codex conversations should update that ledger
-instead of creating a second plugin tracker in another governing doc.
+The `Plugin decision ledger` section below is the curated current-truth place
+to track plugin conclusions for this repo. Future Codex conversations should
+append raw plugin observations and trial notes to `docs/plugin-intake.md`, then
+update the ledger only when the repo's actual plugin stance changes.
 
 ## What changed in the April 16 update
 

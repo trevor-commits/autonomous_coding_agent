@@ -59,14 +59,19 @@ Read these when working on the current system:
    posture for the installed workflow plugins `Autopilot`, `HOTL`, and
    `Cavekit`.
 
-14. [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md)
+14. [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md)
+   Durable marketplace-app evaluation memo covering the reviewed app surfaces,
+   the top adds worth enabling later, the major redundancy traps, and the
+   category-specific "only if this becomes real" calls.
+
+15. [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md)
    Exact CodeRabbit settings, UI caveats, path instructions, and the
    repo-specific rationale behind the current review-trial posture.
 
-15. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+16. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
 
-16. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
+17. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
    Approved design baseline for the first runnable local single-run supervisor
    slice, aligned to the supervisor foundation already landed in `supervisor/`.
 

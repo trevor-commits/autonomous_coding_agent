@@ -23,6 +23,7 @@ Use these files for current truth:
 - [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md): repo-local guidance for how the April 16, 2026 Codex update should change operator workflow and where plugin use/not-use decisions now live.
 - [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md): practical operating split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval`, plus the current shortlist of further plugin candidates worth spiking later.
 - [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md): exact install state, plugin ids, enabled-state expectations, and settings posture for the installed workflow plugins `Autopilot`, `HOTL`, and `Cavekit`.
+- [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md): durable memo for the marketplace-app screenshots already reviewed in chat, including top adds, redundancy traps, and category-by-category app judgments.
 - [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md): exact CodeRabbit settings, path instructions, UI-only caveats, and the repo-specific rationale for the current review-trial posture.
 - [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md): launch-scope reconciliation for rollout guidance, smoke-lane planning, and what is still future implementation.
 - [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md): approved design baseline for the first runnable local single-run harness on top of the current supervisor foundation.
@@ -128,6 +129,14 @@ of additional workflow plugins worth later spikes.
 The installed workflow-plugin setup companion. Read this when you need the
 actual Codex install state, marketplace id, plugin ids, enabled-state
 expectations, or settings posture for `Autopilot`, `HOTL`, and `Cavekit`.
+
+### [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md)
+
+The marketplace-app evaluation memo. Read this when deciding whether one of the
+reviewed Codex marketplace apps is worth enabling, when you need the current
+"add now" shortlist, or when you want to avoid redundant tools such as extra
+project managers, meeting bots, or finance-research products that do not fit
+the repo's actual workflow.
 
 ### [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md)
 

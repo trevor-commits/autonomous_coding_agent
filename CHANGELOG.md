@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-04-19
+
+- Merged the `codex/gil29-ui-verifier` runtime line into `main`:
+  - added the first `GIL-23` benchmark fixture suite under `fixtures/`
+  - added the first `GIL-29` app-launch and UI-verification slice with `supervisor/app_supervisor.py` and `supervisor/ui_verifier.py`
+  - brought forward the `GIL-59` through `GIL-62` Phase 3 repair wave
+  - closed the `GIL-69` through `GIL-71` follow-up audit gaps by enforcing run budgets, rejecting `repo_path` mismatches, and preserving all UI failure fingerprints in retry/report state
+
 ## 2026-04-17
 
 - Added the first `GIL-57` manual queue-intake slice:

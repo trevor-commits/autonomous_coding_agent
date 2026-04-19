@@ -12,6 +12,12 @@
   - materialized the first Phase 4 prompt pack under `supervisor/prompts/`
   - wired `supervisor/main.py` to accept `--strategy claude` while keeping the supervisor in control of legality and fallback behavior
   - added targeted unit coverage for Claude strategy prompt routing, fallback handling, usage accounting, and main-loop compatibility
+- Extended `GIL-30` into the review/final-gate path:
+  - wired `AUDIT_READY` candidate review and `FINAL_GATE` final-audit decisions into `execute_run`
+  - allowed review-driven `request_builder_task` actions during `AUDIT_READY` and `FINAL_GATE`
+  - fixed backend-only review flow so green no-UI candidates can legally pause in `AUDIT_READY`
+  - stopped treating historical repaired fingerprints as unresolved final-gate blockers
+  - added focused coverage for review-requested rebuilds, final-audit blocks, and the widened phase/action legality
 
 ## 2026-04-17
 

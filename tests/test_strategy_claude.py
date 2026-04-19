@@ -110,6 +110,49 @@ class ClaudeStrategyTests(unittest.TestCase):
         self.assertIn("Prompt Pack: stall_diagnosis", transport.prompts[0])
         self.assertIn("app-launch-app-health-timeout", transport.prompts[0])
 
+    def test_candidate_review_uses_candidate_review_prompt(self) -> None:
+        transport = FakeClaudeTransport(
+            [
+                _response('{"action":"record_decision","reason":"candidate is ready"}'),
+            ]
+        )
+        strategy = ClaudeStrategy(api_key="test-key", transport=transport)
+
+        action = strategy.candidate_review_action(
+            _run_contract(),
+            _repo_contract(),
+            changed_files=("src/app.ts",),
+            artifact_manifest=("reports/final-summary.md",),
+            command_results=(),
+        )
+
+        self.assertEqual(ActionType.RECORD_DECISION, action.action_type)
+        self.assertIn("Prompt Pack: candidate_review", transport.prompts[0])
+        self.assertIn("src/app.ts", transport.prompts[0])
+
+    def test_final_audit_uses_final_audit_prompt(self) -> None:
+        transport = FakeClaudeTransport(
+            [
+                _response(
+                    '{"action":"propose_terminal_state","run_state":"COMPLETE","readiness_verdict":"READY","reason":"final audit is clean"}'
+                ),
+            ]
+        )
+        strategy = ClaudeStrategy(api_key="test-key", transport=transport)
+
+        action = strategy.final_audit_action(
+            _run_contract(),
+            _repo_contract(),
+            changed_files=("src/app.ts",),
+            artifact_manifest=("reports/final-summary.md",),
+            command_results=(),
+            failure_fingerprints=(),
+        )
+
+        self.assertEqual(ActionType.PROPOSE_TERMINAL_STATE, action.action_type)
+        self.assertIn("Prompt Pack: final_audit", transport.prompts[0])
+        self.assertIn("reports/final-summary.md", transport.prompts[0])
+
     def test_usage_cost_accumulates_until_consumed(self) -> None:
         transport = FakeClaudeTransport(
             [

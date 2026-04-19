@@ -9,7 +9,7 @@ LEGAL_PHASE_TRANSITIONS: dict[Phase, frozenset[Phase]] = {
     Phase.INTAKE: frozenset({Phase.PREPARE_WORKSPACE}),
     Phase.PREPARE_WORKSPACE: frozenset({Phase.BUILD}),
     Phase.BUILD: frozenset({Phase.LOCAL_VERIFY}),
-    Phase.LOCAL_VERIFY: frozenset({Phase.BUILD, Phase.APP_LAUNCH, Phase.FINAL_GATE}),
+    Phase.LOCAL_VERIFY: frozenset({Phase.BUILD, Phase.APP_LAUNCH, Phase.AUDIT_READY, Phase.FINAL_GATE}),
     Phase.APP_LAUNCH: frozenset({Phase.BUILD, Phase.UI_VERIFY, Phase.FINAL_GATE}),
     Phase.UI_VERIFY: frozenset({Phase.BUILD, Phase.AUDIT_READY, Phase.FINAL_GATE}),
     Phase.AUDIT_READY: frozenset({Phase.BUILD, Phase.FINAL_GATE}),
@@ -160,4 +160,3 @@ class StateMachine:
                 + "; ".join(missing_reasons)
                 + "."
             )
-

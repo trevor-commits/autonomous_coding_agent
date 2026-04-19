@@ -400,16 +400,8 @@ class SupervisorMainTests(unittest.TestCase):
             run_contract_path = _init_target_repo(repo_root)
             adapter = FakeBuilderAdapter(["fixed"])
             prompts: list[str] = []
-
-            def transport(
-                api_key: str,
-                model: str,
-                max_tokens: int,
-                timeout_seconds: int,
-                prompt: str,
-            ) -> dict:
-                prompts.append(prompt)
-                return {
+            responses = [
+                {
                     "content": [
                         {
                             "type": "text",
@@ -420,7 +412,39 @@ class SupervisorMainTests(unittest.TestCase):
                         }
                     ],
                     "usage": {"input_tokens": 100, "output_tokens": 20},
-                }
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": '{"action":"record_decision","reason":"candidate is ready for final gate"}',
+                        }
+                    ],
+                    "usage": {"input_tokens": 20, "output_tokens": 10},
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"propose_terminal_state","run_state":"COMPLETE",'
+                                '"readiness_verdict":"READY","reason":"final audit is clean"}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 20, "output_tokens": 10},
+                },
+            ]
+
+            def transport(
+                api_key: str,
+                model: str,
+                max_tokens: int,
+                timeout_seconds: int,
+                prompt: str,
+            ) -> dict:
+                prompts.append(prompt)
+                return responses.pop(0)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -433,6 +457,148 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
             self.assertEqual(1, len(adapter.prompts))
             self.assertIn("Prompt Pack: planner", prompts[0])
+            self.assertIn("Prompt Pack: candidate_review", prompts[1])
+            self.assertIn("Prompt Pack: final_audit", prompts[2])
+
+    def test_execute_run_candidate_review_can_request_another_builder_turn(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = FakeBuilderAdapter(["fixed", "fixed"])
+            prompts: list[str] = []
+            responses = [
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"request_builder_task",'
+                                '"description":"Implement the first milestone."}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"request_builder_task",'
+                                '"description":"Address the candidate review findings before final gate."}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": '{"action":"record_decision","reason":"candidate is now clean"}',
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"propose_terminal_state","run_state":"COMPLETE",'
+                                '"readiness_verdict":"READY","reason":"final audit is clean"}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+            ]
+
+            def transport(
+                api_key: str,
+                model: str,
+                max_tokens: int,
+                timeout_seconds: int,
+                prompt: str,
+            ) -> dict:
+                prompts.append(prompt)
+                return responses.pop(0)
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=ClaudeStrategy(api_key="test-key", transport=transport),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(2, len(adapter.prompts))
+            self.assertIn("Address the candidate review findings", adapter.prompts[1])
+            self.assertIn("Prompt Pack: candidate_review", prompts[1])
+            self.assertIn("Prompt Pack: final_audit", prompts[3])
+            self.assertIn("AUDIT_READY", outcome.report.phases_completed)
+
+    def test_execute_run_final_audit_can_block_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = FakeBuilderAdapter(["fixed"])
+            responses = [
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"request_builder_task",'
+                                '"description":"Implement the first milestone."}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": '{"action":"record_decision","reason":"candidate is ready"}',
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+                {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"propose_terminal_state","run_state":"BLOCKED",'
+                                '"reason":"final audit found an unresolved correctness risk"}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 10, "output_tokens": 5},
+                },
+            ]
+
+            def transport(
+                api_key: str,
+                model: str,
+                max_tokens: int,
+                timeout_seconds: int,
+                prompt: str,
+            ) -> dict:
+                return responses.pop(0)
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=ClaudeStrategy(api_key="test-key", transport=transport),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            self.assertIn("final audit found an unresolved correctness risk", outcome.report.unresolved_blockers)
 
     def test_execute_run_blocks_on_high_risk_builder_command(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

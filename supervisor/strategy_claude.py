@@ -11,8 +11,9 @@ from jsonschema import Draft202012Validator
 
 from supervisor.actions import Action, ActionValidationError, validate_action_for_phase
 from supervisor.contracts import RepoContract, RunContract
-from supervisor.models import Phase
+from supervisor.models import Phase, ReadinessVerdict
 from supervisor.strategy_simple import SimpleStrategy
+from supervisor.verifier import CommandExecutionResult
 from supervisor.verifier import VerificationSummary
 
 
@@ -149,6 +150,75 @@ class ClaudeStrategy:
                 "failure_type": "ui_verify",
                 "defect_packets": tuple(defect_packets),
                 "fallback_description": fallback_action.payload["description"],
+            },
+            fallback_action=fallback_action,
+        )
+
+    def candidate_review_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        changed_files: tuple[str, ...] | list[str],
+        artifact_manifest: tuple[str, ...] | list[str],
+        command_results: tuple[CommandExecutionResult, ...] | list[CommandExecutionResult],
+    ) -> Action:
+        fallback_action = self.fallback.candidate_review_action(
+            run_contract,
+            repo_contract,
+            changed_files=changed_files,
+            artifact_manifest=artifact_manifest,
+            command_results=command_results,
+        )
+        return self._request_action(
+            phase=Phase.AUDIT_READY,
+            prompt_name="candidate_review",
+            context={
+                "run_contract": run_contract.to_dict(),
+                "repo_contract": repo_contract.to_dict(),
+                "changed_files": tuple(changed_files),
+                "artifact_manifest": tuple(artifact_manifest),
+                "command_results": [result.to_report_dict() for result in command_results],
+                "fallback_action": {
+                    "action": fallback_action.action_type.value,
+                    **fallback_action.payload,
+                },
+            },
+            fallback_action=fallback_action,
+        )
+
+    def final_audit_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        changed_files: tuple[str, ...] | list[str],
+        artifact_manifest: tuple[str, ...] | list[str],
+        command_results: tuple[CommandExecutionResult, ...] | list[CommandExecutionResult],
+        failure_fingerprints: tuple[str, ...] | list[str],
+    ) -> Action:
+        fallback_action = self.fallback.final_audit_action(
+            run_contract,
+            repo_contract,
+            changed_files=changed_files,
+            artifact_manifest=artifact_manifest,
+            command_results=command_results,
+            failure_fingerprints=failure_fingerprints,
+        )
+        return self._request_action(
+            phase=Phase.FINAL_GATE,
+            prompt_name="final_audit",
+            context={
+                "run_contract": run_contract.to_dict(),
+                "repo_contract": repo_contract.to_dict(),
+                "changed_files": tuple(changed_files),
+                "artifact_manifest": tuple(artifact_manifest),
+                "failure_fingerprints": tuple(failure_fingerprints),
+                "command_results": [result.to_report_dict() for result in command_results],
+                "fallback_action": {
+                    "action": fallback_action.action_type.value,
+                    **fallback_action.payload,
+                },
             },
             fallback_action=fallback_action,
         )

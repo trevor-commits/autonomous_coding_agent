@@ -9,11 +9,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Protocol
 
+from supervisor.actions import Action
 from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuilderAdapter, build_builder_prompt
 from supervisor.contracts import RepoContract, RunContract, load_repo_contract, load_run_contract
 from supervisor.fingerprints import FailureFingerprintStore
-from supervisor.models import Phase, ReadinessVerdict, RunSnapshot
+from supervisor.models import ActionType, Phase, ReadinessVerdict, RunSnapshot, RunState
 from supervisor.queue_intake import LinearGraphQLClient, ManualQueueRunner
 from supervisor.policy import (
     PolicyViolationError,
@@ -73,6 +74,27 @@ class RuntimeStrategy(Protocol):
         *,
         attempt: int,
         max_repair_loops: int,
+    ): ...
+
+    def candidate_review_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        changed_files: tuple[str, ...],
+        artifact_manifest: tuple[str, ...],
+        command_results: tuple,
+    ): ...
+
+    def final_audit_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        changed_files: tuple[str, ...],
+        artifact_manifest: tuple[str, ...],
+        command_results: tuple,
+        failure_fingerprints: tuple[str, ...],
     ): ...
 
     def consume_pending_cost(self) -> float: ...
@@ -257,22 +279,31 @@ def execute_run(
                     all_failure_fingerprints.update(ui_failure_fingerprints)
 
                     if ui_summary.passed:
-                        machine.transition_to(Phase.FINAL_GATE, "UI verification passed.")
-                        machine.record_final_gate_evidence(
-                            required_artifacts_present=True,
-                            authoritative_checks_passed=True,
-                            unresolved_high_severity_findings=False,
-                        )
-                        machine.apply_final_gate_outcome(
-                            ReadinessVerdict.READY,
-                            "UI verification passed.",
-                        )
-                        queue_exit_reason = "ui verification passed"
-                        unresolved_blockers = ()
                         if active_app_session is not None:
                             app_supervisor.stop(active_app_session)
                             active_app_session = None
-                        break
+                        review_outcome = _run_review_and_final_gate(
+                            machine=machine,
+                            run_store=run_store,
+                            strategy=strategy,
+                            run_contract=run_contract,
+                            repo_contract=repo_contract,
+                            changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
+                            artifact_manifest=tuple(sorted(artifact_manifest)),
+                            command_history=tuple(command_history),
+                            failure_fingerprints=(),
+                            success_reason="UI verification passed.",
+                        )
+                        total_cost_spent += strategy.consume_pending_cost()
+                        if review_outcome.pending_build_description:
+                            pending_build_description = review_outcome.pending_build_description
+                            queue_exit_reason = None
+                            unresolved_blockers = ()
+                            continue
+                        if review_outcome.terminal:
+                            queue_exit_reason = review_outcome.queue_exit_reason
+                            unresolved_blockers = review_outcome.unresolved_blockers
+                            break
 
                     if active_app_session is not None:
                         app_supervisor.stop(active_app_session)
@@ -301,19 +332,28 @@ def execute_run(
                     run_store.write_state(machine.snapshot)
                     continue
 
-                machine.transition_to(Phase.FINAL_GATE, "Deterministic verification passed.")
-                machine.record_final_gate_evidence(
-                    required_artifacts_present=True,
-                    authoritative_checks_passed=True,
-                    unresolved_high_severity_findings=False,
+                review_outcome = _run_review_and_final_gate(
+                    machine=machine,
+                    run_store=run_store,
+                    strategy=strategy,
+                    run_contract=run_contract,
+                    repo_contract=repo_contract,
+                    changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
+                    artifact_manifest=tuple(sorted(artifact_manifest)),
+                    command_history=tuple(command_history),
+                    failure_fingerprints=(),
+                    success_reason="Deterministic verification passed.",
                 )
-                machine.apply_final_gate_outcome(
-                    ReadinessVerdict.READY,
-                    "Deterministic verification passed.",
-                )
-                queue_exit_reason = "deterministic verification passed"
-                unresolved_blockers = ()
-                break
+                total_cost_spent += strategy.consume_pending_cost()
+                if review_outcome.pending_build_description:
+                    pending_build_description = review_outcome.pending_build_description
+                    queue_exit_reason = None
+                    unresolved_blockers = ()
+                    continue
+                if review_outcome.terminal:
+                    queue_exit_reason = review_outcome.queue_exit_reason
+                    unresolved_blockers = review_outcome.unresolved_blockers
+                    break
 
             local_verify_attempt += 1
             repeated = tuple(
@@ -453,6 +493,140 @@ def _ui_failure_reason(summary: UIVerificationSummary) -> str:
         return "; ".join(str(defect.get("summary", "UI smoke suite failed")) for defect in summary.defect_packets)
     result = summary.command_results[-1]
     return result.stderr.strip() or result.stdout.strip() or "UI smoke suite failed."
+
+
+@dataclass(frozen=True)
+class ReviewOutcome:
+    terminal: bool
+    queue_exit_reason: str | None = None
+    unresolved_blockers: tuple[str, ...] = ()
+    pending_build_description: str | None = None
+
+
+def _run_review_and_final_gate(
+    *,
+    machine: StateMachine,
+    run_store: RunStore,
+    strategy: RuntimeStrategy,
+    run_contract: RunContract,
+    repo_contract: RepoContract,
+    changed_files: tuple[str, ...],
+    artifact_manifest: tuple[str, ...],
+    command_history: tuple[CommandExecutionResult, ...],
+    failure_fingerprints: tuple[str, ...],
+    success_reason: str,
+) -> ReviewOutcome:
+    machine.transition_to(Phase.AUDIT_READY, "Green candidate ready for review.")
+    run_store.write_state(machine.snapshot)
+    candidate_action = strategy.candidate_review_action(
+        run_contract,
+        repo_contract,
+        changed_files=changed_files,
+        artifact_manifest=artifact_manifest,
+        command_results=command_history,
+    )
+    review_outcome = _apply_review_action(machine, candidate_action)
+    if review_outcome.pending_build_description or review_outcome.terminal:
+        if review_outcome.pending_build_description:
+            run_store.write_state(machine.snapshot)
+        return review_outcome
+
+    machine.transition_to(Phase.FINAL_GATE, "Candidate review accepted the green candidate.")
+    run_store.write_state(machine.snapshot)
+    machine.record_final_gate_evidence(
+        required_artifacts_present=True,
+        authoritative_checks_passed=True,
+        unresolved_high_severity_findings=bool(failure_fingerprints),
+    )
+    final_action = strategy.final_audit_action(
+        run_contract,
+        repo_contract,
+        changed_files=changed_files,
+        artifact_manifest=artifact_manifest,
+        command_results=command_history,
+        failure_fingerprints=failure_fingerprints,
+    )
+    return _apply_final_gate_action(machine, final_action, default_success_reason=success_reason)
+
+
+def _apply_review_action(machine: StateMachine, action: Action) -> ReviewOutcome:
+    if action.action_type is ActionType.REQUEST_BUILDER_TASK:
+        machine.transition_to(Phase.BUILD, "Candidate review requested another builder turn.")
+        return ReviewOutcome(
+            terminal=False,
+            pending_build_description=action.payload["description"],
+        )
+    if action.action_type is ActionType.PROPOSE_TERMINAL_STATE:
+        return _terminal_outcome_from_action(machine, action)
+    return ReviewOutcome(terminal=False)
+
+
+def _apply_final_gate_action(
+    machine: StateMachine,
+    action: Action,
+    *,
+    default_success_reason: str,
+) -> ReviewOutcome:
+    if action.action_type is ActionType.REQUEST_BUILDER_TASK:
+        machine.apply_final_gate_outcome(
+            ReadinessVerdict.NEEDS_MORE_EVIDENCE,
+            action.payload["description"],
+        )
+        return ReviewOutcome(
+            terminal=False,
+            pending_build_description=action.payload["description"],
+        )
+    if action.action_type is ActionType.PROPOSE_TERMINAL_STATE:
+        payload = action.payload
+        proposed_state = RunState(str(payload["run_state"]))
+        if proposed_state is RunState.COMPLETE:
+            machine.apply_final_gate_outcome(
+                ReadinessVerdict(str(payload.get("readiness_verdict", ReadinessVerdict.READY.value))),
+                str(payload.get("reason", default_success_reason)),
+            )
+            return ReviewOutcome(
+                terminal=True,
+                queue_exit_reason="final audit passed",
+                unresolved_blockers=(),
+            )
+        return _terminal_outcome_from_action(machine, action)
+
+    reason = str(action.payload.get("reason", "Final audit requested more evidence."))
+    machine.apply_final_gate_outcome(ReadinessVerdict.NEEDS_MORE_EVIDENCE, reason)
+    return ReviewOutcome(
+        terminal=False,
+        pending_build_description=reason,
+    )
+
+
+def _terminal_outcome_from_action(machine: StateMachine, action: Action) -> ReviewOutcome:
+    payload = action.payload
+    proposed_state = RunState(str(payload["run_state"]))
+    reason = str(payload.get("reason", "Strategy proposed a terminal state."))
+    if proposed_state is RunState.BLOCKED:
+        machine.block(
+            reason,
+            readiness_verdict=_optional_readiness_verdict(payload.get("readiness_verdict")),
+        )
+        return ReviewOutcome(
+            terminal=True,
+            queue_exit_reason="blocked by strategy review",
+            unresolved_blockers=(reason,),
+        )
+    if proposed_state is RunState.UNSUPPORTED:
+        machine.mark_unsupported(reason)
+        return ReviewOutcome(
+            terminal=True,
+            queue_exit_reason="unsupported by strategy review",
+            unresolved_blockers=(reason,),
+        )
+    raise PolicyViolationError(f"Unexpected non-terminal strategy proposal `{proposed_state.value}`.")
+
+
+def _optional_readiness_verdict(value: object) -> ReadinessVerdict | None:
+    if value is None:
+        return None
+    return ReadinessVerdict(str(value))
 
 
 def _enforce_builder_policies(

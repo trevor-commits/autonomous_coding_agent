@@ -18,6 +18,10 @@
   - fixed backend-only review flow so green no-UI candidates can legally pause in `AUDIT_READY`
   - stopped treating historical repaired fingerprints as unresolved final-gate blockers
   - added focused coverage for review-requested rebuilds, final-audit blocks, and the widened phase/action legality
+- Extended `GIL-30` into trace-backed benchmark grading:
+  - added per-run benchmark metrics to readiness reports (`strategy_name`, `builder_turns`, `run_duration_seconds`, `total_cost_dollars`)
+  - added `supervisor/benchmark_eval.py` to compare benchmark report sets and render markdown or JSON summaries
+  - added focused coverage for report-metric emission, historical-report compatibility, and benchmark comparison summaries
 
 ## 2026-04-17
 

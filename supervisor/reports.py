@@ -25,8 +25,12 @@ class ReadinessReport:
     run_id: str
     claim_id: str | None
     run_trace_id: str
+    strategy_name: str
     run_state: str
     readiness_verdict: str | None
+    builder_turns: int
+    run_duration_seconds: float
+    total_cost_dollars: float
     phases_completed: tuple[str, ...]
     commands_run: tuple[dict[str, Any], ...]
     failures: tuple[str, ...]
@@ -59,6 +63,10 @@ def build_readiness_report(
     snapshot: RunSnapshot,
     run_contract: RunContract,
     command_results: Sequence[CommandExecutionResult],
+    strategy_name: str,
+    builder_turns: int,
+    run_duration_seconds: float,
+    total_cost_dollars: float,
     changed_files: Sequence[str],
     artifact_manifest: Sequence[str],
     unresolved_blockers: Sequence[str],
@@ -87,8 +95,12 @@ def build_readiness_report(
         run_id=run_contract.run_id,
         claim_id=run_contract.queue.claim_id,
         run_trace_id=run_contract.queue.run_trace_id or "",
+        strategy_name=strategy_name,
         run_state=snapshot.run_state.value,
         readiness_verdict=snapshot.readiness_verdict.value if snapshot.readiness_verdict else None,
+        builder_turns=builder_turns,
+        run_duration_seconds=run_duration_seconds,
+        total_cost_dollars=total_cost_dollars,
         phases_completed=_completed_phases(snapshot),
         commands_run=tuple(result.to_report_dict() for result in command_results),
         failures=failures,
@@ -138,8 +150,12 @@ def render_summary_markdown(report: ReadinessReport) -> str:
         f"- Run ID: `{report.run_id}`",
         f"- Claim ID: `{report.claim_id or 'n/a'}`",
         f"- Trace ID: `{report.run_trace_id}`",
+        f"- Strategy: `{report.strategy_name}`",
         f"- Run state: `{report.run_state}`",
         f"- Readiness verdict: `{report.readiness_verdict or 'n/a'}`",
+        f"- Builder turns: `{report.builder_turns}`",
+        f"- Run duration: `{report.run_duration_seconds}`s",
+        f"- Strategy cost: `${report.total_cost_dollars:.6f}`",
         "",
         "## Changed Files",
         *render_list(report.changed_files, "No file changes recorded."),

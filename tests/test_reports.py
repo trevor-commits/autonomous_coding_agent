@@ -78,6 +78,10 @@ class ReadinessReportTests(unittest.TestCase):
                 snapshot=machine.snapshot,
                 run_contract=run_contract,
                 command_results=command_results,
+                strategy_name="simple",
+                builder_turns=2,
+                run_duration_seconds=18.2,
+                total_cost_dollars=0.0,
                 changed_files=("src/app.ts",),
                 artifact_manifest=("artifacts/logs/test.stdout.log", "reports/final-summary.md"),
                 unresolved_blockers=(),
@@ -89,8 +93,13 @@ class ReadinessReportTests(unittest.TestCase):
             payload = json.loads(report_path.read_text())
             self.assertEqual("claim-report", payload["claim_id"])
             self.assertEqual("trace-report-123", payload["run_trace_id"])
+            self.assertEqual("simple", payload["strategy_name"])
+            self.assertEqual(2, payload["builder_turns"])
+            self.assertEqual(18.2, payload["run_duration_seconds"])
+            self.assertEqual(0.0, payload["total_cost_dollars"])
             self.assertNotIn("checkpoint_refs", payload)
             self.assertEqual(0, payload["commands_run"][0]["exit_code"])
+            self.assertIn("Strategy: `simple`", summary_path.read_text())
             self.assertIn("Run state: `COMPLETE`", summary_path.read_text())
 
     def test_report_includes_failures_and_checkpoint_refs_when_present(self) -> None:
@@ -121,6 +130,10 @@ class ReadinessReportTests(unittest.TestCase):
                 snapshot=machine.snapshot,
                 run_contract=run_contract,
                 command_results=command_results,
+                strategy_name="claude",
+                builder_turns=3,
+                run_duration_seconds=64.9,
+                total_cost_dollars=0.143211,
                 changed_files=("src/app.ts",),
                 artifact_manifest=("artifacts/logs/lint.stderr.log",),
                 unresolved_blockers=("Lint still failing",),
@@ -159,6 +172,10 @@ class ReadinessReportTests(unittest.TestCase):
                 snapshot=machine.snapshot,
                 run_contract=run_contract,
                 command_results=command_results,
+                strategy_name="simple",
+                builder_turns=2,
+                run_duration_seconds=41.0,
+                total_cost_dollars=0.0,
                 changed_files=("src/app.ts",),
                 artifact_manifest=("artifacts/logs/ui_smoke.stderr.log",),
                 unresolved_blockers=("UI smoke failed",),

@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import shlex
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -174,6 +175,7 @@ def execute_run(
     run_started_at = datetime.now(timezone.utc)
     total_cost_spent = 0.0
     all_failure_fingerprints: set[str] = set()
+    wall_clock_started = time.monotonic()
 
     try:
         _validate_repo_root_matches_contract(repo_root, run_contract)
@@ -404,6 +406,10 @@ def execute_run(
             snapshot=machine.snapshot,
             run_contract=run_contract,
             command_results=tuple(command_history),
+            strategy_name=_strategy_name(strategy),
+            builder_turns=session.turn_count,
+            run_duration_seconds=round(time.monotonic() - wall_clock_started, 3),
+            total_cost_dollars=round(total_cost_spent, 6),
             changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
             artifact_manifest=tuple(sorted(artifact_manifest)),
             unresolved_blockers=unresolved_blockers,
@@ -437,6 +443,14 @@ def _build_run_context(run_contract: RunContract, repo_contract: RepoContract) -
         "forbidden_paths": run_contract.scope.forbidden_paths,
         "repo_commands": commands,
     }
+
+
+def _strategy_name(strategy: RuntimeStrategy) -> str:
+    if isinstance(strategy, ClaudeStrategy):
+        return "claude"
+    if isinstance(strategy, SimpleStrategy):
+        return "simple"
+    return type(strategy).__name__.replace("Strategy", "").lower() or "unknown"
 
 
 def _verification_mode_for(builder_result: BuilderResult) -> VerificationMode:

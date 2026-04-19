@@ -373,6 +373,9 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
             self.assertTrue(outcome.report_path.exists())
             self.assertTrue(outcome.summary_path.exists())
+            self.assertEqual("simple", outcome.report.strategy_name)
+            self.assertEqual(1, outcome.report.builder_turns)
+            self.assertGreaterEqual(outcome.report.run_duration_seconds, 0.0)
             self.assertEqual(1, len(adapter.prompts))
 
     def test_execute_run_retries_with_failure_fingerprint_context(self) -> None:
@@ -455,6 +458,8 @@ class SupervisorMainTests(unittest.TestCase):
             )
 
             self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual("claude", outcome.report.strategy_name)
+            self.assertEqual(1, outcome.report.builder_turns)
             self.assertEqual(1, len(adapter.prompts))
             self.assertIn("Prompt Pack: planner", prompts[0])
             self.assertIn("Prompt Pack: candidate_review", prompts[1])

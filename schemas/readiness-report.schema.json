@@ -9,8 +9,12 @@
     "run_id",
     "claim_id",
     "run_trace_id",
+    "strategy_name",
     "run_state",
     "readiness_verdict",
+    "builder_turns",
+    "run_duration_seconds",
+    "total_cost_dollars",
     "phases_completed",
     "commands_run",
     "failures",
@@ -36,6 +40,10 @@
       "type": "string",
       "description": "Trace identifier used to correlate reports, logs, and artifacts, from RULES.md trace-correlation rules."
     },
+    "strategy_name": {
+      "type": "string",
+      "description": "Supervisor strategy label used for benchmark/eval comparisons when prompts or autonomy boundaries change."
+    },
     "run_state": {
       "type": "string",
       "enum": [
@@ -58,6 +66,21 @@
         null
       ],
       "description": "Final-gate readiness_verdict from canonical-architecture.md Section 9.1 \"Terminal States and Readiness Verdict\"."
+    },
+    "builder_turns": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of builder turns consumed during the run, retained for benchmark grading and prompt comparisons."
+    },
+    "run_duration_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Wall-clock runtime for the run, retained for benchmark grading and prompt comparisons."
+    },
+    "total_cost_dollars": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total strategy-layer cost recorded for the run, retained for benchmark grading and prompt comparisons."
     },
     "phases_completed": {
       "type": "array",
@@ -162,8 +185,12 @@
       "run_id": "benchmark-001",
       "claim_id": "claim-001",
       "run_trace_id": "trace-001",
+      "strategy_name": "simple",
       "run_state": "COMPLETE",
       "readiness_verdict": "READY",
+      "builder_turns": 2,
+      "run_duration_seconds": 18.2,
+      "total_cost_dollars": 0.0,
       "phases_completed": [
         "INTAKE",
         "PREPARE_WORKSPACE",
@@ -197,8 +224,12 @@
       "run_id": "benchmark-004",
       "claim_id": "claim-004",
       "run_trace_id": "trace-004",
+      "strategy_name": "claude",
       "run_state": "BLOCKED",
       "readiness_verdict": "NOT_READY",
+      "builder_turns": 3,
+      "run_duration_seconds": 64.9,
+      "total_cost_dollars": 0.143211,
       "phases_completed": [
         "INTAKE",
         "PREPARE_WORKSPACE",

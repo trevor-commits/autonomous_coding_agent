@@ -9,41 +9,34 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | **0** | Repo prep + manual baseline | Target repo demonstrably automation-ready | GIL-19 through GIL-24 + GIL-8 through GIL-11 | In progress |
 | **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | In progress |
 | **2** | Single builder loop (Codex) | Backend + fix benchmarks complete autonomously ≥2/3; supervisor enforces gates independently | GIL-28 | In progress |
-| **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | In progress |
+| **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | Not started |
 | **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | Not started |
 | **5** | Operational memory hardening (v1.1) | Benchmark suite rerun shows clear reliability gains | GIL-31 | Not started |
 
-**Shortest valid path:** choose target repo → finish Phase 0 → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
+**Shortest valid path:** `bible-ai` Phase 0 proof landed → finish the remaining repo-local Phase 0 and lifecycle work → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: the follow-up audit after the `GIL-59` through `GIL-62` repairs found three more repo-local runtime defects (`GIL-69`, `GIL-70`, `GIL-71`), so Phase 4 / Phase 5 work pauses again until those contract/control-plane gaps are closed. `GIL-20` through `GIL-22` remain deferred by operator direction while repo-local runtime work is still incomplete.
+Current goal: keep the repo implementation-ready while finishing the repo-local Phase 0/1/2 control-plane work in this repository after the first truthful target-repo Phase 0 proof in `bible-ai`.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
-- [ ] Runtime audit follow-up (GIL-69): enforce `max_iterations`, `max_cost_dollars`, and `hard_timeout_seconds` inside `execute_run` so budget exhaustion actually blocks the run instead of leaving the contract budgets inert.
-- [ ] Runtime audit follow-up (GIL-70): reject mismatches between `run_contract.repo_path` and the actual `repo_root` / `--repo-path` input so a stale or incorrect run contract cannot silently execute against the wrong repository.
-- [ ] Runtime audit follow-up (GIL-71): preserve every emitted UI defect fingerprint in `command_results` and final readiness reports so multi-defect UI runs do not collapse back to one tracked failure at the reporting layer.
-- [x] Runtime audit follow-up (GIL-59): split repair budgets across `LOCAL_VERIFY`, `APP_LAUNCH`, and `UI_VERIFY` so an earlier deterministic retry does not consume the app/UI repair budget and block Phase 3 too early.
-- [x] Runtime audit follow-up (GIL-60): honor optional `commands.app_down` and record truthful `app_up` execution results so app lifecycle shutdown and readiness reporting match actual process behavior.
-- [x] Runtime audit follow-up (GIL-61): preserve cumulative changed-file history across multi-turn runs in the final readiness report instead of reporting only the last builder turn's paths.
-- [x] Runtime audit follow-up (GIL-62): emit per-failure UI defect packets and stop collapsing all non-zero `ui_smoke` output plus all `ui_checks` expectations into one summary packet.
-- [ ] Branch lifecycle policy reset (GIL-55): restore automatic task branches as the default for edit work, make Linear the live branch mirror alongside `todo.md`, and update the global plus repo-local governance/scaffolding surfaces that still stamp the old no-branch flow.
+- [x] Branch lifecycle policy reset (GIL-55): restore automatic task branches as the default for edit work, make Linear the live branch mirror alongside `todo.md`, and update the global plus repo-local governance/scaffolding surfaces that still stamp the old no-branch flow.
 - [x] Audit follow-up (GIL-46): automate durable closeout-evidence backfill and validation so queue/provenance landings cannot leave placeholder SHAs, missing Work Record entries, or misattributed completion comments in the repo or Linear audit trail.
 - [x] Phase 0A.5 (GIL-19): trim the initial implementation surface to a smaller v1 by reducing externally visible action families and collapsing operational memory to a minimal first-pass shape; push the heavier Phase 5 hardening items behind a later v1.1-style threshold.
-- [ ] Phase 0.1 (GIL-20): write the first target repo's `.agent/contract.yml` using the canonical repo-contract shape and keep the initial scope intentionally narrow.
-- [ ] Phase 0.2 (GIL-21): manually validate the target repo contract end-to-end on a clean checkout. "Clean" is defined as: fresh clone into an empty directory, no cached dependencies, no prior `.autoclaw/` state, no prior `.agent/` artifacts beyond the committed `contract.yml`. Validation covers setup, test, app launch, and health check, each recorded as a passed checklist step.
-- [ ] Phase 0.2a (GIL-22): document CI parity for the first implementation repo so GitHub Actions reuses repo-contract commands, fast/unit/smoke gates, and structured artifacts instead of inventing repo behavior in workflow YAML.
-- [x] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
+- [x] Phase 0.1 (GIL-20): `bible-ai`'s first `.agent/contract.yml` landed on `agent/codex/2026-04-17/bible-ai-contract` as `c7760dab553a843a3be413c00bd148c6db7ba3be`.
+- [x] Phase 0.2 (GIL-21): the `bible-ai` clean-checkout proof landed on `agent/codex/2026-04-17/bib-9-clean-checkout-ci-parity` as `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; a fresh clone passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state.
+- [x] Phase 0.2a (GIL-22): the `bible-ai` CI-parity note landed at `.agent/ci-parity.md` on `agent/codex/2026-04-17/bib-9-clean-checkout-ci-parity` as `99198863a4ea2e10db19f74f59608d7b3cbd40d7`.
+- [ ] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
 - [ ] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
 - [x] Phase 0.6 (GIL-9): draft ADR-0003 "Phase 1 Subphase 2 Architecture Checkpoint" — after supervisor subphases 1.1 and 1.2 land (contract parsing, run directory, shell/path guardrails, single-writer lock), pause before subphase 1.3 and run an architecture audit against the schemas, action set, and invariants. If the design still fits, continue. If not, rescope before deepening the Phase 1.3 runtime surface on top of a shaky foundation.
 - [ ] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
 - [ ] Phase 0.8 (GIL-11): draft ADR-0005 "Codex Conversation Lifecycle" — fresh Codex conversation per bounded task; repo docs are the persistent memory, not Codex chat history. Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round, every ADR that changes an operating decision, whenever Codex begins hallucinating or contradicting the repo. Permitted same conversation: mid-task repair within one bounded task before the commit lands; active debugging of a single issue with ongoing context; multi-commit prompts where sub-commits depend on context. Hard caps: one prompt + its immediate repair loops per conversation, never spanning two prompts; repair loops hitting round 3 in the same conversation must close and restart with the auditor's latest findings as the brief; never reuse a Codex conversation across a phase boundary. Rationale: avoid context rot, stale memory, prompt pollution, and audit-scope ambiguity.
-- [ ] Phase 0.4 (GIL-24): verify local tool readiness for the first implementation pass: Codex CLI auth path works, Claude access path works, Python is ready, and Playwright is installable.
+- [x] Phase 0.4 (GIL-24): local tool-readiness checks passed for `codex`, `claude`, `python3`, and `npx playwright`; see `Test Evidence Log` 2026-04-17.
 - [ ] Phase 1.1 (GIL-25): build the deterministic supervisor foundation before any bounded strategy-layer integration.
 - [x] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
 - [x] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
 - [x] Phase 2 (GIL-28): integrate Codex as sole writer — builder adapter, rule-based strategy, and a simple build → verify → retry loop with structured failure routing.
-- [x] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
+- [ ] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
 - [ ] Phase 4 (GIL-30): add bounded Claude strategy layer — planner, task shaper, stall diagnosis, candidate review, final audit, typed domain actions only.
 - [ ] Phase 5 (GIL-31): operational memory hardening (v1.1) — failure-memory promotion, flaky-test registry, graceful shutdown/resume, concurrent-run prevention, session recovery.
 
@@ -52,13 +45,20 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 
 ### Started / verify queue
 
-- `GIL-58` | status: `Building` | todo home: `Audit Record Log` 2026-04-17 runtime audit entry | why this exists: audit the landed Phase 3 runtime critically before more runtime phases pile on top of it | origin source: Trevor request on 2026-04-17 to run a thorough critical audit on the current supervisor code
-- `GIL-68` | status: `Building` | todo home: `Audit Record Log` 2026-04-17 follow-up runtime audit entry | why this exists: audit the repaired Phase 3 runtime after `GIL-59` through `GIL-62` so the repo does not assume the first repair pass closed every control-plane gap | origin source: Trevor request on 2026-04-17 to fully audit the repaired runtime again from different angles and make sure nothing important was missed
-- `GIL-69` | status: `Building` | todo home: `Active Next Steps` Runtime audit follow-up | why this exists: enforce run budgets inside `execute_run` so `max_iterations`, `max_cost_dollars`, and `hard_timeout_seconds` stop the run instead of remaining inert contract fields | origin source: 2026-04-17 follow-up runtime audit after the `GIL-59` through `GIL-62` repairs
-- `GIL-70` | status: `Building` | todo home: `Active Next Steps` Runtime audit follow-up | why this exists: reject `repo_path` mismatches between the run contract and the actual repo passed to `execute_run` so the supervisor cannot silently run against the wrong repo root | origin source: 2026-04-17 follow-up runtime audit after the `GIL-59` through `GIL-62` repairs
-- `GIL-71` | status: `Building` | todo home: `Active Next Steps` Runtime audit follow-up | why this exists: keep every emitted UI defect fingerprint in runtime summaries and readiness reports so multi-defect UI runs remain fully traceable after the verifier fans them out | origin source: 2026-04-17 follow-up runtime audit after the `GIL-59` through `GIL-62` repairs
-- `GIL-55` | status: `Building` | todo home: `Active Next Steps` Branch lifecycle policy reset | why this exists: restore automatic task branches as the default edit workflow, make branch lifecycle state visible in both `todo.md` and Linear, and remove the old checkout-first/no-branch rules from the global stack, local overlays, and scaffolding | origin source: Trevor request on 2026-04-17 to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup
-- `GIL-54` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin operator cheat sheet + expanded plugin research landing; awaiting Cowork/Trevor state move) | why this exists: add a durable repo-local operating guide for the installed workflow plugins, expand the plugin decision ledger with stronger current-state conclusions, and capture additional high-signal Codex plugin candidates for implementation, handoff, testing, review, and enforcement work | origin source: Trevor request on 2026-04-17 to land the cheat sheet in the repo, commit it, and research harder for additional Codex plugins that could help automate implementation and review workflows
+- `GIL-73` | status: `AI Audit` | todo home: `Work Record Log` 2026-04-17 (Ripple Check reconciliation-note backfill landing; awaiting Cowork spec-alignment and Trevor verify) | why this exists: add small "Reconciliation record" footers to `LOGIC.md` and `PROJECT_INTENT.md` that name the delayed-reconcile history Cowork flagged in pass-2 — `42847da` (action-set trim in canonical) was reconciled late for LOGIC.md by `95a6271`, and `9c2a861` (queue-contract hardening) never required a content change in PROJECT_INTENT.md but the Ripple Check resolution was never recorded — so the same-commit-companion invariant has a durable retrospective trail per `COHERENCE.md` § "Enforcement" | origin source: Cowork 2026-04-17 pass-2 full-repo audit (range `21b8898..7258c90`) flagged two P1 Ripple misses on the Cross-doc coherence stream and recommended backfill notes as the honest fix
+- `GIL-72` | status: `AI Audit` | todo home: `Work Record Log` 2026-04-17 (queue landing-contract enforcement landing; awaiting Cowork spec-alignment pass and Trevor verify) | why this exists: enforce the `QUEUE-RUNS.md` landing contract in `supervisor/queue_intake.py` so `AI Audit` is unreachable until the landing commit is actually pushed and the live Linear issue still matches the snapshot captured at claim time; closes the two CodeRabbit/Brooks-Lint findings that the runtime diverged from the documented commit → push → `AI Audit` flow and that the captured `issue_snapshot_hash`/`staleness_deadline` were never revalidated before landing | origin source: CodeRabbit PR review + Brooks-Lint scan on branch `codex/coderabbit-flow-docs` on 2026-04-17 that Trevor forwarded to Claude Code with instructions to audit, implement, and land the fix directly because Codex was over budget
+- `GIL-71` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 re-audit follow-up; blocked by `GIL-68` audit review) | why this exists: the repaired `UIVerifier` now emits one defect packet per UI failure, but `summary.command_results` and the final readiness report still keep only the first failure fingerprint, so multi-defect UI runs lose the full fingerprint set before later audit/debug tooling can see it | origin source: 2026-04-17 Codex follow-up runtime audit after the `GIL-59`–`GIL-62` repairs landed; direct repro produced 2 distinct defect-packet fingerprints while `summary.command_results[0].failure_fingerprint` and `report.failures` contained only the first
+- `GIL-70` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 re-audit follow-up; blocked by `GIL-68` audit review) | why this exists: `execute_run` currently trusts the external `repo_root` / `--repo-path` input and never validates it against `run_contract.repo_path`, so a stale or incorrect run contract can silently execute against the wrong repository root; the supervisor must reject mismatched repo roots with a clear blocking reason before any build action runs | origin source: 2026-04-17 Codex follow-up runtime audit after the `GIL-59`–`GIL-62` repairs landed; direct repro completed successfully with `run_contract.repo_path` pointing at a different absolute path than the actual repo passed to `execute_run`
+- `GIL-69` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 re-audit follow-up; blocked by `GIL-68` audit review) | why this exists: `execute_run` never calls the budget-enforcement path, so `max_iterations`, `max_cost_dollars`, and `hard_timeout_seconds` are effectively inert in the main loop even though `canonical-architecture.md` §9.3 and `RULES.md` Stop Conditions treat them as blocking stops; main loop must enforce these budgets at runtime and regression-cover them | origin source: 2026-04-17 Codex follow-up runtime audit after the `GIL-59`–`GIL-62` repairs landed; direct repro with `max_iterations = 1` still completed after 2 builder turns and returned `run_state = COMPLETE`
+- `GIL-68` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 re-audit gate for `GIL-59`–`GIL-62` repair landings; sequenced before `GIL-69`–`GIL-71` remediation) | why this exists: run a second critical audit of the Phase 3 runtime after the `GIL-59`–`GIL-62` repairs land so any remaining control-flow, reporting, or invariant gaps are caught at the runtime/audit layer before later phases build on top; findings-only audit unless Trevor asks for implementation | origin source: Trevor request on 2026-04-17 to fully audit the repaired runtime again from different angles and make sure nothing important was missed
+- `GIL-65` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (accessible app-surface audit landing; awaiting Cowork/Trevor state move) | why this exists: audit the apps, connectors, and plugin surfaces currently accessible in this repo session and record the missing repo-visible guidance for what they should be used for here | origin source: Trevor request on 2026-04-17 to audit what apps this repo has access to and record them with intended use guidance if not already documented
+- `GIL-64` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex Project Autopilot bootstrap, approval-plan capture, and approved `Optimal` route with `bible-ai` selected; awaiting Cowork/Trevor state move) | why this exists: bootstrap a local `.codex-agent` for this repo, correct the autopilot state to the real autonomous-harness architecture, and capture an approval-ready bounded plan instead of generic project defaults | origin source: Trevor invoked Codex Project Autopilot in this workspace on 2026-04-17
+- `GIL-63` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (Codex app-marketplace evaluation memo landing; awaiting Cowork/Trevor state move) | why this exists: capture the reviewed Codex marketplace apps in one durable repo-visible memo with the current operator-fit judgment for each so later sessions do not have to re-score the same screenshot surfaces from scratch | origin source: Trevor request on 2026-04-17 to record all reviewed apps and Codex's thoughts on them in the repo
+- `GIL-58` | status: `Building` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit after `GIL-29` landing; scheduled before the Phase 3 follow-up fixes `GIL-59`–`GIL-62`) | why this exists: audit the landed Phase 3 supervisor runtime critically before later phases build on top of it so runtime defects, defect-packet shape, and invariant drift are caught at the codebase/audit layer instead of rediscovered in later phases | origin source: Trevor request on 2026-04-17 to run a thorough audit on the current code from multiple angles
+- `GIL-57` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (manual queue intake and drain runner landing; awaiting Cowork/Trevor state move) | why this exists: add the first supervisor-owned manual Linear intake/claim path, normalize queue metadata into run contracts, and drain eligible Codex issues sequentially on top of the existing single-run executor | origin source: Trevor request on 2026-04-17 to implement the first manual queue-drain slice before webhook wakeups
+- `GIL-56` | status: `Building` | todo home: `Linear Issue Ledger` (plugin-intake follow-up to the `GIL-54` plugin research and ledger work) | why this exists: add an append-only plugin intake surface next to the canonical plugin ledger in `docs/codex-april-16-2026-impact.md` so new plugin evidence has one non-CLI repo-visible home with a documented promotion path into the ledger instead of scattering across Codex chats | origin source: Trevor follow-up request on 2026-04-17 to implement a non-CLI shared plugin-knowledge workflow
+- `GIL-55` | status: `Human Verify` | todo home: `Active Next Steps` Branch lifecycle policy reset | why this exists: restore automatic task branches as the default edit workflow, make branch lifecycle state visible in both `todo.md` and Linear, and remove the old checkout-first/no-branch rules from the global stack, local overlays, and scaffolding | origin source: Trevor request on 2026-04-17 to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup
+- `GIL-54` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin operator cheat sheet + expanded plugin research landing plus installed workflow-plugin state capture; awaiting Cowork/Trevor state move) | why this exists: add a durable repo-local operating guide for the installed workflow plugins, expand the plugin decision ledger with stronger current-state conclusions, capture additional high-signal Codex plugin candidates for implementation, handoff, testing, review, and enforcement work, and record the actual Codex install state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` | origin source: Trevor request on 2026-04-17 to land the cheat sheet in the repo, commit it, and research harder for additional Codex plugins that could help automate implementation and review workflows; followed by Trevor report that the manually added workflow plugins were now actually installable and should be documented thoroughly
 - `GIL-53` | status: `Building` | todo home: `Work Record Log` 2026-04-17 (plugin decision ledger landing; awaiting Cowork/Trevor state move) | why this exists: add one durable governing-doc section that tracks the plugins discussed for this repo, whether they have been tried here, and the current use/not-use conclusion so future Codex chats update the same ledger instead of scattering plugin decisions | origin source: Trevor request on 2026-04-17 to add a plugin-tracking section to the governing docs
 - `GIL-52` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (local single-run harness design baseline landing; awaiting Cowork/Trevor state move) | why this exists: write the approved design baseline for the first runnable local single-run supervisor slice on top of the current `supervisor/` foundation, with required Linear linkage and branch lifecycle visibility | origin source: Trevor request on 2026-04-16 during the Superpowers brainstorming/design session
 - `GIL-51` | status: `Building` | todo home: `Work Record Log` 2026-04-16 (April 16 Codex update impact memo landing; awaiting Cowork/Trevor state move) | why this exists: turn the April 16, 2026 Codex update and currently enabled plugin surface into a durable repo-local memo that separates adopt-now operator workflow gains from v1 runtime scope changes the repo should still defer or reject | origin source: Trevor request on 2026-04-16 to convert the April 16 Codex update analysis into a concrete repo-local impact memo
@@ -84,34 +84,36 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-39` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (portfolio rollout blocker; waiting on remote/init decision) | why this exists: decide whether `Trevor Stack` is a canonical portfolio repo and either attach an `origin` remote so the repo-principles baseline can land, or record an explicit non-landing/exclusion decision | origin source: `GIL-37` landing audit surfaced `Trevor Stack` as a no-remote repo during the portfolio rollout
 - `GIL-35` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (Claude-only audit follow-up; intentionally outside the Codex queue lane) | why this exists: run an independent Claude Code audit of the unattended queue contract and the related Linear/prompt/rules changes before implementation begins | origin source: follow-up surfaced while landing `GIL-34` on 2026-04-16
 - `GIL-19` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-16 (trimmed-v1 envelope landing; awaiting Cowork/Trevor state move) | why this exists: trim the v1 implementation surface before the heavier Phase 5 memory hardening work | origin source: phase-plan refinement accepted in `Feedback Decision Log` 2026-04-15
-- `GIL-24` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.4 | why this exists: verify local tool readiness before the first implementation pass | origin source: Phase 0 prerequisites in `IMPLEMENTATION-PLAN.md` and `todo.md`
+- `GIL-24` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (local tool-readiness proof recorded; awaiting Cowork/Trevor state move) | why this exists: verify local tool readiness before the first implementation pass | origin source: Phase 0 prerequisites in `IMPLEMENTATION-PLAN.md` and `todo.md`
 - `GIL-11` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.8 | why this exists: codify the Codex conversation lifecycle before longer implementation work starts | origin source: Trevor Codex conversation lifecycle request recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-10` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.7 | why this exists: codify the ChatGPT Pro strategic audit cadence | origin source: Trevor request to integrate ChatGPT Pro recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-9` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (architecture checkpoint repair landed as `95a6271`; awaiting Cowork/Trevor state move) | why this exists: force an architecture checkpoint before deeper Phase 1 buildout | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-8` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.5 | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-15` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog governance follow-up, not on the active phase path yet) | why this exists: codify the Linear operating model details that were surfaced but not promoted into the main execution path | origin source: 2026-04-15 Linear governance buildout gap
 - `GIL-14` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog correction, not on the active phase path yet) | why this exists: deduplicate terminal-state, single-writer, and phase-machine restatements in companion docs | origin source: 2026-04-15 Claude Code audit finding `P2-7`
-- `GIL-12` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog docs correction, not on the active phase path yet) | why this exists: fix absolute local-path links in `design-history/README.md` | origin source: 2026-04-15 Claude Cowork audit follow-up
+- `GIL-12` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog docs correction, not on the active phase path yet) | why this exists: replace `/Users/gillettes/Coding Projects/Autonomous Coding Agent/…` absolute links with relative repo paths across live navigation/onboarding docs (`README.md`, `GUIDE.md`, `AGENTS.md`, `design-history/README.md`, and in-scope `docs/*.md`) so the repo is portable across checkout roots; preserve historical `design-history/` content and external-tool paths | origin source: 2026-04-15 Cowork audit finding on `design-history/README.md`, scope widened by the 2026-04-17 full-repo audit
 
 ### Inbox / blocked by predecessors
 
-- `GIL-62` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (Phase 3 runtime audit repairs landed as `4088f80`; awaiting Cowork/Trevor state move) | why this exists: emit per-failure UI defect packets and stop collapsing `ui_smoke` failures plus `ui_checks` expectations into one summary packet | origin source: 2026-04-17 Codex runtime audit of the landed `GIL-29` Phase 3 slice
-- `GIL-61` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (Phase 3 runtime audit repairs landed as `4088f80`; awaiting Cowork/Trevor state move) | why this exists: preserve cumulative changed files across multi-turn runs in final readiness reports instead of reporting only the last builder turn | origin source: 2026-04-17 Codex runtime audit of the landed `GIL-29` Phase 3 slice
-- `GIL-60` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (Phase 3 runtime audit repairs landed as `4088f80`; awaiting Cowork/Trevor state move) | why this exists: honor optional `commands.app_down` and record truthful `app_up` results when app launch fails early | origin source: 2026-04-17 Codex runtime audit of the landed `GIL-29` Phase 3 slice
-- `GIL-59` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (Phase 3 runtime audit repairs landed as `4088f80`; awaiting Cowork/Trevor state move) | why this exists: split repair budgets across deterministic verify, app launch, and UI verify so earlier retries do not block later Phase 3 repair loops too early | origin source: 2026-04-17 Codex runtime audit of the landed `GIL-29` Phase 3 slice
+- `GIL-67` | status: `Inbox` | todo home: `Linear Issue Ledger` (full-repo audit follow-up; tests-only, safe to sequence after `GIL-66` lands so the declared env is stable) | why this exists: add integration-level tests that assert the three supervisor invariants hold end-to-end — scope enforcement on the full `main.py` run flow, single-writer lease exclusion under concurrent access, and deny-list completeness against forbidden-command categories — beyond the current unit-test coverage | origin source: 2026-04-17 Claude Code line-level audit during the full-repo audit
+- `GIL-66` | status: `Inbox` | todo home: `Linear Issue Ledger` (full-repo audit follow-up; tooling scaffolding with no runtime behavior change) | why this exists: declare the Python 3.11+ floor and `jsonschema>=4` dependency floor the supervisor already requires (via `Draft202012Validator` and `datetime.UTC`) so contributors and CI do not have to infer the environment from import errors | origin source: 2026-04-17 Claude Code line-level audit during the full-repo audit surfaced import failures in an unpinned Python 3.10 / jsonschema 3.2 sandbox
+- `GIL-62` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: UI verification currently collapses every non-zero `ui_smoke` output into one defect packet and uses only the first `ui_check` as the expected behavior, losing failure granularity and weakening repair routing; per-failure defect packets will let the repair loop address each failing check independently | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
+- `GIL-61` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: multi-turn runs currently report only the last builder turn's changed files in the final readiness report even though the builder session already tracks cumulative changes, which hides the full repair surface from later review and audit | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
+- `GIL-60` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: app lifecycle currently ignores optional `commands.app_down` and reports `app_up` as exit 0 / duration 0 even when the app process dies before health is reached, which produces false-positive launch evidence in readiness reports | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
+- `GIL-59` | status: `Inbox` | todo home: `Linear Issue Ledger` (Phase 3 runtime audit follow-up; blocked by `GIL-58` audit review) | why this exists: the current supervisor uses one shared repair counter across deterministic verify, app launch, and UI verify, which can block app/UI repair too early after an earlier local-verify retry and undermines the per-surface repair budgets the architecture expects | origin source: 2026-04-17 Codex runtime audit on `codex/gil29-ui-verifier`
 - `GIL-49` | status: `Inbox` | todo home: `Linear Issue Ledger` (workspace-governance follow-up) | why this exists: restore the missing `prompt-review` workspace label and verify the live Linear workspace settings still match the repo's queue/prompt contract | origin source: Codex live Linear inspection on 2026-04-16 found workspace drift that the current tool surface could not repair directly
 - `GIL-47` | status: `Inbox` | todo home: `Linear Issue Ledger` (portfolio rollout correction; audit follow-up to `GIL-37`/`GIL-43`) | why this exists: replace the temporary `/Users/gillettes/Downloads/taxes-principles-main/` scratch-worktree paths still embedded in the `Taxes` repo's `CONTINUITY.md`, `COHERENCE.md`, and `LINEAR.md` with the canonical `/Users/gillettes/Coding Projects/Taxes/` path so the principle docs' "Where The Rules Live" pointers remain findable | origin source: 2026-04-16 Claude Code portfolio-wide audit following the `GIL-37`/`GIL-43` rollout grepped every canonical repo for `/Users/gillettes/Downloads/` path leakage and found `Taxes` as the only remaining offender
 - `GIL-44` | status: `Inbox` | todo home: `Linear Issue Ledger` (audit follow-up backlog) | why this exists: close three coherence/ripple findings Claude Code surfaced during the 2026-04-16 line-by-line audit of the `GIL-32..GIL-38` landings — duplicate `## Repo Principles` heading in `AGENTS.project.md`, unmoved post-retirement `SCOPING-three-pillar-principles.md` at repo root, and a stale `AGENTS.md` read-scope reference in `IMPLEMENTATION-PLAN.md:319` after the AGENTS split | origin source: 2026-04-16 Claude Code line-by-line audit of commits `69aa003..b4adccb`, with details recorded in audit comments on `GIL-37`, `GIL-38`, `GIL-35`
 - `GIL-43` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (automation enforcement landed as `.codex` `438bc3e1`; awaiting Cowork/Trevor state move) | why this exists: update the portfolio remediation / validation path so repo-principles rollouts either backfill a local durable record in each touched repo or explicitly enforce a documented non-redundant exception path | origin source: third-pass audit on 2026-04-16 found that multiple touched repos had the new principle surfaces but still showed empty `Work Record Log` / `Linear Issue Ledger` sections until manual backfill
-- `GIL-20` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.1 | why this exists: write the first target repo `.agent/contract.yml` | origin source: implementation roadmap; blocked until Trevor selects the first target repo
-- `GIL-21` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2 | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
-- `GIL-22` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.2a | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
-- `GIL-23` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (benchmark fixture suite landed as `408b0b0`; awaiting Cowork/Trevor state move) | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
+- `GIL-20` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` contract landed as `bible-ai` `c7760dab`; awaiting Cowork/Trevor state move) | why this exists: write `bible-ai`'s first target-repo `.agent/contract.yml` | origin source: implementation roadmap; target repo selected by Trevor on 2026-04-17
+- `GIL-21` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` clean-checkout proof landed as `bible-ai` `99198863`; awaiting Cowork/Trevor state move) | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
+- `GIL-22` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` CI-parity note landed as `bible-ai` `99198863`; awaiting Cowork/Trevor state move) | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
+- `GIL-23` | status: `Inbox` | todo home: `Active Next Steps` Phase 0.3 | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
 - `GIL-25` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.1 | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
 - `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-27` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (verification, fingerprinting, and reporting layer landed as `4c6e980`; awaiting Cowork/Trevor state move) | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-28` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (builder loop landed as `bea68f6`; awaiting Cowork/Trevor state move) | why this exists: integrate Codex as the sole writer with a simple repair loop and bounded adapter | origin source: `IMPLEMENTATION-PLAN.md` Phase 2
-- `GIL-29` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (runtime landed as `9f1b693`; awaiting Cowork/Trevor state move) | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
+- `GIL-29` | status: `Inbox` | todo home: `Active Next Steps` Phase 3 | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
 - `GIL-30` | status: `Inbox` | todo home: `Active Next Steps` Phase 4 | why this exists: add the bounded Claude strategy layer without giving it workflow control, using candidate review rather than a checkpoint-heavy surface | origin source: `IMPLEMENTATION-PLAN.md` Phase 4
 - `GIL-31` | status: `Inbox` | todo home: `Active Next Steps` Phase 5 | why this exists: harden operational memory after the core flow is proven | origin source: `IMPLEMENTATION-PLAN.md` Phase 5
 - `GIL-13` | status: `Inbox` | todo home: `Linear Issue Ledger` (decision-blocked backlog) | why this exists: reconcile the `STRUCTURE.md` `acpx` claim with the canonical architecture open question | origin source: 2026-04-15 Claude Code audit finding `P2-5`
@@ -132,22 +134,34 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 
 | Auditor | Role | Last audited commit | Date | Verdict summary | Audit Record Log reference |
 |---|---|---|---|---|---|
-| Claude Code | **Primary auditor** — line-by-line diff/test/invariant review, cross-doc consistency; may also author targeted fix code | 21b8898 | 2026-04-16 | Audited the three-pillar principles landing (GIL-32): CONTINUITY.md + COHERENCE.md created; LINEAR.md gains Linear-at-the-core + state-move preconditions; todo.md gains Work Record Log + one-line Completed index; AGENTS.md gains Repo Principles + three Completion Authority gates; PROMPTS.md extended to five parts with three attestation subsections; 13 rules (R-CONT/R-COH/R-LIN) added to RULES.md; global `~/.claude/CLAUDE.md` prepended. Dogfooding clean: Work Record Log entry for GIL-32 is complete, Self-audit has 12 method-named checks, Ripple Check covers 13 touched docs, Linear-coverage = self-contained. Spot-checked 4 of Codex's Self-audit claims (greps #4, #5, #10, #11) — all outputs match. No transfer errors. design-history/ byte-identical. 17 root `.md` files all have inbound references (no orphans) | Audit Record Log 2026-04-16 entry below |
-| Claude Cowork | Orchestrator (primary) — lightweight spec-alignment check after Code's audit | a28f3ad | 2026-04-15 | Spec-alignment pass on same scope as Code; confirmed 18/18 Active Next Steps items carry (GIL-N), Roadmap table is internally consistent with IMPLEMENTATION-PLAN.md phases, and LINEAR-BOOTSTRAP.md is now tracked | Audit Record Log 2026-04-15 entries below |
+| Claude Code | **Primary auditor** — line-by-line diff/test/invariant review, cross-doc consistency; may also author targeted fix code | 7258c90 | 2026-04-17 | Delegated-subagent line-level audit of 8 code-relevant commits `21b8898..7258c90` on branch `codex/coderabbit-flow-docs` as part of the 2026-04-17 full-repo audit pass 2. GIL-72 push-before-AI-Audit implementation: PASS on all four criteria (push precedes state move, push failure routes to `_block_issue`, snapshot hash + deadline revalidated against live Linear issue, `queue-blocker.json` durable closeout record on both failure paths). Three load-bearing invariants: scope enforcement PASS (`contracts.py:87-122`, `policy.py:118-119`; tests in `test_contracts.py`, `test_policy.py`), single-writer lease PASS (`worktree_manager.py:69-95` atomic `open("x")`; `test_worktree.py:49`), deny-list PASS (`policy.py:31-72`). Findings: P1 `queue_intake.py:11` imports `UTC` from datetime (Python 3.11+ only) — already tracked by GIL-66; P2 bare `except Exception: pass` in `queue_intake.py:525` worktree cleanup. No new scope/lease/deny-list gaps introduced | Audit Record Log 2026-04-17 full-repo audit pass 2 entry below |
+| Claude Cowork | Orchestrator (primary) — lightweight spec-alignment check after Code's audit | 7258c90 | 2026-04-17 | 2026-04-17 full-repo audit pass 2: Linear coverage DRIFT (4) — ledger missing GIL-68/69/70/71; Cross-doc coherence DRIFT (4 P1–P3 + 2 legacy) — 2 P1 Ripple misses (`42847da` → `LOGIC.md`; `9c2a861` → `PROJECT_INTENT.md`) compensated late, 1 P2 (`cf4e626` partial LINEAR.md sync), 3 P3 open from GIL-44 (dup `## Repo Principles` heading in AGENTS.project.md:7,155; unmoved `SCOPING-three-pillar-principles.md`; bare `- AGENTS.md` at IMPLEMENTATION-PLAN.md:350); GIL-12 unchanged (10 files with `/Users/gillettes`); Continuity DRIFT (12 commits without Work Record narrative; backfilled via consolidated Cowork entry in this commit). Orchestrator cleanup landed: 4 ledger entries + 1 consolidated Work Record + watermark refresh + this Audit Record entry. Remediation prompts drafted: GIL-12, GIL-44, GIL-66, GIL-67. P1 Ripple repair prompts still need drafting | Audit Record Log 2026-04-17 full-repo audit pass 2 entry below |
 | ChatGPT Pro | Strategic / governance auditor | (none yet) | (none yet) | Phase-exit gate auditor; engaged at phase boundaries per ADR-0004 (queued) | — |
-| Codex | Self-audit (not a gate) | 0431a76 | 2026-04-17 | Audited the repaired Phase 3 runtime after `GIL-59` through `GIL-62`: found inert run-budget enforcement in `execute_run`, silent `repo_path` mismatch acceptance between the run contract and runtime inputs, and multi-defect UI fingerprints collapsing back to the first fingerprint at the reporting layer. Filed `GIL-69` through `GIL-71`. | Audit Record Log 2026-04-17 follow-up entry below |
+| Codex | Self-audit (not a gate) | 8cf198e | 2026-04-16 | Audited the queue/provenance durable trail from multiple angles against `8cf198e`: found missing `GIL-45` / `GIL-46` repo coverage, stale placeholder SHA and `led to:` records, one unlogged `GIL-33` provenance-gap follow-up at `14407f8`, and a misattributed `GIL-42` completion trail in Linear. Repaired the repo-side trail under `GIL-45` and filed `GIL-46` for runtime enforcement. | Audit Record Log 2026-04-16 entry below |
 
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-17 | GIL-68: audit the repaired Phase 3 runtime after `GIL-59` through `GIL-62` — landed as `5c7c259`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-59: split repair budgets across local verify, app launch, and ui verify — landed as `4088f80`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-60: honor `commands.app_down` and record truthful app launch results — landed as `4088f80`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-61: preserve cumulative changed files in final readiness reports — landed as `4088f80`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-62: emit per-failure UI defect packets instead of collapsing `ui_smoke` failures — landed as `4088f80`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-58: audit the landed Phase 3 runtime after GIL-29 and file tracked fix slices — landed as `fff2b8a`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-23: add the first benchmark run-contract suite and invariant coverage floor — landed as `408b0b0`; full record in Work Record Log 2026-04-17
-- [x] 2026-04-17 | GIL-29: add app launch, UI verification, and defect routing — landed as `9f1b693`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-55: restore automatic task branches and make Linear the live branch mirror — landed as `3c42dea`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack — landed as `0d5f115`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: repair queue halt, live-state drift, and no-op landing-commit regressions in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landed as `5d076f5`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-72: enforce queue landing contract — push-before-`AI Audit` + pre-land snapshot revalidation in `supervisor/queue_intake.py` — landed as `346ae4c`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-24: verify local Codex/Claude/Python/Playwright readiness for the first implementation pass — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-22: add the `bible-ai` CI-parity note for the contract-first path — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-21: prove the `bible-ai` clean-checkout contract baseline — landed as `bible-ai` `99198863`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-20: land the first `bible-ai` repo contract — landed as `bible-ai` `c7760dab`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-65: audit current accessible app surfaces and record missing intended-use guidance — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-64: approve the `Optimal` autopilot route and lock `bible-ai` as the first implementation repo — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-64: bootstrap repo-local Codex Project Autopilot state and capture approval-ready plan variants — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: land Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup) — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-63: add durable Codex marketplace-app evaluation memo — landed as `4a90d6f`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: capture the full CodeRabbit settings and rationale in repo docs and config — landed as `17a61e9`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: append plugin-intake sweep evidence from chat research — landed as `17a61e9`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | self-contained: restore CodeRabbit as the active review trial in plugin docs and record Rabbit-versus-Copilot reasoning — landed as `514ac1a`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-57: implement manual queue intake, normalization, and drain runner — landed as `bd55fb1`; full record in Work Record Log 2026-04-17
+- [x] 2026-04-17 | GIL-54: capture installed workflow-plugin state, plugin ids, and settings posture for `Autopilot`, `HOTL`, and `Cavekit` — landed as `07c1374`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-54: add plugin operator cheat sheet and broaden the Codex plugin research ledger — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-53: add durable plugin decision ledger and discovery pointers — landed as `cd615b6`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-28: add the first runnable Codex builder loop — landed as `bea68f6`; full record in Work Record Log 2026-04-17
@@ -222,242 +236,1539 @@ linear:
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
 
-### 2026-04-17 | GIL-68 | by: Codex
+### 2026-04-17 | GIL-55 | by: Codex
 
 Problem:
-The first runtime audit (`GIL-58`) found and repaired four real Phase 3 defects,
-but that did not prove the repaired slice was now clean. The repo still needed
-a second critical pass against the landed repair branch before Phase 4 could
-build on top of it.
+Global policy and local repo overlays still defaulted to current-checkout work,
+this repo explicitly forbade routine branches, and branch lifecycle tracking
+was mostly repo-only prose instead of a plugin-backed operating flow. That left
+later sessions guessing why branches existed and made Linear too passive in the
+review/merge/cleanup path.
 
 Reasoning:
-The correct move was another findings-first audit, not immediate Phase 4 work.
-The first repair round fixed the obvious defects it targeted, but a control
-plane is only trustworthy if the follow-up audit tries to break the repaired
-path from adjacent angles: stop conditions, contract integrity, and
-reporting-trace completeness. Green unit tests alone were not enough evidence.
+The better path is not optional branching; it is a default task-branch
+workflow with narrow exceptions. File-edit work should start from an
+issue-backed branch, prefer the tracking plugin's generated name when
+available, mirror lifecycle in both `todo.md` and Linear, and leave
+review/merge/cleanup as visible states instead of chat memory.
 
 Diagnosis inputs:
-Direct rereads of `/Users/gillettes/.codex/policies/TASK_CLASSIFICATION.md`,
-`/Users/gillettes/.codex/policies/FULL_AUDIT.md`,
+Direct rereads of `/Users/gillettes/.codex/AGENTS.md`,
 `/Users/gillettes/.codex/policies/OPERATING_PRINCIPLES.md`,
-`AGENTS.project.md`, `PROJECT_INTENT.md`, `CONTINUITY.md`, `COHERENCE.md`,
-`todo.md`, `canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `RULES.md`,
-`LOGIC.md`, `supervisor/main.py`, `supervisor/app_supervisor.py`,
-`supervisor/ui_verifier.py`, `supervisor/reports.py`, `supervisor/contracts.py`,
-`supervisor/policy.py`, `tests/test_main.py`, `tests/test_app_supervisor.py`,
-`tests/test_ui_verifier.py`, `tests/test_reports.py`, `tests/test_policy.py`,
-and `tests/test_strategy_simple.py`.
+`/Users/gillettes/.codex/policies/GLOBAL_CHANGE_ROUTING.md`,
+`/Users/gillettes/.codex/policies/BRANCH_LIFECYCLE.md`,
+`/Users/gillettes/.codex/policies/PROJECT_AGENTS_MANDATORY.md`,
+`/Users/gillettes/.codex/policies/RULE_REGISTRY.md`,
+`/Users/gillettes/.codex/policies/POLICY_INDEX.md`, the related global
+bootstrap/remediation scripts, this repo's `AGENTS.project.md`, `CLAUDE.md`,
+`LINEAR.md`, `PROMPTS.md`, `LINEAR-BOOTSTRAP.md`,
+`docs/superpowers-playbook.md`,
+`docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, and
+`todo.md`; git preflight in this repo and `/Users/gillettes/.codex`; Linear
+issue creation for `GIL-55`; and the global validator run
+`bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`.
 
 Implementation inputs:
-Updated `todo.md` only. Created Linear issues `GIL-68`, `GIL-69`, `GIL-70`,
-and `GIL-71` so the audit itself and each newly surfaced runtime defect remain
-issue-backed under the repo's Linear-Core rule.
+Updated `/Users/gillettes/.codex` `AGENTS.md`,
+`policies/OPERATING_PRINCIPLES.md`, `policies/BRANCH_LIFECYCLE.md`,
+`policies/POLICY_INDEX.md`, `policies/PROJECT_AGENTS_MANDATORY.md`,
+`policies/RULE_REGISTRY.md`, `scripts/bootstrap-project-governance.sh`,
+`scripts/ensure-project-todo-audit-sections.sh`, and
+`scripts/remediate-project-governance.sh`; updated this repo's
+`AGENTS.project.md`, `CLAUDE.md`, `LINEAR-BOOTSTRAP.md`, `LINEAR.md`,
+`PROMPTS.md`, `docs/superpowers-playbook.md`,
+`docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, and
+`todo.md`; created `GIL-55`; created branch
+`trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches` in both
+repos; and posted a Linear progress comment on the issue.
 
 Fix:
-Recorded a second findings-only runtime audit for the repaired Phase 3 slice,
-reprioritized the newly surfaced execution-ready defects to the top of `Active
-Next Steps`, added the new live issues to `Linear Issue Ledger`, updated the
-Codex audit watermark, and preserved the evidence plus skeptical conclusions in
-`Audit Record Log` and `Test Evidence Log` instead of leaving them in chat.
+Replaced checkout-first branch minimization with an automatic task-branch
+policy for file-edit work. The canonical global rules now require issue-backed
+task branches with plugin mirrors when available, the branch playbook records
+linked issue/plugin state plus merge/delete outcomes, scaffolding and
+remediation tools stamp the new rule into repos, and this repo's local
+overlays, prompt docs, and Linear workflow now treat Linear as a live branch
+mirror instead of an end-of-task afterthought.
 
 Self-audit:
-1. Ran `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier
-   tests.test_main tests.test_strategy_simple`; output `OK` with `21` tests;
-   the focused repaired Phase 3 suites still pass.
-2. Ran `python3 -m unittest discover -s tests -p 'test_*.py'`; output `OK`
-   with `79` tests; the broader supervisor suite still passes after the repair
-   landings.
-3. Ran a direct `execute_run` reproduction with `max_iterations = 1` and a
-   two-turn builder sequence. Output: `RUN_STATE COMPLETE`, `BUILDER_TURNS 2`,
-   queue exit `deterministic verification passed`. This confirms budget
-   exhaustion is still not enforced in the main loop.
-4. Ran a direct `execute_run` reproduction where `run_contract.repo_path`
-   pointed at a different absolute path than the actual repo passed to
-   `execute_run`. Output: `run_state COMPLETE` and normal queue exit. This
-   confirms the runtime accepts repo-root mismatches silently.
-5. Ran a direct multi-defect `UIVerifier` + `build_readiness_report`
-   reproduction. Output: two distinct defect-packet fingerprints, but
-   `summary.command_results[0].failure_fingerprint` and `report.failures`
-   contained only the first one. This confirms the per-failure UI fan-out still
-   collapses back to one tracked fingerprint at the reporting layer.
-6. Ran `rg -n "max_iterations|repo_path|failure_fingerprint"` across the
-   runtime and source-of-truth docs to confirm each finding against the repo's
-   own contract language.
-7. Ran an exploratory probe for `env.required_vars` enforcement and confirmed
-   the runtime currently does not check it, but did not promote that probe to a
-   tracked defect because the current architecture language says the repo
-   contract must declare env requirements without yet proving the runtime must
-   hard-block when they are missing.
-8. Did not run a real external target-repo app or a real Playwright browser
-   session, because Trevor explicitly kept this repo in repo-local
-   runtime-hardening mode before external proving resumes.
-Ripple Check attestation: this audit changed only `todo.md`, but I updated the
-active queue, live issue ledger, audit watermark, branch ledger, completed
-index, Work Record, audit log, and test evidence together so the durable record
-stays internally coherent.
-Linear-coverage disposition: `GIL-68` tracks this audit. Each actionable
-follow-up is filed separately as `GIL-69`, `GIL-70`, and `GIL-71`.
+1. Ran `bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`;
+   output `GLOBAL POLICY STACK: PASS`.
+2. Ran `git diff --check` in `/Users/gillettes/.codex` and in this repo; both
+   returned clean output.
+3. Re-read the updated branch-policy surfaces in both repos and confirmed the
+   task-branch default, current-checkout exceptions, plugin mirror
+   requirement, and repo ledger fields now agree.
+4. Created `GIL-55`, created branch
+   `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches`,
+   updated `todo.md` `Active Next Steps`, `Linear Issue Ledger`, and
+   `Active Branch Ledger`, and posted a Linear progress comment so the branch
+   existed in both repo and plugin records before this merge closeout.
+5. Did not verify a live PR cycle; this task landed as a pushed review branch
+   first and was later merged directly during branch cleanup.
+Ripple Check attestation: because branch policy touches workflow, I updated the
+canonical global rules, the repo-local AGENTS/Claude/prompt/Linear surfaces,
+the branch ledger, and the scaffolding/remediation scripts in the same task so
+the policy, operating docs, and generated defaults stay aligned.
+Linear-coverage disposition: `GIL-55` tracks this work and now reflects a
+landed branch-policy change rather than an open review branch.
 
 triggered by:
-Trevor request on 2026-04-17 to fully audit the repaired runtime again and
-think critically from different angles to make sure the first repair pass did
-not miss anything important.
+Trevor request on 2026-04-17 to create branches automatically again and make
+plugins such as Linear much more involved in tracking review, merge, and
+cleanup
 
 led to:
-`5c7c259`; `GIL-69`; `GIL-70`; `GIL-71`
+`.codex` `e307869b`; this repo `3c42dea`; merged to `main` during the
+2026-04-19 branch cleanup pass
 
 linear:
-GIL-68
+GIL-55
 
-### 2026-04-17 | GIL-58 | by: Codex
-
-Problem:
-The repo now has a real Phase 3 runtime slice from `GIL-29`, but nothing had
-audited that code after landing from multiple failure angles. Without a
-post-landing runtime audit, later phases would stack on top of unchallenged
-control-flow and reporting assumptions.
-
-Reasoning:
-The right move was findings-first rather than another implementation burst.
-This repo claims deterministic supervisor ownership, so the audit needed to
-check whether the landed runtime actually matches the repo's own architecture,
-phase-loop contract, and artifact/reporting expectations under adversarial
-cases, not just whether the focused tests were green.
-
-Diagnosis inputs:
-Direct rereads of `AGENTS.project.md`, `PROJECT_INTENT.md`, `todo.md`,
-`CONTINUITY.md`, `COHERENCE.md`, `LINEAR.md`,
-`/Users/gillettes/.codex/policies/TASK_CLASSIFICATION.md`,
-`/Users/gillettes/.codex/policies/FULL_AUDIT.md`,
-`/Users/gillettes/.codex/policies/OPERATING_PRINCIPLES.md`,
-`canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `RULES.md`,
-`supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`,
-`supervisor/main.py`, `supervisor/builder_adapter.py`,
-`supervisor/verifier.py`, `supervisor/reports.py`,
-`tests/test_app_supervisor.py`, `tests/test_ui_verifier.py`,
-`tests/test_main.py`, and `tests/test_strategy_simple.py`.
-
-Implementation inputs:
-Updated `todo.md` only. Created Linear issues `GIL-58`, `GIL-59`, `GIL-60`,
-`GIL-61`, and `GIL-62` to keep the audit itself and each runtime fix slice
-issue-backed under the repo's Linear-Core rule.
-
-Fix:
-Recorded a findings-only runtime audit for the landed Phase 3 slice, moved the
-new execution-ready runtime fixes to the top of `Active Next Steps`, added the
-new live issues to `Linear Issue Ledger`, updated the Codex audit watermark,
-and preserved the evidence plus conclusions in `Audit Record Log` and `Test
-Evidence Log` instead of leaving them only in chat.
-
-Self-audit:
-1. Ran `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier
-   tests.test_strategy_simple tests.test_main`; output `OK` with `15` tests;
-   the focused runtime suite still passes on the audited code.
-2. Ran a targeted reproduction where one deterministic verification failure is
-   followed by one app-launch failure. Output: `BLOCKED`, queue exit
-   `blocked by app launch failure`, and only `2` builder prompts. This
-   confirms the shared `repair_attempt` counter can exhaust the app/UI loop too
-   early after an earlier local-verify retry.
-3. Ran a targeted early-crash reproduction against `AppSupervisor.launch()`.
-   Output command results: `('app_up', 0, '')` and
-   `('app_health', 1, 'app process exited before health check with code 7')`.
-   This confirms `app_up` is currently reported as a clean success even when
-   the process dies before health is reached.
-4. Ran a multi-turn reproduction where the first builder turn changes
-   `src/a.txt` and the second turn changes `src/b.txt`. Output final report
-   `changed_files`: `('src/b.txt',)`. This confirms the final report currently
-   drops earlier changed paths instead of preserving cumulative run scope.
-5. Ran a `ui_smoke` reproduction that writes two failing lines to stderr and
-   two screenshots. Output: defect packet count `1`, summary `first failure`,
-   expected `check one`. This confirms the verifier currently collapses a
-   multi-failure suite into one packet and one expected-behavior line.
-6. Ran `rg -n "app_down|repair_attempt|changed_files|defect packets|ui_smoke"`
-   across the runtime and source-of-truth docs to confirm each finding against
-   the repo's own contract language.
-7. Did not run a real target-repo app or real Playwright browser session,
-   because Trevor explicitly kept this repo in repo-local runtime-hardening
-   mode before external proving resumes.
-Ripple Check attestation: this audit changed only `todo.md`, but I updated the
-active queue, live issue ledger, audit watermark, branch ledger, audit log,
-test evidence, completed index, and this Work Record together so the durable
-record stays internally coherent.
-Linear-coverage disposition: `GIL-58` tracks this audit. Each actionable
-runtime finding was filed separately as `GIL-59` through `GIL-62`.
-
-triggered by:
-Trevor request on 2026-04-17 to run a thorough audit on the current code and
-think critically from different angles to find issues that the original
-implementation pass missed.
-
-led to:
-`fff2b8a`; `GIL-59`; `GIL-60`; `GIL-61`; `GIL-62`
-
-linear:
-GIL-58
-
-### 2026-04-17 | GIL-59 + GIL-60 + GIL-61 + GIL-62 | by: Codex
+### 2026-04-17 | self-contained | by: Codex
 
 Problem:
-The targeted runtime audit after `GIL-29` found four real defects in the
-landed Phase 3 slice: one shared repair counter across failure domains, app
-lifecycle shutdown/reporting drift, final-report changed-file truncation
-across multi-turn runs, and UI verifier defect-packet collapse.
+The repo's plugin docs documented several tools to use now, defer, or trial,
+but they did not yet record the direct operator decision that `MarcoPolo` is
+not needed for this repository. Without that note, later sessions could waste
+time rediscovering whether `MarcoPolo` should be part of normal repo work just
+because the connector is available in the session.
 
 Reasoning:
-The right fix was to repair the runtime before starting `GIL-30`. These were
-not stylistic cleanups; they sat directly on the control plane's legality and
-auditability path. I kept the landing bounded to the already-audited defects
-and used tests-first coverage so each bug moved from a reproduced failure to a
-green regression.
+The correct boundary is simple: this repo's normal work is local code, docs,
+tests, governance, and implementation planning, not external-data analysis.
+`MarcoPolo` only helps if a future task truly needs secure access to uploaded
+files, storage, or databases outside the local checkout. So the repo needed an
+explicit "not part of the active tool stack" statement rather than another
+ambiguous "available in session" mention.
 
 Diagnosis inputs:
-Re-read the 2026-04-17 `GIL-58` audit record plus the active
-`supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`,
-`supervisor/main.py`, `tests/test_app_supervisor.py`,
-`tests/test_ui_verifier.py`, and `tests/test_main.py` surfaces. Re-ran the
-focused audit reproductions for shared retry budget exhaustion, early app-crash
-reporting, cumulative changed-file truncation, and collapsed multi-failure
-defect packets before patching the runtime.
+Direct rereads of `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `PROJECT_INTENT.md`, and
+`todo.md`; plus the live session check confirming `MarcoPolo` is available but
+not carrying any repo-relevant datasource use in this task.
 
 Implementation inputs:
-Updated `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`,
-`supervisor/main.py`, `tests/test_app_supervisor.py`,
-`tests/test_ui_verifier.py`, `tests/test_main.py`, `CHANGELOG.md`, and
+Updated `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
 `todo.md`.
 
 Fix:
-Split retry accounting in `supervisor/main.py` so deterministic verification,
-app launch, and UI verification no longer share one repair counter; preserved
-cumulative changed files across builder turns in final readiness reports;
-taught `AppSupervisor` to honor optional `commands.app_down` before fallback
-termination and to record truthful `app_up` command results when launch fails
-early; and taught `UIVerifier` to emit one defect packet per failure line with
-per-packet expected-behavior mapping instead of collapsing all `ui_smoke`
-failures into one summary packet.
+Added a `MarcoPolo` row to the canonical plugin decision ledger with the stance
+`Do not adopt now`, bounded to future external-data tasks only. Added the same
+boundary to the operator cheat sheet, appended a durable plugin-intake log
+entry, and recorded the closeout in `todo.md` so later sessions can see the
+decision trail without replaying the chat.
 
 Self-audit:
-1. Ran `python3 -m unittest tests.test_app_supervisor.AppSupervisorTests.test_stop_runs_app_down_command_before_fallback_shutdown tests.test_app_supervisor.AppSupervisorTests.test_launch_failure_records_actual_app_up_exit_code_when_process_crashes_early`; output `OK`; the app lifecycle now honors `app_down` and reports early launch crashes truthfully.
-2. Ran `python3 -m unittest tests.test_ui_verifier.UIVerifierTests.test_ui_failure_emits_packet_per_failure_line`; output `OK`; multi-failure `ui_smoke` output now produces multiple defect packets with distinct expected-behavior mapping.
-3. Ran `python3 -m unittest tests.test_main.SupervisorMainTests.test_execute_run_allows_app_launch_repair_after_local_verify_retry tests.test_main.SupervisorMainTests.test_execute_run_allows_ui_repair_after_local_verify_retry tests.test_main.SupervisorMainTests.test_execute_run_reports_cumulative_changed_files_across_builder_turns`; output `OK`; the shared repair-budget bug and changed-file truncation are covered directly.
-4. Ran `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_main tests.test_strategy_simple`; output `OK` with `21` tests; the focused Phase 3 suites still pass after the fixes.
-5. Ran `python3 -m unittest discover -s tests -p 'test_*.py'`; output `OK` with `79` tests; no broader supervisor regressions were introduced.
-6. Ran `git diff --check -- supervisor/app_supervisor.py supervisor/ui_verifier.py supervisor/main.py tests/test_app_supervisor.py tests/test_ui_verifier.py tests/test_main.py CHANGELOG.md todo.md`; output empty; the landing patch is whitespace-clean.
-7. Did not run a real external target-repo app or real Playwright browser session, because Trevor kept this repo in repo-local runtime-hardening mode before external proving resumes.
-Ripple Check attestation: because this landing changed live runtime behavior and the active execution queue, I updated `CHANGELOG.md`, the active queue text, the `Linear Issue Ledger`, the `Completed` index, this `Work Record Log`, the `Test Evidence Log`, and the branch ledger in the same closeout package.
-Linear-coverage disposition: the four runtime fixes are tracked as `GIL-59`,
-`GIL-60`, `GIL-61`, and `GIL-62`. They land together because they were filed
-from one bounded audit and repair the same Phase 3 runtime slice.
+1. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the new `MarcoPolo`
+   row is framed as a current non-adoption decision rather than a permanent ban.
+2. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed it keeps
+   `MarcoPolo` out of the active operator split without changing any other
+   plugin boundaries.
+3. Re-read `docs/plugin-intake.md`; confirmed the new entry preserves the
+   evidence and recommended ledger delta without pretending there was a
+   task-backed trial.
+4. Ran `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`;
+   confirmed all four durable surfaces carry the same boundary.
 
 triggered by:
-Trevor request on 2026-04-17 to fix the audit findings immediately after the
-runtime audit reported them.
+Trevor clarification on 2026-04-17 that `MarcoPolo` is not needed and that the
+repo should say so durably
 
 led to:
-`4088f80`
+`0d5f115`; self-contained: record that `MarcoPolo` is not needed for this
+repo's active tool stack
 
 linear:
-GIL-59; GIL-60; GIL-61; GIL-62
+self-contained: record that `MarcoPolo` is not needed for this repo's active
+tool stack
+
+### 2026-04-17 | self-contained queue-review repair | by: Codex
+
+Problem:
+The current `codex/audit` branch carried three confirmed regressions in
+`supervisor/queue_intake.py` after the earlier queue landing-contract fix:
+(1) a failed landing push blocked the current issue but still let the
+runner continue onto later queue items, (2) `_revalidate_snapshot`
+ignored manual state changes because `_issue_snapshot_hash` no longer
+included `status` and no explicit live-state check existed, and (3)
+no-op successful runs reused the previous `HEAD` as the reported landing
+SHA instead of producing the documented one-run/one-landing commit.
+
+Reasoning:
+All three failures sit on the same boundary: the supervisor's landing
+authority. The clean repair is to restore the documented contract rather
+than change the docs around the broken code. That requires a queue-halt
+path for failed pushes, an explicit `Building`-state assertion during
+revalidation so manual intervention cannot be overwritten silently, and
+restoring an explicit landing commit even when the worktree is already
+clean. The tests needed to prove those behaviors directly because the
+existing suite covered only single-issue blocking and description drift.
+
+Diagnosis inputs:
+Direct reread of `supervisor/queue_intake.py`; direct reread of
+`tests/test_queue_intake.py`; the three review findings from the current
+chat; a focused repro that showed a failed `git push` still processed a
+second eligible issue; a focused repro that returned a live `Canceled`
+issue and still transitioned it to `AI Audit`; and a focused repro that
+left `before_sha == after_sha` on an already-satisfied issue while the
+completion comment still advertised that old SHA as the landing.
+
+Implementation inputs:
+Updated `tests/test_queue_intake.py` first so the queue-drain suite now
+requires: halt-after-block on landing-push failure, block-on-manual
+state change after claim, and a fresh landing commit for successful
+no-op runs. Updated `supervisor/queue_intake.py` to add `QueueHalt`,
+break the drain loop after blocking a halt-worthy issue, enforce a live
+`Building` status check in `_revalidate_snapshot`, restore
+`commit --allow-empty` in `_land_successful_run`, and wrap
+`_push_landing_commit` so failed pushes route through the blocker path
+and stop the queue.
+
+Fix:
+`ManualQueueRunner.drain` now treats `QueueHalt` separately from general
+blocking errors so a failed push blocks the current issue and exits the
+queue instead of continuing. `_revalidate_snapshot` now rejects any live
+issue state other than `Building`, which preserves manual `Blocked` /
+`Canceled` intervention. `_land_successful_run` now always creates the
+per-issue landing commit with `--allow-empty`, so successful no-op runs
+still have a truthful landing SHA and the repo contract's one-run /
+one-landing invariant holds.
+
+Self-audit:
+1. Ran `python3 -m unittest tests.test_queue_intake.QueueDrainRunnerTests`;
+   result: pass (5 tests, including the new halt/state/no-op regressions).
+2. Ran `python3 -m unittest discover -s tests`; result: pass (70 tests).
+3. Ran `git diff --check`; result: clean.
+4. Re-read `supervisor/queue_intake.py` and confirmed the push-failure
+   path raises `QueueHalt`, the dedicated `except QueueHalt` blocks the
+   current issue and breaks the loop, and `_push_landing_commit` is the
+   only caller that raises that halt path today.
+5. Re-read `_revalidate_snapshot` and confirmed it now fails when the
+   live issue state is not `Building` before comparing the frozen hash.
+6. Re-read `_land_successful_run` and confirmed it always creates one
+   landing commit per successful issue-run via `commit --allow-empty`.
+7. Ripple Check attestation: this landing changes runtime queue-control
+   behavior and updates the direct regression surface in
+   `tests/test_queue_intake.py` in the same commit. No queue contract doc
+   edits were required because the existing docs were already correct and
+   the runtime was being reconciled back to them.
+8. did not verify a live Linear workspace state transition because this
+   repair was exercised through the in-repo `RecordingLinearClient`
+   regression suite rather than an external Linear environment.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to implement the three queue review
+findings after the first audit-only pass.
+
+led to:
+landing commit SHA recorded in immediate closeout on `codex/audit`.
+
+linear:
+self-contained: direct repair of current-chat review findings on the
+existing audit branch; no separate live issue created in this pass.
+
+### 2026-04-17 | GIL-73 | by: Claude Code
+
+Problem:
+Cowork's 2026-04-17 pass-2 full-repo audit (range `21b8898..7258c90`)
+flagged two P1 Ripple misses on the Cross-doc coherence stream:
+
+1. `42847da` (2026-04-16 "docs(scope): trim the smallest v1 surface")
+   removed `checkpoint`, `rollback`, and `resume` from the v1 action set
+   in `canonical-architecture.md` but did not update `LOGIC.md`'s "Typed
+   Action Graph" section in the same commit. The drift was compensated
+   later by `95a6271` (2026-04-17 "fix(strategy): repair Phase 1 action
+   contract drift"), which brought the action list in `LOGIC.md` in line
+   with the trimmed architecture.
+2. `9c2a861` (2026-04-16 "docs(governance): harden queue contract and
+   audit trail") added canonical-architecture.md §§ 3.7 and 3.8 and
+   touched `QUEUE-RUNS.md`, `LINEAR.md`, and `PROMPTS.md` without the
+   same-commit companion update in `PROJECT_INTENT.md` that the
+   Dependency Map in `COHERENCE.md` promises whenever canonical
+   architecture changes.
+
+The content of both docs is now correct; the violation is historical.
+But `COHERENCE.md` § "Enforcement" is explicit that "a repo that drifts
+is a repo that dies," and Cowork's recommended remediation was a
+durable retrospective trail rather than silent closure.
+
+Reasoning:
+The honest fix is to add a short "Reconciliation record" footer to each
+affected doc that names the drift commit, the reconcile commit (or
+notes "no content change required"), and the backfill landing. Keeping
+the record inside the affected doc makes the trail visible to any
+reader of that doc rather than buried in the `Audit Record Log`, and
+the footer is small enough not to pollute the doc's primary content.
+Crucially, `PROJECT_INTENT.md` is an intent-level statement — the
+queue-contract hardening in `9c2a861` was operational rather than
+intent-level, so no content edit was required; the note records the
+Ripple Check resolution honestly rather than pretending a change was
+needed.
+
+Diagnosis inputs:
+Direct reread of `COHERENCE.md` § "Enforcement" and § "Dependency Map";
+`git show --stat 42847da` showed it touched `canonical-architecture.md`
+but not `LOGIC.md`; `git show --stat 9c2a861` showed it touched
+`canonical-architecture.md`, `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`
+but not `PROJECT_INTENT.md`; `git show 9c2a861 -- canonical-architecture.md`
+showed the new sections were operational (Typed Control-Plane Outputs,
+Webhook-First Reconciled Intake) rather than intent-level; `git show --stat 95a6271`
+confirmed LOGIC.md was updated in that later commit alongside
+schemas/strategy-decision.schema.json, supervisor/actions.py, and the
+tests; direct reread of current `LOGIC.md` lines 114–122 confirmed the
+action list already matches the trimmed architecture; direct reread of
+current `PROJECT_INTENT.md` confirmed no content change was needed.
+
+Implementation inputs:
+Appended a new "## Reconciliation record" section to `LOGIC.md`
+documenting the `42847da` → `95a6271` reconcile; appended a new
+"## Reconciliation record" section to `PROJECT_INTENT.md` documenting
+that `9c2a861` did not require a content change but its Ripple Check
+resolution had not been recorded; updated `todo.md` `Linear Issue Ledger`
+`Started / verify queue` with the new `GIL-73` row, the `Completed`
+one-line index, and this `Work Record Log` entry.
+
+Fix:
+Added a two-line "Reconciliation record" footer in both `LOGIC.md` (at
+EOF under the existing closing paragraph about the supervisor/AI/builder
+roles) and `PROJECT_INTENT.md` (at EOF under the "Relationship to other
+docs" section). Each footer references `COHERENCE.md § "Enforcement"`,
+names the original commit(s), and names the reconcile SHA (for LOGIC)
+or explicitly records "no content change required" (for PROJECT_INTENT).
+`GIL-73` was filed in Linear team `GIL` with `Execution lane: Claude
+Code`, `Execution mode: Manual`, `Risk level: Low`, and state `AI Audit`.
+
+Self-audit:
+1. Re-read the new `LOGIC.md` footer; confirmed it names `42847da`, the
+   later reconcile `95a6271`, and `GIL-73` as the backfill landing, and
+   references `COHERENCE.md § "Enforcement"`.
+2. Re-read the new `PROJECT_INTENT.md` footer; confirmed it names
+   `9c2a861`, lists the four docs that were updated (`canonical-architecture.md`,
+   `QUEUE-RUNS.md`, `LINEAR.md`, `PROMPTS.md`), records the "no content
+   change required" finding, and names `GIL-73` as the backfill landing.
+3. Ran `git show 9c2a861 -- canonical-architecture.md | head -60` and
+   confirmed the added sections (§ 3.7 Typed Control-Plane Outputs, § 3.8
+   Webhook-First Reconciled Intake) are operational rather than
+   intent-level, which justifies the "no content change required"
+   disposition for `PROJECT_INTENT.md`.
+4. Ran `grep -n "checkpoint\|rollback\|resume" LOGIC.md` and confirmed
+   the only remaining matches are the trimmed 7-action list in the Typed
+   Action Graph section and the new Reconciliation record entry, which
+   is the current (trimmed) state — no stale references to the old
+   action set remain.
+5. Confirmed no runtime code was touched and no verification pack is
+   required for this docs-only landing.
+6. Ran `git diff --check LOGIC.md PROJECT_INTENT.md todo.md`; result:
+   clean (no whitespace errors or conflict markers).
+Ripple Check attestation: because this landing adds retrospective
+reconciliation notes to `LOGIC.md` and `PROJECT_INTENT.md`, I updated
+`todo.md` (`Linear Issue Ledger`, `Completed`, `Work Record Log`) in the
+same landing per `COHERENCE.md` § "Enforcement." I deliberately did not
+touch `canonical-architecture.md`, `QUEUE-RUNS.md`, `LINEAR.md`, or
+`PROMPTS.md` — those were the drift *sources*, not the drift *victims*,
+and their content is already correct. The Dependency Map itself in
+`COHERENCE.md` was not amended: the map's promise is still the correct
+target, and this landing honors that promise retrospectively rather
+than weakening it.
+Linear-coverage disposition: `GIL-73` in team `GIL`, state `AI Audit`,
+`Execution lane: Claude Code`, `Execution mode: Manual`. No follow-up
+issue was created because the fix closes both Cowork Ripple findings in
+a single landing.
+
+by:
+Claude Code (primary auditor; authored this fix directly under
+`CLAUDE.md` § "Roles" narrow-targeted-fix provision because Codex was
+over budget when Trevor forwarded Cowork's pass-2 audit findings).
+
+triggered by:
+Trevor request on 2026-04-17 to "do what you suggested" after Cowork's
+pass-2 audit recommended backfill notes for the two P1 Ripple misses.
+
+led to:
+Landed as `5d076f5` on `codex/coderabbit-flow-docs`; pushed to
+`origin/codex/coderabbit-flow-docs`.
+
+linear:
+`GIL-73` — backfill Ripple Check reconciliation notes for `42847da`
+(`LOGIC.md`) + `9c2a861` (`PROJECT_INTENT.md`).
+
+### 2026-04-17 | full-repo audit pass 2 — ledger + continuity backfill + watermark refresh | by: Cowork
+
+Problem:
+A second full-repo audit pass on 2026-04-17 against HEAD `7258c90` on branch `codex/coderabbit-flow-docs` surfaced three coverage failures against the Continuity / Coherence / Linear-Core invariants: (1) four live Linear issues (`GIL-68`, `GIL-69`, `GIL-70`, `GIL-71`) had no `Linear Issue Ledger` entry, (2) twelve commits since the last Claude Code watermark `21b8898` had no `Work Record Log` narrative entry, and (3) the Claude Code (`21b8898`) and Cowork (`a28f3ad`) audit watermarks were 60+ and 64+ commits behind HEAD, so new sessions would miss the actual audit frontier.
+
+Reasoning:
+The coverage invariant (`CLAUDE.md § Linear`, `LINEAR.md § Coverage Invariant`) requires every live Linear issue to have a ledger entry; the continuity principle (`CONTINUITY.md`) requires every landed bounded task to leave a durable Work Record. Both gaps were orchestrator-scope cleanup — ledger edits and Work Record entries are explicitly inside Cowork's direct-edit surface per `CLAUDE.md § Orchestrator Scope`. Landing them immediately was the right call rather than routing through Codex because the work is documentation reconciliation, not substantive governance change.
+
+Change:
+1. Added ledger entries for `GIL-68`, `GIL-69`, `GIL-70`, `GIL-71` in the Started/verify queue immediately below `GIL-72`, each carrying `status:`, `todo home:`, `why this exists:`, and `origin source:` fields consistent with the live Linear state and the 2026-04-17 Codex follow-up runtime audit.
+2. Added this consolidated Cowork Work Record covering the 12 commits that lacked narrative entries: `475bd06` (autopilot english artifacts → `GIL-64`), `36e881b` (apps audit jam removal → `GIL-65`), `212ece5` (apps audit → `GIL-65`), `16b1ad0` (autopilot bootstrap → `GIL-64`), `49b70b1` (coderabbit slop_detection reclassification → self-contained; Completed index present), `b630fb8` (plugin intake append-only → `GIL-56`), `12b41bd` (plugin operator cheat sheet → `GIL-54`), `66eee35` (coderabbit repo status plugin doc → self-contained), `48a749b` (coderabbit discoverability notes → self-contained), `65ce3ec` (coderabbit repo-local review config → self-contained), `920fec1` (Codex update review memo → `GIL-51`), `a3cacc1` (governance follow-up repair closeout → `GIL-45`). These are docs/config churn whose full narrative is already in the linked governing issues' Work Records; this entry makes the Continuity trail explicit instead of relying on the reader to walk the parent issues.
+3. Refreshed `## Audit Watermarks` for Claude Code and Claude Cowork to `7258c90` with verdict summaries for this audit pass; added the matching `## Audit Record Log` entry below.
+
+Self-audit:
+- Verified ledger insertion order with `grep -n '^- \`GIL-' todo.md | head -15`; confirmed `GIL-72`, `GIL-71`, `GIL-70`, `GIL-69`, `GIL-68`, `GIL-65` now appear in descending order inside the Started/verify queue.
+- Verified coverage invariant by cross-checking the four new ledger IDs against the live Linear states fetched via `get_issue` (GIL-68 Building, GIL-69 Building, GIL-70 Building, GIL-71 Building) immediately before the edit.
+- Verified the 12-commit roll-up is honest by running `for sha in 475bd06 ... a3cacc1; do grep -c "$sha" todo.md; done` before the edit and confirming 0 hits for all 12; the Completed index already carried one-line entries for several (`49b70b1`, `17a61e9`, `514ac1a`, `07c1374`) but the Work Record narrative was absent until now.
+- Ripple Check: this entry touches `todo.md` log shapes only; per `COHERENCE.md` Dependency Map, `todo.md log shapes` ripples to `AGENTS.project.md § Reading Scope`, `CONTINUITY.md § Work Record format`, and `LINEAR.md state-move preconditions`. Log-shape rule itself is not being changed — this is conformance work (applying the existing rule), not rule change — so no companion-doc edits are required. Verified by re-reading COHERENCE.md rows 33–34 before commit.
+- Did not verify remediation of the 2 P1 Ripple misses (`42847da` → `LOGIC.md`; `9c2a861` → `PROJECT_INTENT.md`) because those require substantive doc edits and belong in a new Codex prompt, not orchestrator scope; noted in the consolidated audit report returned to Trevor.
+- Did not verify push success because SSH-from-sandbox has been unreliable; landing step handled by Trevor or via a separate environment.
+
+by: Cowork
+triggered by: Trevor request on 2026-04-17 to run a full repo audit again, followed by approval to proceed with orchestrator-scope cleanup immediately
+led to: this commit and the Audit Record Log 2026-04-17 full-repo audit pass 2 entry
+linear: self-contained: orchestrator-scope Continuity + Linear-coverage repair; covered live issues (`GIL-68`, `GIL-69`, `GIL-70`, `GIL-71`) receive their ledger entries here, no new Linear issue needed
+
+### 2026-04-17 | GIL-72 | by: Claude Code
+
+Problem:
+A CodeRabbit / Brooks-Lint review of the manual queue runner on branch
+`codex/coderabbit-flow-docs` surfaced two contract violations in
+`supervisor/queue_intake.py` that made `AI Audit` reachable in states that
+`QUEUE-RUNS.md` explicitly forbids:
+
+1. P1 — `_land_successful_run` created a local landing commit and did a
+   fast-forward merge into `repo_root`, but never ran `git push`. Meanwhile
+   `_complete_issue` still posted the completion comment and transitioned the
+   issue to `AI Audit`. Per `QUEUE-RUNS.md` §§ "Issue-Run Lifecycle" step 9
+   and "Landing authority", a successful run must create the landing commit,
+   push it, and only then move the issue to `AI Audit`. The runtime flow
+   therefore diverged from the documented contract: Linear could show
+   `AI Audit` for a run whose commit existed only on the local machine,
+   breaking the audit handoff and leaving recovery ambiguous if the host died
+   before a manual push.
+2. P2 — The normalizer wrote `issue_snapshot_hash` and `staleness_deadline`
+   into the run contract at claim time, but the drain path never re-read the
+   live Linear state or authoritative inputs before calling
+   `_complete_issue`. A run could land after the issue body, labels, or
+   approval posture changed underneath it. That reintroduced exactly the
+   moving-target behavior the queue design was trying to prevent and turned
+   the recorded snapshot into dead metadata.
+
+Reasoning:
+The right move was to enforce the queue contract at the landing boundary in
+the runtime rather than bolt on workarounds. That meant three coupled
+changes, not three independent ones: (a) add the supervisor-owned push as
+part of the landing authority so `AI Audit` is unreachable without it, (b)
+revalidate the live Linear issue against the frozen claim snapshot before
+any landing side effects, and (c) fix the `--allow-empty` commit smell in
+`_land_successful_run` that always manufactured a commit even when the
+worktree was clean. Reordering `_complete_issue` so that revalidation and
+landing/push happen **before** the closeout artifact, completion comment,
+and state transition ensures a single atomic-looking boundary: either all
+three succeed and the issue moves to `AI Audit`, or any failure routes the
+issue to `Blocked` via the existing outer `except` in `drain`.
+
+Diagnosis inputs:
+Direct reread of `supervisor/queue_intake.py` lines 280-716;
+`supervisor/worktree_manager.py` for the `BuilderWorkspace` shape;
+`supervisor/contracts.py` for `QueueMetadata.issue_snapshot_hash` and
+`QueueMetadata.staleness_deadline`; `tests/test_queue_intake.py` for the
+existing claim-release-sequential drain test; `QUEUE-RUNS.md` §§
+"Issue-Run Lifecycle" step 9, "Failure modes", "Landing authority" lines
+175, 240, 296, 310, 317, 321-322, 334-339; the CodeRabbit
+`code-comment` lines at `supervisor/queue_intake.py:703-716` and
+`supervisor/queue_intake.py:425-436`; and the Brooks-Lint health-score
+summary naming the queue landing protocol divergence as Critical and the
+snapshot-not-enforced gap as Warning.
+
+Implementation inputs:
+Updated `supervisor/queue_intake.py` to add an abstract
+`QueueLinearClient.get_issue`, implement it on `LinearGraphQLClient`,
+introduce `ManualQueueRunner._revalidate_snapshot` and
+`_push_landing_commit`, reorder `_complete_issue` so revalidation + land +
+push run before closeout/comment/transition, refactor
+`_land_successful_run` to skip `--allow-empty` commits when the worktree is
+clean and reuse the existing HEAD SHA, and narrow `_issue_snapshot_hash` so
+supervisor-driven `status` and `updated_at` no longer trigger false drift.
+Extended `tests/test_queue_intake.py` with a bare-origin remote helper on
+`_init_queue_repo`, a `live_overrides` slot plus `get_issue` on
+`RecordingLinearClient`, a new happy-path assertion that the landing commit
+reaches the remote `main`, and two new tests that prove drift and push
+failure each route to `Blocked` without transitioning to `AI Audit`.
+
+Fix:
+Reworked `supervisor/queue_intake.py` so that `_complete_issue` now runs
+`self._revalidate_snapshot(issue, normalized)` →
+`_land_successful_run(repo_root, workspace, identifier)` →
+`_push_landing_commit(repo_root)` **before** writing the closeout artifact,
+posting the completion comment, or transitioning to `AI Audit`.
+`_revalidate_snapshot` re-fetches the live issue via
+`self.linear_client.get_issue(issue.id)`, recomputes the snapshot hash, and
+compares it plus `datetime.now(UTC)` against the values stored in
+`normalized.run_contract.queue.issue_snapshot_hash` and
+`normalized.run_contract.queue.staleness_deadline`, raising `QueueError` on
+mismatch or expiry. `_push_landing_commit` runs `git push origin HEAD` from
+`repo_root` and surfaces any non-zero exit as `QueueError` via the existing
+`_git` helper. `_land_successful_run` now only stages + commits when
+`git status --porcelain --untracked-files=all` is non-empty, and reuses the
+existing HEAD SHA otherwise. `_issue_snapshot_hash` filters `status` and
+`updated_at` out of the hashed payload so the supervisor's own transition
+to `Building` and its claim/completion comments no longer look like drift.
+Any `QueueError` from revalidation or push is caught by the existing outer
+`except` in `ManualQueueRunner.drain`, which routes the issue through
+`_block_issue(..., error=exc)` so the issue moves to `Blocked` with the
+real reason rendered into the blocker comment and the
+`.autoclaw/queue-blockers/<run_id>.json` artifact.
+
+Self-audit:
+1. Ran `python3 -m unittest discover tests -v` from the repo root; 68 tests
+   passed in 2.541s, including all five queue-intake tests.
+2. Ran `python3 -m unittest tests.test_queue_intake -v` specifically;
+   confirmed `test_drain_blocks_when_landing_push_fails`,
+   `test_drain_blocks_when_live_snapshot_drifts_from_claim`,
+   `test_manual_drain_claims_runs_and_releases_issues_sequentially`,
+   `test_normalizer_writes_real_run_contract_from_issue_metadata`, and
+   `test_selector_returns_only_strictly_eligible_issues` all passed.
+3. Re-read the final `supervisor/queue_intake.py::_complete_issue` body and
+   confirmed the execution order is revalidate → land → push → write
+   closeout → post completion comment → transition to `AI Audit`, with the
+   worktree cleanup attempt happening last and still guarded by a bare
+   `except Exception: pass`.
+4. Re-read `supervisor/queue_intake.py::_land_successful_run` and confirmed
+   the clean-tree branch reuses the existing HEAD SHA without calling
+   `commit --allow-empty`.
+5. Re-read `supervisor/queue_intake.py::_push_landing_commit` and confirmed
+   it executes `git push origin HEAD` from `repo_root` via the existing
+   `_git` helper that raises `QueueError` on non-zero exit.
+6. Re-read `supervisor/queue_intake.py::_revalidate_snapshot` and confirmed
+   it no-ops only when both `issue_snapshot_hash` and `staleness_deadline`
+   are `None`; otherwise it always fetches the live issue, recomputes the
+   hash, and compares against the frozen contract values.
+7. Re-read `supervisor/queue_intake.py::_issue_snapshot_hash` and confirmed
+   it now excludes `status` and `updated_at` from the hashed payload before
+   `json.dumps(..., sort_keys=True)` and `hashlib.sha256`.
+8. Spot-checked the push-failure test: pointed `origin` at a non-existent
+   bare repo path, drained the runner, and asserted the issue reached
+   `Blocked` (not `AI Audit`), that no "Implemented and advanced" comment
+   was posted, and that the blocker reason contained "push".
+9. Spot-checked the drift test: overrode the live issue body via
+   `RecordingLinearClient.live_overrides`, drained the runner, and asserted
+   the issue reached `Blocked`, that the blocker reason contained "snapshot
+   drifted", and that the remote `main` still did not contain the issue's
+   landing commit.
+10. Spot-checked the happy path: confirmed the existing drain test now
+    sets up a bare remote via `_init_queue_repo(remote_path=...)`, that
+    `GIL-300` moves through `Building → AI Audit`, and that
+    `_git(remote_root, "log", "--oneline", "-1", "main")` contains
+    `GIL-300`.
+Ripple Check attestation: because this landing changes runtime landing
+authority and snapshot-drift behavior in `supervisor/queue_intake.py`, I
+also updated `tests/test_queue_intake.py` (the only direct test surface
+for this module) in the same landing so coverage proves the new contract
+boundary, and I updated `todo.md` (`Linear Issue Ledger`, `Completed`,
+`Work Record Log`) in the same landing per `COHERENCE.md`. I deliberately
+did not touch `QUEUE-RUNS.md` because the doc is already authoritative
+about this flow and the audit finding was that the runtime had drifted
+away from it — bringing the code back to the doc is the correct direction
+of reconciliation. No other docs reference the broken behavior.
+Linear-coverage disposition: `GIL-72` in team `GIL`, state `AI Audit`,
+`Execution lane: Claude Code`, `Execution mode: Manual`. No follow-up
+issue was created because the fix closes both CodeRabbit findings in a
+single landing.
+
+by:
+Claude Code (primary auditor; authored this fix directly under
+`CLAUDE.md` § "Roles" narrow-targeted-fix provision because Codex was
+over budget when Trevor forwarded the CodeRabbit review).
+
+triggered by:
+Trevor request on 2026-04-17 after sharing the CodeRabbit / Brooks-Lint
+review output, explicitly asking Claude Code to "make the actual code
+fixes yourself" and then "fix everything yourself and do all the next
+remaining steps yourself" because Codex usage was exhausted.
+
+led to:
+Landed as `346ae4c` on `codex/coderabbit-flow-docs`; pushed to
+`origin/codex/coderabbit-flow-docs`.
+
+linear:
+`GIL-72` — enforce queue landing contract: push before `AI Audit` +
+pre-land snapshot revalidation in `supervisor/queue_intake.py`.
+
+### 2026-04-17 | GIL-20 + GIL-21 + GIL-22 + GIL-24 | by: Codex
+
+Problem:
+The approved route had already been carried out in `bible-ai`, but this
+coordinator repo still presented the target-repo contract work and the local
+tool-readiness proof as open next steps. That drift would invite later sessions
+to redo finished work or mis-sequence the next real milestone.
+
+Reasoning:
+The right move was not to rerun onboarding or leave the truth stranded in a
+different repo. The coordinator repo needed one durable sync pass that points
+each affected issue at the real `bible-ai` landings and updates the short
+autopilot surfaces so execution no longer looks blocked on target-repo start.
+Because Codex may not move Linear state here, the repo also needed to preserve
+the current live statuses honestly while marking the state move as awaiting
+Cowork/Trevor.
+
+Diagnosis inputs:
+Re-read `todo.md` `Active Next Steps`, `Linear Issue Ledger`, and `Completed`;
+re-read `.codex-agent/phase-card.md`, `.codex-agent/ultra-context.md`,
+`.codex-agent/active-context.md`, `.codex-agent/progress.md`, and
+`.codex-agent/implementation-plan.md`; fetched the live Linear issue details
+for `GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24`; and compared those against the
+already-landed `bible-ai` commits `c7760dab553a843a3be413c00bd148c6db7ba3be`
+and `99198863a4ea2e10db19f74f59608d7b3cbd40d7`.
+
+Implementation inputs:
+Updated `todo.md`, `.codex-agent/phase-card.md`,
+`.codex-agent/ultra-context.md`, `.codex-agent/active-context.md`,
+`.codex-agent/progress.md`, and `.codex-agent/implementation-plan.md`.
+
+Fix:
+Marked `GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24` complete in the active queue
+with the real branch/commit references, moved their ledger homes from open
+queue items to this work record, added the cross-repo evidence trail, and
+advanced the Autopilot execution summaries so the next truthful work is the
+repo-local lifecycle reset plus the remaining Phase 0/Phase 3 sequence instead
+of "start `bible-ai` onboarding."
+
+Self-audit:
+1. Method: re-read the patched `todo.md` queue, ledger, and `Completed` lines
+   for `GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24`. Output: each issue now
+   points at landed work or recorded evidence instead of a stale open step.
+2. Method: re-read the patched `.codex-agent` short surfaces. Output: the
+   Autopilot summary now says the `bible-ai` Phase 0 baseline is proven and the
+   next sequencing question is the remaining repo-local work, not target-repo
+   startup.
+3. Method: fetched live Linear issue details before the edit. Output: the live
+   states remain `Inbox` / `Ready for Build`, so the repo preserves those
+   current statuses and explicitly records that only the repo-side truth moved
+   in this landing.
+4. Method: rerun the Autopilot validator plus `git diff --check` after the
+   patch. Output: the active `.codex-agent` surfaces still validate for this
+   workspace and the final patch is whitespace-clean.
+5. Did not move Linear state because `AGENTS.project.md` reserves state moves
+   for Cowork/Trevor.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to complete the next approved execution steps
+after locking `bible-ai` as the first implementation repo.
+
+led to:
+`GIL-20`, `GIL-21`, `GIL-22`, and `GIL-24` now point at the real `bible-ai`
+and ACA evidence trail; landing commit SHA recorded in immediate closeout.
+
+linear:
+GIL-20 + GIL-21 + GIL-22 + GIL-24
+
+### 2026-04-17 | GIL-65 | by: Codex
+
+Problem:
+The repo already had a broad marketplace-app recommendation memo and plugin
+guidance, but it did not cleanly answer the narrower operational question
+"what app and connector surfaces are actually accessible in this repo session
+right now, and what should we use them for here?" That gap would force later
+sessions to reconstruct access from chat context, tool discovery, and plugin
+lists.
+
+Reasoning:
+The right fix was to update the existing durable docs instead of creating a
+third tracker. `docs/codex-app-marketplace-evaluations.md` already owned the
+broader app-judgment problem, so it should also own the current accessible-app
+audit. `docs/codex-april-16-2026-impact.md` already owned the plugin stance
+ledger, so the missing `Build Web Apps` and `Computer Use` judgments belonged
+there rather than in another appendix.
+
+Diagnosis inputs:
+Direct rereads of `docs/codex-app-marketplace-evaluations.md`,
+`docs/codex-april-16-2026-impact.md`, and `todo.md`; inspection of the current
+session's directly loaded connector namespaces; the current enabled plugin
+inventory exposed in session context; searchable connector inventory available
+through the tool-discovery surface; and the existing repo docs that already
+covered installed workflow plugins and prior screenshot-based marketplace app
+recommendations.
+
+Implementation inputs:
+Updated `docs/codex-app-marketplace-evaluations.md`,
+`docs/codex-april-16-2026-impact.md`, and `todo.md`; created and used Linear
+issue `GIL-65`.
+
+Fix:
+Added a new `Current accessible app audit` section to
+`docs/codex-app-marketplace-evaluations.md` that records the app and connector
+surfaces directly usable in this repo session, what each should be used for
+here, and what to keep them out of. Also expanded the plugin decision ledger in
+`docs/codex-april-16-2026-impact.md` with explicit bounded stances for
+`Build Web Apps` and `Computer Use`, plus a notes update that makes the current
+allow-now set accurate. The repo now distinguishes cleanly between "accessible
+now" and "maybe worth enabling later."
+
+Self-audit:
+1. Re-read `docs/codex-app-marketplace-evaluations.md` after the edit;
+   confirmed the new section distinguishes current accessible surfaces from the
+   broader recommendation tables and records `Use here for` / `Keep out of`
+   guidance for each audited surface.
+2. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the plugin decision
+   ledger now includes explicit rows for `Build Web Apps` and `Computer Use`
+   and that the notes block reflects the corrected allow-now set.
+3. Verified the missing-surfaces callout in the app memo covers the real gap
+   found during the audit: `Build Web Apps`, `Computer Use`, `Jam`, `Stripe`,
+   and `MarcoPolo` were accessible but not previously captured as current-use
+   surfaces in one repo-visible place.
+4. `git diff --check -- docs/codex-april-16-2026-impact.md
+   docs/codex-app-marketplace-evaluations.md todo.md` must pass before closeout.
+5. Did not execute any of the audited apps live and did not add them to the
+   repo's runtime contract. This landing records access posture and intended
+   use only.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to audit what apps this repo has access to and
+record them with intended use guidance if they were not already documented.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+GIL-65
+
+### 2026-04-17 | self-contained | by: Codex
+
+Problem:
+The repo's plugin docs had drifted behind the actual operator environment for
+`Brooks Lint` and `Sentry`. Local Codex config already had both plugins
+enabled, but the canonical plugin ledger still treated `Brooks Lint` mainly as
+a later spike and did not record `Sentry` as part of the enabled operator set.
+The repo also lacked one durable explanation of what "setup correctly" means
+for each plugin inside this repository.
+
+Reasoning:
+The right fix was not to invent repo-local config everywhere. `Brooks Lint`
+has a legitimate repo config surface, so the repo should carry a minimal
+`.brooks-lint.yaml` that encodes the same archive/runtime boundaries the repo
+already enforces elsewhere. `Sentry` is the opposite: its correct setup is
+auth-local, not repo-local, so the docs should make that explicit instead of
+pretending a checked-in config file belongs here. The canonical ledger,
+operator guide, setup companion, intake log, and discovery docs all needed the
+same update in one coherence pass.
+
+Diagnosis inputs:
+Direct rereads of `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`,
+`docs/codex-workflow-plugin-setup.md`,
+`docs/codex-app-marketplace-evaluations.md`, and `docs/plugin-intake.md`;
+inspection of `~/.codex/config.toml`; direct reads of the installed
+`brooks-lint` and `sentry` plugin manifests; direct read of Brooks Lint's
+example `.brooks-lint.example.yaml`; and direct read of the repo `.gitignore`.
+
+Implementation inputs:
+Updated `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`,
+`docs/codex-workflow-plugin-setup.md`,
+`docs/codex-app-marketplace-evaluations.md`,
+`docs/plugin-intake.md`, `.gitignore`, and `todo.md`; added
+`.brooks-lint.yaml`.
+
+Fix:
+Synced the canonical plugin ledger and operator docs so they now record
+`Brooks Lint` and `Sentry` as actually enabled in local Codex config, with the
+correct use boundaries for each. Added a minimal repo-local `.brooks-lint.yaml`
+that excludes `design-history/`, `.autoclaw/`, and `worktrees/` from default
+Brooks analysis, and gitignored `.brooks-lint-history.json` so auto-written
+trend files do not become repo noise by accident. Documented the opposite
+boundary for `Sentry`: no repo config, local-only auth via `SENTRY_AUTH_TOKEN`
+and optional org/project defaults, and no committed secrets.
+
+Self-audit:
+1. Re-read `~/.codex/config.toml`; confirmed
+   `brooks-lint@codex-local-plugins` and `sentry@openai-curated` are both
+   enabled in the operator environment.
+2. Re-read the installed plugin manifests for `brooks-lint` and `sentry`;
+   confirmed the plugin ids, display names, and intended surfaces recorded in
+   the docs match the installed metadata.
+3. Re-read `.brooks-lint.yaml`; confirmed it only encodes boundary exclusions
+   and does not silently add repo-specific risk disables or severity
+   overrides.
+4. Re-read the updated live companion docs (`README.md`, `GUIDE.md`,
+   `docs/codex-april-16-2026-impact.md`,
+   `docs/codex-plugin-operator-cheatsheet.md`,
+   `docs/codex-workflow-plugin-setup.md`,
+   `docs/codex-app-marketplace-evaluations.md`, and `docs/plugin-intake.md`);
+   confirmed they now agree on the enabled state, allowed use, and "config
+   versus local auth" split.
+5. Did not run a live Brooks review or Sentry API query. This landing records
+   setup truth and boundaries only, not task-backed proof that either plugin
+   improves real repo work yet.
+
+by:
+Codex
+
+triggered by:
+Trevor request on 2026-04-17 to add `Brooks Lint` and `Sentry` into the repo
+docs, make sure they are set up correctly, and make the documentation match
+the actual setup.
+
+led to:
+Landing commit SHA recorded in immediate closeout; `.brooks-lint.yaml`
+
+linear:
+self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup
+
+### 2026-04-17 | self-contained full-repo audit — ledger backfill and GIL-55 status correction | by: Cowork
+
+Problem:
+A routine full-repo audit (Linear coverage, cross-doc coherence, Continuity
++ Ripple, Claude Code line-level code audit) surfaced a Linear-coverage
+invariant break: six live Linear issues had no `Linear Issue Ledger` entry
+in `todo.md` (`GIL-56`, `GIL-58`, `GIL-59`, `GIL-60`, `GIL-61`, `GIL-62`),
+and one ledger entry was stale (`GIL-55` recorded as `Building` while Linear
+already had it in `Human Verify`). Per `LINEAR.md` Coverage Invariant and
+`CLAUDE.md` `## Linear (Core Workflow, Not Optional)`, every live issue
+must have a ledger entry and every ledger entry must match live status.
+
+Reasoning:
+Backfilling these six entries and correcting the `GIL-55` status row is a
+pure records move — no code, no schemas, no governance shape. Under
+`CLAUDE.md` `## Orchestrator Scope`, `todo.md` is one of the surfaces
+Cowork may edit directly, and a Coverage Invariant repair qualifies as
+light organization rather than substantive governance. This matches the
+pattern used for prior ledger backfills and avoids spinning up a Codex
+round-trip for a routine trail repair.
+
+Change:
+- `Linear Issue Ledger` → `Started / verify queue`: fixed `GIL-55` status
+  from `Building` to `Human Verify`; inserted `GIL-58` between `GIL-63`
+  and `GIL-57`; inserted `GIL-56` between `GIL-57` and `GIL-55`.
+- `Linear Issue Ledger` → `Inbox / blocked by predecessors`: inserted
+  `GIL-62`, `GIL-61`, `GIL-60`, `GIL-59` at the top of the section (newest
+  first) with `why this exists:` phrased in repo-visible terms and
+  `origin source:` naming the 2026-04-17 Codex runtime audit on
+  `codex/gil29-ui-verifier`.
+
+Self-audit:
+Re-read the ledger after the edits and confirmed each new row carries the
+four required fields (`status`, `todo home:`, `why this exists:`,
+`origin source:`). Verified live Linear state for all seven issues by
+calling `get_issue` on each: `GIL-55` Human Verify, `GIL-56` Building,
+`GIL-58` Building, `GIL-59` Inbox, `GIL-60` Inbox, `GIL-61` Inbox,
+`GIL-62` Inbox — ledger now matches.
+
+Ripple Check: changed surface is `todo.md` `Linear Issue Ledger`. Per
+`COHERENCE.md` Dependency Map row "`todo.md` log shapes", the dependent
+docs are `AGENTS.project.md` `## Reading Scope`, `CONTINUITY.md`
+`## Work Record format`, and `LINEAR.md` state-move preconditions.
+Verified by re-reading: this change adds rows in an existing shape and
+does not alter the shape itself, so no companion-doc update is required.
+The Coverage Invariant itself is enforced (no live issue now lacks a
+ledger row); no further ripple follows.
+
+did not verify X because Y: did not re-query live Linear state for the
+~50 issues not touched by this edit because the audit that triggered
+this fix already enumerated the full live set and the scope here is the
+seven delta issues only.
+
+by: Cowork
+triggered by: 2026-04-17 routine full-repo audit (four streams)
+led to: ledger rows for `GIL-56`, `GIL-58`, `GIL-59`, `GIL-60`, `GIL-61`,
+`GIL-62` added to `todo.md`; `GIL-55` ledger status corrected to
+`Human Verify`; no Linear state moves; no new Linear issues; commit
+pending on current branch
+linear: self-contained Cowork records repair — no owning Linear issue;
+disposition is Coverage Invariant backfill, recorded here per
+`LINEAR.md` `## Linear-at-the-core`
+
+### 2026-04-17 | GIL-64 | by: Codex
+
+Problem:
+The repo had no local `.codex-agent` state, so invoking Codex Project
+Autopilot here would have started from generic plugin defaults instead of the
+actual autonomous-harness architecture and current roadmap. That would have
+produced the wrong archetype, the wrong next step, and no durable approval
+checkpoint.
+
+Reasoning:
+The right move was to bootstrap locally first, then correct the raw seed
+against repo truth before presenting any plan. This repo is not a generic web
+product; it is a deterministic autonomous harness with Python supervisor code,
+Linear routing, Playwright verification, and a currently unresolved
+first-target-repo dependency. The plan therefore had to surface that real
+dependency instead of pretending execution could proceed blindly.
+
+Diagnosis inputs:
+Read global and repo-local governance surfaces, then grounded the autopilot
+bootstrap against `PROJECT_INTENT.md`, `canonical-architecture.md`,
+`IMPLEMENTATION-PLAN.md`, `QUEUE-RUNS.md`, and `todo.md`. Inspected the current
+repo shape and confirmed the live `supervisor/` and `tests/` surfaces so the
+autopilot archetype would match the actual implementation work instead of a
+template assumption.
+
+Implementation inputs:
+Created `GIL-64` in Linear. Bootstrapped and then corrected `.codex-agent`
+artifacts, updating `.codex-agent/state.json`,
+`.codex-agent/discovery-questionnaire.md`,
+`.codex-agent/project-brief.md`, `.codex-agent/plan-variants.md`,
+`.codex-agent/implementation-plan.md`, `.codex-agent/active-context.md`,
+`.codex-agent/progress.md`, `.codex-agent/beginner-guide.md`,
+`.codex-agent/product-context.md`, `.codex-agent/product-intelligence.md`,
+`.codex-agent/tech-context.md`, and regenerated `.codex-agent/phase-card.md`,
+`.codex-agent/ultra-context.md`, and `.codex-agent/context-bundle.md`.
+Updated `todo.md` for Linear coverage and the durable landing trail.
+
+Fix:
+Bootstrapped a local Codex Project Autopilot state for this repo, changed the
+autopilot archetype from generic app defaults to an automation harness with an
+API-routing sidecar, captured repo-grounded discovery answers, drafted three
+bounded plan variants, and moved the local autopilot state to the approval
+checkpoint. The recommended route is now explicit: close repo-local unblockers,
+choose the first real target repo, and only then continue toward the first
+truthful Phase 3 proof.
+
+Self-audit:
+1. Method: ran `python3 .../init_codex_agent.py` twice, first to bootstrap and
+   then with `--project-type automation-script --force` to correct the initial
+   generic archetype. Output: `.codex-agent/` was created locally and reseeded
+   to `automation-script`.
+2. Method: ran `python3 .../build_context_bundle.py --workspace ...`.
+   Output: `phase-card.md`, `ultra-context.md`, and `context-bundle.md` were
+   regenerated from the corrected state and now route to the approval step.
+3. Method: re-read the generated planning artifacts and `todo.md` updates.
+   Output: the same open dependency appears everywhere: the first target repo
+   remains unnamed, and the recommended variant is `Оптимально`.
+4. Ripple Check: checked the generated autopilot surfaces against
+   `.codex-agent/state.json` and updated the companion planning docs plus
+   `todo.md` in the same change so the repo-visible plan, phase routing, and
+   Linear coverage stay aligned.
+5. did not verify actual target-repo onboarding because no first implementation
+   repo has been chosen yet.
+
+by:
+Codex
+
+triggered by:
+Trevor invoked Codex Project Autopilot in the `Autonomous Coding Agent`
+workspace on 2026-04-17.
+
+led to:
+GIL-64 autopilot bootstrap and approval-plan capture; landing commit SHA
+recorded in immediate closeout.
+
+linear:
+GIL-64
+
+### 2026-04-17 | GIL-64 | by: Codex
+
+Problem:
+The repo-local Autopilot state had reached an approval-ready checkpoint, but
+the decision itself still lived only in chat. Without a durable approval lock,
+the plugin surfaces would continue to present the project as waiting on user
+input even though Trevor had already approved `Optimal` and named `bible-ai` as
+the first implementation repo.
+
+Reasoning:
+This needed to be recorded as a state transition, not as another generic note.
+The approved route materially changes the active queue: the target-repo
+dependency is no longer hypothetical, `bible-ai` now anchors the truthful Phase
+0 path, and the next work can move from approval framing into execution prep.
+
+Diagnosis inputs:
+Re-read the active `.codex-agent` approval surfaces, the `GIL-64` durable
+record in `todo.md`, and the current `Active Next Steps` / `Linear Issue
+Ledger` entries for `GIL-20` through `GIL-22`. Compared those against Trevor's
+explicit approval message naming `bible-ai` and selecting `Optimal`.
+
+Implementation inputs:
+Updated the active `.codex-agent` execution-facing artifacts,
+`.codex-agent/state.json`, `.codex-agent/approval-snapshot.json`, and
+`todo.md`.
+
+Fix:
+Locked the approved Autopilot route, moved the local `.codex-agent` state from
+approval to execution, recorded `bible-ai` as the first implementation repo,
+and updated the repo's active queue so the next bounded work now points at the
+`bible-ai` Phase 0 path instead of an unresolved repo-selection question.
+
+Self-audit:
+1. Method: re-read the patched `.codex-agent` phase surfaces and approval
+   snapshot. Output: they now agree that the plan is frozen, the route is
+   `Optimal`, and `bible-ai` is the first implementation repo.
+2. Method: re-read the top of `todo.md` plus the `GIL-20` / `GIL-64` ledger
+   rows. Output: the active queue now treats the repo selection as resolved and
+   points Phase 0.1/0.2/0.2a at `bible-ai`.
+3. Method: ran JSON and validator checks after the patch. Output: the updated
+   `.codex-agent` state remained parseable and the validator accepted the
+   execution-phase lock.
+4. Ripple Check: updated the phase card, context summaries, implementation
+   plan, approval snapshot, and durable repo queue in the same landing so the
+   approval decision is not stranded in a single file or the chat transcript.
+5. did not verify the actual `bible-ai` checkout yet because this landing only
+   records the approved route; target-repo execution has not started.
+
+by:
+Codex
+
+triggered by:
+Trevor approved the `Optimal` autopilot route and named `bible-ai` as the
+first implementation repo on 2026-04-17.
+
+led to:
+GIL-64 approval lock and first-target-repo selection recorded durably; landing
+commit SHA recorded in immediate closeout.
+
+linear:
+GIL-64
+
+### 2026-04-17 | self-contained Claude Code second-pass audit follow-up | by: Claude Code
+
+Problem:
+The first-pass Codex self-audit of `.coderabbit.yaml` and
+`docs/coderabbit-review-settings.md` attested to field-by-field coverage of
+CodeRabbit settings, but a schema-aware second-pass audit by Claude Code
+surfaced two substantive gaps and several low-severity durable-trail defects
+that the self-audit could not catch:
+
+1. `slop_detection` is a repo-config-supported `reviews.*` field per the
+   live CodeRabbit schema, not a UI-only setting. The companion doc
+   previously classified it under `UI-only and caveated settings` and called
+   the desired enabled/label pair a `Desired UI setting`.
+2. Four configurable surfaces were declared in the schema but not encoded
+   or acknowledged in the companion doc: `reviews.tools` (49 tools default
+   to enabled), `reviews.pre_merge_checks` (four sub-checks default to
+   `warning` mode), `reviews.finishing_touches` (per-PR docstring/unit-test
+   generation toggles), top-level `code_generation`, and top-level
+   `issue_enrichment`. The companion doc's "field-by-field" framing implied
+   coverage it did not actually have.
+3. The `GIL-54` `Linear Issue Ledger` `todo home:` description still
+   referenced only the earlier cheat-sheet landing and did not reflect the
+   installed-workflow-plugin state capture that extended the same issue.
+4. The `codex/coderabbit-flow-docs` branch exit checklist had items 1-5
+   unchecked despite the underlying work being complete.
+5. Six `Completed` index entries used the placeholder wording "landing
+   commit SHA recorded in immediate closeout" instead of the repo's stated
+   `landed as <SHA>` format, even though the landing SHAs now exist.
+6. `docs/coderabbit-review-settings.md` carried a cosmetic leading-slash
+   in the display text of the `/.coderabbit.yaml` link.
+
+Reasoning:
+The correct fix is doc-first, not config-first: reclassify `slop_detection`
+as repo-config-supported with the public-repo caveat preserved, encode the
+operator's documented enabled/label preference in `.coderabbit.yaml` so it
+survives future CodeRabbit product changes, and add an explicit `Defaults
+we accept` section naming every schema surface the repo chose not to encode
+plus the known trial-scope risk each default carries. Leaving tool selection
+to the operator during the 3-5 PR calibration window is intentional, so the
+gap is best closed by honest documentation rather than speculative per-tool
+overrides. Trail items are mechanical and belong in the same landing to
+satisfy the Ripple Check invariant.
+
+Diagnosis inputs:
+Direct rereads of `.coderabbit.yaml`, `docs/coderabbit-review-settings.md`,
+`docs/plugin-intake.md`, `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/codex-workflow-plugin-setup.md`,
+`README.md`, `GUIDE.md`, and `todo.md`; resolved
+`#/definitions/schema` from
+`https://coderabbit.ai/integrations/schema.v2.json`; enumerated
+`reviews.*` and top-level properties; computed set-difference between the
+live schema's declared fields and `.coderabbit.yaml` keys; enumerated
+`reviews.tools` sub-keys with their `enabled.default` values; verified all
+`path_instructions` globs and `knowledge_base.code_guidelines.filePatterns`
+against the filesystem; verified plugin install claims against
+`~/.codex/config.toml`.
+
+Implementation inputs:
+Updated `.coderabbit.yaml` to add `reviews.slop_detection`; updated
+`docs/coderabbit-review-settings.md` to reclassify `slop_detection`, add the
+`Defaults we accept` section, and fix the cosmetic link display text;
+appended a new audit-follow-up entry to `docs/plugin-intake.md`; updated
+`todo.md` to refresh the `GIL-54` ledger description, check the branch
+exit-checklist items, backfill six `Completed` index SHAs, and record this
+Work Record Log plus `Completed`, `Test Evidence Log`, and `Feedback
+Decision Log` entries.
+
+Fix:
+Encoded the operator's documented anti-slop preference directly in
+`.coderabbit.yaml` even though it is a no-op on private repos today; moved
+`slop_detection` into the `Supported settings in repo config` table in the
+companion doc with the public-repo caveat preserved; added a `Defaults we
+accept` section naming `reviews.tools`, `reviews.pre_merge_checks`,
+`reviews.finishing_touches`, `code_generation`, and `issue_enrichment`,
+each with default posture, trial-scope reasoning, and known risk; fixed
+the cosmetic link display text; appended the audit follow-up to the
+intake log; refreshed the Linear ledger description, the branch exit
+checklist, and six `Completed` index entries with real SHAs; added this
+durable Work Record entry plus matching `Completed`, `Test Evidence Log`,
+and `Feedback Decision Log` entries.
+
+Self-audit:
+1. Re-read `.coderabbit.yaml`; confirmed `slop_detection: {enabled: true,
+   label: "slop"}` is present directly under `reviews` and the rest of the
+   config is unchanged.
+2. Ran `python3 -c "import yaml, json, urllib.request, ssl, jsonschema;
+   ..."` to strict-validate the updated YAML against the resolved
+   `#/definitions/schema` from
+   `https://coderabbit.ai/integrations/schema.v2.json`; result: pass.
+3. Re-read `docs/coderabbit-review-settings.md`; confirmed
+   `slop_detection` now appears in the `Supported settings in repo config`
+   table with two rows (`.enabled`, `.label`) and the prior `Anti-Slop`
+   UI-only block is gone; confirmed a new `Caveated settings` section
+   preserves the public-repo caveat; confirmed the `Defaults we accept`
+   section exists and names five unconfigured surfaces with default
+   posture and known risk; confirmed the display text now reads
+   `.coderabbit.yaml` without a leading slash.
+4. Re-read `docs/plugin-intake.md`; confirmed the new audit-follow-up
+   entry follows the append-only template, records
+   `Canonical ledger updated: No`, and does not silently rewrite prior
+   entries.
+5. Re-read `todo.md`; confirmed the `GIL-54` ledger `todo home:` now names
+   both the cheat-sheet landing and the installed-workflow-plugin state
+   capture; confirmed the `codex/coderabbit-flow-docs` exit checklist has
+   items 1-6 checked and items 7-8 left unchecked because merge and
+   branch cleanup remain pending; confirmed six `Completed` entries now
+   carry real SHAs (`514ac1a`, `17a61e9`, `17a61e9`, `07c1374`, `bd55fb1`,
+   `4a90d6f`); confirmed the matching `Completed`, `Test Evidence Log`,
+   and `Feedback Decision Log` entries are present.
+6. Ran `git diff --check` across all touched files; result: pass (no
+   whitespace or conflict markers).
+7. Did not add explicit `reviews.tools`, `reviews.pre_merge_checks`,
+   `reviews.finishing_touches`, `code_generation`, or `issue_enrichment`
+   blocks to `.coderabbit.yaml`. The operator judgment about which
+   individual tools or checks to override belongs to the 3-5 PR
+   calibration window, not to this audit-follow-up landing. The
+   `Defaults we accept` doc section records that choice honestly.
+8. Did not verify a live CodeRabbit PR review because GitHub App
+   activation remains a manual operator step outside this repo task.
+Ripple Check attestation: because this landing changes what the companion
+doc documents about `slop_detection` and adds the explicit `Defaults we
+accept` section, I updated `.coderabbit.yaml` to match the reclassified
+configuration, updated the companion doc directly, appended the audit
+follow-up entry to the intake log, and recorded the durable trail in
+`todo.md` `Work Record Log`, `Completed`, `Test Evidence Log`, and
+`Feedback Decision Log` in the same landing. The canonical plugin ledger
+row in `docs/codex-april-16-2026-impact.md` was intentionally left
+unchanged because its wording about "bug/security/lint/test signal"
+already matches the expanded reality.
+Linear-coverage disposition: self-contained audit follow-up from the
+Claude Code second-pass audit on 2026-04-17; no new future-work issue was
+created because the fixes close the audit findings in the same landing.
+
+triggered by:
+Trevor request on 2026-04-17 after the Claude Code second-pass audit to
+execute the recommended disposition (reclassify `slop_detection`, add a
+`Defaults we accept` section, and clear the four low-severity trail items).
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: Claude Code second-pass audit follow-up for CodeRabbit
+settings (slop_detection reclassification, `Defaults we accept` section,
+cosmetic link fix, and trail cleanup)
+
+### 2026-04-17 | GIL-63 | by: Codex
+
+Problem:
+The recent Codex marketplace-app sweep existed only in chat. That meant the
+repo had no durable record of which apps were worth enabling, which were
+redundant with the current stack, which were niche-only, and which "choose
+one" categories should be treated as anti-sprawl warnings rather than app
+shopping lists.
+
+Reasoning:
+The correct shape was a reusable reference doc, not another buried intake blob
+or a one-off chat summary. The repo already had plugin-governance surfaces, but
+the marketplace-app discussion was broader than plugins and deserved its own
+durable memo. The memo needed to do three things together: preserve the app
+names Trevor already reviewed, keep the judgments fast to skim, and anchor the
+recommendations to operator fit rather than to generic vendor hype.
+
+Diagnosis inputs:
+Direct rereads of `AGENTS.project.md`, `CONTINUITY.md`, `COHERENCE.md`,
+`LINEAR.md`, `PROJECT_INTENT.md`, `README.md`, `GUIDE.md`, and `todo.md`; the
+existing plugin/app guidance in `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, and `docs/plugin-intake.md`; and
+the current chat's reviewed marketplace-app screenshots plus the previously
+written app-by-app judgments from the same conversation.
+
+Implementation inputs:
+Created `docs/codex-app-marketplace-evaluations.md`; updated `README.md`,
+`GUIDE.md`, and `todo.md`; and created `GIL-63` so the landing stays issue-
+backed under the repo's Linear-Core rule.
+
+Fix:
+Added a durable marketplace-app evaluation memo that records the reviewed app
+surfaces, the top adds worth enabling later, the major redundancy traps, the
+choose-one categories, and a category-by-category stance for each app Trevor
+asked about. Updated the repo discovery docs so later sessions can find the new
+memo quickly, and recorded the landing plus the top app-enable suggestion in
+`todo.md` so the recommendation does not die with the chat.
+
+Self-audit:
+1. Re-read `docs/codex-app-marketplace-evaluations.md`; confirmed the memo
+   distinguishes `Add now`, `Strong conditional`, `Conditional`, `Redundant`,
+   `Skip`, and `Choose one`, and that each app from the reviewed screenshots is
+   represented exactly once in the detailed sections.
+2. Re-read `README.md` and `GUIDE.md`; confirmed the new memo is discoverable
+   from both repo entry surfaces without pretending it is an authority document
+   above the existing plugin/governance surfaces.
+3. Re-read `todo.md`; confirmed `GIL-63` is mirrored in `Linear Issue Ledger`,
+   indexed in `Completed`, captured in this `Work Record Log`, linked in `Test
+   Evidence Log`, preserved in `Feedback Decision Log`, and surfaced once in
+   `Suggested Recommendation Log` rather than scattering app follow-ups into
+   multiple half-tracked notes.
+4. Did not run `python3 -m supervisor.closeout_evidence validate --todo todo.md
+   --issue GIL-63` before commit because this repo's immediate-closeout pattern
+   does not know the final landing SHA yet.
+5. Ran `git diff --check -- docs/codex-app-marketplace-evaluations.md README.md
+   GUIDE.md todo.md`; no whitespace or patch-hygiene errors.
+Ripple Check attestation: because this task added a new durable reference doc,
+I updated both discovery surfaces and the repo's durable task trail in the same
+landing so the new memo is findable and the issue-backed trail stays coherent.
+Linear-coverage disposition: `GIL-63` tracks the memo landing itself. The
+top-priority app-enable shortlist is preserved once in `Suggested
+Recommendation Log` as deferred operator guidance rather than silently dropped
+or prematurely expanded into multiple new issues.
+
+triggered by:
+Trevor request on 2026-04-17 to record all of the reviewed marketplace apps
+and Codex's thoughts on them in the repo.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+GIL-63
+
+### 2026-04-17 | GIL-57 | by: Codex
+
+Problem:
+The repo had the deterministic single-run supervisor loop, but the Linear queue
+path was still doc-only. There was no runtime layer that could read Linear
+issues, enforce the Ready-for-Build eligibility contract, freeze claim metadata,
+normalize queue inputs into a real run contract, and drain eligible Codex work
+one issue at a time.
+
+Reasoning:
+The right first implementation slice stays narrower than the full webhook-first
+design: manual drain mode first, webhook wakeups later. That keeps the repo
+aligned with the approved local single-run design direction while still landing
+the core queue mechanics now. Linear remains routing input only; the supervisor
+owns claim, normalization, execution, landing, blocker handling, and release.
+
+Diagnosis inputs:
+Re-read `QUEUE-RUNS.md`, `LINEAR.md`, `canonical-architecture.md`,
+`IMPLEMENTATION-PLAN.md`, and
+`docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`.
+Inspected the current supervisor implementation in `supervisor/main.py`,
+`supervisor/contracts.py`, `supervisor/verifier.py`,
+`supervisor/worktree_manager.py`, and the existing supervisor tests in
+`tests/test_main.py`, `tests/test_contracts.py`, and `tests/test_verifier.py`.
+Captured the red baseline with `python3 -m unittest tests.test_queue_intake`
+before the queue module existed.
+
+Implementation inputs:
+Added `supervisor/queue_intake.py` and `tests/test_queue_intake.py`. Updated
+`supervisor/contracts.py`, `schemas/run-contract.schema.json`,
+`supervisor/verifier.py`, `supervisor/main.py`, `QUEUE-RUNS.md`, `LINEAR.md`,
+`CHANGELOG.md`, and `todo.md`.
+
+Fix:
+Implemented a queue intake layer with strict eligibility filtering for
+`Ready for Build` / `Codex` / `Queue` / low-medium risk / no approval / no
+blocking labels; added a local claim store; added queue normalization that
+resolves the authoritative spec path, freezes issue snapshots, writes a real
+run-contract JSON with queue metadata and verification-pack fields, and derives
+retry budget deterministically; added a manual drain runner that claims one
+issue, executes the existing single-run supervisor loop, writes completion or
+blocker artifacts/comments, releases the claim, and proceeds to the next
+eligible issue. Successful runs now land exactly one supervisor-owned commit and
+fast-forward the repo root before the next issue is considered.
+
+Self-audit:
+1. Method: ran `python3 -m unittest tests.test_queue_intake
+   tests.test_contracts tests.test_verifier tests.test_main`.
+   Output: `Ran 13 tests ... OK`. This covers eligibility filtering,
+   normalization, sequential drain behavior, run-contract parsing, verification
+   pack handling, and the existing single-run supervisor flow.
+2. Method: re-read `supervisor/queue_intake.py`, `supervisor/main.py`,
+   `supervisor/contracts.py`, and `supervisor/verifier.py`.
+   Output: the queue runner owns claim/release/comment/state flow while the
+   existing `execute_run()` loop remains the inner single-run executor.
+3. Method: re-read `QUEUE-RUNS.md` and `LINEAR.md` after the edits.
+   Output: both now describe the manual-drain-first slice and the queue-mode
+   issue metadata that the normalizer expects, without turning Linear into an
+   authority surface.
+4. Method: re-read `README.md`, `GUIDE.md`, `RULES.md`, `CLAUDE.md`,
+   `AGENTS.project.md`, and `IMPLEMENTATION-PLAN.md` for drift.
+   Output: no wording change was required there because they already point queue
+   behavior at `QUEUE-RUNS.md` and still remain accurate after this landing.
+5. Method: re-read `todo.md` `Linear Issue Ledger`, `Completed`,
+   `Work Record Log`, `Test Evidence Log`, and `Feedback Decision Log`.
+   Output: `GIL-57` is now mirrored in the ledger and the durable records point
+   to the same bounded landing.
+6. Method: ran `git diff --check -- supervisor/contracts.py
+   schemas/run-contract.schema.json supervisor/verifier.py
+   supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py
+   QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md`.
+   Output: no whitespace errors.
+7. did not verify a live token-backed Linear GraphQL drain against the real
+   workspace because this repo task kept verification inside the local unit and
+   integration-style supervisor tests rather than mutating live queue issues.
+Ripple Check attestation: because this task changed queue execution behavior and
+queue-mode issue metadata, I checked `QUEUE-RUNS.md`, `LINEAR.md`, `README.md`,
+`GUIDE.md`, `RULES.md`, `CLAUDE.md`, `AGENTS.project.md`,
+`IMPLEMENTATION-PLAN.md`, and the queue/todo governance sections together, then
+updated only the two docs that actually drifted.
+Linear-coverage disposition: `GIL-57` tracks this bounded queue-runtime landing.
+No additional follow-up issue was opened in this commit because webhook wakeups
+remain the already-known later slice rather than a newly surfaced surprise.
+
+triggered by:
+Trevor request on 2026-04-17 to implement the first manual queue intake,
+normalization, and drain runner slice for sequential Linear issue execution.
+
+led to:
+landing commit SHA recorded in immediate closeout; `GIL-57`
+
+linear:
+GIL-57
+
+### 2026-04-17 | self-contained CodeRabbit settings capture | by: Codex
+
+Problem:
+The repo already carried the high-level CodeRabbit trial decision and the
+base `.coderabbit.yaml`, but it still lacked a durable record of the exact
+field-by-field settings discussed in chat, which settings belong in repo
+config versus UI-only operator guidance, and the caveats around things like
+labeling instructions and slop detection. Without that detail, later AI
+reviewers would have to reconstruct the real setup from chat fragments.
+
+Reasoning:
+The right split is two-layered. Repo-supported settings should be explicit in
+`.coderabbit.yaml` so the product behavior is machine-readable. A companion doc
+should explain why those values were chosen, preserve intentionally blank UI
+fields, and record current product caveats from the official CodeRabbit docs.
+That keeps the config authoritative while making the decision trail reviewable
+by later AI sessions.
+
+Diagnosis inputs:
+Direct rereads of `.coderabbit.yaml`, `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`; the current chat thread about CodeRabbit settings; and official
+CodeRabbit docs for the YAML guide and schema-derived configuration reference.
+
+Implementation inputs:
+Updated `.coderabbit.yaml`; created `docs/coderabbit-review-settings.md`;
+updated `README.md`, `GUIDE.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`.
+
+Fix:
+Expanded `.coderabbit.yaml` to explicitly encode the discussed repo-supported
+settings, added `docs/coderabbit-review-settings.md` as the field-by-field
+operator companion, indexed that doc from the discovery surfaces, and appended
+the settings-capture event to the plugin-intake log so later AI reviewers can
+audit both the actual config and the reasoning around it.
+
+Self-audit:
+1. Re-read `.coderabbit.yaml`; confirmed the supported settings from the chat
+   are now explicitly encoded instead of left implicit in defaults.
+2. Re-read `docs/coderabbit-review-settings.md`; confirmed it distinguishes
+   repo-supported settings from UI-only or caveated settings, preserves the
+   exact summary prompt, and records the labeling/slop caveats honestly.
+3. Re-read `README.md` and `GUIDE.md`; confirmed the new settings doc is now
+   discoverable from the repo entry surfaces.
+4. Re-read `docs/codex-april-16-2026-impact.md`,
+   `docs/codex-plugin-operator-cheatsheet.md`, and `docs/plugin-intake.md`;
+   confirmed the settings doc is linked from the plugin-governance surfaces and
+   the intake log records the settings capture without pretending it changed the
+   canonical plugin stance.
+5. Did not verify a live PR review from GitHub because GitHub App activation
+   remains a manual operator step outside this repo task.
+Ripple Check attestation: because this task changed the repo's documented
+CodeRabbit operating setup, I updated the actual config, added the detailed
+settings companion, refreshed the plugin-governance references, refreshed the
+discovery surfaces, and recorded the durable task trail in `todo.md` in the
+same landing.
+Linear-coverage disposition: self-contained direct Trevor request; no new
+future-work issue was created by the settings-capture task itself.
+
+triggered by:
+Trevor request on 2026-04-17 to make sure the discussed CodeRabbit settings and
+their detailed reasoning are preserved in the repo for later AI review.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: preserve the full CodeRabbit settings and rationale in repo
+docs and config
+
+### 2026-04-17 | self-contained plugin-intake sweep evidence | by: Codex
+
+Problem:
+Recent chat plugin discussion surfaced repo-relevant evidence — prior-research
+coverage gap against the hol.org registry, existing PyPI plugin-validation
+tooling (`codex-plugin-scanner`, `hol-guard`), Microsoft `playwright-mcp` as a
+direct match for the operator's Python-Playwright visual-audit rule, an
+untried commercial code-review fallback tier alongside `CodeRabbit`, and
+HOL trust/security scores for two already-researched plugins — that was not
+captured in any existing intake entry. Leaving it only in chat means the next
+`plugin-eval` spike would rederive the same signals.
+
+Reasoning:
+Per the repo's append-only intake workflow in `docs/plugin-intake.md`, new
+plugin evidence belongs in the intake log as a dated entry, not in the
+canonical ledger. None of this evidence is a task-backed trial; availability
+in session, reachability of a repo URL, and third-party trust scores are raw
+observations, not proof that a plugin improves real repo work. So the right
+update surface is the intake log. The canonical ledger in
+`docs/codex-april-16-2026-impact.md` and the operator cheat sheet in
+`docs/codex-plugin-operator-cheatsheet.md` stay unchanged because nothing
+here flips a `Tried here?` status or teaches a new operational rule about
+using a plugin here.
+
+Diagnosis inputs:
+Direct rereads of `docs/plugin-intake.md`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, and the relevant `Completed`,
+`Linear Issue Ledger`, and `Work Record Log` sections of `todo.md`; the
+current chat thread including its plugin-research sweep and the operator's
+explicit correction that the earlier sweep had been too narrow.
+
+Implementation inputs:
+Appended one new dated entry to `docs/plugin-intake.md`; added this
+Work Record entry plus a matching `Completed` index line in `todo.md`.
+
+Fix:
+Captured five durable, repo-relevant signals from the chat research sweep
+into a new `docs/plugin-intake.md` entry and explicitly marked
+`Canonical ledger updated: No`. Made no edits to
+`docs/codex-april-16-2026-impact.md` or
+`docs/codex-plugin-operator-cheatsheet.md`, because no plugin trial occurred
+in this chat and no operational rule for using a plugin here was learned.
+
+Self-audit:
+1. Re-read `docs/plugin-intake.md` after the append; confirmed the new entry
+   uses the file's template, does not rewrite prior entries, does not
+   duplicate existing observations, and records
+   `Canonical ledger updated: No`.
+2. Re-read `docs/codex-april-16-2026-impact.md` and
+   `docs/codex-plugin-operator-cheatsheet.md`; confirmed no edits were made
+   because nothing in the chat established a real stance change or a new
+   operator rule here.
+3. Confirmed each of the five recorded signals is grounded in concrete
+   evidence (hol.org registry, specific PyPI packages, Microsoft
+   `playwright-mcp` repo, a specific reachable
+   `AlexMi64/codex-project-autopilot` repo, and two specific HOL trust/
+   security scores) rather than generic plugin marketing.
+4. Confirmed the `Autopilot` row in the canonical ledger was not silently
+   merged with the `AlexMi64/codex-project-autopilot` repo, because the
+   chat did not establish they are the same artifact.
+5. Did not run the closeout-evidence validator because this landing is a
+   self-contained append with an immediate-closeout SHA placeholder rather
+   than an issue-backed landing with a final commit SHA at write time.
+6. Did not execute any plugin and did not install any new dependency. The
+   intake-log append is doc-only.
+
+Ripple Check attestation: because this task records chat-only evidence into
+the append-only intake log and does not change the repo's live plugin
+stance, I updated only `docs/plugin-intake.md` and the durable task trail
+in `todo.md`. The canonical ledger and operator cheat sheet were left
+untouched on purpose.
+
+Linear-coverage disposition: self-contained direct Trevor request; no
+future-work issue was created because the append is evidence capture, not a
+trial or stance change, and the prompt explicitly restricted scope to the
+intake log unless a real repo change surfaced.
+
+triggered by:
+Trevor prompt on 2026-04-17 to contribute repo-relevant plugin knowledge
+from this chat into the repo's durable plugin records without turning the
+canonical ledger into a scratchpad.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: chat-only plugin evidence appended to the intake log;
+canonical ledger unchanged
+
+### 2026-04-17 | self-contained CodeRabbit re-activation docs | by: Codex
+
+Problem:
+The repo already had CodeRabbit config and discoverability notes, but the live
+plugin docs still framed it as merely configured and not yet proven. That left
+the repo missing the actual comparison logic from the chat and did not say
+clearly that Trevor chose to try CodeRabbit first despite the cheaper Copilot
+alternative.
+
+Reasoning:
+The right correction is not a config rewrite. `.coderabbit.yaml` already says
+what CodeRabbit should do. What was missing was the durable decision trail:
+Copilot looks better on price and GitHub-native integration, CodeRabbit likely
+looks better on dedicated PR-review quality, and this repo is testing review
+quality first. That belongs in the plugin memo, the operator cheat sheet, the
+append-only plugin-intake log, and the durable repo log.
+
+Diagnosis inputs:
+Direct rereads of `README.md`, `GUIDE.md`, `.coderabbit.yaml`,
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`; plus the current chat thread comparing CodeRabbit with GitHub
+Copilot and clarifying that Trevor wants to try Rabbit.
+
+Implementation inputs:
+Updated `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md` on branch `codex/coderabbit-flow-docs`.
+
+Fix:
+Changed the canonical plugin memo so `CodeRabbit` is now the active bounded
+review trial instead of a passive configured placeholder, added the explicit
+CodeRabbit-versus-Copilot reasoning to the repo narrative, updated the
+operator cheat sheet to show the intended Rabbit review flow, and appended the
+comparison outcome to the plugin-intake log so later sessions can see why the
+repo chose to trial Rabbit first.
+
+Self-audit:
+1. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the `CodeRabbit`
+   ledger row now reflects an active bounded trial and the notes record the
+   review-quality-versus-cost tradeoff without overstating live activation.
+2. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed the operator
+   flow now says Rabbit is the chosen pre-audit lane once activated and keeps
+   Claude Code or Trevor as the deeper review/acceptance path.
+3. Re-read `docs/plugin-intake.md`; confirmed the new entry preserves the
+   Rabbit-versus-Copilot reasoning as append-only evidence rather than silently
+   rewriting current truth.
+4. Re-read `README.md`, `GUIDE.md`, and `.coderabbit.yaml`; confirmed they
+   remain accurate without further edits because discoverability and bounded
+   review configuration were already landed.
+5. Did not verify a live GitHub PR review because GitHub App installation and
+   first PR activation are still manual operator steps outside this repo task.
+Ripple Check attestation: because this task changed the repo's live plugin
+stance narrative for CodeRabbit, I updated the canonical plugin memo, the
+operator cheat sheet, the append-only plugin-intake log, and the durable repo
+record in the same task, then confirmed the existing README/GUIDE/config
+surfaces still matched without further edits.
+Linear-coverage disposition: self-contained direct Trevor request; no new
+future-work issue was created by the doc correction itself.
+
+triggered by:
+Trevor decision on 2026-04-17 to try CodeRabbit after discussing the
+CodeRabbit-versus-GitHub-Copilot tradeoff and asking that the thinking process
+be written into the repo.
+
+led to:
+Landing commit SHA recorded in immediate closeout.
+
+linear:
+self-contained: Trevor chose CodeRabbit as the active review trial after the
+Copilot comparison
 
 ### 2026-04-17 | GIL-54 | by: Codex
 
@@ -537,181 +1848,87 @@ preserved in `Suggested Recommendation Log` 2026-04-17
 linear:
 GIL-54
 
-### 2026-04-17 | GIL-23 | by: Codex
+### 2026-04-17 | GIL-54 | by: Codex
 
 Problem:
-Phase 0.3 still existed only as intent. The control-plane repo had no committed
-benchmark run-contract suite, so the roadmap could talk about invariant
-coverage without giving the supervisor any real reusable benchmark inputs to
-exercise. That also meant there was no automated check enforcing the raised
-6–8 floor or the required invariant cases from the 2026-04-15 plan review.
+The repo already had the plugin decision ledger and the operator cheat sheet,
+but it still did not capture the actual successful Codex install state for the
+three workflow plugins Trevor cared about most. Future sessions could see the
+intended role split, but not the exact marketplace, plugin ids, enabled-state
+expectation, or the important distinction that these three currently have no
+repo-committed config and are governed here by operating rules instead.
 
 Reasoning:
-This was the right next repo-local task because it strengthens the autonomous
-system itself without switching into target-repo implementation work. The
-better path was a control-plane-owned fixture suite with one real test that
-enforces count, schema validity, unique run IDs, and real scope paths. I kept
-the fixtures pointed at `gillette-website` as the first current full-stack
-benchmark target because the run contracts need a concrete repo path, but this
-landing does not claim the supervisor is ready to execute those runs end to
-end yet.
+That gap is too operational to leave in chat and too specific to squeeze into
+the canonical ledger row notes alone. The correct split is: keep the canonical
+use/defer stance in `docs/codex-april-16-2026-impact.md`, keep phase ownership
+rules in `docs/codex-plugin-operator-cheatsheet.md`, and add one setup
+companion that records the actual installed state and settings posture for
+`Autopilot`, `HOTL`, and `Cavekit`. That makes the repo durable without
+pretending these operator home-directory files are themselves repo truth.
 
 Diagnosis inputs:
-Direct rereads of `todo.md` Phase 0.3, `IMPLEMENTATION-PLAN.md` Phase 0
-benchmark requirements, `STRUCTURE.md` fixture boundary rules, `GUIDE.md`
-fixture indexing, `schemas/run-contract.schema.json`, `supervisor/contracts.py`,
-and the current `gillette-website` repo tree to confirm the referenced
-`client/`, `server/`, `shared/`, `scripts/`, and `tests/` paths actually
-exist.
+Direct rereads of `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`,
+`README.md`, `GUIDE.md`, and `todo.md`; local Codex state from
+`~/.agents/plugins/marketplace.json` and `~/.codex/config.toml`; and each
+installed plugin's local `.codex-plugin/plugin.json`.
 
 Implementation inputs:
-Added `fixtures/README.md`, ten `fixtures/benchmark-*.json` run contracts,
-`tests/test_benchmark_fixtures.py`, and a `CHANGELOG.md` entry. Updated
-`todo.md` `Active Next Steps`, `Linear Issue Ledger`, `Completed`, `Work Record
-Log`, `Test Evidence Log`, and `Active Branch Ledger`.
+Created `docs/codex-workflow-plugin-setup.md`; updated
+`docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`,
+`README.md`, `GUIDE.md`, and `todo.md`.
 
 Fix:
-Added the first committed benchmark fixture suite for the autonomous system.
-The new fixtures split cleanly between four positive benchmark tasks and six
-supervisor-invariant cases, covering forbidden-path writes, missing-evidence
-COMPLETE attempts, illegal phase transitions, single-writer lock violations,
-rollback correctness, and failure-fingerprint normalization. Added
-`tests/test_benchmark_fixtures.py` so the repo now enforces the fixture floor,
-the exact expected coverage set, schema-valid run contracts, unique run IDs,
-and real path existence for the chosen benchmark target. This makes `GIL-23`
-concrete and machine-checked rather than a planning note.
+Added a durable setup companion for the installed workflow plugins that records
+the marketplace name, plugin ids, display names, local roots, enabled state,
+and the repo's settings posture for `Autopilot`, `HOTL`, and `Cavekit`.
+Updated the canonical plugin ledger so those three now reflect "installed and
+enabled in Codex" instead of only "installed locally", added a companion-doc
+pointer from the ledger and discovery surfaces, and appended the install-state
+capture to the plugin-intake log.
 
 Self-audit:
-1. Method: ran `python3 -m unittest tests.test_benchmark_fixtures`.
-   Outcome: pass — the new focused fixture suite validated the expected ten
-   fixtures, schema parsing, unique run IDs, and real allowed/forbidden scope
-   paths.
-2. Method: ran `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_builder_adapter tests.test_strategy_simple tests.test_main tests.test_closeout_evidence tests.test_benchmark_fixtures`.
-   Outcome: pass — the broader supervisor suite still passes with the new
-   fixture test included, so the added benchmark coverage did not break the
-   current control-plane runtime.
-3. Method: ran `git diff --check -- CHANGELOG.md fixtures/README.md fixtures/*.json tests/test_benchmark_fixtures.py`.
-   Outcome: pass — the benchmark-fixture landing patch is whitespace-clean.
-4. Method: re-read `fixtures/README.md`, the ten run contracts, and
-   `tests/test_benchmark_fixtures.py` together after the green test run.
-   Outcome: pass — the README, fixture names, and automated assertions all
-   describe the same positive-task versus invariant-guard split, and the suite
-   enforces the exact required invariant set from `todo.md`.
-5. Did not verify a live supervisor execution against any benchmark fixture,
-   because app launch wiring, Playwright ownership, and end-to-end target-repo
-   execution remain outside `GIL-23` and belong to the still-open `GIL-29`
-   plus later phase work.
-Ripple Check attestation: `fixtures/` was already indexed as a control-plane
-surface in `GUIDE.md` and `STRUCTURE.md`, so this landing only needed the
-fixture files, their enforcing test, the changelog index, and the durable
-`todo.md` record. No additional active-doc drift remained after the reread.
-Linear-coverage disposition: `GIL-23` tracks this benchmark-suite landing. No
-new follow-up issue was opened because the remaining proof-run work already
-lives in the existing phase issues, especially `GIL-29`.
+1. Re-read `docs/codex-workflow-plugin-setup.md`; confirmed it distinguishes
+   install state from task-backed proof, records `ck` as the actual Cavekit
+   plugin id, and says clearly that these three have no repo-committed config
+   file today.
+2. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the canonical
+   ledger rows for `Autopilot`, `HOTL`, and `Cavekit` now match the real
+   installed-and-enabled state without overstating task-backed usage.
+3. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed it now points
+   to the setup companion and makes the settings split clear: workflow plugins
+   are governed operationally here, while `CodeRabbit` has committed config.
+4. Re-read `README.md` and `GUIDE.md`; confirmed the new setup companion is
+   discoverable from the repo entry surfaces and quick-reference map.
+5. Re-read `docs/plugin-intake.md`; confirmed the new entry captures the
+   install-state evidence and marks the canonical ledger as updated.
+6. Ran `git diff --check -- docs/codex-workflow-plugin-setup.md
+   docs/codex-april-16-2026-impact.md
+   docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md
+   GUIDE.md todo.md`; no whitespace or patch-hygiene errors.
+7. Did not run a real plugin-backed repo task. This landing documents install
+   state and repo usage expectations only.
+Ripple Check attestation: because this task changed the repo's live plugin
+guidance and discovery surface, I added the setup companion, updated the
+canonical ledger, refreshed the operator cheat sheet, refreshed both discovery
+surfaces, appended the raw intake evidence, and recorded the durable trail in
+`todo.md` in the same landing.
+Linear-coverage disposition: `GIL-54` already covers durable operating
+guidance for the installed workflow plugins, so this install-state and
+settings capture extends the same bounded issue rather than creating a new one.
 
 triggered by:
-Trevor correction on 2026-04-17 that work should stay strictly inside this repo
-until the autonomous system itself is finished end to end, followed by the
-request to continue with `GIL-23`
+Trevor report on 2026-04-17 that the manually added plugins were now actually
+installable in Codex and the repo should document the appropriate sections,
+settings, and usage of those plugins thoroughly.
 
 led to:
-`408b0b0`
+Landing commit SHA recorded in immediate closeout.
 
 linear:
-GIL-23
-
-### 2026-04-17 | GIL-29 | by: Codex
-
-Problem:
-The supervisor could already parse contracts, enforce scope and single-writer
-control, run deterministic verification, fingerprint failures, and drive a
-bounded builder loop, but it still stopped before the app/UI phase the repo
-claims to own. `Phase.APP_LAUNCH` and `Phase.UI_VERIFY` existed in the runtime
-model without executable implementations behind them, so the system could not
-launch a local app, wait for health, run the repo-owned `ui_smoke` suite,
-capture browser artifacts, emit defect packets, or route UI failures back into
-the builder loop.
-
-Reasoning:
-The better path was not to embed Playwright-specific logic directly into this
-repo. This repo is the control plane, so it should own process lifecycle,
-health gating, artifact locations, browser-profile isolation, and defect-packet
-structure while still treating the target repo's `ui_smoke` command as the
-authoritative browser entrypoint. That keeps app-specific UI logic where it
-belongs, keeps the browser owned by one verifier lane, and adds the missing
-Phase 3 seams without bloating the supervisor with repo-specific assumptions.
-
-Diagnosis inputs:
-Direct rereads of `IMPLEMENTATION-PLAN.md` Phase 3, the current
-`supervisor/main.py`, `supervisor/verifier.py`, `supervisor/reports.py`,
-`supervisor/fingerprints.py`, `supervisor/contracts.py`,
-`schemas/defect-packet.schema.json`, `schemas/readiness-report.schema.json`,
-`tests/test_main.py`, `tests/test_strategy_simple.py`, and the repo-local
-governance/continuity surfaces loaded at task start. Red tests in
-`tests/test_app_supervisor.py`, `tests/test_ui_verifier.py`,
-`tests/test_strategy_simple.py`, and `tests/test_main.py` then confirmed the
-missing runtime seams directly.
-
-Implementation inputs:
-Added `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`,
-`tests/test_app_supervisor.py`, and `tests/test_ui_verifier.py`; updated
-`supervisor/main.py`, `supervisor/strategy_simple.py`, `tests/test_main.py`,
-`tests/test_strategy_simple.py`, and `CHANGELOG.md`.
-
-Fix:
-Added the first executable app-launch and UI-verification slice. The runtime
-now launches the target app from `commands.app_up`, polls localhost health from
-`commands.app_health`, captures launch logs, and stops the process cleanly.
-`UIVerifier` now runs the repo-owned `commands.ui_smoke` command with isolated
-browser-profile and artifact env, writes UI logs, harvests screenshots/traces,
-records `UI_VERIFY` failure fingerprints, and emits schema-valid defect packet
-JSON into the run directory. `supervisor/main.py` now routes
-`LOCAL_VERIFY -> APP_LAUNCH -> UI_VERIFY -> FINAL_GATE` when `ui_smoke` is
-present, sends app-health and UI defects back through bounded builder repair
-loops, and carries those command results into the final readiness report.
-
-Self-audit:
-Method-not-claim verification run before closeout:
-1. Ran `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier
-   tests.test_strategy_simple tests.test_main`; output `OK`; the new app/UI
-   seams pass in focused coverage, including app-health retry and UI-defect
-   repair routing.
-2. Ran `python3 -m unittest discover -s tests -p 'test_*.py'`; output `OK`
-   with `73` passing tests; the broader supervisor suite still passes with the
-   Phase 3 additions in place.
-3. Ran `git diff --check -- CHANGELOG.md supervisor/app_supervisor.py
-   supervisor/ui_verifier.py supervisor/main.py supervisor/strategy_simple.py
-   tests/test_app_supervisor.py tests/test_ui_verifier.py tests/test_main.py
-   tests/test_strategy_simple.py`; output empty; the executable Phase 3 patch
-   is whitespace-clean.
-4. Re-read `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`, and
-   the updated `supervisor/main.py`; confirmed the control plane owns lifecycle,
-   artifact, and defect-packet behavior while the repo contract still owns the
-   actual `ui_smoke` browser command.
-5. Did not run a live target-repo app or real Playwright suite in another repo
-   because Trevor explicitly deferred cross-repo proving until the repo-local
-   autonomous system is finished enough to test other apps.
-Ripple Check attestation: because this task changed a live runtime boundary and
-the durable queue/closeout surfaces that future sessions use to sequence work,
-I updated `CHANGELOG.md`, the `todo.md` execution roadmap/current-goal text,
-the `Active Next Steps` queue, the `Linear Issue Ledger`, the `Completed`
-index, this `Work Record Log` entry, the `Test Evidence Log`, the relevant
-feedback decision, and the `Active Branch Ledger` in the same landing.
-Linear-coverage disposition: `GIL-29` is landed. No new follow-up issue was
-opened because the remaining repo-local system work already lives in `GIL-30`
-and `GIL-31`, while target-repo proof remains intentionally deferred and
-already tracked in `GIL-20` through `GIL-22`.
-
-triggered by:
-Trevor correction on 2026-04-17 that work should stay strictly on this
-repository until the autonomous system itself is finished enough to test other
-apps, followed by the direct request to continue with the next repo-local task
-
-led to:
-`9f1b693`
-
-linear:
-GIL-29
+GIL-54
 
 ### 2026-04-17 | GIL-53 | by: Codex
 
@@ -2056,6 +3273,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - New entries should capture the suggestion, status, `by:`, and `linear:`. Older entries remain preserved as written.
 - 2026-04-12: Keep `acpx` behind an adapter instead of making it part of the supervisor spine on the first implementation pass. Status: deferred until the builder adapter is being built.
 - 2026-04-12: When Phase 4 starts, materialize the canonical prompt pack from `PROMPTS.md` into versioned `supervisor/prompts/` files plus parseable schema fixtures so prompt regressions can be tested directly. Status: deferred until Phase 4.
+- 2026-04-19: Treat `codex/gil23-benchmarks` as superseded by `codex/gil29-ui-verifier` unless a narrow cherry-pick-only path is chosen deliberately. Status: completed via branch closeout; `codex/gil29-ui-verifier` already contains the two unique `GIL-23` commits (`408b0b0`, `1883fdb`), so keeping both branches open added duplicate branch/worktree state without adding coverage. Source: current branch inventory and `git log origin/main..codex/gil29-ui-verifier`. by: Codex. linear: self-contained: `codex/gil23-benchmarks` closed as superseded on 2026-04-19.
 - 2026-04-12: Add a prompt-regression harness that replays representative planning, build, review, fix-audit, and final-audit cases to catch prompt drift before it reaches real runs. Status: deferred until Phase 4/5.
 - 2026-04-14: Implement CI first as a contract-driven validator in the first real implementation repo, with fast/unit/smoke gates and structured artifacts, then extract a reusable template only after that pattern is proven. Status: accepted and promoted into Active Next Steps as Phase 0.2a.
 - 2026-04-14: Add GitHub governance hardening only after executable control-plane surfaces exist (`supervisor/`, `schemas/`, tests, workflows). Minimum expected later set: CODEOWNERS for control-plane files, required checks, Dependabot, CodeQL, and secret-scanning hygiene. Status: deferred until after Phase 0A and initial implementation scaffolding.
@@ -2064,6 +3282,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - 2026-04-17: Install and authorize the CodeRabbit GitHub App on this repository, then calibrate against 3-5 real PRs before enabling `request_changes_workflow` or any `error`-mode pre-merge checks. Status: pending operator action. Source: current CodeRabbit integration task. by: Codex. linear: self-contained: operator-side activation needed after repo-local `.coderabbit.yaml` landing.
 - 2026-04-17: Run a small `plugin-eval` comparison across baseline, `CodeRabbit`, and the `Autopilot` / `Cavekit` / `HOTL` stack on 3-5 real bounded tasks before promoting any of them from "available" to "proven". Status: deferred until Trevor wants evidence-backed plugin adoption. Source: `GIL-54` plugin research and operator-cheat-sheet landing. by: Codex. linear: self-contained until selected.
 - 2026-04-17: Revisit `Session Orchestrator` and `Agent Message Queue` only after a real implementation repo exposes multi-session or cross-agent handoff pain that the current queue/supervisor model cannot handle cleanly. Status: deferred until Phase 2+ implementation work surfaces that pressure. Source: `GIL-54` plugin research and operator-cheat-sheet landing. by: Codex. linear: self-contained until selected.
+- 2026-04-17: If Trevor widens the Codex app surface beyond the current enabled baseline, start with `Slack`, `Notion`, `Google Drive`, `Jam`, `Stripe`, `Amplitude`, `Neon Postgres`, `Help Scout`, and `Readwise`; treat `Sentry` as already enabled locally but still awaiting auth plus first real project use, and treat `Attio` and `Scite` as the next conditional adds if CRM clutter or research-heavy work becomes real. Status: deferred until Trevor wants app-surface expansion. Source: `GIL-63` marketplace-app evaluation memo, later corrected by the Brooks Lint + Sentry setup-sync follow-up. by: Codex. linear: self-contained until selected.
 
 ## Active Branch Ledger
 Keep one entry per non-trivial active branch so any chat can see why it exists, which chat opened or resumed it, what work is active, what must happen before merge or closeout, and whether the branch should be deleted or intentionally retained.
@@ -2077,36 +3296,14 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-### `codex/gil23-benchmarks`
-
-- source chat: 2026-04-17 thread where Trevor required work to stay strictly inside this repo until the autonomous system is finished end to end
-- last refreshed by chat: current `GIL-23` landing thread on 2026-04-17
-- purpose: land the first control-plane-owned benchmark run-contract suite and its enforcing test under `GIL-23`
-- merge expectation: merge or cherry-pick both `GIL-23` commits after Trevor/Cowork review so canonical history keeps the fixture suite plus its durable closeout record together
-- exit checklist:
-  - [ ] validate `GIL-23` closeout evidence in `todo.md`
-  - [x] push `codex/gil23-benchmarks`
-  - [x] post the `GIL-23` completion note in Linear
-  - [ ] merge or cherry-pick the landed commits onto the canonical branch
-  - [ ] remove `/Users/gillettes/Coding Projects/autonomous-coding-agent-wt-gil23` after landing
-- delete when: after the `GIL-23` commits land on the canonical branch and the attached worktree is removed
-
-### `codex/gil29-ui-verifier`
-
-- source chat: 2026-04-17 continuation after Trevor corrected that work should stay in this repo until the autonomous system itself is finished enough to test other apps
-- last refreshed by chat: current follow-up runtime audit thread on 2026-04-17
-- purpose: land the app-launch/UI-verifier runtime slice under `GIL-29`, the first Phase 3 audit repairs under `GIL-59` through `GIL-62`, and the follow-up runtime-audit trail under `GIL-68` with new repair queue items `GIL-69` through `GIL-71`
-- merge expectation: merge or cherry-pick the `GIL-29` feature and closeout commits together after Trevor/Cowork review so the runtime slice and its durable record stay aligned
-- exit checklist:
-  - [ ] validate `GIL-29` closeout evidence in `todo.md`
-  - [x] push `codex/gil29-ui-verifier`
-  - [x] post the `GIL-29` completion note in Linear
-  - [ ] merge or cherry-pick the landed commits onto the canonical branch
-  - [ ] remove `/Users/gillettes/Coding Projects/autonomous-coding-agent-wt-gil23` after landing
-- delete when: after the `GIL-29` commits land on the canonical branch and the attached worktree is removed
+- Legacy active branches still need backfill here: `codex/gil29-ui-verifier`. Use `git branch -vv` plus the linked `GIL-*` items as the temporary source of truth until its ledger entry is added.
 
 ## Branch History
-- No closed branch entries recorded yet.
+- `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
+- `codex/coderabbit-flow-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` contains branch tip `44ba5ed`; local and remote refs deleted in this cleanup task | cleanup: local and remote branches deleted
+- `codex/marcopolo-not-needed-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `0d5f115` merged into `main` in this cleanup task | cleanup: local and remote branches deleted; attached worktree removed
+- `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `3c42dea` merged into `main` in this cleanup task | cleanup: local and remote branches deleted
+- `codex/gil23-benchmarks` | close date: 2026-04-19 | outcome: superseded | merge target: n/a | resulting reference: unique commits `408b0b0` and `1883fdb` already present on `codex/gil29-ui-verifier`; branch closed instead of merged | cleanup: local and remote branches deleted
 
 ## Audit Record Convention
 - Record each audit, ship-check, or substantial verification-driven review in an easy-to-find project audit log entry.
@@ -2136,8 +3333,7 @@ Each active branch entry should include:
 
 ## Audit Record Log
 If it's not here, it isn't remembered.
-- 2026-04-17 | type: targeted runtime audit | scope: repaired Phase 3 supervisor runtime after the `GIL-59` through `GIL-62` landings, with emphasis on stop-condition enforcement, run-contract integrity, and whether the new UI defect-packet fan-out survives into final reporting | repo fingerprint: `codex/gil29-ui-verifier` @ `0431a76` before this audit-record landing | prior audit reference: 2026-04-17 `Audit Record Log` entry for `GIL-58`; the repo state materially differs because the `GIL-59` through `GIL-62` repairs landed as `4088f80` plus durable closeout backfill `0431a76` | source/work chat: current "Fully audit your work and think critically..." thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat; findings-only with follow-up issues opened instead of immediate implementation | separate follow-up audit: yes — Claude Code should line-by-line audit the eventual `GIL-69` through `GIL-71` repair patches before Phase 4 resumes | commands/evidence: `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_main tests.test_strategy_simple`; `python3 -m unittest discover -s tests -p 'test_*.py'`; direct `nl -ba` rereads of `supervisor/main.py`, `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`, `supervisor/reports.py`, `supervisor/contracts.py`, `supervisor/policy.py`, and the related tests/docs; targeted `execute_run` reproduction showing a run with `max_iterations = 1` still completed after 2 builder turns; targeted `execute_run` reproduction showing a mismatched `run_contract.repo_path` still completed against the passed repo root; targeted `UIVerifier` + `build_readiness_report` reproduction showing two distinct defect-packet fingerprints while `command_results` and `report.failures` preserved only the first fingerprint | tested: focused repaired Phase 3 suites; full supervisor suite; stop-condition enforcement for iteration budgets; repo-path integrity between run contract and runtime inputs; multi-defect UI fingerprint propagation into command results and final reports | not tested: a real external target-repo app, real Playwright browser execution, runtime enforcement of declared `env.required_vars`, or queue-mode webhook intake because those remain outside this repo-local findings pass | findings opened or updated: `GIL-69`, `GIL-70`, `GIL-71`; `GIL-68` tracks the audit itself | fixes closed / verified: none — this pass intentionally stops at audit + durable tracking | declined / deferred findings: missing `env.required_vars` enforcement remains `needs more evidence` rather than a tracked defect because the architecture clearly requires declaration of env requirements but this pass did not find equally explicit runtime-block language; no other confirmed defect survived the challenge pass beyond the three opened issues | better-path challenge: yes — do not resume `GIL-30` just because the first repair batch is green; the better path is to close the still-open control-plane gaps first, because a supervisor that ignores budgets, ignores run-contract repo identity, or drops part of a multi-defect failure set is still not trustworthy enough for the next layer of orchestration | references: `GIL-68`; `GIL-69`; `GIL-70`; `GIL-71`; `Work Record Log` 2026-04-17 `GIL-68`; `Test Evidence Log` 2026-04-17 follow-up runtime audit entry | by: Codex | linear: GIL-68
-- 2026-04-17 | type: targeted runtime audit | scope: landed Phase 3 supervisor runtime after `GIL-29`, with emphasis on retry-loop correctness, app lifecycle truthfulness, defect-packet fidelity, and final-report auditability | repo fingerprint: `codex/gil29-ui-verifier` @ `ebd909f` before audit-record landing | prior audit reference: 2026-04-17 `Work Record Log` self-audit for `GIL-29`; no separate post-landing runtime audit had been recorded yet | source/work chat: current "run a thorough audit on your code" thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat; findings-only with follow-up issues opened instead of immediate repair | separate follow-up audit: yes — Claude Code should line-by-line audit the corrective patches once `GIL-59` through `GIL-62` land | commands/evidence: `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_strategy_simple tests.test_main`; direct `nl -ba` rereads of `supervisor/app_supervisor.py`, `supervisor/ui_verifier.py`, `supervisor/main.py`, `supervisor/builder_adapter.py`, `supervisor/verifier.py`, `supervisor/reports.py`, and the related tests; `rg -n "app_down|repair_attempt|changed_files|defect packets|ui_smoke"` across `canonical-architecture.md`, `IMPLEMENTATION-PLAN.md`, `RULES.md`, `schemas/`, and `supervisor/`; targeted reproductions showing (1) one deterministic failure plus one app-launch failure blocks after only two builder turns, (2) early app crash still records `app_up` as exit `0`, (3) multi-turn final report keeps only the last changed file, and (4) multi-failure `ui_smoke` output still yields one defect packet with only the first `ui_check` as expected behavior | tested: focused Phase 3 runtime suite; retry-budget coupling across failure domains; early app-crash reporting path; cumulative changed-file reporting in multi-turn runs; defect-packet collapse for multi-failure `ui_smoke` output | not tested: a real external target-repo app, real Playwright browser execution, a repo that requires a custom `commands.app_down` shutdown command, or network-artifact capture because those remain outside this repo-local findings pass | findings opened or updated: `GIL-59`, `GIL-60`, `GIL-61`, `GIL-62` | fixes closed / verified: none — this pass intentionally stops at audit + durable tracking | declined / deferred findings: network-artifact capture and failure-type classification nuance were left out of the opened findings because the current docs still mark parts of that surface as unsettled and this pass did not gather enough evidence to turn them into concrete defects | better-path challenge: yes — pause phase expansion and fix the runtime's own control-flow/reporting faults first; a green focused suite is not enough evidence when adversarial reproductions still show retry-budget coupling, misleading launch results, dropped changed-file history, and collapsed defect packets | references: `GIL-58`; `GIL-59`; `GIL-60`; `GIL-61`; `GIL-62`; `Work Record Log` 2026-04-17 `GIL-58` | by: Codex | linear: GIL-58
+- 2026-04-17 | type: full-repo audit pass 2 | scope: four parallel subagent-driven audit streams — Linear-coverage invariant, cross-doc coherence / Ripple Check, Continuity (Work Record completeness), and `supervisor/` line-level code audit — across branch `codex/coderabbit-flow-docs` range `21b8898..7258c90` | repo fingerprint: `codex/coderabbit-flow-docs` @ `7258c90` before orchestrator-scope cleanup commit | prior audit reference: 2026-04-17 first self-contained full-repo audit recorded earlier in the Work Record Log under `2026-04-17 | self-contained full-repo audit — ledger backfill and GIL-55 status correction` | source/work chat: current Cowork orchestrator session resumed after context compaction | audit chat: four parallel general-purpose subagents dispatched from this session (Linear coverage, Ripple Check, Continuity, supervisor code) | implementation chat or disposition chat: same session (orchestrator-scope cleanup landed directly) | separate follow-up audit: yes — the 2 P1 Ripple misses and the P1 Python-floor code finding need Codex prompts; ChatGPT Pro phase-exit audit remains queued per ADR-0004 | commands/evidence: `git log --oneline 21b8898..HEAD` (60 commits); `git log --oneline --since="2026-04-17"`; `mcp__linear__list_issues` team=GIL with sliced snapshot for the 4 missing ledger IDs; `mcp__linear__get_issue` for GIL-68/69/70/71; per-subagent: `git show --stat <sha>` per commit, full read of `COHERENCE.md` Dependency Map, `grep -l "/Users/gillettes"` across active docs, `grep -n "^## Repo Principles" AGENTS.project.md`, `ls SCOPING-three-pillar-principles.md`, `grep -n "^- AGENTS.md$" IMPLEMENTATION-PLAN.md`, full reads of `supervisor/queue_intake.py`, `supervisor/contracts.py`, `supervisor/workspace.py`, `supervisor/policy.py`, `supervisor/worktree_manager.py`, `supervisor/verifier.py`, `tests/test_queue_intake.py`, `tests/test_contracts.py`, `tests/test_policy.py`, `tests/test_worktree.py`; `for sha in 475bd06 36e881b … a3cacc1; do grep -c $sha todo.md; done` (12 zero-hits confirmed) | tested: Linear-coverage invariant against live team state; COHERENCE.md Dependency Map against 60-commit range; CONTINUITY.md Work Record format compliance; GIL-72 push-before-AI-Audit on all 4 sub-criteria; scope / single-writer / deny-list invariants and their test coverage; GIL-12 / GIL-44 open-finding persistence; audit watermark staleness | not tested: ChatGPT Pro governance-alignment angle (queued to ADR-0004 cadence, not this pass); live runtime push/verify of GIL-72 implementation on production workspace; code fixes for the P1/P2 findings (findings-only, escalated to Codex prompts) | findings opened or updated: 0 new Linear issues opened; already-tracked findings confirmed live — GIL-12 (portability), GIL-44 (3 coherence), GIL-66 (Python + jsonschema floor — matches the P1 code finding), GIL-67 (integration tests for 3 invariants) | fixes closed / verified: 4 ledger entries backfilled for `GIL-68`/`GIL-69`/`GIL-70`/`GIL-71`; 12-commit Continuity roll-up added via consolidated Cowork Work Record; Claude Code watermark advanced `21b8898 → 7258c90`; Cowork watermark advanced `a28f3ad → 7258c90`; GIL-72 implementation confirmed PASS on push + snapshot revalidation + push-failure routing + durable blocker-json closeout | declined / deferred findings: 2 P1 Ripple misses (`42847da` → `LOGIC.md`; `9c2a861` → `PROJECT_INTENT.md`) deferred into a forthcoming Codex prompt rather than landed directly by orchestrator, because same-commit companion repair requires substantive doc edits outside orchestrator scope per `CLAUDE.md § Orchestrator Scope`; P1 Python-floor code finding deferred into existing `GIL-66` queue instead of landing a new pyproject.toml in this audit commit; P2 bare `except` at `queue_intake.py:525` deferred (intentional per implementing agent's Self-audit note, narrowing is P3) | better-path challenge: yes — prefer parallel subagent dispatch (4 streams in one round) over sequential audit when the angles are independent, because it keeps the main-session context small and lets each angle be graded against its own rubric instead of blending verdicts; prefer orchestrator-scope cleanup landing immediately once findings are confirmed so the Continuity/Linear-coverage gaps do not widen between audit pass and next session | references: `Work Record Log` 2026-04-17 `full-repo audit pass 2` entry; `GIL-68`; `GIL-69`; `GIL-70`; `GIL-71`; `GIL-12`; `GIL-44`; `GIL-66`; `GIL-67` | by: Cowork | linear: self-contained: orchestrator-scope audit-and-backfill pass; individually-tracked live issues retained their own GIL-N records
 - 2026-04-16 | type: targeted repair verification | scope: close the remaining post-rollout follow-ups (`GIL-40`, `GIL-41`, `GIL-43`) across the live `.codex` checkout, the canonical `job-media-hub` repo, and the portfolio remediation toolchain | repo fingerprint: main @ `bd404cd` before coordinating closeout commit | prior audit reference: 2026-04-16 full audit entry opening `GIL-40` and `GIL-41`; 2026-04-16 targeted audit correction entry opening `GIL-43` | source/work chat: current "fix those things" thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat | separate follow-up audit: yes — later Claude review should verify the coordinator log, the external repo landings, and the preserved `.codex` recovery refs from this repair | commands/evidence: `pnpm test --filter @jmh/api -- --test-name-pattern "nextCursor null"`, `pnpm test`, and `pnpm build` in canonical `job-media-hub`; `bash -n` on the modified `.codex` scripts; direct remediation/rollout smoke reproductions; `CODEX_HOME=/Users/gillettes/Downloads/codex-gil40-gil43 ./scripts/validate-global-policy-stack.sh`; live `.codex` `git fetch origin`, `git status -sb`, `git log --oneline --decorate -5`, `git branch --list 'codex/gil40-pre-normalize'`, and `git stash list --max-count=5`; coordinating repo `rg -n "^## (Active Next Steps|Linear Issue Ledger|Completed|Work Record Log|Audit Record Log|Test Evidence Log)" todo.md`, `rg -n "GIL-40|GIL-41|GIL-43|GIL-40 \\+ GIL-41 \\+ GIL-43|linear:" todo.md`, `nl -ba todo.md | sed -n '100,230p'`, `nl -ba todo.md | sed -n '742,830p'`, and `git diff --check` | tested: canonical `job-media-hub` verification independence from ambient `DATABASE_URL`; `.codex` rollout-record enforcement and validation-stack health; runtime-churn ignore coverage; live `.codex` branch normalization onto published `origin/main` with preserved recovery refs; coordinating repo durable-trail integrity for the closeout entries | not tested: replay of the quarantined `.codex` stashes, because that would intentionally reintroduce pre-normalize local/runtime state into the clean checkout | findings opened or updated: 0 | fixes closed / verified: `GIL-41` landed on canonical `job-media-hub` `main` as `fcd065b`; `GIL-43` landed in `.codex` as `438bc3e1`; `GIL-40` closed operationally by normalizing the live `.codex` checkout to `438bc3e1` with backup branch/stashes preserved; the coordinating repo log now records those repairs in the correct sections with the required field shape | declined / deferred findings: none — this pass closes the previously open repair items and leaves only later audit of the closeout trail itself | better-path challenge: yes — publish the authoritative toolchain fix before cleaning the live operator checkout, and preserve the dirty pre-normalize state in explicit backup refs instead of masking the cleanup behind a destructive reset | references: `GIL-40`; `GIL-41`; `GIL-43`; `Work Record Log` 2026-04-16 `GIL-40 + GIL-41 + GIL-43`; `job-media-hub` `fcd065b`; `.codex` `438bc3e1` | by: Codex | linear: self-contained: verification record for already-tracked `GIL-40`, `GIL-41`, and `GIL-43`
 - 2026-04-16 | type: targeted governance audit | scope: unattended queue/provenance durable-trail audit — verify the closeout evidence path from the repo and Linear angles, repair remaining record drift, and file the automation follow-up needed to keep it from regressing | repo fingerprint: main @ `8cf198e` before `GIL-45` landing commit | prior audit reference: 2026-04-16 `GIL-42` external-guidance queue upgrade audit; 2026-04-16 `GIL-37` targeted audit correction; 2026-04-16 `GIL-33` and `GIL-38` follow-up repairs | source/work chat: current multi-angle queue/process audit thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat | separate follow-up audit: yes — `GIL-35` remains the independent Claude Code queue audit lane, and `GIL-46` is now the automation/enforcement follow-up so future closeouts cannot regress this way | commands/evidence: direct rereads of `AGENTS.project.md`, `CONTINUITY.md`, `LINEAR.md`, `PROMPTS.md`, `RULES.md`, and `todo.md`; `git status -sb`; `git log --oneline --max-count=20`; `git show --stat` for `69aa003`, `14407f8`, `5c076ce`, `7987d4c`, `d185e23`, `0075d31`, `b4adccb`, `9c2a861`, `bb97c79`, `8cf198e`, `1d82eab`, `ce11891`, and `8425776`; targeted `git log -S` lookups for placeholder `Completed` / `led to:` strings; prior Linear thread review showing the existing `GIL-42` completion trail mixed the main landing with later `GIL-37` audit-correction commits | tested: closeout-evidence rule coherence across the active governance docs; repo-side SHA backfill accuracy for recent queue/provenance landings; missing durable-record detection for recent governance follow-ups; repo-versus-Linear trail consistency for `GIL-42` main landing versus later `GIL-37` correction work | not tested: automated enforcement of the new rule, because that is the explicit follow-up in `GIL-46`; independent Claude Code review, which remains `GIL-35` | findings opened or updated: 3 | fixes closed / verified: closeout-evidence scoping is now explicit across the active rule surfaces; recent placeholder SHAs and `led to:` lines are backfilled to real commits; missing `GIL-45` / `GIL-46` repo coverage is repaired; unlogged `14407f8` is now durably explained; the incorrect `GIL-42` Linear attribution is called out for correction in closeout | declined / deferred findings: the runtime enforcement for this evidence path is deferred into `GIL-46` instead of being hand-waved as already solved; the independent queue-family audit remains `GIL-35` | better-path challenge: yes — do not audit only the contract prose; audit the evidence path other AIs will actually read, because a queue is only as trustworthy as its durable record of what landed and why | references: `GIL-45`; `GIL-46`; `GIL-35`; `GIL-42`; `Work Record Log` 2026-04-16 `GIL-45` | by: Codex | linear: GIL-45
 - 2026-04-16 | type: targeted audit correction | scope: verify the third-pass rollout-record backfill from the current-working-tree angle and correct any overclaim in the coordinating repo's own audit trail | repo fingerprint: main @ current working tree before `GIL-37` audit-correction closeout | prior audit reference: 2026-04-16 full audit entries for `GIL-37` second pass and third-pass repair | source/work chat: current "look at it from different angles and find what was missed" thread | audit chat: same chat, self-check only | implementation chat or disposition chat: same chat | separate follow-up audit: no — this entry is the correction record | commands/evidence: 20-repo matrix check comparing current checkout and `origin/main` marker presence for `GIL-37`; placeholder scan for `No work records recorded yet.` and `No live issue entries recorded yet.` across all touched repo `todo.md` files; `git status -sb` and `git log --oneline --decorate --graph --max-count=12 --all` in `/Users/gillettes/Coding Projects/Taxes`; `git fetch origin` plus `git show origin/main:todo.md` in `/Users/gillettes/Coding Projects/Pictures Hub/job-media-hub`; `rg -n '^Linear:|^linear:' todo.md`; repo-wide stale-terminology grep in this repo | tested: current-checkout truth versus published truth for all touched repos; stale remote-ref diagnosis in the duplicate `Pictures Hub/job-media-hub` checkout; current repo Work Record field-shape accuracy; live-doc stale-terminology cleanliness | not tested: forced rewrite of the dirty live `Taxes` checkout, because that would trample unrelated operator reconciliation edits | findings opened or updated: 1 | fixes closed / verified: confirmed published `origin/main` is repaired across all audited canonical repos; confirmed every directly remediated live checkout now carries the local rollout record; corrected the coordinating repo's uncommitted Work Record overclaim and normalized the field name to `linear:` | declined / deferred findings: live `Taxes` current checkout left as `no-action: operator-owned dirty working tree; authoritative published state already repaired` | better-path challenge: yes — do not let one clone or one grep stand in for both published truth and operator-working-tree truth, and do not let the coordinator's own durable log claim a cleaner result than the matrix actually proved | references: `GIL-37`; `GIL-43`; `Work Record Log` 2026-04-16 `GIL-37 third-pass audit repair` | by: Codex | linear: GIL-37
@@ -2174,11 +3370,16 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
-- 2026-04-17 | command(s): `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_main tests.test_strategy_simple`; `python3 -m unittest discover -s tests -p 'test_*.py'`; targeted Python reproduction proving `execute_run` still completes after 2 builder turns with `max_iterations = 1`; targeted Python reproduction proving `execute_run` still completes when `run_contract.repo_path` disagrees with the repo root passed to the runtime; targeted Python reproduction proving `UIVerifier` emits 2 defect-packet fingerprints while `summary.command_results[0].failure_fingerprint` and `build_readiness_report(...).failures` preserve only the first one | result: pass for the focused repaired Phase 3 suite (`21` tests) and the full supervisor suite (`79` tests); fail for the three new targeted reproductions exactly as the audit expected: budget exhaustion is still not enforced in the main loop, repo-path mismatches are accepted silently, and multi-defect UI reporting still drops all but the first fingerprint at the summary/report layer | log/PR reference: `Work Record Log` 2026-04-17 `GIL-68`; `Audit Record Log` 2026-04-17 follow-up runtime audit | by: Codex | linear: GIL-68
-- 2026-04-17 | command(s): `python3 -m unittest tests.test_app_supervisor.AppSupervisorTests.test_stop_runs_app_down_command_before_fallback_shutdown tests.test_app_supervisor.AppSupervisorTests.test_launch_failure_records_actual_app_up_exit_code_when_process_crashes_early`; `python3 -m unittest tests.test_ui_verifier.UIVerifierTests.test_ui_failure_emits_packet_per_failure_line`; `python3 -m unittest tests.test_main.SupervisorMainTests.test_execute_run_allows_app_launch_repair_after_local_verify_retry tests.test_main.SupervisorMainTests.test_execute_run_allows_ui_repair_after_local_verify_retry tests.test_main.SupervisorMainTests.test_execute_run_reports_cumulative_changed_files_across_builder_turns`; `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_main tests.test_strategy_simple`; `python3 -m unittest discover -s tests -p 'test_*.py'`; `git diff --check -- supervisor/app_supervisor.py supervisor/ui_verifier.py supervisor/main.py tests/test_app_supervisor.py tests/test_ui_verifier.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the four audit regressions moved from red to green, the focused Phase 3 suites pass with `21` tests, the broader supervisor suite passes with `79` tests, and the full landing patch is whitespace-clean | log/PR reference: `4088f80`; `Work Record Log` 2026-04-17 `GIL-59 + GIL-60 + GIL-61 + GIL-62` | by: Codex | linear: GIL-59; GIL-60; GIL-61; GIL-62
-- 2026-04-17 | command(s): `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_strategy_simple tests.test_main`; targeted Python reproductions for (1) deterministic-failure then app-launch-failure retry coupling, (2) early app crash reporting, (3) multi-turn `changed_files` accumulation, and (4) multi-failure `ui_smoke` defect-packet collapse; `rg -n "app_down|repair_attempt|changed_files|defect packets|ui_smoke"` across the runtime and source-of-truth docs | result: pass for the focused runtime suite (`15` tests) and fail for the four targeted reproductions in exactly the way the audit expected: the shared retry budget blocks Phase 3 too early, early app crash still records `app_up` as exit `0`, final reports keep only the last turn's changed files, and `ui_smoke` failures collapse into one defect packet with only the first expected behavior line preserved | log/PR reference: `Work Record Log` 2026-04-17 `GIL-58`; `Audit Record Log` 2026-04-17 targeted runtime audit | by: Codex | linear: GIL-58
-- 2026-04-17 | command(s): `python3 -m unittest tests.test_app_supervisor tests.test_ui_verifier tests.test_strategy_simple tests.test_main`; `python3 -m unittest discover -s tests -p 'test_*.py'`; `git diff --check -- CHANGELOG.md supervisor/app_supervisor.py supervisor/ui_verifier.py supervisor/main.py supervisor/strategy_simple.py tests/test_app_supervisor.py tests/test_ui_verifier.py tests/test_main.py tests/test_strategy_simple.py` | result: pass — the new app-launch and UI-verifier seams pass their focused tests, the full supervisor suite now passes with the Phase 3 runtime slice in place (`73` tests), and the executable patch is whitespace-clean | log/PR reference: `9f1b693`; `Work Record Log` 2026-04-17 `GIL-29` | by: Codex | linear: GIL-29
-- 2026-04-17 | command(s): `python3 -m unittest tests.test_benchmark_fixtures`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_fingerprints tests.test_verifier tests.test_reports tests.test_builder_adapter tests.test_strategy_simple tests.test_main tests.test_closeout_evidence tests.test_benchmark_fixtures`; `git diff --check -- CHANGELOG.md fixtures/README.md fixtures/*.json tests/test_benchmark_fixtures.py` | result: pass — the new benchmark-fixture suite enforces the exact ten-fixture coverage set, the full supervisor suite still passes with the new test included, and the fixture landing patch is whitespace-clean | log/PR reference: `408b0b0`; `Work Record Log` 2026-04-17 `GIL-23` | by: Codex | linear: GIL-23
+- 2026-04-17 | command(s): `bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`; `git diff --check` in `/Users/gillettes/.codex`; `git diff --check` in `/Users/gillettes/Coding Projects/Autonomous Coding Agent` | result: pass — the global policy stack validated, both repos were whitespace-clean after the branch-policy rewrite, and the updated branch-policy surfaces agreed on task-branch default, plugin mirror requirement, and branch-ledger fields | log/PR reference: `Work Record Log` 2026-04-17 `GIL-55` | by: Codex | linear: GIL-55
+- 2026-04-17 | command(s): `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md` | result: pass — the canonical plugin memo, operator cheat sheet, append-only intake log, and durable repo record now all carry the same "MarcoPolo not needed here" boundary, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake.QueueDrainRunnerTests`; `python3 -m unittest discover -s tests`; `git diff --check` | result: pass — the queue-drain regressions for halt-on-push-failure, block-on-manual-state-change, and no-op landing commits all pass in the focused suite, the full discovered Python test suite stays green, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained queue-review repair | by: Codex | linear: self-contained: queue review-finding repair on `codex/audit`
+- 2026-04-17 | command(s): `npm ci && pnpm bootstrap:convex:frontend`; `pnpm test`; `pnpm preview --host 127.0.0.1 --port 4173 --strictPort`; `curl -fsS http://127.0.0.1:4173/login`; `APP_URL=http://127.0.0.1:4173 bun run --bun scripts/smoke-public.ts`; `codex --version`; `codex login status`; `claude --version`; `claude auth status`; `python3 --version`; `npx playwright --version`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- todo.md .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md` | result: pass — in a disposable fresh `bible-ai` clone the contract-first path passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state; local `codex` / `claude` / `python3` / `npx playwright` readiness checks all passed; the updated ACA autopilot surfaces still validate; and the final patch is whitespace-clean | log/PR reference: `bible-ai` `c7760dab553a843a3be413c00bd148c6db7ba3be`; `bible-ai` `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; `Work Record Log` 2026-04-17 `GIL-20 + GIL-21 + GIL-22 + GIL-24` | by: Codex | linear: GIL-20 + GIL-21 + GIL-22 + GIL-24
+- 2026-04-17 | command(s): `python3 -m json.tool .codex-agent/state.json`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md .codex-agent/context-bundle.md .codex-agent/state.json .codex-agent/approval-snapshot.json todo.md` | result: pass — the local Autopilot state is valid in the locked execution phase, the approved `Optimal` route is frozen, `bible-ai` is recorded as the first implementation repo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-64` | by: Codex | linear: GIL-64
+- 2026-04-17 | command(s): `rg -n "## Current accessible app audit|### Directly usable or enabled now|Build Web Apps|Computer Use|Jam|Stripe|MarcoPolo" docs/codex-app-marketplace-evaluations.md docs/codex-april-16-2026-impact.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-app-marketplace-evaluations.md todo.md` | result: pass — the repo now has one durable current-access audit section, the missing plugin stances for `Build Web Apps` and `Computer Use` are present in the canonical plugin ledger, the searchable-connector gap surfaces are named explicitly in the app memo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
+- 2026-04-17 | command(s): `python3 -c "import yaml, json, urllib.request, ssl, jsonschema; ..."` strict-validating `.coderabbit.yaml` against the resolved `#/definitions/schema` at `https://coderabbit.ai/integrations/schema.v2.json` (including the new `reviews.slop_detection` block); `rg -n "slop_detection|Defaults we accept|reviews.tools|pre_merge_checks|finishing_touches|code_generation|issue_enrichment" .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md`; `git diff --check -- .coderabbit.yaml docs/coderabbit-review-settings.md docs/plugin-intake.md todo.md` | result: pass — the updated CodeRabbit config validates against the live schema, the companion doc now encodes `slop_detection` as repo-supported and explicitly names the five unconfigured schema surfaces under `Defaults we accept`, the intake log carries the audit follow-up entry, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
+- 2026-04-17 | command(s): `rg -n "Slack|Notion|Google Drive|Sentry|Jam|Stripe|Amplitude|Neon Postgres|Help Scout|Readwise|Attio|Scite" docs/codex-app-marketplace-evaluations.md`; `rg -n "codex-app-marketplace-evaluations.md" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-app-marketplace-evaluations.md README.md GUIDE.md todo.md` | result: pass — the new marketplace-app memo contains the intended high-leverage shortlist and detailed app judgments, both discovery docs point to it, the durable repo trail references it, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-63` | by: Codex | linear: GIL-63
+- 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake tests.test_contracts tests.test_verifier tests.test_main`; `git diff --check -- supervisor/contracts.py schemas/run-contract.schema.json supervisor/verifier.py supervisor/queue_intake.py supervisor/main.py tests/test_queue_intake.py QUEUE-RUNS.md LINEAR.md CHANGELOG.md todo.md` | result: pass — the new queue eligibility, normalization, manual drain, and verification-pack behavior are covered by the targeted supervisor suite, the pre-existing single-run path still passes, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
+- 2026-04-17 | command(s): `rg -n "Autopilot|HOTL|Cavekit|gillettes-local-plugins|ck" docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md`; `git diff --check -- docs/codex-workflow-plugin-setup.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md README.md GUIDE.md todo.md` | result: pass — the new setup companion, canonical ledger, operator cheat sheet, intake log, and discovery surfaces all reflect the installed-and-enabled state for `Autopilot`, `HOTL`, and `Cavekit`, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `python3 -m unittest tests.test_contracts tests.test_policy tests.test_run_store tests.test_worktree tests.test_state_machine tests.test_actions tests.test_closeout_evidence tests.test_builder_adapter tests.test_strategy_simple tests.test_main`; `git diff --check -- supervisor/builder_adapter.py supervisor/main.py supervisor/strategy_simple.py tests/test_builder_adapter.py tests/test_strategy_simple.py tests/test_main.py CHANGELOG.md todo.md` | result: pass — the new builder adapter, simple strategy, and main loop pass their focused tests; the broader supervisor suite still passes with the builder loop wired on top; and the final patch is whitespace-clean | log/PR reference: `bea68f6`; `Work Record Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-28
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_actions tests.test_strategy_schema`; `rg -n "checkpoint_candidate|rollback_to_checkpoint|record_failure_signature" LOGIC.md RULES.md schemas/strategy-decision.schema.json`; `git diff --check -- supervisor/actions.py schemas/strategy-decision.schema.json RULES.md LOGIC.md tests/test_actions.py tests/test_strategy_schema.py design-history/ADR-0003-phase-1-architecture-checkpoint.md design-history/README.md todo.md` | result: pass — the action validator and strategy schema agree on the live payload contract, the stale checkpoint/failure-signature strategy actions are gone from the active docs/schema boundary, and the closeout patch is whitespace-clean | log/PR reference: `95a6271`; `Work Record Log` 2026-04-17 `GIL-9` | by: Codex | linear: GIL-9
 - 2026-04-17 | command(s): `rg -n "One-owner rule|Default split|Autopilot|HOTL|Cavekit|CodeRabbit|plugin-eval|Brooks Lint|Session Orchestrator|Agent Message Queue|Registry Broker|Claude Code for Codex|ECC" docs/codex-plugin-operator-cheatsheet.md docs/codex-april-16-2026-impact.md`; `rg -n "codex-plugin-operator-cheatsheet.md|Plugin decision ledger|CodeRabbit|plugin-eval" README.md GUIDE.md todo.md`; `git diff --check -- docs/codex-plugin-operator-cheatsheet.md docs/codex-april-16-2026-impact.md README.md GUIDE.md todo.md` | result: pass — the new cheat sheet contains the intended role split and candidate shortlist, the discovery docs point to both the operator guide and the decision ledger, and the patch is whitespace-clean. `supervisor.closeout_evidence validate` was intentionally not run pre-commit because `GIL-54` does not have a final landed SHA yet. | log/PR reference: `Work Record Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
@@ -2234,7 +3435,10 @@ If it's not here, it isn't remembered.
 | Phase 1 mid-build architecture checkpoint | Paired audit: Pro (strategic) + Claude Code (line-by-line against schemas, action set, and invariants) | After subphase 1.2 lands, before 1.3 begins | Both auditors return clean; tiebreaker per ADR-0002 if they disagree |
 
 - 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml` | result: pass — the new CodeRabbit config parses, validates against the current live CodeRabbit schema, and is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
+- 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.brooks-lint.yaml') ... PY`; `rg -n '\[plugins\."brooks-lint@codex-local-plugins"\]|\[plugins\."sentry@openai-curated"\]' ~/.codex/config.toml`; `git diff --check -- .gitignore .brooks-lint.yaml README.md GUIDE.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/codex-workflow-plugin-setup.md docs/codex-app-marketplace-evaluations.md docs/plugin-intake.md todo.md`; `test -f package.json && echo package.json-present || echo no-package-json` | result: pass — `.brooks-lint.yaml` parses as the intended boundary-only config, the operator config confirms both `brooks-lint` and `sentry` are enabled, the full doc/config patch is whitespace-clean, and this repo still has no `package.json`, so no `pnpm check`/`pnpm test`/`pnpm build` surface exists for this docs/config task | log/PR reference: `Work Record Log` 2026-04-17 self-contained Brooks Lint + Sentry setup sync | by: Codex | linear: self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup
 - 2026-04-17 | command(s): `git diff --check -- README.md GUIDE.md todo.md`; direct reread of `README.md`; direct reread of `GUIDE.md` | result: pass — the repo discovery docs now point to `.coderabbit.yaml`, the new note stays minimal and non-authoritative, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
+- 2026-04-17 | command(s): `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/codex-april-16-2026-impact.md`; direct reread of `docs/codex-plugin-operator-cheatsheet.md`; direct reread of `docs/plugin-intake.md`; direct reread of `README.md`; direct reread of `GUIDE.md`; direct reread of `.coderabbit.yaml` | result: pass — the Rabbit trial wording is now consistent across the canonical memo and operator guide, the comparison logic is preserved in the append-only intake log, the patch is whitespace-clean, and the existing discovery/config surfaces still match without further edits | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
+- 2026-04-17 | command(s): `python3 - <<'PY' ... yaml.safe_load('.coderabbit.yaml') ... PY`; `python3 - <<'PY' ... jsonschema.validate(data, schema) ... PY`; `git diff --check -- .coderabbit.yaml README.md GUIDE.md docs/coderabbit-review-settings.md docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; direct reread of `docs/coderabbit-review-settings.md` | result: pass — the expanded CodeRabbit config parses, validates against the current live schema, the settings doc is indexed from the discovery and plugin-governance surfaces, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
 
 ## Feedback Decision Log
 If it's not here, it isn't remembered.
@@ -2253,7 +3457,10 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
-- 2026-04-17 | feedback source: Trevor correction after the premature target-repo detour | feedback summary: do not work in other repos yet; complete only work that directly improves this repository until the autonomous system itself is finished enough to test multiple other apps | evaluation chat: current repo-local runtime sequencing thread | reasoning response: accepted. The repo-local runtime slices remain the execution-ready path, so `GIL-29`, `GIL-30`, and `GIL-31` stay in scope here while target-repo contract/proof work (`GIL-20` through `GIL-22`) is explicitly deferred by operator direction instead of being treated as the next mechanical queue item. `GIL-23` remained valid because it strengthens this repository directly. | decision status: accepted | implementation/disposition chat: current repo-local runtime sequencing thread | linked branch / audit / suggestion / test evidence: `todo.md` `Active Next Steps` current-goal note; `Work Record Log` 2026-04-17 `GIL-23`; `Work Record Log` 2026-04-17 `GIL-29`; `Test Evidence Log` 2026-04-17 `GIL-29` | by: Codex | linear: GIL-29 + GIL-30 + GIL-31
+- 2026-04-17 | feedback source: Trevor request to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup | feedback summary: restore automatic task branches as the default edit workflow, keep branch lifecycle visible in both repo docs and Linear, and remove the old checkout-first/no-branch posture from the global and repo-local stack | evaluation chat: current automatic task-branch policy rewrite thread | reasoning response: accepted. The better path is default task branches with narrow exceptions, not optional branching. File-edit work should start from an issue-backed branch, prefer the plugin-generated branch name when available, and keep lifecycle state mirrored in both `todo.md` and Linear so review/merge/cleanup do not disappear into chat memory. | decision status: accepted | implementation/disposition chat: current automatic task-branch policy rewrite thread; merged to `main` during 2026-04-19 branch cleanup | linked branch / audit / suggestion / test evidence: `/Users/gillettes/.codex` branch-policy surfaces; `AGENTS.project.md`; `CLAUDE.md`; `LINEAR.md`; `PROMPTS.md`; `LINEAR-BOOTSTRAP.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-55` | by: Codex | linear: GIL-55
+- 2026-04-17 | feedback source: Trevor clarification that `MarcoPolo` is not needed for this repository | feedback summary: do not add `MarcoPolo` to the active repo tool stack; record the non-use decision durably in the repo docs so later sessions do not keep reconsidering it from scratch | evaluation chat: current `MarcoPolo` usefulness clarification thread | reasoning response: accepted. `MarcoPolo` is a secure external-data connector, not a repo/worktree tool. This repository's ordinary code, docs, tests, and governance work should stay in Codex or Claude Code. The only reason to revisit `MarcoPolo` is a future task that genuinely needs secure analysis of uploaded files, storage, or databases outside the local checkout. | decision status: accepted | implementation/disposition chat: current `MarcoPolo` usefulness clarification thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture; `Test Evidence Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
+- 2026-04-17 | feedback source: Trevor request to audit what apps this repo currently has access to and record them with intended use guidance if the repo was missing that clarity | feedback summary: do not leave the repo with only the broad marketplace-recommendation memo; add one durable record of the app and connector surfaces actually accessible in this session and what they should be used for here | evaluation chat: current accessible-app audit thread | reasoning response: accepted. The missing question was not "what apps are good?" but "what can this repo actually use right now, and for what?" The right shape is to extend the existing marketplace memo with a current-access audit section and to patch the plugin decision ledger where two currently available surfaces (`Build Web Apps` and `Computer Use`) still had no explicit stance rows. That preserves one owner per doc instead of creating a new tracker. | decision status: accepted | implementation/disposition chat: current accessible-app audit thread | linked branch / audit / suggestion / test evidence: `docs/codex-app-marketplace-evaluations.md`; `docs/codex-april-16-2026-impact.md`; `todo.md`; `Work Record Log` 2026-04-17 `GIL-65`; `Test Evidence Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
+- 2026-04-17 | feedback source: Trevor request to execute the recommended disposition from the Claude Code second-pass audit of CodeRabbit settings | feedback summary: after the second-pass audit found that `slop_detection` was mis-categorized as UI-only, that four configurable schema surfaces were left undocumented, and that four low-severity durable-trail items remained open, land the fixes in one bounded follow-up commit rather than queuing them as separate Codex prompts | evaluation chat: current Claude Code second-pass audit and follow-up landing thread | reasoning response: accepted. The bounded, audit-surfaced fixes fall within the Claude Code narrow-fix allowance defined in `CLAUDE.md` `Roles`, so routing them through a fresh Codex handoff would add ceremony without adding review value. The right shape is: encode the operator's documented `slop_detection` preference in `.coderabbit.yaml` even though it is a no-op on private repos today, move `slop_detection` into the `Supported settings in repo config` table with the public-repo caveat preserved, add an explicit `Defaults we accept` section that names `reviews.tools`, `reviews.pre_merge_checks`, `reviews.finishing_touches`, `code_generation`, and `issue_enrichment` with default posture and known risk, append the audit follow-up to the intake log, and clear the Linear ledger description, exit-checklist, Completed-index, and cosmetic-link trail defects in the same landing. Explicit per-tool overrides were intentionally deferred to the 3-5 PR calibration window so the landing does not bake in unreviewed product judgments. | decision status: accepted | implementation/disposition chat: current Claude Code second-pass audit and follow-up landing thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up; `Test Evidence Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | feedback source: Trevor request to do both the architecture checkpoint and the next implementation slice, while keeping the work in this repository instead of moving into target-repo contract work | feedback summary: do not stop at choosing between `GIL-9` and `GIL-28`; land the checkpoint and then immediately carry that result into the next repo-local runtime slice | evaluation chat: current Phase 2 runtime thread | reasoning response: accepted with one correction. The checkpoint could not be treated as a pure paperwork stop because the repo still had real action-boundary drift, so `GIL-9` had to become a repair-backed ADR before Phase 2 continued. Once that was repaired, the right move was to build the smallest runnable Codex builder loop immediately instead of waiting for more docs work. This keeps the work in the control-plane repo, respects the user direction not to switch into target-repo contract work yet, and avoids hardening the wrong abstractions before a real loop exists. | decision status: accepted | implementation/disposition chat: current Phase 2 runtime thread | linked branch / audit / suggestion / test evidence: `design-history/ADR-0003-phase-1-architecture-checkpoint.md`; `supervisor/builder_adapter.py`; `supervisor/strategy_simple.py`; `supervisor/main.py`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-9`; `Test Evidence Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-9 + GIL-28
 - 2026-04-17 | feedback source: Trevor request to land the plugin operator cheat sheet in the repo, commit it, and research additional Codex plugins that could help with implementation, handoffs, testing, reviewing, and enforcement | feedback summary: move the Autopilot/HOTL/Cavekit operating guidance out of chat memory into repo docs, then broaden the plugin research beyond the first pass so the repo captures real next candidates instead of a shallow list | evaluation chat: current plugin-operator and broader-plugin-research thread | reasoning response: accepted. The better split is not one giant plugin writeup. The repo now keeps the decision ledger in `docs/codex-april-16-2026-impact.md` and adds a separate operator cheat sheet for how to use the locally installed workflow plugins without overlap. The broader research was expanded from "available official plugins" to primary-source inspection of local installs and candidate repos relevant to implementation discipline, deterministic review, session orchestration, handoffs, and delegation. | decision status: accepted | implementation/disposition chat: current plugin-operator and broader-plugin-research thread | linked branch / audit / suggestion / test evidence: `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Suggested Recommendation Log` 2026-04-17 `plugin-eval` / orchestration follow-ups; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54
 - 2026-04-17 | feedback source: Trevor request to add a governing-doc section that tracks plugins discussed for this repo, whether they have been tried, and the current use/not-use conclusion | feedback summary: centralize plugin decisions in one durable repo-visible place so future Codex sessions can update the same ledger instead of scattering plugin conclusions across chats and separate docs | evaluation chat: current plugin-governance thread | reasoning response: accepted. The cleaner move is to extend the active Codex impact memo instead of creating another governance surface. `docs/codex-april-16-2026-impact.md` now carries the durable `Plugin decision ledger`, with tried/not-tried status, current stance, allowed use, forbidden use, and revisit triggers. `README.md` and `GUIDE.md` now point future sessions to that exact ledger. Other Codex conversations can update it, but only if their prompt/read-scope includes the doc or the task is explicitly to revise plugin decisions. | decision status: accepted | implementation/disposition chat: current plugin-governance thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-53` | by: Codex | linear: GIL-53
@@ -2283,3 +3490,9 @@ Record outside feedback and the resulting reasoning once, then update the same e
 - 2026-04-16 | feedback source: Trevor implementation-direction decisions during the Superpowers design session | feedback summary: keep this repo as the implementation repo, make the first runnable milestone a local single-run harness instead of queue-first or browser-first work, require strong Linear involvement and durable repo writeback from day one, and add branch lifecycle visibility so old branches stop becoming mystery state | evaluation chat: current Superpowers brainstorming and design-spec session | reasoning response: accepted. The approved baseline is now the local single-run harness design in `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, explicitly aligned to the already-landed `supervisor/` foundation. The design makes `linear_issue_id` mandatory for real runs, preserves repo truth over Linear truth, and defines branch lifecycle tracking across git, `todo.md`, and a Linear mirror rather than letting any one surface become overloaded. | decision status: accepted | implementation/disposition chat: current Superpowers brainstorming and design-spec session | linked branch / audit / suggestion / test evidence: `docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`; `Work Record Log` 2026-04-16 `GIL-52`; `Test Evidence Log` 2026-04-16 `GIL-52`
 - 2026-04-17 | feedback source: Trevor request to implement CodeRabbit in this repository using the best bounded setup | feedback summary: enable CodeRabbit here without turning it into a noisy generic reviewer, a CI replacement, or a second workflow owner | evaluation chat: current CodeRabbit integration thread | reasoning response: accepted. The right first landing is a repo-local `.coderabbit.yaml` that keeps CodeRabbit in PR-review mode, teaches it the difference between supervisor code, tests, schemas, live governance docs, and archive docs, and scopes knowledge locally to this repository. Activation beyond that still requires manual GitHub/CodeRabbit app installation and a short calibration period before any blocking behavior is enabled. | decision status: accepted | implementation/disposition chat: current CodeRabbit integration thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `Work Record Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit bootstrap; `Suggested Recommendation Log` 2026-04-17 CodeRabbit activation follow-up | by: Codex | linear: self-contained: repo-local CodeRabbit PR-review bootstrap requested directly by Trevor
 - 2026-04-17 | feedback source: Trevor clarification that CodeRabbit should be referenced somewhere in the repo docs so people know it is present | feedback summary: do not treat the `.coderabbit.yaml` landing as enough on its own; add a visible pointer in the repo's discovery docs | evaluation chat: current CodeRabbit discoverability follow-up thread | reasoning response: accepted. The minimal, correct place is the repo's navigation layer: `README.md` and `GUIDE.md`. That makes CodeRabbit easy to find without expanding authority docs or pretending it is part of the system's canonical architecture. | decision status: accepted | implementation/disposition chat: current CodeRabbit discoverability follow-up thread | linked branch / audit / suggestion / test evidence: `README.md`; `GUIDE.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit discoverability follow-up | by: Codex | linear: self-contained: make the already-landed CodeRabbit config discoverable in repo docs
+- 2026-04-17 | feedback source: Trevor decision after the CodeRabbit-versus-GitHub-Copilot comparison | feedback summary: keep the CodeRabbit path in the repo docs, document the actual tradeoff instead of only the final preference, and present Rabbit as the active bounded review trial again | evaluation chat: current CodeRabbit re-activation thread | reasoning response: accepted. The durable repo position is not "Copilot was wrong"; it is "Copilot is still the stronger value/integration baseline for a small private repo, while CodeRabbit is still the likelier stronger dedicated PR-review tool." Because Trevor wants to test review quality first, the repo now treats CodeRabbit as the active bounded review trial, keeps Copilot only as the cheaper fallback baseline in the narrative, and leaves GitHub App activation plus 3-5 real PRs as the remaining proof step. | decision status: accepted | implementation/disposition chat: current CodeRabbit re-activation thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit re-activation docs | by: Codex | linear: self-contained: Trevor chose CodeRabbit as the active review trial after the Copilot comparison
+- 2026-04-17 | feedback source: Trevor request to preserve the exact CodeRabbit settings and the detailed reasoning in the repo so later AIs can review them | feedback summary: do not leave the settings only in chat; make the specific values, blank fields, caveats, and rationale durable in repo docs and, where supported, in the repo config itself | evaluation chat: current CodeRabbit settings capture thread | reasoning response: accepted. The right shape is `.coderabbit.yaml` plus a dedicated operator companion doc. Repo-supported settings belong in config; blank UI fields and product caveats belong in a doc. That gives later AI reviewers both machine-readable truth and the human rationale without forcing them to infer hidden settings from chat. | decision status: accepted | implementation/disposition chat: current CodeRabbit settings capture thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained CodeRabbit settings capture | by: Codex | linear: self-contained: preserve the full CodeRabbit settings and rationale in repo docs and config
+- 2026-04-17 | feedback source: Trevor request to record all reviewed marketplace apps and Codex's thoughts on them in the repo | feedback summary: do not leave the app recommendations fragmented across several chat replies; preserve the reviewed app names, the top priorities, the redundancy warnings, and the niche-only calls in one durable repo-visible place | evaluation chat: current marketplace-app documentation thread | reasoning response: accepted. The right shape is a reusable memo instead of another plugin-only intake entry because the reviewed app set is broader than the existing plugin governance docs. The memo should preserve operator-fit judgments, highlight the short list actually worth enabling later, and make the "choose one" and "redundant with the current stack" calls explicit so later sessions do not restart the same sorting exercise from screenshots. | decision status: accepted | implementation/disposition chat: current marketplace-app documentation thread | linked branch / audit / suggestion / test evidence: `docs/codex-app-marketplace-evaluations.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-63`; `Suggested Recommendation Log` 2026-04-17 app-surface shortlist | by: Codex | linear: GIL-63
+- 2026-04-17 | feedback source: Trevor request to add `Brooks Lint` and `Sentry` to the repo docs and make sure the repo setup reflects reality | feedback summary: stop leaving the enabled-state truth split across local config and partial docs; record whether each plugin is actually enabled, what its repo-local setup surface is, and where its boundary lives | evaluation chat: current Brooks Lint + Sentry setup-sync thread | reasoning response: accepted. The correct move is asymmetric: add a minimal `.brooks-lint.yaml` because Brooks has a real repo config surface and this repo benefits from explicit archive/runtime exclusions, but do not invent committed Sentry config because Sentry's correct setup is local auth (`SENTRY_AUTH_TOKEN` plus optional org/project defaults) and secrets do not belong in repo files. The canonical ledger, operator guide, setup companion, intake log, discovery docs, and app memo all needed the same update so the repo stops contradicting the actual enabled operator environment. | decision status: accepted | implementation/disposition chat: current Brooks Lint + Sentry setup-sync thread | linked branch / audit / suggestion / test evidence: `.brooks-lint.yaml`; `.gitignore`; `README.md`; `GUIDE.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/codex-workflow-plugin-setup.md`; `docs/codex-app-marketplace-evaluations.md`; `docs/plugin-intake.md`; `todo.md`; `Test Evidence Log` 2026-04-17 self-contained Brooks Lint + Sentry setup sync | by: Codex | linear: self-contained: sync Brooks Lint and Sentry docs with the actual enabled operator setup
+- 2026-04-17 | feedback source: Trevor request to make this repo implement eligible Linear issues one after the other, starting with a manual drain slice instead of jumping to webhook wakeups | feedback summary: land the first supervisor-owned Linear intake/claim layer, queue normalization into real run contracts, and a sequential drain runner on top of the current single-run executor | evaluation chat: current `GIL-57` queue implementation thread | reasoning response: accepted. The better path is not to let Linear directly drive execution or to wait for the full unattended webhook stack. The repo now lands the narrower manual-drain-first slice: strict eligibility filtering, frozen claim metadata, queue-written run contracts, issue-by-issue execution, one landing commit per successful run, and blocker/closeout comments owned by the supervisor. Webhook wakeups remain the next layer rather than a prerequisite for this first runtime slice. | decision status: accepted | implementation/disposition chat: current `GIL-57` queue implementation thread | linked branch / audit / suggestion / test evidence: `supervisor/queue_intake.py`; `supervisor/main.py`; `supervisor/contracts.py`; `supervisor/verifier.py`; `schemas/run-contract.schema.json`; `tests/test_queue_intake.py`; `QUEUE-RUNS.md`; `LINEAR.md`; `Test Evidence Log` 2026-04-17 `GIL-57`; `Work Record Log` 2026-04-17 `GIL-57` | by: Codex | linear: GIL-57
+- 2026-04-17 | feedback source: Trevor confirmation that the manually added workflow plugins now install in Codex and should be documented thoroughly in the repo | feedback summary: stop treating `Autopilot`, `HOTL`, and `Cavekit` as merely "locally installed" abstractions; make the repo record the actual Codex install state, plugin ids, settings posture, and intended usage thoroughly enough that later sessions do not have to reconstruct it from chat or home-directory files | evaluation chat: current installed-workflow-plugin docs thread | reasoning response: accepted. The durable split is three-layered: keep use/defer truth in `docs/codex-april-16-2026-impact.md`, keep phase ownership in `docs/codex-plugin-operator-cheatsheet.md`, and add a dedicated setup companion for the actual install state and settings posture. Because these three have no repo-committed config today, their "settings" here are procedural: enabled in Codex, phase-bounded invocation, no workflow authority, no repo-truth authority, and no claim that installation alone means "tried here." | decision status: accepted | implementation/disposition chat: current installed-workflow-plugin docs thread | linked branch / audit / suggestion / test evidence: `docs/codex-workflow-plugin-setup.md`; `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `README.md`; `GUIDE.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-54` | by: Codex | linear: GIL-54

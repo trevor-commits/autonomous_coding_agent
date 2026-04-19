@@ -21,6 +21,9 @@ Routing metadata only:
 - issue title
 - status
 - assignee
+- `Branch:` current task branch once created
+- `Branch status:` such as `active`, `review-ready`, `blocked`, `merged-pending-cleanup`, or `closed-no-merge`
+- `Merge target:` where the branch is expected to land
 - `Why this exists:` one-line reason the issue exists at all
 - `Origin source:` where the issue came from (manual operator request, audit finding, GitHub/PR automation, or another connected system)
 - `Risk level:` whether the issue is safe for unattended queue execution
@@ -73,6 +76,15 @@ Invariant introduced 2026-04-16 after a gap was discovered where 9 of 14 Active 
 - every `Active Next Steps` item has its `GIL-N`
 - every live Linear issue's current status and repo-side home agree
 - every durable log entry that implies future work has a resolved `linear:` value (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
+
+## Branch Lifecycle Mirror
+
+For file-edit work, Linear should be involved before the first substantive edit instead of being updated only at the end.
+
+- Create or reuse the `GIL-N` issue before branching.
+- Prefer Linear's generated branch name when available.
+- Keep the issue or its linked PR/comment current with the branch name, branch status, merge target, and later the PR/completion references.
+- `todo.md` remains the canonical branch ledger; Linear is the routing mirror that makes branch state visible from the operator board.
 
 ## Statuses
 
@@ -151,6 +163,9 @@ Every issue body contains:
 
 - `Authoritative spec path:`
 - `Authoritative decision docs:` if applicable
+- `Branch:` once created
+- `Branch status:` once created
+- `Merge target:`
 - `Why this exists:`
 - `Origin source:`
 - `Execution lane:` `Codex`, `Claude Code`, `Cowork`, or `Trevor`
@@ -160,13 +175,29 @@ Every issue body contains:
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
-- `Checklist:` `Cowork drafts Codex prompt` -> `Codex builds` -> `Work Record Log entry written (Codex)` -> `Ripple Check complete and attested (Codex)` -> `Claude Code audits line-by-line (or N/A with one-line reason)` -> `Cowork spec-alignment check` -> `Linear-coverage confirmed for surfaced findings (Cowork)` -> `Trevor verifies` -> `completion artifact filed in repo`
+- `Checklist:` `Cowork drafts Codex prompt` -> `Codex creates or reuses the task branch` -> `Codex builds` -> `Work Record Log entry written (Codex)` -> `Ripple Check complete and attested (Codex)` -> `Claude Code audits line-by-line (or N/A with one-line reason)` -> `Cowork spec-alignment check` -> `Linear-coverage confirmed for surfaced findings (Cowork)` -> `Trevor verifies` -> `completion artifact filed in repo`
 - `Enforcement checkbox: ☐ No acceptance criteria, decisions, or audit conclusions in this issue body — linked to repo doc instead`
 - fixed footer: `Repo docs are authoritative; this issue tracks state and links only.`
 
 Supervisor-gated phase transitions inside a Codex run are not represented in Linear.
 
 Queue-mode issues deliberately do not carry free-form command text. The issue nominates the bounded work through repo links and routing metadata; the supervisor derives the executable run contract from the repo truth.
+
+Queue-mode issues may also carry normalization metadata when the supervisor
+needs bounded inputs that the authoritative spec path alone cannot supply
+safely:
+
+- `Allowed paths:` first manual drain implementation requires this line on
+  Codex queue issues so the supervisor can freeze a truthful write scope before
+  Codex starts.
+- `Forbidden paths:` optional override; if omitted, the supervisor falls back
+  to its default companion exclusions.
+- `Verification pack:` optional override naming the deterministic repo-contract
+  commands the queue run must execute before handoff.
+- `Retry budget:` optional override for the queue run's repair-loop ceiling.
+
+These are routing inputs, not acceptance criteria. The authoritative spec still
+lives in the repo doc named by `Authoritative spec path:`.
 
 ## Labels
 
@@ -203,6 +234,12 @@ The template body is:
 
 **Authoritative decision docs:** (if applicable)
 
+**Branch:** (once created)
+
+**Branch status:** (once created)
+
+**Merge target:**
+
 **Why this exists:**
 
 **Origin source:**
@@ -226,6 +263,7 @@ The template body is:
 **Checklist**
 
 - [ ] Cowork drafts Codex prompt
+- [ ] Codex creates or reuses the task branch
 - [ ] Codex builds
 - [ ] Work Record Log entry written (Codex)
 - [ ] Ripple Check complete and attested (Codex)
@@ -335,7 +373,7 @@ Direct Installed-Agent delegation remains disabled by policy. The integration ex
 - connect a personal GitHub account in Linear so activity, comments, and assignee mapping resolve to the real user rather than generic GitHub activity
 - keep GitHub Issues Sync disabled to avoid dual truth across title, description, status, assignee, labels, and comments
 - keep commit linking disabled initially; only PR references should participate when automation is enabled later
-- keep the "Copy branch name -> auto-assign / move to Started" preference disabled while statuses are still manually controlled
+- use the issue-generated branch name when available; if Linear offers copy-branch support, use it for naming while keeping automatic assignee or status side effects disabled
 - if any connected system still creates an issue, the repo-side response is not "leave it in Linear"; add or refresh the matching `todo.md` `Linear Issue Ledger` entry immediately with a concrete `origin source:`
 
 ## PR Linking Convention
@@ -344,7 +382,7 @@ Default to `ref GIL-123` in the PR description. `GIL` is the Linear team prefix 
 
 Do not use `Fixes GIL-123` or `Closes GIL-123` by default. Closing magic words bypass the intended `Building -> AI Audit -> Human Verify -> Done` flow by letting Linear drive issue state from branch push and merge events.
 
-Branch names may include the issue ID for navigability. Branching itself is still an operator and supervisor concern, not something Claude should instruct Codex to create.
+Branch names should include the issue ID, and for normal file-edit work Codex should usually create or reuse the Linear-generated branch before deep implementation. Linear supplies naming and routing context; it does not become execution authority.
 
 ### Skip / Ignore Escape Hatch
 
@@ -374,7 +412,7 @@ Do not add Linear IDs to stable source-of-truth docs such as `PROJECT_INTENT.md`
 
 GitHub PR and commit automations remain manual-safe and should stay at `No action`. Queue-mode issue automation is allowed only through the supervisor contract in `QUEUE-RUNS.md`.
 
-Set every GitHub PR and commit automation destination in Linear team settings to `No action`. Keep commit linking disabled. Keep the branch-copy auto-assign and move-to-started preference disabled.
+Set every GitHub PR and commit automation destination in Linear team settings to `No action`. Keep commit linking disabled. Use issue-generated branch names and PR links for visibility, but do not let branch or PR events move issue state automatically.
 
 Writing a policy sentence is not enough on its own. Linear's defaults otherwise move issues to `In Progress` when PRs open and to `Done` when PRs merge, regardless of whether the PR used a non-closing reference verb.
 

@@ -23,7 +23,7 @@ Usage note: this template is filled in by Claude Cowork after running the §1 in
 
 Goal: Port Linear governance into `{REPO_PATH}` by creating a tailored `LINEAR.md`, adding a `## Linear` pointer section in `CLAUDE.md`, adding a Linear pointer in `{AGENTS_POINTER_TARGET}`, and updating `todo.md` so it can mirror every live Linear issue with provenance before appending a `Completed` entry. One new file, three edited files.
 
-Discipline: No code. No branch. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit. If the target repo documents a different commit convention for doc-only work, follow that target-repo policy instead.
+Discipline: No code. Follow the target repo's documented branch policy for this doc-only task: create or reuse a task branch if that repo requires edit work on branches; otherwise stay branchless. Leave changes staged but do NOT commit — Trevor will review the staged diff before commit. If the target repo documents a different commit convention for doc-only work, follow that target-repo policy instead.
 
 For repo content, limit substantive reads to:
 - `LINEAR.md`
@@ -48,7 +48,7 @@ Body:
 
 Constraints:
 - Do not modify docs other than `LINEAR.md`, `CLAUDE.md`, `{AGENTS_POINTER_TARGET}`, and `todo.md`.
-- Do not create branches.
+- Do not invent a branch rule for the target repo; follow its documented edit-work policy.
 - Do not commit unless the target repo's own documented policy explicitly requires it for this kind of task.
 - Stop and report on conflict instead of guessing.
 - Print a one-line summary of files modified after the change.

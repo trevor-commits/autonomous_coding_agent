@@ -357,7 +357,7 @@ No branch without purpose, no purpose without issue linkage, and no merged branc
 
 Important repo-specific note:
 
-This repository still keeps the current-checkout bias and should remain on `main` unless there is a concrete isolation reason. Branch lifecycle tracking applies when branches are created, but it does not change the standing rule that this repo should not create branches casually.
+This repository now defaults to a fresh task branch for file-edit work. Branch lifecycle tracking still applies across git, `todo.md`, and the Linear mirror, while separate worktrees remain reserved for concurrent chats or stronger isolation needs.
 
 ## Testing For This Slice
 

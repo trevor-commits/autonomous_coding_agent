@@ -95,14 +95,14 @@ Why:
 
 ## Skills that are usually overkill here
 
-- `using-git-worktrees`: this repo's local rules already bias hard toward the
-  current checkout and explicitly forbid routine branch creation here.
+- `using-git-worktrees`: still useful only when there are concurrent chats or a
+  real isolation need beyond the default task-branch workflow.
 - `subagent-driven-development`: high overhead for a repo whose main surface is
   still docs and governance.
 - `dispatching-parallel-agents`: only worth it if there are clearly independent
   write scopes, which is uncommon in companion-doc work.
-- `finishing-a-development-branch`: usually not relevant because this repo
-  normally lands on the current checkout rather than a feature branch.
+- `finishing-a-development-branch`: relevant once a task branch is pushed and
+  waiting for review or merge, but still overkill for very small doc-only tasks.
 
 ## Repo-specific guardrails
 
@@ -112,7 +112,8 @@ Why:
 - Treat Superpowers as a decision-quality layer first, not as a reason to add
   more process than the repo needs.
 - When a change touches multiple live docs, prioritize Ripple Check discipline
-  over ritual TDD or branch choreography.
+  over ritual TDD or extra branch choreography beyond the repo's default
+  task-branch flow.
 - If a task is a direct question or a very small doc correction, a lightweight
   `verification-before-completion` pass is usually enough.
 

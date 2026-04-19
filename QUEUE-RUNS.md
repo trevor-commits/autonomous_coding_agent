@@ -10,6 +10,11 @@ Linear nominates work. It does not issue arbitrary commands. The supervisor read
 
 Verified webhooks are the preferred intake trigger. Periodic reconciliation sweeps remain required as a recovery path for missed or delayed events, but blind polling is not the primary control plane when authenticated event delivery is available.
 
+The first landed execution slice is narrower than the full webhook-first
+contract: manual drain mode claims and processes eligible issues sequentially
+from the current Linear state, while webhook wakeups and reconciliation sweeps
+remain the next layer to implement.
+
 ## What "One Long Run" Means
 
 A walk-away session is a long-lived queue supervisor process composed of many separate issue-runs.
@@ -48,6 +53,18 @@ Required fields for any issue the Codex queue may claim:
 - `Execution mode: Queue`
 - `Risk level:` `Low` or `Medium`
 - `Approval required: No`
+
+Current manual drain normalization rules also expect:
+
+- `Allowed paths:` required for Codex queue issues in the first implementation
+  slice, because the authoritative spec path alone is not yet enough to derive
+  a safe write boundary automatically.
+- `Forbidden paths:` optional override; defaults to the supervisor's companion
+  exclusions when omitted.
+- `Verification pack:` optional override; defaults to the available
+  deterministic repo-contract gates when omitted.
+- `Retry budget:` optional override; defaults to a risk-based ceiling when
+  omitted.
 
 The supervisor derives, freezes, and records these run-contract fields at claim time before Codex starts:
 

@@ -142,6 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack — landed as `0d5f115`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: repair queue halt, live-state drift, and no-op landing-commit regressions in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landed as `5d076f5`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-72: enforce queue landing contract — push-before-`AI Audit` + pre-land snapshot revalidation in `supervisor/queue_intake.py` — landed as `346ae4c`; full record in Work Record Log 2026-04-17
@@ -233,6 +234,65 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | self-contained | by: Codex
+
+Problem:
+The repo's plugin docs documented several tools to use now, defer, or trial,
+but they did not yet record the direct operator decision that `MarcoPolo` is
+not needed for this repository. Without that note, later sessions could waste
+time rediscovering whether `MarcoPolo` should be part of normal repo work just
+because the connector is available in the session.
+
+Reasoning:
+The correct boundary is simple: this repo's normal work is local code, docs,
+tests, governance, and implementation planning, not external-data analysis.
+`MarcoPolo` only helps if a future task truly needs secure access to uploaded
+files, storage, or databases outside the local checkout. So the repo needed an
+explicit "not part of the active tool stack" statement rather than another
+ambiguous "available in session" mention.
+
+Diagnosis inputs:
+Direct rereads of `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `PROJECT_INTENT.md`, and
+`todo.md`; plus the live session check confirming `MarcoPolo` is available but
+not carrying any repo-relevant datasource use in this task.
+
+Implementation inputs:
+Updated `docs/codex-april-16-2026-impact.md`,
+`docs/codex-plugin-operator-cheatsheet.md`, `docs/plugin-intake.md`, and
+`todo.md`.
+
+Fix:
+Added a `MarcoPolo` row to the canonical plugin decision ledger with the stance
+`Do not adopt now`, bounded to future external-data tasks only. Added the same
+boundary to the operator cheat sheet, appended a durable plugin-intake log
+entry, and recorded the closeout in `todo.md` so later sessions can see the
+decision trail without replaying the chat.
+
+Self-audit:
+1. Re-read `docs/codex-april-16-2026-impact.md`; confirmed the new `MarcoPolo`
+   row is framed as a current non-adoption decision rather than a permanent ban.
+2. Re-read `docs/codex-plugin-operator-cheatsheet.md`; confirmed it keeps
+   `MarcoPolo` out of the active operator split without changing any other
+   plugin boundaries.
+3. Re-read `docs/plugin-intake.md`; confirmed the new entry preserves the
+   evidence and recommended ledger delta without pretending there was a
+   task-backed trial.
+4. Ran `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`;
+   confirmed all four durable surfaces carry the same boundary.
+
+triggered by:
+Trevor clarification on 2026-04-17 that `MarcoPolo` is not needed and that the
+repo should say so durably
+
+led to:
+`0d5f115`; self-contained: record that `MarcoPolo` is not needed for this
+repo's active tool stack
+
+linear:
+self-contained: record that `MarcoPolo` is not needed for this repo's active
+tool stack
 
 ### 2026-04-17 | self-contained queue-review repair | by: Codex
 
@@ -3145,11 +3205,12 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-- Legacy active branches still need backfill here: `codex/gil23-benchmarks`, `codex/gil29-ui-verifier`, `codex/marcopolo-not-needed-docs`, and `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches`. Use `git branch -vv` plus the linked `GIL-*` items as the temporary source of truth until their ledger entries are added.
+- Legacy active branches still need backfill here: `codex/gil23-benchmarks`, `codex/gil29-ui-verifier`, and `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches`. Use `git branch -vv` plus the linked `GIL-*` items as the temporary source of truth until their ledger entries are added.
 
 ## Branch History
 - `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
 - `codex/coderabbit-flow-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` contains branch tip `44ba5ed`; local and remote refs deleted in this cleanup task | cleanup: local and remote branches deleted
+- `codex/marcopolo-not-needed-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `0d5f115` merged into `main` in this cleanup task | cleanup: local and remote branches deleted; attached worktree removed
 
 ## Audit Record Convention
 - Record each audit, ship-check, or substantial verification-driven review in an easy-to-find project audit log entry.
@@ -3216,6 +3277,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md` | result: pass — the canonical plugin memo, operator cheat sheet, append-only intake log, and durable repo record now all carry the same "MarcoPolo not needed here" boundary, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake.QueueDrainRunnerTests`; `python3 -m unittest discover -s tests`; `git diff --check` | result: pass — the queue-drain regressions for halt-on-push-failure, block-on-manual-state-change, and no-op landing commits all pass in the focused suite, the full discovered Python test suite stays green, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained queue-review repair | by: Codex | linear: self-contained: queue review-finding repair on `codex/audit`
 - 2026-04-17 | command(s): `npm ci && pnpm bootstrap:convex:frontend`; `pnpm test`; `pnpm preview --host 127.0.0.1 --port 4173 --strictPort`; `curl -fsS http://127.0.0.1:4173/login`; `APP_URL=http://127.0.0.1:4173 bun run --bun scripts/smoke-public.ts`; `codex --version`; `codex login status`; `claude --version`; `claude auth status`; `python3 --version`; `npx playwright --version`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- todo.md .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md` | result: pass — in a disposable fresh `bible-ai` clone the contract-first path passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state; local `codex` / `claude` / `python3` / `npx playwright` readiness checks all passed; the updated ACA autopilot surfaces still validate; and the final patch is whitespace-clean | log/PR reference: `bible-ai` `c7760dab553a843a3be413c00bd148c6db7ba3be`; `bible-ai` `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; `Work Record Log` 2026-04-17 `GIL-20 + GIL-21 + GIL-22 + GIL-24` | by: Codex | linear: GIL-20 + GIL-21 + GIL-22 + GIL-24
 - 2026-04-17 | command(s): `python3 -m json.tool .codex-agent/state.json`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md .codex-agent/context-bundle.md .codex-agent/state.json .codex-agent/approval-snapshot.json todo.md` | result: pass — the local Autopilot state is valid in the locked execution phase, the approved `Optimal` route is frozen, `bible-ai` is recorded as the first implementation repo, and the full patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 `GIL-64` | by: Codex | linear: GIL-64
@@ -3301,6 +3363,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor clarification that `MarcoPolo` is not needed for this repository | feedback summary: do not add `MarcoPolo` to the active repo tool stack; record the non-use decision durably in the repo docs so later sessions do not keep reconsidering it from scratch | evaluation chat: current `MarcoPolo` usefulness clarification thread | reasoning response: accepted. `MarcoPolo` is a secure external-data connector, not a repo/worktree tool. This repository's ordinary code, docs, tests, and governance work should stay in Codex or Claude Code. The only reason to revisit `MarcoPolo` is a future task that genuinely needs secure analysis of uploaded files, storage, or databases outside the local checkout. | decision status: accepted | implementation/disposition chat: current `MarcoPolo` usefulness clarification thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture; `Test Evidence Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 - 2026-04-17 | feedback source: Trevor request to audit what apps this repo currently has access to and record them with intended use guidance if the repo was missing that clarity | feedback summary: do not leave the repo with only the broad marketplace-recommendation memo; add one durable record of the app and connector surfaces actually accessible in this session and what they should be used for here | evaluation chat: current accessible-app audit thread | reasoning response: accepted. The missing question was not "what apps are good?" but "what can this repo actually use right now, and for what?" The right shape is to extend the existing marketplace memo with a current-access audit section and to patch the plugin decision ledger where two currently available surfaces (`Build Web Apps` and `Computer Use`) still had no explicit stance rows. That preserves one owner per doc instead of creating a new tracker. | decision status: accepted | implementation/disposition chat: current accessible-app audit thread | linked branch / audit / suggestion / test evidence: `docs/codex-app-marketplace-evaluations.md`; `docs/codex-april-16-2026-impact.md`; `todo.md`; `Work Record Log` 2026-04-17 `GIL-65`; `Test Evidence Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
 - 2026-04-17 | feedback source: Trevor request to execute the recommended disposition from the Claude Code second-pass audit of CodeRabbit settings | feedback summary: after the second-pass audit found that `slop_detection` was mis-categorized as UI-only, that four configurable schema surfaces were left undocumented, and that four low-severity durable-trail items remained open, land the fixes in one bounded follow-up commit rather than queuing them as separate Codex prompts | evaluation chat: current Claude Code second-pass audit and follow-up landing thread | reasoning response: accepted. The bounded, audit-surfaced fixes fall within the Claude Code narrow-fix allowance defined in `CLAUDE.md` `Roles`, so routing them through a fresh Codex handoff would add ceremony without adding review value. The right shape is: encode the operator's documented `slop_detection` preference in `.coderabbit.yaml` even though it is a no-op on private repos today, move `slop_detection` into the `Supported settings in repo config` table with the public-repo caveat preserved, add an explicit `Defaults we accept` section that names `reviews.tools`, `reviews.pre_merge_checks`, `reviews.finishing_touches`, `code_generation`, and `issue_enrichment` with default posture and known risk, append the audit follow-up to the intake log, and clear the Linear ledger description, exit-checklist, Completed-index, and cosmetic-link trail defects in the same landing. Explicit per-tool overrides were intentionally deferred to the 3-5 PR calibration window so the landing does not bake in unreviewed product judgments. | decision status: accepted | implementation/disposition chat: current Claude Code second-pass audit and follow-up landing thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up; `Test Evidence Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)
 - 2026-04-17 | feedback source: Trevor request to do both the architecture checkpoint and the next implementation slice, while keeping the work in this repository instead of moving into target-repo contract work | feedback summary: do not stop at choosing between `GIL-9` and `GIL-28`; land the checkpoint and then immediately carry that result into the next repo-local runtime slice | evaluation chat: current Phase 2 runtime thread | reasoning response: accepted with one correction. The checkpoint could not be treated as a pure paperwork stop because the repo still had real action-boundary drift, so `GIL-9` had to become a repair-backed ADR before Phase 2 continued. Once that was repaired, the right move was to build the smallest runnable Codex builder loop immediately instead of waiting for more docs work. This keeps the work in the control-plane repo, respects the user direction not to switch into target-repo contract work yet, and avoids hardening the wrong abstractions before a real loop exists. | decision status: accepted | implementation/disposition chat: current Phase 2 runtime thread | linked branch / audit / suggestion / test evidence: `design-history/ADR-0003-phase-1-architecture-checkpoint.md`; `supervisor/builder_adapter.py`; `supervisor/strategy_simple.py`; `supervisor/main.py`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-9`; `Test Evidence Log` 2026-04-17 `GIL-28` | by: Codex | linear: GIL-9 + GIL-28

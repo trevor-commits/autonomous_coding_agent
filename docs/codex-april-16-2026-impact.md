@@ -184,6 +184,7 @@ not count as tried.
 | `Gmail` | No | Low now | operator follow-up and reminder workflows | core runtime or control-plane responsibilities | when operator follow-up pain becomes concrete |
 | `Google Calendar` | No | Low now | review cadence, reminders, and operator scheduling | core runtime or repo-authority work | when scheduling friction becomes a real bottleneck |
 | `Hugging Face` | No | Not yet evaluated; do not adopt by default | model/dataset research or remote-job experiments only if a concrete repo need appears | widening the repo around hosted ML tooling without a specific architecture need | when a real model-eval, dataset, or remote-job task exists |
+| `MarcoPolo` | No; session connector available, but no repo-relevant datasource use landed | Do not adopt now | secure external-data analysis only if a real repo task needs uploaded files, storage, or a database outside the local checkout | ordinary code, docs, tests, governance work, or any task that should stay in the local repo/worktree | when a real task requires querying external CSV/Excel/JSON files, storage, or databases that are not part of the repo itself |
 
 Notes:
 
@@ -218,6 +219,10 @@ Notes:
   workflow.
 - `docs/codex-plugin-operator-cheatsheet.md` is the operational companion for
   `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, and `plugin-eval`.
+- `MarcoPolo` is explicitly out of the active tool stack for this repo today.
+  It is a data-workflow connector, not a repo-worktree tool, so normal local
+  code/docs/governance work should stay in Codex or Claude Code unless a real
+  external datasource task appears.
 
 ## Recommended next stance
 

@@ -20,7 +20,7 @@ Current goal: keep the repo implementation-ready while finishing the repo-local 
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
-- [ ] Branch lifecycle policy reset (GIL-55): restore automatic task branches as the default for edit work, make Linear the live branch mirror alongside `todo.md`, and update the global plus repo-local governance/scaffolding surfaces that still stamp the old no-branch flow.
+- [x] Branch lifecycle policy reset (GIL-55): restore automatic task branches as the default for edit work, make Linear the live branch mirror alongside `todo.md`, and update the global plus repo-local governance/scaffolding surfaces that still stamp the old no-branch flow.
 - [x] Audit follow-up (GIL-46): automate durable closeout-evidence backfill and validation so queue/provenance landings cannot leave placeholder SHAs, missing Work Record entries, or misattributed completion comments in the repo or Linear audit trail.
 - [x] Phase 0A.5 (GIL-19): trim the initial implementation surface to a smaller v1 by reducing externally visible action families and collapsing operational memory to a minimal first-pass shape; push the heavier Phase 5 hardening items behind a later v1.1-style threshold.
 - [x] Phase 0.1 (GIL-20): `bible-ai`'s first `.agent/contract.yml` landed on `agent/codex/2026-04-17/bible-ai-contract` as `c7760dab553a843a3be413c00bd148c6db7ba3be`.
@@ -142,6 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-17 | GIL-55: restore automatic task branches and make Linear the live branch mirror — landed as `3c42dea`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack — landed as `0d5f115`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: repair queue halt, live-state drift, and no-op landing-commit regressions in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | GIL-73: backfill Ripple Check reconciliation notes in `LOGIC.md` and `PROJECT_INTENT.md` for the delayed reconciles after `42847da` and `9c2a861` — landed as `5d076f5`; full record in Work Record Log 2026-04-17
@@ -234,6 +235,95 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-17 | GIL-55 | by: Codex
+
+Problem:
+Global policy and local repo overlays still defaulted to current-checkout work,
+this repo explicitly forbade routine branches, and branch lifecycle tracking
+was mostly repo-only prose instead of a plugin-backed operating flow. That left
+later sessions guessing why branches existed and made Linear too passive in the
+review/merge/cleanup path.
+
+Reasoning:
+The better path is not optional branching; it is a default task-branch
+workflow with narrow exceptions. File-edit work should start from an
+issue-backed branch, prefer the tracking plugin's generated name when
+available, mirror lifecycle in both `todo.md` and Linear, and leave
+review/merge/cleanup as visible states instead of chat memory.
+
+Diagnosis inputs:
+Direct rereads of `/Users/gillettes/.codex/AGENTS.md`,
+`/Users/gillettes/.codex/policies/OPERATING_PRINCIPLES.md`,
+`/Users/gillettes/.codex/policies/GLOBAL_CHANGE_ROUTING.md`,
+`/Users/gillettes/.codex/policies/BRANCH_LIFECYCLE.md`,
+`/Users/gillettes/.codex/policies/PROJECT_AGENTS_MANDATORY.md`,
+`/Users/gillettes/.codex/policies/RULE_REGISTRY.md`,
+`/Users/gillettes/.codex/policies/POLICY_INDEX.md`, the related global
+bootstrap/remediation scripts, this repo's `AGENTS.project.md`, `CLAUDE.md`,
+`LINEAR.md`, `PROMPTS.md`, `LINEAR-BOOTSTRAP.md`,
+`docs/superpowers-playbook.md`,
+`docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, and
+`todo.md`; git preflight in this repo and `/Users/gillettes/.codex`; Linear
+issue creation for `GIL-55`; and the global validator run
+`bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`.
+
+Implementation inputs:
+Updated `/Users/gillettes/.codex` `AGENTS.md`,
+`policies/OPERATING_PRINCIPLES.md`, `policies/BRANCH_LIFECYCLE.md`,
+`policies/POLICY_INDEX.md`, `policies/PROJECT_AGENTS_MANDATORY.md`,
+`policies/RULE_REGISTRY.md`, `scripts/bootstrap-project-governance.sh`,
+`scripts/ensure-project-todo-audit-sections.sh`, and
+`scripts/remediate-project-governance.sh`; updated this repo's
+`AGENTS.project.md`, `CLAUDE.md`, `LINEAR-BOOTSTRAP.md`, `LINEAR.md`,
+`PROMPTS.md`, `docs/superpowers-playbook.md`,
+`docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md`, and
+`todo.md`; created `GIL-55`; created branch
+`trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches` in both
+repos; and posted a Linear progress comment on the issue.
+
+Fix:
+Replaced checkout-first branch minimization with an automatic task-branch
+policy for file-edit work. The canonical global rules now require issue-backed
+task branches with plugin mirrors when available, the branch playbook records
+linked issue/plugin state plus merge/delete outcomes, scaffolding and
+remediation tools stamp the new rule into repos, and this repo's local
+overlays, prompt docs, and Linear workflow now treat Linear as a live branch
+mirror instead of an end-of-task afterthought.
+
+Self-audit:
+1. Ran `bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`;
+   output `GLOBAL POLICY STACK: PASS`.
+2. Ran `git diff --check` in `/Users/gillettes/.codex` and in this repo; both
+   returned clean output.
+3. Re-read the updated branch-policy surfaces in both repos and confirmed the
+   task-branch default, current-checkout exceptions, plugin mirror
+   requirement, and repo ledger fields now agree.
+4. Created `GIL-55`, created branch
+   `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches`,
+   updated `todo.md` `Active Next Steps`, `Linear Issue Ledger`, and
+   `Active Branch Ledger`, and posted a Linear progress comment so the branch
+   existed in both repo and plugin records before this merge closeout.
+5. Did not verify a live PR cycle; this task landed as a pushed review branch
+   first and was later merged directly during branch cleanup.
+Ripple Check attestation: because branch policy touches workflow, I updated the
+canonical global rules, the repo-local AGENTS/Claude/prompt/Linear surfaces,
+the branch ledger, and the scaffolding/remediation scripts in the same task so
+the policy, operating docs, and generated defaults stay aligned.
+Linear-coverage disposition: `GIL-55` tracks this work and now reflects a
+landed branch-policy change rather than an open review branch.
+
+triggered by:
+Trevor request on 2026-04-17 to create branches automatically again and make
+plugins such as Linear much more involved in tracking review, merge, and
+cleanup
+
+led to:
+`.codex` `e307869b`; this repo `3c42dea`; merged to `main` during the
+2026-04-19 branch cleanup pass
+
+linear:
+GIL-55
 
 ### 2026-04-17 | self-contained | by: Codex
 
@@ -3183,7 +3273,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - New entries should capture the suggestion, status, `by:`, and `linear:`. Older entries remain preserved as written.
 - 2026-04-12: Keep `acpx` behind an adapter instead of making it part of the supervisor spine on the first implementation pass. Status: deferred until the builder adapter is being built.
 - 2026-04-12: When Phase 4 starts, materialize the canonical prompt pack from `PROMPTS.md` into versioned `supervisor/prompts/` files plus parseable schema fixtures so prompt regressions can be tested directly. Status: deferred until Phase 4.
-- 2026-04-19: Treat `codex/gil23-benchmarks` as superseded by `codex/gil29-ui-verifier` unless a narrow cherry-pick-only path is chosen deliberately. Status: recommended; `codex/gil29-ui-verifier` already contains the two unique `GIL-23` commits (`408b0b0`, `1883fdb`), so keeping both branches open adds duplicate branch/worktree state without adding coverage. Source: current branch inventory and `git log origin/main..codex/gil29-ui-verifier`. by: Codex. linear: self-contained until selected.
+- 2026-04-19: Treat `codex/gil23-benchmarks` as superseded by `codex/gil29-ui-verifier` unless a narrow cherry-pick-only path is chosen deliberately. Status: completed via branch closeout; `codex/gil29-ui-verifier` already contains the two unique `GIL-23` commits (`408b0b0`, `1883fdb`), so keeping both branches open added duplicate branch/worktree state without adding coverage. Source: current branch inventory and `git log origin/main..codex/gil29-ui-verifier`. by: Codex. linear: self-contained: `codex/gil23-benchmarks` closed as superseded on 2026-04-19.
 - 2026-04-12: Add a prompt-regression harness that replays representative planning, build, review, fix-audit, and final-audit cases to catch prompt drift before it reaches real runs. Status: deferred until Phase 4/5.
 - 2026-04-14: Implement CI first as a contract-driven validator in the first real implementation repo, with fast/unit/smoke gates and structured artifacts, then extract a reusable template only after that pattern is proven. Status: accepted and promoted into Active Next Steps as Phase 0.2a.
 - 2026-04-14: Add GitHub governance hardening only after executable control-plane surfaces exist (`supervisor/`, `schemas/`, tests, workflows). Minimum expected later set: CODEOWNERS for control-plane files, required checks, Dependabot, CodeQL, and secret-scanning hygiene. Status: deferred until after Phase 0A and initial implementation scaffolding.
@@ -3206,12 +3296,14 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-- Legacy active branches still need backfill here: `codex/gil23-benchmarks`, `codex/gil29-ui-verifier`, and `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches`. Use `git branch -vv` plus the linked `GIL-*` items as the temporary source of truth until their ledger entries are added.
+- Legacy active branches still need backfill here: `codex/gil29-ui-verifier`. Use `git branch -vv` plus the linked `GIL-*` items as the temporary source of truth until its ledger entry is added.
 
 ## Branch History
 - `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
 - `codex/coderabbit-flow-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` contains branch tip `44ba5ed`; local and remote refs deleted in this cleanup task | cleanup: local and remote branches deleted
 - `codex/marcopolo-not-needed-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `0d5f115` merged into `main` in this cleanup task | cleanup: local and remote branches deleted; attached worktree removed
+- `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `3c42dea` merged into `main` in this cleanup task | cleanup: local and remote branches deleted
+- `codex/gil23-benchmarks` | close date: 2026-04-19 | outcome: superseded | merge target: n/a | resulting reference: unique commits `408b0b0` and `1883fdb` already present on `codex/gil29-ui-verifier`; branch closed instead of merged | cleanup: local and remote branches deleted
 
 ## Audit Record Convention
 - Record each audit, ship-check, or substantial verification-driven review in an easy-to-find project audit log entry.
@@ -3278,6 +3370,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-17 | command(s): `bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`; `git diff --check` in `/Users/gillettes/.codex`; `git diff --check` in `/Users/gillettes/Coding Projects/Autonomous Coding Agent` | result: pass — the global policy stack validated, both repos were whitespace-clean after the branch-policy rewrite, and the updated branch-policy surfaces agreed on task-branch default, plugin mirror requirement, and branch-ledger fields | log/PR reference: `Work Record Log` 2026-04-17 `GIL-55` | by: Codex | linear: GIL-55
 - 2026-04-17 | command(s): `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md` | result: pass — the canonical plugin memo, operator cheat sheet, append-only intake log, and durable repo record now all carry the same "MarcoPolo not needed here" boundary, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 - 2026-04-17 | command(s): `python3 -m unittest tests.test_queue_intake.QueueDrainRunnerTests`; `python3 -m unittest discover -s tests`; `git diff --check` | result: pass — the queue-drain regressions for halt-on-push-failure, block-on-manual-state-change, and no-op landing commits all pass in the focused suite, the full discovered Python test suite stays green, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained queue-review repair | by: Codex | linear: self-contained: queue review-finding repair on `codex/audit`
 - 2026-04-17 | command(s): `npm ci && pnpm bootstrap:convex:frontend`; `pnpm test`; `pnpm preview --host 127.0.0.1 --port 4173 --strictPort`; `curl -fsS http://127.0.0.1:4173/login`; `APP_URL=http://127.0.0.1:4173 bun run --bun scripts/smoke-public.ts`; `codex --version`; `codex login status`; `claude --version`; `claude auth status`; `python3 --version`; `npx playwright --version`; `python3 /Users/gillettes/.codex/plugins/cache/gillettes-local-plugins/codex-project-autopilot/1.0.0/scripts/validate_codex_agent.py --workspace /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `git diff --check -- todo.md .codex-agent/phase-card.md .codex-agent/ultra-context.md .codex-agent/active-context.md .codex-agent/progress.md .codex-agent/implementation-plan.md` | result: pass — in a disposable fresh `bible-ai` clone the contract-first path passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state; local `codex` / `claude` / `python3` / `npx playwright` readiness checks all passed; the updated ACA autopilot surfaces still validate; and the final patch is whitespace-clean | log/PR reference: `bible-ai` `c7760dab553a843a3be413c00bd148c6db7ba3be`; `bible-ai` `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; `Work Record Log` 2026-04-17 `GIL-20 + GIL-21 + GIL-22 + GIL-24` | by: Codex | linear: GIL-20 + GIL-21 + GIL-22 + GIL-24
@@ -3364,6 +3457,7 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-17 | feedback source: Trevor request to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup | feedback summary: restore automatic task branches as the default edit workflow, keep branch lifecycle visible in both repo docs and Linear, and remove the old checkout-first/no-branch posture from the global and repo-local stack | evaluation chat: current automatic task-branch policy rewrite thread | reasoning response: accepted. The better path is default task branches with narrow exceptions, not optional branching. File-edit work should start from an issue-backed branch, prefer the plugin-generated branch name when available, and keep lifecycle state mirrored in both `todo.md` and Linear so review/merge/cleanup do not disappear into chat memory. | decision status: accepted | implementation/disposition chat: current automatic task-branch policy rewrite thread; merged to `main` during 2026-04-19 branch cleanup | linked branch / audit / suggestion / test evidence: `/Users/gillettes/.codex` branch-policy surfaces; `AGENTS.project.md`; `CLAUDE.md`; `LINEAR.md`; `PROMPTS.md`; `LINEAR-BOOTSTRAP.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-55` | by: Codex | linear: GIL-55
 - 2026-04-17 | feedback source: Trevor clarification that `MarcoPolo` is not needed for this repository | feedback summary: do not add `MarcoPolo` to the active repo tool stack; record the non-use decision durably in the repo docs so later sessions do not keep reconsidering it from scratch | evaluation chat: current `MarcoPolo` usefulness clarification thread | reasoning response: accepted. `MarcoPolo` is a secure external-data connector, not a repo/worktree tool. This repository's ordinary code, docs, tests, and governance work should stay in Codex or Claude Code. The only reason to revisit `MarcoPolo` is a future task that genuinely needs secure analysis of uploaded files, storage, or databases outside the local checkout. | decision status: accepted | implementation/disposition chat: current `MarcoPolo` usefulness clarification thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture; `Test Evidence Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
 - 2026-04-17 | feedback source: Trevor request to audit what apps this repo currently has access to and record them with intended use guidance if the repo was missing that clarity | feedback summary: do not leave the repo with only the broad marketplace-recommendation memo; add one durable record of the app and connector surfaces actually accessible in this session and what they should be used for here | evaluation chat: current accessible-app audit thread | reasoning response: accepted. The missing question was not "what apps are good?" but "what can this repo actually use right now, and for what?" The right shape is to extend the existing marketplace memo with a current-access audit section and to patch the plugin decision ledger where two currently available surfaces (`Build Web Apps` and `Computer Use`) still had no explicit stance rows. That preserves one owner per doc instead of creating a new tracker. | decision status: accepted | implementation/disposition chat: current accessible-app audit thread | linked branch / audit / suggestion / test evidence: `docs/codex-app-marketplace-evaluations.md`; `docs/codex-april-16-2026-impact.md`; `todo.md`; `Work Record Log` 2026-04-17 `GIL-65`; `Test Evidence Log` 2026-04-17 `GIL-65` | by: Codex | linear: GIL-65
 - 2026-04-17 | feedback source: Trevor request to execute the recommended disposition from the Claude Code second-pass audit of CodeRabbit settings | feedback summary: after the second-pass audit found that `slop_detection` was mis-categorized as UI-only, that four configurable schema surfaces were left undocumented, and that four low-severity durable-trail items remained open, land the fixes in one bounded follow-up commit rather than queuing them as separate Codex prompts | evaluation chat: current Claude Code second-pass audit and follow-up landing thread | reasoning response: accepted. The bounded, audit-surfaced fixes fall within the Claude Code narrow-fix allowance defined in `CLAUDE.md` `Roles`, so routing them through a fresh Codex handoff would add ceremony without adding review value. The right shape is: encode the operator's documented `slop_detection` preference in `.coderabbit.yaml` even though it is a no-op on private repos today, move `slop_detection` into the `Supported settings in repo config` table with the public-repo caveat preserved, add an explicit `Defaults we accept` section that names `reviews.tools`, `reviews.pre_merge_checks`, `reviews.finishing_touches`, `code_generation`, and `issue_enrichment` with default posture and known risk, append the audit follow-up to the intake log, and clear the Linear ledger description, exit-checklist, Completed-index, and cosmetic-link trail defects in the same landing. Explicit per-tool overrides were intentionally deferred to the 3-5 PR calibration window so the landing does not bake in unreviewed product judgments. | decision status: accepted | implementation/disposition chat: current Claude Code second-pass audit and follow-up landing thread | linked branch / audit / suggestion / test evidence: `.coderabbit.yaml`; `docs/coderabbit-review-settings.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up; `Test Evidence Log` 2026-04-17 self-contained Claude Code second-pass audit follow-up | by: Claude Code | linear: self-contained: Claude Code second-pass audit follow-up for CodeRabbit settings (slop_detection reclassification, `Defaults we accept` section, cosmetic link fix, and trail cleanup)

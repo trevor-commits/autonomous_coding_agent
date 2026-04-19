@@ -144,7 +144,7 @@ Preserve a durable completion trail for verified work instead of deleting it fro
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-19 | GIL-30: start the first bounded-Claude strategy slice with prompt-pack files, Claude BUILD routing, and typed fallback integration — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-19 | GIL-30: wire candidate review and final audit into the runtime with review-requested rebuilds and final-gate terminal decisions — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
-- [x] 2026-04-19 | GIL-30: add trace-backed benchmark grading and comparison tooling for Phase 4 strategy proof — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
+- [x] 2026-04-19 | GIL-30: add trace-backed benchmark grading and comparison tooling for Phase 4 strategy proof — landed as `17070c5`; full record in Work Record Log 2026-04-19
 - [x] 2026-04-17 | GIL-55: restore automatic task branches and make Linear the live branch mirror — landed as `3c42dea`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack — landed as `0d5f115`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: repair queue halt, live-state drift, and no-op landing-commit regressions in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -301,8 +301,7 @@ Trevor request on 2026-04-19 to complete the next items that still need to be
 completed on the active `GIL-30` branch.
 
 led to:
-landing commit SHA recorded in immediate closeout on branch
-`codex/gil30-bounded-claude-strategy`
+`17070c5`; branch `codex/gil30-bounded-claude-strategy`
 
 linear:
 GIL-30

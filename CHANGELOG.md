@@ -7,6 +7,11 @@
   - added the first `GIL-29` app-launch and UI-verification slice with `supervisor/app_supervisor.py` and `supervisor/ui_verifier.py`
   - brought forward the `GIL-59` through `GIL-62` Phase 3 repair wave
   - closed the `GIL-69` through `GIL-71` follow-up audit gaps by enforcing run budgets, rejecting `repo_path` mismatches, and preserving all UI failure fingerprints in retry/report state
+- Started the first `GIL-30` bounded-Claude strategy slice:
+  - added `supervisor/strategy_claude.py` with Anthropic Messages API transport, typed-action parsing, prompt-pack rendering, per-run planner routing, and fallback to the simple strategy
+  - materialized the first Phase 4 prompt pack under `supervisor/prompts/`
+  - wired `supervisor/main.py` to accept `--strategy claude` while keeping the supervisor in control of legality and fallback behavior
+  - added targeted unit coverage for Claude strategy prompt routing, fallback handling, usage accounting, and main-loop compatibility
 
 ## 2026-04-17
 

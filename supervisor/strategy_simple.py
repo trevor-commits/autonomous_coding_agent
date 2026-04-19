@@ -102,3 +102,6 @@ class SimpleStrategy:
             action_type=ActionType.PROPOSE_TERMINAL_STATE,
             payload={"run_state": "BLOCKED", "reason": reason},
         )
+
+    def consume_pending_cost(self) -> float:
+        return 0.0

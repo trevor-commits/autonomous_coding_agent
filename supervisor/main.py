@@ -7,6 +7,7 @@ import shlex
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Protocol
 
 from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuilderAdapter, build_builder_prompt
@@ -24,6 +25,7 @@ from supervisor.policy import (
 )
 from supervisor.reports import ReadinessReport, build_readiness_report, write_readiness_reports
 from supervisor.run_store import RunStore
+from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.state_machine import StateMachine
 from supervisor.strategy_simple import SimpleStrategy
 from supervisor.ui_verifier import UIVerificationSummary, UIVerifier
@@ -41,12 +43,47 @@ class RunExecutionOutcome:
     builder_turns: int
 
 
+class RuntimeStrategy(Protocol):
+    def build_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        prior_failure_fingerprints: tuple[str, ...],
+    ): ...
+
+    def app_launch_repair_action(
+        self,
+        run_contract: RunContract,
+        *,
+        failure_reason: str,
+        failure_fingerprint: str | None,
+    ): ...
+
+    def ui_repair_action(
+        self,
+        run_contract: RunContract,
+        *,
+        defect_packets,
+    ): ...
+
+    def blocking_action_for_failure(
+        self,
+        summary: VerificationSummary,
+        *,
+        attempt: int,
+        max_repair_loops: int,
+    ): ...
+
+    def consume_pending_cost(self) -> float: ...
+
+
 def execute_run(
     *,
     repo_root: Path | str,
     run_contract_path: Path | str,
     builder_adapter: BuilderAdapter,
-    strategy: SimpleStrategy,
+    strategy: RuntimeStrategy,
     app_supervisor: AppSupervisor | None = None,
     ui_verifier: UIVerifier | None = None,
     cleanup_worktree: bool = False,
@@ -138,6 +175,7 @@ def execute_run(
                     repo_contract,
                     prior_failure_fingerprints=prior_failures,
                 ).payload["description"]
+                total_cost_spent += strategy.consume_pending_cost()
             prompt = build_builder_prompt(
                 session.run_context,
                 build_description,
@@ -201,6 +239,7 @@ def execute_run(
                             failure_reason=launch.failure_reason or "App health failed.",
                             failure_fingerprint=launch.failure_fingerprint,
                         ).payload["description"]
+                        total_cost_spent += strategy.consume_pending_cost()
                         machine.transition_to(
                             Phase.BUILD,
                             "App health failed; routing back to builder.",
@@ -254,6 +293,7 @@ def execute_run(
                         run_contract,
                         defect_packets=ui_summary.defect_packets,
                     ).payload["description"]
+                    total_cost_spent += strategy.consume_pending_cost()
                     machine.transition_to(
                         Phase.BUILD,
                         "UI verification failed; routing defect packets back to builder.",
@@ -452,12 +492,10 @@ def main() -> int:
     parser.add_argument("--team-key")
     parser.add_argument("--linear-token-env", default="LINEAR_API_TOKEN")
     parser.add_argument("--limit", type=int)
-    parser.add_argument("--strategy", default="simple", choices=("simple",))
+    parser.add_argument("--strategy", default="simple", choices=("simple", "claude"))
     parser.add_argument("--cleanup-worktree", action="store_true")
     args = parser.parse_args()
-
-    if args.strategy != "simple":
-        raise SystemExit("Only `simple` strategy is implemented in the smallest Phase 2.")
+    strategy = _build_strategy(args.strategy)
 
     if args.queue_drain:
         if not args.team_key:
@@ -471,7 +509,7 @@ def main() -> int:
             repo_root=Path(args.repo_path),
             linear_client=LinearGraphQLClient(token=token),
             builder_adapter=CodexBuilderAdapter(),
-            strategy=SimpleStrategy(),
+            strategy=strategy,
             team_key=args.team_key,
             cleanup_success_worktree=args.cleanup_worktree,
         ).drain(limit=args.limit)
@@ -493,7 +531,7 @@ def main() -> int:
         repo_root=Path(args.repo_path),
         run_contract_path=Path(args.run_contract),
         builder_adapter=CodexBuilderAdapter(),
-        strategy=SimpleStrategy(),
+        strategy=strategy,
         cleanup_worktree=args.cleanup_worktree,
     )
     print(
@@ -506,7 +544,10 @@ def main() -> int:
             }
         )
     )
-    return 0
+def _build_strategy(name: str) -> RuntimeStrategy:
+    if name == "claude":
+        return ClaudeStrategy()
+    return SimpleStrategy()
 
 
 if __name__ == "__main__":

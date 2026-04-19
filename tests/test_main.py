@@ -9,6 +9,7 @@ import yaml
 from supervisor.app_supervisor import AppLaunchSummary, AppSession
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, BuilderSession
 from supervisor.main import execute_run
+from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.ui_verifier import UIVerificationSummary
 from supervisor.strategy_simple import SimpleStrategy
 from supervisor.verifier import CommandExecutionResult
@@ -392,6 +393,46 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual(2, len(adapter.prompts))
             self.assertIn("Prior failure fingerprints", adapter.prompts[1])
             self.assertIn("local-verify-test", adapter.prompts[1])
+
+    def test_execute_run_supports_claude_strategy_for_first_build_slice(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = FakeBuilderAdapter(["fixed"])
+            prompts: list[str] = []
+
+            def transport(
+                api_key: str,
+                model: str,
+                max_tokens: int,
+                timeout_seconds: int,
+                prompt: str,
+            ) -> dict:
+                prompts.append(prompt)
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                '{"action":"request_builder_task",'
+                                '"description":"Implement the first milestone with deterministic checks."}'
+                            ),
+                        }
+                    ],
+                    "usage": {"input_tokens": 100, "output_tokens": 20},
+                }
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=ClaudeStrategy(api_key="test-key", transport=transport),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual(1, len(adapter.prompts))
+            self.assertIn("Prompt Pack: planner", prompts[0])
 
     def test_execute_run_blocks_on_high_risk_builder_command(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

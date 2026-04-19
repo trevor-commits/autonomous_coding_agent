@@ -63,9 +63,18 @@ def build_readiness_report(
     artifact_manifest: Sequence[str],
     unresolved_blockers: Sequence[str],
     queue_exit_reason: str | None,
+    failure_fingerprints: Sequence[str] = (),
     checkpoint_refs: Sequence[str] = (),
 ) -> ReadinessReport:
     failures = tuple(
+        sorted(
+            {
+                fingerprint
+                for fingerprint in failure_fingerprints
+                if fingerprint
+            }
+        )
+    ) or tuple(
         sorted(
             {
                 result.failure_fingerprint

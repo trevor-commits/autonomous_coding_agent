@@ -131,6 +131,52 @@ class ReadinessReportTests(unittest.TestCase):
             self.assertEqual(("local-verify-lint-lint-failed-src-app-ts",), report.failures)
             self.assertEqual(("checkpoint-001",), report.checkpoint_refs)
 
+    def test_report_preserves_explicit_failure_fingerprint_set(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract = _make_run_contract(repo_root)
+            machine = StateMachine(run_contract.run_id)
+            machine.transition_to(Phase.PREPARE_WORKSPACE, "workspace ready")
+            machine.transition_to(Phase.BUILD, "builder start")
+            machine.transition_to(Phase.LOCAL_VERIFY, "candidate ready")
+            machine.transition_to(Phase.FINAL_GATE, "authoritative checks")
+            machine.block("ui smoke failed", readiness_verdict=ReadinessVerdict.NOT_READY)
+
+            command_results = (
+                CommandExecutionResult(
+                    name="ui_smoke",
+                    command="npx playwright test",
+                    exit_code=1,
+                    stdout="",
+                    stderr="first failure\nsecond failure",
+                    duration_seconds=0.5,
+                    scope="full",
+                    run_trace_id="trace-report-123",
+                    failure_fingerprint="ui-verify-ui-smoke-first-failure",
+                ),
+            )
+            report = build_readiness_report(
+                snapshot=machine.snapshot,
+                run_contract=run_contract,
+                command_results=command_results,
+                changed_files=("src/app.ts",),
+                artifact_manifest=("artifacts/logs/ui_smoke.stderr.log",),
+                unresolved_blockers=("UI smoke failed",),
+                queue_exit_reason="blocked by ui verification failure",
+                failure_fingerprints=(
+                    "ui-verify-ui-smoke-first-failure",
+                    "ui-verify-ui-smoke-second-failure",
+                ),
+            )
+
+            self.assertEqual(
+                (
+                    "ui-verify-ui-smoke-first-failure",
+                    "ui-verify-ui-smoke-second-failure",
+                ),
+                report.failures,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

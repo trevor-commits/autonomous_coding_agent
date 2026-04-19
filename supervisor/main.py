@@ -4,6 +4,7 @@ import argparse
 import json
 import shlex
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
@@ -16,6 +17,7 @@ from supervisor.policy import (
     ShellClass,
     classify_command,
     classify_path_change,
+    enforce_budget,
     enforce_scope,
 )
 from supervisor.reports import ReadinessReport, build_readiness_report, write_readiness_reports
@@ -108,9 +110,19 @@ def execute_run(
     queue_exit_reason: str | None = None
     pending_build_description: str | None = None
     active_app_session = None
+    run_started_at = datetime.now(timezone.utc)
+    total_cost_spent = 0.0
+    all_failure_fingerprints: set[str] = set()
 
     try:
+        _validate_repo_root_matches_contract(repo_root, run_contract)
         while True:
+            enforce_budget(
+                run_contract,
+                iterations_used=session.turn_count + 1,
+                cost_spent=total_cost_spent,
+                started_at=run_started_at,
+            )
             if machine.snapshot.phase is not Phase.BUILD:
                 machine.transition_to(Phase.BUILD, "Dispatching builder turn.")
                 run_store.write_state(machine.snapshot)
@@ -153,6 +165,7 @@ def execute_run(
                 mode=_verification_mode_for(builder_result),
                 changed_files=builder_result.files_changed,
             )
+            all_failure_fingerprints.update(last_summary.failures)
             command_history.extend(last_summary.commands)
             artifact_manifest.update(_verification_artifact_manifest(last_summary))
             artifact_manifest.add("reports/failure-fingerprints.json")
@@ -168,17 +181,19 @@ def execute_run(
                     artifact_manifest.update(launch.artifact_manifest)
                     if not launch.healthy:
                         app_launch_attempt += 1
+                        launch_failures = tuple(
+                            fingerprint
+                            for fingerprint in (launch.failure_fingerprint,)
+                            if fingerprint
+                        )
+                        all_failure_fingerprints.update(launch_failures)
                         if app_launch_attempt >= run_contract.constraints.max_repair_loops:
                             reason = launch.failure_reason or "app launch failed"
                             machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
                             queue_exit_reason = "blocked by app launch failure"
                             unresolved_blockers = (reason,)
                             break
-                        prior_failures = tuple(
-                            fingerprint
-                            for fingerprint in (launch.failure_fingerprint,)
-                            if fingerprint
-                        )
+                        prior_failures = launch_failures
                         pending_build_description = strategy.app_launch_repair_action(
                             run_contract,
                             failure_reason=launch.failure_reason or "App health failed.",
@@ -197,6 +212,8 @@ def execute_run(
                     ui_summary = ui_verifier.run(changed_files=builder_result.files_changed)
                     command_history.extend(ui_summary.command_results)
                     artifact_manifest.update(ui_summary.artifact_manifest)
+                    ui_failure_fingerprints = _ui_failure_fingerprints(ui_summary)
+                    all_failure_fingerprints.update(ui_failure_fingerprints)
 
                     if ui_summary.passed:
                         machine.transition_to(Phase.FINAL_GATE, "UI verification passed.")
@@ -230,11 +247,7 @@ def execute_run(
                         ) or (reason,)
                         break
 
-                    prior_failures = tuple(
-                        result.failure_fingerprint
-                        for result in ui_summary.command_results
-                        if result.failure_fingerprint
-                    )
+                    prior_failures = ui_failure_fingerprints
                     pending_build_description = strategy.ui_repair_action(
                         run_contract,
                         defect_packets=ui_summary.defect_packets,
@@ -313,6 +326,7 @@ def execute_run(
             artifact_manifest=tuple(sorted(artifact_manifest)),
             unresolved_blockers=unresolved_blockers,
             queue_exit_reason=queue_exit_reason,
+            failure_fingerprints=tuple(sorted(all_failure_fingerprints)),
         )
         report_path, summary_path = write_readiness_reports(run_store, report)
         builder_adapter.close_session(session)
@@ -355,6 +369,30 @@ def _verification_artifact_manifest(summary: VerificationSummary) -> set[str]:
         artifacts.add(f"artifacts/logs/{result.name}.stdout.log")
         artifacts.add(f"artifacts/logs/{result.name}.stderr.log")
     return artifacts
+
+
+def _ui_failure_fingerprints(summary: UIVerificationSummary) -> tuple[str, ...]:
+    fingerprints = [
+        str(defect.get("failure_fingerprint"))
+        for defect in summary.defect_packets
+        if defect.get("failure_fingerprint")
+    ]
+    if not fingerprints:
+        fingerprints = [
+            result.failure_fingerprint
+            for result in summary.command_results
+            if result.failure_fingerprint
+        ]
+    return tuple(dict.fromkeys(fingerprints))
+
+
+def _validate_repo_root_matches_contract(repo_root: Path, run_contract: RunContract) -> None:
+    contract_repo_root = Path(run_contract.repo_path).resolve()
+    if contract_repo_root != repo_root:
+        raise PolicyViolationError(
+            "Resolved repo root "
+            f"`{repo_root}` does not match run contract repo_path `{contract_repo_root}`."
+        )
 
 
 def _launch_app_for_ui_phase(

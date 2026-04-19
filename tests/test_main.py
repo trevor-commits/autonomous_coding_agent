@@ -313,6 +313,48 @@ def _ui_failure() -> UIVerificationSummary:
 
 
 class SupervisorMainTests(unittest.TestCase):
+    def test_execute_run_blocks_when_iteration_budget_is_exceeded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            payload = json.loads(run_contract_path.read_text())
+            payload["constraints"]["max_iterations"] = 1
+            run_contract_path.write_text(json.dumps(payload))
+            adapter = FakeBuilderAdapter(["broken", "fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            self.assertEqual(1, len(adapter.prompts))
+            self.assertIn("Iteration budget exceeded", "\n".join(outcome.report.unresolved_blockers))
+
+    def test_execute_run_blocks_when_repo_root_mismatches_run_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            payload = json.loads(run_contract_path.read_text())
+            payload["repo_path"] = str(repo_root / "different-root")
+            run_contract_path.write_text(json.dumps(payload))
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            self.assertEqual(0, len(adapter.prompts))
+            self.assertIn("does not match run contract repo_path", "\n".join(outcome.report.unresolved_blockers))
+
     def test_execute_run_completes_after_single_builder_turn(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -440,6 +482,78 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("Save button disabled after valid input", adapter.prompts[1])
             self.assertIn("src/components/SettingsForm.tsx", adapter.prompts[1])
             self.assertIn("ui-verify-ui-smoke-save-disabled", adapter.prompts[1])
+
+    def test_execute_run_preserves_all_ui_failure_fingerprints_for_retries_and_reporting(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            adapter = FakeBuilderAdapter(["fixed", "fixed"])
+            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
+            ui_failure = UIVerificationSummary(
+                passed=False,
+                command_results=(
+                    CommandExecutionResult(
+                        name="ui_smoke",
+                        command="npx playwright test",
+                        exit_code=1,
+                        stdout="",
+                        stderr="first failure\nsecond failure",
+                        duration_seconds=0.4,
+                        scope="full",
+                        run_trace_id="trace-123",
+                        failure_fingerprint="ui-verify-ui-smoke-first-failure",
+                    ),
+                ),
+                defect_packets=(
+                    {
+                        "defect_id": "defect-001",
+                        "severity": "P1",
+                        "type": "ui-functional",
+                        "summary": "first failure",
+                        "repro_steps": ["step one"],
+                        "expected": "check one",
+                        "observed": "first failure",
+                        "evidence": {"console_log": "artifacts/logs/ui_smoke.stderr.log"},
+                        "suspected_scope": ["src/components/SettingsForm.tsx"],
+                        "failure_fingerprint": "ui-verify-ui-smoke-first-failure",
+                    },
+                    {
+                        "defect_id": "defect-002",
+                        "severity": "P1",
+                        "type": "ui-functional",
+                        "summary": "second failure",
+                        "repro_steps": ["step two"],
+                        "expected": "check two",
+                        "observed": "second failure",
+                        "evidence": {"console_log": "artifacts/logs/ui_smoke.stderr.log"},
+                        "suspected_scope": ["src/components/SettingsForm.tsx"],
+                        "failure_fingerprint": "ui-verify-ui-smoke-second-failure",
+                    },
+                ),
+                artifact_manifest=("artifacts/logs/ui_smoke.stderr.log",),
+            )
+            ui_verifier = FakeUIVerifier([ui_failure, _ui_pass()])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                app_supervisor=app_supervisor,
+                ui_verifier=ui_verifier,
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertIn("ui-verify-ui-smoke-first-failure", adapter.prompts[1])
+            self.assertIn("ui-verify-ui-smoke-second-failure", adapter.prompts[1])
+            self.assertEqual(
+                (
+                    "ui-verify-ui-smoke-first-failure",
+                    "ui-verify-ui-smoke-second-failure",
+                ),
+                outcome.report.failures,
+            )
 
     def test_execute_run_allows_ui_repair_after_local_verify_retry(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

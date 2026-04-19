@@ -1,0 +1,32 @@
+{
+  "artifact_manifest": [
+    "reports/final-report.json",
+    "reports/final-summary.md"
+  ],
+  "builder_turns": 1,
+  "changed_files": [
+    "server/index.ts",
+    "server/leadProcessing.ts",
+    "tests/unit/leadProcessing.test.ts"
+  ],
+  "claim_id": null,
+  "commands_run": [],
+  "failures": [],
+  "phases_completed": [
+    "INTAKE",
+    "PREPARE_WORKSPACE",
+    "BUILD"
+  ],
+  "queue_entry_reason": null,
+  "queue_exit_reason": "blocked by policy gate",
+  "readiness_verdict": "NOT_READY",
+  "run_duration_seconds": 180.842,
+  "run_id": "benchmark-001",
+  "run_state": "BLOCKED",
+  "run_trace_id": "",
+  "strategy_name": "claude",
+  "total_cost_dollars": 0.0,
+  "unresolved_blockers": [
+    "Builder session ended with status `timed_out`."
+  ]
+}

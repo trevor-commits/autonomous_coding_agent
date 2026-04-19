@@ -22,6 +22,10 @@
   - added per-run benchmark metrics to readiness reports (`strategy_name`, `builder_turns`, `run_duration_seconds`, `total_cost_dollars`)
   - added `supervisor/benchmark_eval.py` to compare benchmark report sets and render markdown or JSON summaries
   - added focused coverage for report-metric emission, historical-report compatibility, and benchmark comparison summaries
+- Completed the first live `GIL-30` benchmark-proof pass:
+  - hardened the builder timeout path so missing builder worktrees degrade to a blocked run instead of an adapter crash
+  - recorded eight paired live benchmark artifacts for `benchmark-001` through `benchmark-004` under `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`
+  - captured the current Phase 4 result in durable comparison summaries: both `simple` and `claude` timed out after one builder turn on every positive fixture, so no Claude-only wins are proven under the current builder lane
 
 ## 2026-04-17
 

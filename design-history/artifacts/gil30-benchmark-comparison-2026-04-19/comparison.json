@@ -1,0 +1,28 @@
+{
+  "claude_only_wins": [],
+  "simple_only_wins": [],
+  "strategies": [
+    {
+      "average_cost_dollars": 0.0,
+      "average_iterations": 1.0,
+      "average_time_seconds": 180.46475,
+      "complex_ready_runs": 0,
+      "complex_runs": 2,
+      "ready_runs": 0,
+      "review_catch_rate": 0.0,
+      "strategy_name": "claude",
+      "total_runs": 4
+    },
+    {
+      "average_cost_dollars": 0.0,
+      "average_iterations": 1.0,
+      "average_time_seconds": 180.07725,
+      "complex_ready_runs": 0,
+      "complex_runs": 2,
+      "ready_runs": 0,
+      "review_catch_rate": 0.0,
+      "strategy_name": "simple",
+      "total_runs": 4
+    }
+  ]
+}

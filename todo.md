@@ -3145,25 +3145,11 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-### `codex/coderabbit-flow-docs`
-- source chat: 2026-04-17 "Im going to try rabbit. Document our thinking process in the repo and update the documents to include again the rabbit flow in the repo"
-- last refreshed by chat: 2026-04-17 "Claude Code second-pass audit follow-up for CodeRabbit settings"
-- purpose: Record the CodeRabbit-versus-Copilot decision trail, restore CodeRabbit as the active bounded review trial in the repo's plugin docs, and preserve the exact settings and rationale for later AI review.
-- merge expectation: merge
-- exit checklist:
-  - [x] Plugin memo updated coherently
-  - [x] Operator cheat sheet updated coherently
-  - [x] CodeRabbit config/settings companion updated coherently
-  - [x] Plugin-intake log appended
-  - [x] Durable repo record updated in `todo.md`
-  - [x] Commit pushed on this branch
-  - [ ] Merge or explicit no-merge closeout decided
-  - [ ] Local/remote branch cleanup completed
-- delete when: After merge or explicit closeout and branch cleanup completes
-- retain reason: n/a
+- Legacy active branches still need backfill here: `codex/gil23-benchmarks`, `codex/gil29-ui-verifier`, `codex/marcopolo-not-needed-docs`, and `trevor/gil-55-revise-branch-lifecycle-for-automatic-task-branches`. Use `git branch -vv` plus the linked `GIL-*` items as the temporary source of truth until their ledger entries are added.
 
 ## Branch History
-- No closed branch entries recorded yet.
+- `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
+- `codex/coderabbit-flow-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` contains branch tip `44ba5ed`; local and remote refs deleted in this cleanup task | cleanup: local and remote branches deleted
 
 ## Audit Record Convention
 - Record each audit, ship-check, or substantial verification-driven review in an easy-to-find project audit log entry.

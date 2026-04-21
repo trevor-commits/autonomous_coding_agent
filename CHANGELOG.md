@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-21
+
+- Landed `GIL-11` / `ADR-0005`:
+  - added the Codex conversation-lifecycle decision under `design-history/ADR-0005-codex-conversation-lifecycle.md`
+  - codified required new-conversation triggers, permitted same-conversation exceptions, and the round-3 restart rule
+  - tightened the repo's live handoff/governance surfaces so "fresh conversation" points to an explicit accepted boundary instead of a vague guideline
+
 ## 2026-04-19
 
 - Merged the `codex/gil29-ui-verifier` runtime line into `main`:

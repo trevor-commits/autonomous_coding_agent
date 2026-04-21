@@ -210,6 +210,7 @@ Key historical records:
 - [design-history/ADR-0002-audit-tiebreaker-protocol.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0002-audit-tiebreaker-protocol.md)
 - [design-history/ADR-0003-phase-1-architecture-checkpoint.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0003-phase-1-architecture-checkpoint.md)
 - [design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md)
+- [design-history/ADR-0005-codex-conversation-lifecycle.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0005-codex-conversation-lifecycle.md)
 
 ## Where Feedback, Audits, And Plan Refinements Live
 

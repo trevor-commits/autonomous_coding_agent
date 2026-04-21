@@ -150,8 +150,11 @@ The next implementation work should align with the phased plan in `canonical-arc
 
 - Use a fresh conversation for each bounded task.
 - Do not carry prompt context across phase boundaries or into a new prompt.
+- Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round as a new bounded task, every ADR that changes an operating decision, and whenever Codex begins hallucinating or contradicting repo truth.
+- Permitted same conversation: mid-task repair within one bounded task before the commit lands, active debugging of a single issue with ongoing context, and multi-commit work whose sub-commits are dependent pieces of the same bounded task.
 - Repair loops may continue within the same task through round 2.
 - If a task reaches round 3, restart with the latest auditor findings as the new brief.
+- Never let one conversation silently span two prompts that should be separate bounded tasks.
 
 ## Repo Principles
 [MANDATORY_CONTINUITY] load and enforce local `CONTINUITY.md`; bounded tasks must leave a durable Work Record, honest Self-audit, and explicit `did not verify X because Y` note, and the audit path must permit Claude Code to spot-check at least one claim

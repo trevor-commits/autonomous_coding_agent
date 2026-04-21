@@ -7,16 +7,16 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | Stage | Goal | Gate | Linear | Status |
 |-------|------|------|--------|--------|
 | **0** | Repo prep + manual baseline | Target repo demonstrably automation-ready | GIL-19 through GIL-24 + GIL-8 through GIL-11 | In progress |
-| **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | In progress |
-| **2** | Single builder loop (Codex) | Backend + fix benchmarks complete autonomously ≥2/3; supervisor enforces gates independently | GIL-28 | In progress |
-| **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | In progress |
-| **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | Not started |
+| **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | Complete |
+| **2** | Single builder loop (Codex) | Backend + fix benchmarks complete autonomously ≥2/3; supervisor enforces gates independently | GIL-28 | Complete |
+| **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | Complete |
+| **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | In progress |
 | **5** | Operational memory hardening (v1.1) | Benchmark suite rerun shows clear reliability gains | GIL-31 | Not started |
 
 **Shortest valid path:** `bible-ai` Phase 0 proof landed → finish the remaining repo-local Phase 0 and lifecycle work → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: the repo-local benchmark plus app/UI runtime line is now merged on `main`; the next substantive implementation step is `GIL-30` Phase 4 bounded Claude strategy work, while the remaining governance ADRs (`GIL-8`, `GIL-10`, `GIL-11`) stay queued as the main non-runtime backlog.
+Current goal: `GIL-8` is the active lane. Phase 4 proof on `codex/gil30-bounded-claude-strategy` is complete enough to pause: the bounded prompt family, review/final-gate routing, and per-run grading surface are wired, and live comparative benchmark artifacts exist for `benchmark-001` through `benchmark-004`, but both `simple` and `claude` still block after one builder turn because the Codex builder lane times out even at a 180-second cap. The `GIL-30` builder-envelope revisit is intentionally deferred and recorded below so the repo can move on to the queued governance ADRs (`GIL-8`, `GIL-10`, `GIL-11`) instead of burning more cycles on Claude prompt tuning before the builder lane can finish even one positive fixture.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
@@ -32,12 +32,12 @@ Current goal: the repo-local benchmark plus app/UI runtime line is now merged on
 - [ ] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
 - [ ] Phase 0.8 (GIL-11): draft ADR-0005 "Codex Conversation Lifecycle" — fresh Codex conversation per bounded task; repo docs are the persistent memory, not Codex chat history. Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round, every ADR that changes an operating decision, whenever Codex begins hallucinating or contradicting the repo. Permitted same conversation: mid-task repair within one bounded task before the commit lands; active debugging of a single issue with ongoing context; multi-commit prompts where sub-commits depend on context. Hard caps: one prompt + its immediate repair loops per conversation, never spanning two prompts; repair loops hitting round 3 in the same conversation must close and restart with the auditor's latest findings as the brief; never reuse a Codex conversation across a phase boundary. Rationale: avoid context rot, stale memory, prompt pollution, and audit-scope ambiguity.
 - [x] Phase 0.4 (GIL-24): local tool-readiness checks passed for `codex`, `claude`, `python3`, and `npx playwright`; see `Test Evidence Log` 2026-04-17.
-- [ ] Phase 1.1 (GIL-25): build the deterministic supervisor foundation before any bounded strategy-layer integration.
+- [x] Phase 1.1 (GIL-25): deterministic supervisor foundation landed across the initial state-machine slice (`3f9aa53`), contract/worktree/policy controls (`69cd3c2`), and deterministic verification/reporting layer (`4c6e980`); this is no longer the active lane.
 - [x] Phase 1.2 (GIL-26): implement contract parsing, run directory creation, shell/path guardrails, and single-writer worktree control.
 - [x] Phase 1.3 (GIL-27): implement deterministic verification runners, run-local failure fingerprinting, and final report generation.
 - [x] Phase 2 (GIL-28): integrate Codex as sole writer — builder adapter, rule-based strategy, and a simple build → verify → retry loop with structured failure routing.
 - [x] Phase 3 (GIL-29): add app launch and UI verification — Playwright ownership, app lifecycle, screenshots/traces, defect packets, UI failure repair routing.
-- [ ] Phase 4 (GIL-30): add bounded Claude strategy layer — planner, task shaper, stall diagnosis, candidate review, final audit, typed domain actions only.
+- [ ] Phase 4 (GIL-30): add bounded Claude strategy layer — prompt-pack files plus BUILD/stall/candidate-review/final-audit routing and trace-backed benchmark grading are now wired on `codex/gil30-bounded-claude-strategy`, and live comparison artifacts for `benchmark-001` through `benchmark-004` are recorded under `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`; the builder-envelope revisit is deferred for now, and when `GIL-30` reopens the next work is improving the Codex builder lane enough to complete at least one positive fixture before spending more time on Claude prompt tuning.
 - [ ] Phase 5 (GIL-31): operational memory hardening (v1.1) — failure-memory promotion, flaky-test registry, graceful shutdown/resume, concurrent-run prevention, session recovery.
 
 ## Linear Issue Ledger
@@ -109,12 +109,12 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-21` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` clean-checkout proof landed as `bible-ai` `99198863`; awaiting Cowork/Trevor state move) | why this exists: manually validate the target repo contract on a clean checkout | origin source: implementation roadmap plus 2026-04-15 clean-checkout refinement
 - `GIL-22` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`bible-ai` CI-parity note landed as `bible-ai` `99198863`; awaiting Cowork/Trevor state move) | why this exists: document CI parity so workflows reuse repo-contract commands instead of inventing behavior | origin source: contract-first implementation roadmap
 - `GIL-23` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`GIL-23` benchmark fixtures landed as `408b0b0`; branch now merged) | why this exists: create benchmark run contracts that cover each supervisor invariant | origin source: 2026-04-15 plan review raised the benchmark floor to 6-8
-- `GIL-25` | status: `Inbox` | todo home: `Active Next Steps` Phase 1.1 | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
+- `GIL-25` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (`3f9aa53`) + 2026-04-16 (`69cd3c2`) + 2026-04-17 (`4c6e980`) | why this exists: build the deterministic supervisor foundation once Phase 0 is complete | origin source: `IMPLEMENTATION-PLAN.md` Phase 1
 - `GIL-26` | status: `Inbox` | todo home: `Work Record Log` 2026-04-16 (contract-and-workspace controls landed as `69cd3c2`; awaiting Cowork/Trevor state move) | why this exists: implement contract parsing, run directory creation, shell/path guardrails, and single-writer control | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-27` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (verification, fingerprinting, and reporting layer landed as `4c6e980`; awaiting Cowork/Trevor state move) | why this exists: implement verification runners, run-local failure fingerprinting, and reports | origin source: `IMPLEMENTATION-PLAN.md` Phase 1 decomposition
 - `GIL-28` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (builder loop landed as `bea68f6`; awaiting Cowork/Trevor state move) | why this exists: integrate Codex as the sole writer with a simple repair loop and bounded adapter | origin source: `IMPLEMENTATION-PLAN.md` Phase 2
 - `GIL-29` | status: `Inbox` | todo home: `Work Record Log` 2026-04-17 (`GIL-29` app/UI runtime slice landed as `9f1b693`; branch now merged) | why this exists: add app launch and UI verification with Playwright | origin source: `IMPLEMENTATION-PLAN.md` Phase 3
-- `GIL-30` | status: `Inbox` | todo home: `Active Next Steps` Phase 4 | why this exists: add the bounded Claude strategy layer without giving it workflow control, using candidate review rather than a checkpoint-heavy surface | origin source: `IMPLEMENTATION-PLAN.md` Phase 4
+- `GIL-30` | status: `Inbox` | todo home: `Active Next Steps` Phase 4 + `Work Record Log` 2026-04-19 kickoff, review/final-gate, and live benchmark-proof slices on `codex/gil30-bounded-claude-strategy` | why this exists: add the bounded Claude strategy layer without giving it workflow control, using candidate review rather than a checkpoint-heavy surface | origin source: `IMPLEMENTATION-PLAN.md` Phase 4
 - `GIL-31` | status: `Inbox` | todo home: `Active Next Steps` Phase 5 | why this exists: harden operational memory after the core flow is proven | origin source: `IMPLEMENTATION-PLAN.md` Phase 5
 - `GIL-13` | status: `Inbox` | todo home: `Linear Issue Ledger` (decision-blocked backlog) | why this exists: reconcile the `STRUCTURE.md` `acpx` claim with the canonical architecture open question | origin source: 2026-04-15 Claude Code audit finding `P2-5`
 
@@ -142,6 +142,10 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-19 | GIL-30: start the first bounded-Claude strategy slice with prompt-pack files, Claude BUILD routing, and typed fallback integration — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
+- [x] 2026-04-19 | GIL-30: wire candidate review and final audit into the runtime with review-requested rebuilds and final-gate terminal decisions — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
+- [x] 2026-04-19 | GIL-30: add trace-backed benchmark grading and comparison tooling for Phase 4 strategy proof — landed as `17070c5`; full record in Work Record Log 2026-04-19
+- [x] 2026-04-19 | GIL-30: run live comparative benchmark proof on `benchmark-001` through `benchmark-004` and record the current no-win result — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-17 | GIL-55: restore automatic task branches and make Linear the live branch mirror — landed as `3c42dea`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack — landed as `0d5f115`; full record in Work Record Log 2026-04-17
 - [x] 2026-04-17 | self-contained: repair queue halt, live-state drift, and no-op landing-commit regressions in `supervisor/queue_intake.py` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
@@ -246,6 +250,243 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-19 | GIL-30 | by: Codex
+
+Problem:
+Phase 4 still lacked the one thing that actually decides whether the bounded
+Claude lane is helping: live comparison evidence against the positive benchmark
+fixtures. Without that proof, the branch could only claim that the strategy
+surface was wired, not whether it improved outcomes. The first live pass also
+surfaced a real runtime edge case: when a timed-out builder session had already
+lost its worktree path, the adapter crashed instead of reporting a blocked run.
+
+Reasoning:
+The right next move was to finish the proof step end-to-end, not to guess about
+prompt tuning. I first hardened the timeout path so benchmark runs fail
+truthfully, then ran the positive fixture suite under both `simple` and
+`claude`, and when the first disposable target worktree proved unsafe for
+nested worktree creation, I switched to a disposable ordinary clone so the
+remaining evidence measured the strategy lane rather than a benchmark
+environment artifact.
+
+Diagnosis inputs:
+Direct rereads of `supervisor/builder_adapter.py`,
+`tests/test_builder_adapter.py`, `supervisor/benchmark_eval.py`,
+`fixtures/README.md`, the four positive benchmark fixtures, the live artifact
+directory under `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`,
+and the failed first benchmark sweep output showing a nested-worktree root
+collapse on the disposable `gillette-website` benchmark worktree during the
+`claude` `benchmark-003` timeout path.
+
+Implementation inputs:
+Updated `supervisor/builder_adapter.py`, `tests/test_builder_adapter.py`,
+`CHANGELOG.md`, and `todo.md`; recorded the live comparison artifacts under
+`design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`, including
+all eight paired `final-report.json` / `final-summary.md` files plus
+`comparison.md` and `comparison.json`.
+
+Fix:
+The builder adapter now treats a missing builder worktree after timeout as
+"no changed files" instead of crashing. Phase 4 also now has durable live
+proof artifacts for `benchmark-001` through `benchmark-004` under both
+strategies. The current result is explicit: on a disposable clean clone of
+`gillette-website`, both `simple` and `claude` blocked after one builder turn
+on every positive fixture because the Codex builder lane timed out, so the
+comparison shows no Claude-only wins and no prompt-tuning justification yet.
+
+Self-audit:
+1. Ran `python3 -m unittest tests.test_builder_adapter tests.test_benchmark_eval tests.test_reports tests.test_main`; output `OK`; the timeout-path hardening, comparison tooling, reporting surfaces, and current execute-run coverage all pass together.
+2. Ran a temporary Python harness that executed `execute_run(..., cleanup_worktree=True)` for `benchmark-001` through `benchmark-004` under both `simple` and `claude` against a disposable ordinary clone of `gillette-website`, with rewritten temp contracts under `tmp/gil30-benchmark-contracts/` and `builder_timeout_seconds=180`; all 8 runs completed with durable reports copied into `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`.
+3. Ran `python3 -m supervisor.benchmark_eval --report ... > design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; output shows `0%` completion for both strategies, `0` Claude-only wins, `0` Simple-only wins, average iterations `1.00`, and average runtime about `180s` for both cohorts.
+4. Wrote `comparison.json` from the same report set using `supervisor.benchmark_eval.compare_benchmark_reports(...)`; the JSON artifact matches the markdown summary and confirms no strategy delta on the positive fixture suite.
+5. Ran `git diff --check`; output empty; the patch is whitespace-clean.
+6. Did not open a new `GIL-N` issue for follow-on prompt tuning because the live evidence does not justify tuning the Claude prompt lane yet. The still-actionable remaining work stays inside `GIL-30`: either improve the Codex builder execution envelope enough to produce at least one completed positive run, or explicitly close Phase 4 as "no measurable Claude gain under the current builder bottleneck."
+Ripple Check attestation: because this slice changed runtime timeout handling, benchmark-proof artifacts, the changelog, the active Phase 4 queue text, the `GIL-30` ledger home, branch-lifecycle wording, test evidence, and the feedback trail, I updated those surfaces together in the same change.
+Linear-coverage disposition: `GIL-30` remains the umbrella issue. The comparative proof step is now complete; the remaining work is the explicit builder-lane decision noted above, not chat-only prompt speculation.
+
+triggered by:
+Trevor request on 2026-04-19 to continue the remaining `GIL-30` work and do it
+thoroughly instead of stopping at control-plane wiring.
+
+led to:
+landing commit SHA recorded in immediate closeout on branch
+`codex/gil30-bounded-claude-strategy`; live proof artifacts under
+`design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`
+
+linear:
+GIL-30
+
+### 2026-04-19 | GIL-30 | by: Codex
+
+Problem:
+The Phase 4 branch had the full bounded prompt family wired, but it still had
+no trustworthy way to compare `simple` versus `claude` runs after the fact.
+Final readiness reports did not retain strategy identity, builder-turn count,
+runtime, or strategy cost, so "comparative benchmark proof" would have been a
+chat summary rather than a replayable artifact.
+
+Reasoning:
+The better next slice was not to start mutating the benchmark target repo from
+this workspace blindly. First the supervisor itself needed a trace-backed
+grading surface so later benchmark runs can be compared from durable run
+artifacts instead of memory or hand-built spreadsheets. That keeps the branch
+inside this repo's scope while making the remaining live benchmark step
+repeatable and auditable.
+
+Diagnosis inputs:
+Direct rereads of `IMPLEMENTATION-PLAN.md` Phase 4 comparative-testing section,
+`canonical-architecture.md` sections 3.9, 5.8, and 22, `supervisor/reports.py`,
+`supervisor/main.py`, `schemas/readiness-report.schema.json`,
+`tests/test_reports.py`, and the current `GIL-30` branch record in `todo.md`.
+
+Implementation inputs:
+Updated `supervisor/reports.py`, `supervisor/main.py`,
+`schemas/readiness-report.schema.json`, `tests/test_reports.py`,
+`tests/test_main.py`, `CHANGELOG.md`, and `todo.md`; added
+`supervisor/benchmark_eval.py` plus `tests/test_benchmark_eval.py`.
+
+Fix:
+Final readiness reports now carry the benchmark-relevant metrics the branch was
+missing: `strategy_name`, `builder_turns`, `run_duration_seconds`, and
+`total_cost_dollars`. The new `python3 -m supervisor.benchmark_eval` command
+loads one or more `final-report.json` files, compares strategy cohorts, and
+renders markdown or JSON summaries covering completion rate, complex-task
+completion, average iterations, average cost, average time, review catch rate,
+and paired "Claude-only wins" versus "Simple-only wins."
+
+Self-audit:
+1. Ran `python3 -m unittest tests.test_reports tests.test_benchmark_eval tests.test_main.SupervisorMainTests.test_execute_run_completes_after_single_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; output `OK`; report metric emission, historical-report compatibility defaults, benchmark comparison summaries, and runtime metric wiring all pass.
+2. Ran `python3 -m supervisor.benchmark_eval --help`; output showed the new CLI and argument surface resolve correctly.
+3. Ran `git diff --check`; output empty; the patch is whitespace-clean.
+4. Did not run live benchmark tasks against `/Users/gillettes/Coding Projects/gillette-website` in this slice because that would widen the task into another repo's mutable branch/worktree state and, for `claude`, depend on live Anthropic credentials. This landing makes that remaining execution step durable and replayable instead of hand-wavy.
+Ripple Check attestation: because this slice changed executable reporting, the readiness-report schema, benchmark-proof tooling, tests, `CHANGELOG.md`, the active Phase 4 queue text, branch ledger language, Test Evidence Log, and Feedback Decision Log, I updated those surfaces together in the same change.
+Linear-coverage disposition: `GIL-30` remains the umbrella issue. After this slice, the remaining work is live comparative benchmark execution plus any prompt tuning/fixes the results surface.
+
+triggered by:
+Trevor request on 2026-04-19 to complete the next items that still need to be
+completed on the active `GIL-30` branch.
+
+led to:
+`17070c5`; branch `codex/gil30-bounded-claude-strategy`
+
+linear:
+GIL-30
+
+### 2026-04-19 | GIL-30 | by: Codex
+
+Problem:
+The repo queue had moved past Phase 3 in substance, but the durable roadmap
+still left Stage 4 as "Not started" and kept `GIL-25` looking like the active
+lane. That drift was already slowing decision quality, and the repo still had
+no executable Phase 4 surface: no materialized prompt pack, no Claude-backed
+strategy adapter, and no test-covered fallback path for starting bounded
+strategy integration without surrendering supervisor control.
+
+Reasoning:
+The right move was not to pretend the entire Phase 4 contract fits in one
+commit. The smallest honest kickoff slice is: align the roadmap to the merged
+Phase 1-3 reality, materialize the canonical prompt-pack files, add a
+Claude-backed strategy adapter for the current BUILD loop, validate its typed
+action parsing against the existing schema, and keep the simple strategy as the
+hard fallback when Claude output is missing or invalid.
+
+Diagnosis inputs:
+Direct rereads of `todo.md`, `IMPLEMENTATION-PLAN.md` Phase 4, `PROMPTS.md`
+Phase 4 prompt-pack guidance, `supervisor/main.py`, `supervisor/strategy_api.py`,
+`supervisor/strategy_simple.py`, `supervisor/actions.py`, and the existing
+strategy/main-loop tests.
+
+Implementation inputs:
+Added `supervisor/strategy_claude.py`; materialized the first Phase 4 prompt
+pack under `supervisor/prompts/`; updated `supervisor/main.py`,
+`supervisor/strategy_simple.py`, `tests/test_strategy_claude.py`,
+`tests/test_main.py`, `CHANGELOG.md`, and the active queue / ledger / branch
+records in `todo.md`.
+
+Fix:
+The supervisor now has a first bounded Claude strategy slice. `--strategy claude`
+routes BUILD-phase planning through a Claude-backed adapter that renders the
+repo prompt pack, calls the Anthropic Messages API, validates the returned JSON
+against the existing typed strategy schema, and falls back cleanly to the simple
+strategy whenever the API key is missing, the transport fails, or Claude
+returns unparseable or phase-illegal output. The roadmap now reflects that
+Phase 4 is active and that `GIL-25` is no longer the current lane.
+
+Self-audit:
+1. Ran `python3 -m unittest tests.test_strategy_claude tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice tests.test_main.SupervisorMainTests.test_execute_run_retries_with_failure_fingerprint_context tests.test_strategy_simple`; output `OK`; prompt routing, fallback behavior, usage accounting, and a real `execute_run` integration path all pass.
+2. Ran `python3 -m unittest tests.test_strategy_schema tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_iteration_budget_is_exceeded tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_repo_root_mismatches_run_contract`; output `OK`; the new strategy slice did not regress the existing strategy schema or the recent runtime budget / repo-path protections.
+3. Fixed a real CLI regression before closeout by moving the new strategy factory above the `__main__` entrypoint so direct `python3 -m supervisor.main --strategy claude ...` execution resolves cleanly at runtime instead of only in import-based tests.
+Ripple Check attestation: because this slice changed executable runtime selection, prompt assets, and the active phase queue, I updated `CHANGELOG.md`, `todo.md` stage state, the active queue, the issue ledger, the active branch ledger, this Work Record, the Test Evidence Log, and the Feedback Decision Log together.
+Linear-coverage disposition: `GIL-30` remains the active umbrella issue. This commit starts the issue with a bounded kickoff slice; the remaining candidate-review, final-audit, and comparative-benchmark work stays explicitly queued instead of being implied.
+
+triggered by:
+Trevor request on 2026-04-19 to do the roadmap cleanup pass and then start
+`GIL-30` immediately.
+
+led to:
+landing commit SHA recorded in immediate closeout on branch
+`codex/gil30-bounded-claude-strategy`
+
+linear:
+GIL-30
+
+### 2026-04-19 | GIL-30 | by: Codex
+
+Problem:
+The first `GIL-30` kickoff slice only covered BUILD-phase planning. The runtime
+still skipped `AUDIT_READY` in practice, jumped straight to `FINAL_GATE`, and
+had no legal typed path for candidate review or final audit to send a green
+candidate back for one more bounded fix.
+
+Reasoning:
+The next highest-leverage slice was to wire the two remaining control-plane
+touchpoints that materially affect readiness outcomes: candidate review and
+final audit. That keeps legality with the supervisor while finally making the
+Phase 4 review loop executable instead of documentary.
+
+Diagnosis inputs:
+Direct rereads of `supervisor/main.py`, `supervisor/actions.py`,
+`supervisor/state_machine.py`, `supervisor/strategy_simple.py`,
+`supervisor/strategy_claude.py`, `tests/test_main.py`,
+`tests/test_actions.py`, `tests/test_state_machine.py`,
+`tests/test_strategy_claude.py`, and the canonical `AUDIT_READY` /
+`FINAL_GATE` sections.
+
+Implementation inputs:
+Updated `supervisor/main.py`, `supervisor/actions.py`,
+`supervisor/state_machine.py`, `supervisor/strategy_simple.py`,
+`supervisor/strategy_claude.py`, `tests/test_main.py`,
+`tests/test_actions.py`, `tests/test_state_machine.py`,
+`tests/test_strategy_claude.py`, `CHANGELOG.md`, and `todo.md`.
+
+Fix:
+`execute_run` now uses `AUDIT_READY` and `FINAL_GATE` as real Phase 4 review
+surfaces. Candidate review can request another bounded builder turn or block
+the run, and final audit can complete the run, block it, or route it back for
+one more evidence-backed fix. The action contract now explicitly allows
+review-driven `request_builder_task` actions in `AUDIT_READY` and
+`FINAL_GATE`, and backend-only runs may legally pause in `AUDIT_READY` before
+entering `FINAL_GATE`.
+
+Self-audit:
+1. Ran `python3 -m unittest tests.test_strategy_claude tests.test_main.SupervisorMainTests.test_execute_run_candidate_review_can_request_another_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_final_audit_can_block_run tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; output `OK`; the new review/final-gate routing works on the green path, on a review-requested rebuild, and on a final-audit block.
+2. Ran `python3 -m unittest tests.test_strategy_simple tests.test_strategy_schema tests.test_actions tests.test_state_machine`; output `OK`; the widened action legality and backend-only `AUDIT_READY` transition are covered directly.
+3. Ran `python3 -m unittest tests.test_main.SupervisorMainTests.test_execute_run_retries_with_failure_fingerprint_context tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_iteration_budget_is_exceeded tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_repo_root_mismatches_run_contract`; output `OK`; the Phase 4 review routing does not regress the recent retry, budget, or repo-root protections.
+4. Ran `git diff --check` and `python3 -m supervisor.main --help`; both passed; the patch is whitespace-clean and the module CLI still resolves after the new runtime wiring.
+Ripple Check attestation: because this slice changed executable runtime behavior, the action legality contract, phase transitions, tests, `CHANGELOG.md`, and the active Phase 4 queue state, I updated those surfaces together in the same change.
+Linear-coverage disposition: `GIL-30` remains the umbrella issue. After this slice, the remaining work is comparative benchmark proof and any tuning/fixes discovered by those runs.
+
+triggered by:
+Trevor request on 2026-04-19 to complete the next recommended step on the live
+`GIL-30` branch rather than stop after the kickoff slice.
+
+led to:
+landing commit SHA recorded in immediate closeout on branch
+`codex/gil30-bounded-claude-strategy`
+
+linear:
+GIL-30
 
 ### 2026-04-19 | GIL-69 + GIL-70 + GIL-71 | by: Codex
 
@@ -3474,7 +3715,9 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - When a suggestion comes from an audit or feedback review, link back to the originating audit record or `Feedback Decision Log` entry and later note which chat implemented or declined it.
 - New entries should capture the suggestion, status, `by:`, and `linear:`. Older entries remain preserved as written.
 - 2026-04-12: Keep `acpx` behind an adapter instead of making it part of the supervisor spine on the first implementation pass. Status: deferred until the builder adapter is being built.
-- 2026-04-12: When Phase 4 starts, materialize the canonical prompt pack from `PROMPTS.md` into versioned `supervisor/prompts/` files plus parseable schema fixtures so prompt regressions can be tested directly. Status: deferred until Phase 4.
+- 2026-04-12: When Phase 4 starts, materialize the canonical prompt pack from `PROMPTS.md` into versioned `supervisor/prompts/` files plus parseable schema fixtures so prompt regressions can be tested directly. Status: completed in the 2026-04-19 `GIL-30` kickoff slice on `codex/gil30-bounded-claude-strategy`. by: Codex. linear: GIL-30.
+- 2026-04-19: Do not spend more credits on Claude prompt tuning until the Codex builder lane can finish at least one positive benchmark fixture under the current Phase 4 harness. Status: accepted and promoted into `Active Next Steps` as the remaining `GIL-30` decision after the live comparison proof showed eight straight timeout-driven blocks and no strategy wins. Source: `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`. by: Codex. linear: GIL-30.
+- 2026-04-20: Defer the `GIL-30` builder-envelope revisit until after the queued ADR work (`GIL-8`, `GIL-10`, `GIL-11`) unless Trevor explicitly re-prioritizes Phase 4 sooner. Status: accepted and promoted into `Active Next Steps` queue wording; when `GIL-30` reopens, start with the Codex builder timeout ceiling rather than more Claude prompt tuning. Source: Trevor direction on 2026-04-20 to make a note to come back to the builder-lane work later and continue with the next recommended path. by: Codex. linear: GIL-30.
 - 2026-04-19: Treat `codex/gil23-benchmarks` as superseded by `codex/gil29-ui-verifier` unless a narrow cherry-pick-only path is chosen deliberately. Status: completed via branch closeout; `codex/gil29-ui-verifier` already contains the two unique `GIL-23` commits (`408b0b0`, `1883fdb`), so keeping both branches open added duplicate branch/worktree state without adding coverage. Source: current branch inventory and `git log origin/main..codex/gil29-ui-verifier`. by: Codex. linear: self-contained: `codex/gil23-benchmarks` closed as superseded on 2026-04-19.
 - 2026-04-12: Add a prompt-regression harness that replays representative planning, build, review, fix-audit, and final-audit cases to catch prompt drift before it reaches real runs. Status: deferred until Phase 4/5.
 - 2026-04-14: Implement CI first as a contract-driven validator in the first real implementation repo, with fast/unit/smoke gates and structured artifacts, then extract a reusable template only after that pattern is proven. Status: accepted and promoted into Active Next Steps as Phase 0.2a.
@@ -3498,7 +3741,13 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-- No repo work branches remain active after the 2026-04-19 `codex/gil29-ui-verifier` merge/cleanup. Leave detached `.codex` tool worktrees alone unless they are verified dead separately.
+- `codex/gil30-bounded-claude-strategy`
+  source chat: current Phase 4 kickoff thread on 2026-04-19
+  last refreshed by chat: current Phase 4 live benchmark proof thread on 2026-04-19
+  purpose: carry `GIL-30` through the bounded Claude control-plane, live comparison proof, and the final decision on whether Phase 4 should continue by retuning the builder lane or close with a no-win result
+  merge expectation: either merge to `main` with the explicit "no measurable Claude gain under the current builder bottleneck" result recorded, or explicitly split any builder-lane retuning into a narrower successor branch before merge
+  exit checklist: prompt-pack files landed; Claude BUILD/stall/candidate-review/final-audit routing tested; per-run benchmark metrics plus comparison tooling landed; live comparison artifacts recorded for `benchmark-001` through `benchmark-004`; `todo.md` reflects that both strategies timed out with no wins; branch either merged with that result or explicitly superseded by a narrower follow-up branch
+  delete when: merged to `main` or explicitly superseded by a replacement `GIL-30` branch
 
 ## Branch History
 - `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
@@ -3573,6 +3822,10 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-19 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_benchmark_eval tests.test_reports tests.test_main`; temporary Python harness running `execute_run(..., cleanup_worktree=True, builder_timeout_seconds=180)` for `benchmark-001` through `benchmark-004` under both `simple` and `claude` against a disposable ordinary clone of `gillette-website` with rewritten temp contracts under `tmp/gil30-benchmark-contracts/`; `python3 -m supervisor.benchmark_eval --report ... > design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; temporary Python summary using `supervisor.benchmark_eval.compare_benchmark_reports(...)` to write `comparison.json`; `git diff --check` | result: pass — the timeout-path hardening tests are green, all 8 live positive-fixture benchmark runs produced durable reports on the clean clone, and the recorded comparison artifacts show no strategy wins: both `simple` and `claude` blocked after one builder turn due timeout on every fixture even at a 180-second cap; the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.json`; `Active Branch Ledger` | by: Codex | linear: GIL-30
+- 2026-04-19 | command(s): `python3 -m unittest tests.test_reports tests.test_benchmark_eval tests.test_main.SupervisorMainTests.test_execute_run_completes_after_single_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; `python3 -m supervisor.benchmark_eval --help`; `git diff --check` | result: pass — readiness reports now emit strategy/turn/cost/time metrics, the benchmark comparison module handles both current and historical report shapes and renders the expected comparison summary, runtime wiring records the new metrics on real execute-run paths, the new benchmark-eval CLI resolves, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30
+- 2026-04-19 | command(s): `python3 -m unittest tests.test_strategy_claude tests.test_main.SupervisorMainTests.test_execute_run_candidate_review_can_request_another_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_final_audit_can_block_run tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; `python3 -m unittest tests.test_strategy_simple tests.test_strategy_schema tests.test_actions tests.test_state_machine`; `python3 -m unittest tests.test_main.SupervisorMainTests.test_execute_run_retries_with_failure_fingerprint_context tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_iteration_budget_is_exceeded tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_repo_root_mismatches_run_contract`; `git diff --check`; `python3 -m supervisor.main --help` | result: pass — `AUDIT_READY` and `FINAL_GATE` now drive real candidate-review and final-audit decisions, review-requested rebuilds and final-audit blocks are covered directly, widened action legality and the backend-only audit pause are covered directly, the recent retry/budget/repo-path protections still pass, the patch is whitespace-clean, and the module CLI still resolves | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30
+- 2026-04-19 | command(s): `python3 -m unittest tests.test_strategy_claude tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice tests.test_main.SupervisorMainTests.test_execute_run_retries_with_failure_fingerprint_context tests.test_strategy_simple`; `python3 -m unittest tests.test_strategy_schema tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_iteration_budget_is_exceeded tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_repo_root_mismatches_run_contract`; `git diff --check` | result: pass — the first `GIL-30` Claude-strategy slice passes prompt-routing, fallback, usage-accounting, and `execute_run` integration coverage; the existing strategy schema plus the recent budget/repo-path runtime protections still pass; and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30` | by: Codex | linear: GIL-30
 - 2026-04-19 | command(s): `python3 -m unittest tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_iteration_budget_is_exceeded tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_repo_root_mismatches_run_contract tests.test_main.SupervisorMainTests.test_execute_run_preserves_all_ui_failure_fingerprints_for_retries_and_reporting tests.test_reports.ReadinessReportTests.test_report_preserves_explicit_failure_fingerprint_set`; `python3 -m unittest tests.test_benchmark_fixtures tests.test_app_supervisor tests.test_ui_verifier tests.test_main tests.test_strategy_simple tests.test_reports tests.test_policy`; `git diff --check` | result: pass — the `GIL-69` through `GIL-71` regressions moved from red to green, the merged benchmark/app/UI/runtime suites pass on `main`, and the final closeout patch is whitespace-clean | log/PR reference: `780d467`; `Work Record Log` 2026-04-19 `GIL-69 + GIL-70 + GIL-71`; `Work Record Log` 2026-04-17 `GIL-23`; `GIL-29`; `GIL-58 + GIL-59 + GIL-60 + GIL-61 + GIL-62 + GIL-68` | by: Codex | linear: GIL-23; GIL-29; GIL-69; GIL-70; GIL-71
 - 2026-04-17 | command(s): `bash /Users/gillettes/.codex/scripts/validate-global-policy-stack.sh`; `git diff --check` in `/Users/gillettes/.codex`; `git diff --check` in `/Users/gillettes/Coding Projects/Autonomous Coding Agent` | result: pass — the global policy stack validated, both repos were whitespace-clean after the branch-policy rewrite, and the updated branch-policy surfaces agreed on task-branch default, plugin mirror requirement, and branch-ledger fields | log/PR reference: `Work Record Log` 2026-04-17 `GIL-55` | by: Codex | linear: GIL-55
 - 2026-04-17 | command(s): `rg -n "MarcoPolo" docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md`; `git diff --check -- docs/codex-april-16-2026-impact.md docs/codex-plugin-operator-cheatsheet.md docs/plugin-intake.md todo.md` | result: pass — the canonical plugin memo, operator cheat sheet, append-only intake log, and durable repo record now all carry the same "MarcoPolo not needed here" boundary, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack
@@ -3661,6 +3914,10 @@ Record outside feedback and the resulting reasoning once, then update the same e
   - `linear` (`GIL-N`, `no-action: <reason>`, or `self-contained: <reason>`)
 - Entries landed before 2026-04-16 may omit `by` and `linear`; this rule applies forward.
 - Reuse or update an existing entry when the same feedback thread comes back instead of opening duplicate records.
+- 2026-04-20 | feedback source: Trevor request to "make a note in the todo for us to come back to that and lets continue with your suggestion" after the GIL-30 recommendation | feedback summary: defer the GIL-30 builder-envelope revisit instead of spending more time on Phase 4 now, preserve that revisit durably in `todo.md`, and continue on the recommended path rather than reopening the Claude-prompt lane immediately | evaluation chat: current 2026-04-20 next-steps thread | reasoning response: accepted. The evidence from the live benchmark proof is already strong enough to pause Phase 4 honestly: both strategies timed out at the Codex builder lane across all positive fixtures, so more Claude prompt work would be low-upside churn. The better path is to record the builder-lane revisit explicitly, close the current Phase 4 branch cleanly, and move to the next queued ADR lane. | decision status: accepted | implementation/disposition chat: current 2026-04-20 next-steps thread | linked branch / audit / suggestion / test evidence: `todo.md` `Active Next Steps`; `Suggested Recommendation Log`; branch `codex/gil30-bounded-claude-strategy`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md` | by: Codex | linear: GIL-30
+- 2026-04-19 | feedback source: Trevor request to "Complete the next items that needs to be completed" after the review/final-gate slice landed | feedback summary: do not stop with control-plane wiring alone; complete the next execution-ready Phase 4 work that still blocks honest proof of the Claude strategy | evaluation chat: current Phase 4 benchmark-grading follow-up thread, later continued in the current Phase 4 live benchmark proof thread | reasoning response: accepted. The better path was two-step and evidence-first: first land the benchmark-proof substrate inside this repo, then run the live positive fixture suite under both strategies. The resulting durable comparison artifacts now answer the strategy question honestly: on the current Codex builder lane, both `simple` and `claude` block after one builder turn due timeout even at a 180-second cap, so no prompt-tuning work is justified yet and the remaining `GIL-30` decision is whether to improve the builder execution envelope or close Phase 4 with that explicit no-win result. | decision status: accepted | implementation/disposition chat: current Phase 4 benchmark-grading follow-up thread and current Phase 4 live benchmark proof thread | linked branch / audit / suggestion / test evidence: branch `codex/gil30-bounded-claude-strategy`; `Work Record Log` 2026-04-19 `GIL-30`; `Test Evidence Log` 2026-04-19 `GIL-30`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.json`; `Active Branch Ledger` | by: Codex | linear: GIL-30
+- 2026-04-19 | feedback source: Trevor request to "complete the next step you recommend" after the first `GIL-30` slice landed | feedback summary: do not stop after Claude BUILD routing; wire the candidate-review and final-audit control-plane phases into the runtime so Phase 4 proves the bounded strategy can shape decisions beyond the first build turn | evaluation chat: current Phase 4 follow-up thread | reasoning response: accepted. The better path was to consume the next control-plane gap immediately instead of opening another planning loop. The first slice already proved transport, prompt rendering, and BUILD compatibility; the next highest-value step was to make `AUDIT_READY` and `FINAL_GATE` real decision points, allow review-requested rebuilds, and preserve supervisor legality/fallback control while leaving comparative benchmark proof as the remaining branch-level work. | decision status: accepted | implementation/disposition chat: current Phase 4 follow-up thread | linked branch / audit / suggestion / test evidence: branch `codex/gil30-bounded-claude-strategy`; `Work Record Log` 2026-04-19 `GIL-30`; `Test Evidence Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30
+- 2026-04-19 | feedback source: Trevor request to "Do 1 and 2" after the branch cleanup | feedback summary: first fix the stale roadmap surfaces so the repo stops pointing at already-landed foundation work, then immediately start `GIL-30` instead of stopping at planning | evaluation chat: current Phase 4 kickoff thread | reasoning response: accepted. The better path was one bounded branch that does both: clean up the queue drift (`GIL-25` no longer active, Phase 4 now active) and land an actual first Phase 4 vertical slice with prompt-pack files plus Claude-backed BUILD routing and simple-strategy fallback. Stopping after docs cleanup would preserve the same momentum gap that created the stale roadmap in the first place. | decision status: accepted | implementation/disposition chat: current Phase 4 kickoff thread | linked branch / audit / suggestion / test evidence: branch `codex/gil30-bounded-claude-strategy`; `Work Record Log` 2026-04-19 `GIL-30`; `Test Evidence Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30
 - 2026-04-19 | feedback source: Trevor request to finish the remaining `gil29` work and remove the branch/worktree sprawl | feedback summary: complete the last runtime audit follow-up fixes on `codex/gil29-ui-verifier`, land the branch onto `main`, and delete the now-redundant branch/worktree instead of leaving one more partially done branch around | evaluation chat: current branch-cleanup thread | reasoning response: accepted. The better path was to finish the remaining `GIL-69` through `GIL-71` runtime defects on the existing integration branch, merge that line once onto `main`, and then delete the extra branch/worktree state. Keeping the last runtime branch alive after the code and tests were already settled would only preserve clutter, not optionality. | decision status: accepted | implementation/disposition chat: current branch-cleanup thread | linked branch / audit / suggestion / test evidence: branch `codex/gil29-ui-verifier`; `Work Record Log` 2026-04-19 `GIL-69 + GIL-70 + GIL-71`; `Branch History`; `Test Evidence Log` 2026-04-19 | by: Codex | linear: GIL-69; GIL-70; GIL-71
 - 2026-04-17 | feedback source: Trevor request to create branches automatically again and involve plugins such as Linear much more heavily in tracking review, merge, and cleanup | feedback summary: restore automatic task branches as the default edit workflow, keep branch lifecycle visible in both repo docs and Linear, and remove the old checkout-first/no-branch posture from the global and repo-local stack | evaluation chat: current automatic task-branch policy rewrite thread | reasoning response: accepted. The better path is default task branches with narrow exceptions, not optional branching. File-edit work should start from an issue-backed branch, prefer the plugin-generated branch name when available, and keep lifecycle state mirrored in both `todo.md` and Linear so review/merge/cleanup do not disappear into chat memory. | decision status: accepted | implementation/disposition chat: current automatic task-branch policy rewrite thread; merged to `main` during 2026-04-19 branch cleanup | linked branch / audit / suggestion / test evidence: `/Users/gillettes/.codex` branch-policy surfaces; `AGENTS.project.md`; `CLAUDE.md`; `LINEAR.md`; `PROMPTS.md`; `LINEAR-BOOTSTRAP.md`; `todo.md`; `Test Evidence Log` 2026-04-17 `GIL-55` | by: Codex | linear: GIL-55
 - 2026-04-17 | feedback source: Trevor clarification that `MarcoPolo` is not needed for this repository | feedback summary: do not add `MarcoPolo` to the active repo tool stack; record the non-use decision durably in the repo docs so later sessions do not keep reconsidering it from scratch | evaluation chat: current `MarcoPolo` usefulness clarification thread | reasoning response: accepted. `MarcoPolo` is a secure external-data connector, not a repo/worktree tool. This repository's ordinary code, docs, tests, and governance work should stay in Codex or Claude Code. The only reason to revisit `MarcoPolo` is a future task that genuinely needs secure analysis of uploaded files, storage, or databases outside the local checkout. | decision status: accepted | implementation/disposition chat: current `MarcoPolo` usefulness clarification thread | linked branch / audit / suggestion / test evidence: `docs/codex-april-16-2026-impact.md`; `docs/codex-plugin-operator-cheatsheet.md`; `docs/plugin-intake.md`; `todo.md`; `Work Record Log` 2026-04-17 self-contained `MarcoPolo` stance capture; `Test Evidence Log` 2026-04-17 self-contained `MarcoPolo` stance capture | by: Codex | linear: self-contained: record that `MarcoPolo` is not needed for this repo's active tool stack

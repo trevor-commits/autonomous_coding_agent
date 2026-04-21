@@ -7,6 +7,25 @@
   - added the first `GIL-29` app-launch and UI-verification slice with `supervisor/app_supervisor.py` and `supervisor/ui_verifier.py`
   - brought forward the `GIL-59` through `GIL-62` Phase 3 repair wave
   - closed the `GIL-69` through `GIL-71` follow-up audit gaps by enforcing run budgets, rejecting `repo_path` mismatches, and preserving all UI failure fingerprints in retry/report state
+- Started the first `GIL-30` bounded-Claude strategy slice:
+  - added `supervisor/strategy_claude.py` with Anthropic Messages API transport, typed-action parsing, prompt-pack rendering, per-run planner routing, and fallback to the simple strategy
+  - materialized the first Phase 4 prompt pack under `supervisor/prompts/`
+  - wired `supervisor/main.py` to accept `--strategy claude` while keeping the supervisor in control of legality and fallback behavior
+  - added targeted unit coverage for Claude strategy prompt routing, fallback handling, usage accounting, and main-loop compatibility
+- Extended `GIL-30` into the review/final-gate path:
+  - wired `AUDIT_READY` candidate review and `FINAL_GATE` final-audit decisions into `execute_run`
+  - allowed review-driven `request_builder_task` actions during `AUDIT_READY` and `FINAL_GATE`
+  - fixed backend-only review flow so green no-UI candidates can legally pause in `AUDIT_READY`
+  - stopped treating historical repaired fingerprints as unresolved final-gate blockers
+  - added focused coverage for review-requested rebuilds, final-audit blocks, and the widened phase/action legality
+- Extended `GIL-30` into trace-backed benchmark grading:
+  - added per-run benchmark metrics to readiness reports (`strategy_name`, `builder_turns`, `run_duration_seconds`, `total_cost_dollars`)
+  - added `supervisor/benchmark_eval.py` to compare benchmark report sets and render markdown or JSON summaries
+  - added focused coverage for report-metric emission, historical-report compatibility, and benchmark comparison summaries
+- Completed the first live `GIL-30` benchmark-proof pass:
+  - hardened the builder timeout path so missing builder worktrees degrade to a blocked run instead of an adapter crash
+  - recorded eight paired live benchmark artifacts for `benchmark-001` through `benchmark-004` under `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`
+  - captured the current Phase 4 result in durable comparison summaries: both `simple` and `claude` timed out after one builder turn on every positive fixture, so no Claude-only wins are proven under the current builder lane
 
 ## 2026-04-17
 

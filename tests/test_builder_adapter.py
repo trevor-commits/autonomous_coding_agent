@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -100,6 +101,66 @@ class CodexBuilderAdapterTests(unittest.TestCase):
             self.assertEqual("done again", second.final_message)
             self.assertEqual(["codex", "exec"], calls[0][:2])
             self.assertEqual(["codex", "exec", "resume", "session-123"], calls[1][:4])
+
+    def test_adapter_handles_timeout_stdout_as_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+
+            def runner(
+                args: list[str],
+                *,
+                cwd: str | Path | None,
+                capture_output: bool,
+                text: bool,
+                timeout: int | None,
+                check: bool,
+            ) -> subprocess.CompletedProcess[str]:
+                raise subprocess.TimeoutExpired(
+                    cmd=args,
+                    timeout=timeout or 0,
+                    output=b'{"type":"thread.started","thread_id":"session-timeout"}\n',
+                )
+
+            adapter = CodexBuilderAdapter(runner=runner)
+            session = adapter.start_session(repo_root, {"objective": "Add feature"})
+
+            result = adapter.send_task(session, "Do the task.", timeout=1)
+
+            self.assertEqual("timed_out", result.status)
+            self.assertEqual("session-timeout", result.session_id)
+            self.assertEqual("session-timeout", session.session_id)
+
+    def test_adapter_handles_missing_worktree_after_timeout(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            repo_root.mkdir()
+            _init_git_repo(repo_root)
+
+            def runner(
+                args: list[str],
+                *,
+                cwd: str | Path | None,
+                capture_output: bool,
+                text: bool,
+                timeout: int | None,
+                check: bool,
+            ) -> subprocess.CompletedProcess[str]:
+                shutil.rmtree(repo_root)
+                raise subprocess.TimeoutExpired(
+                    cmd=args,
+                    timeout=timeout or 0,
+                    output='{"type":"thread.started","thread_id":"session-missing"}\n',
+                )
+
+            adapter = CodexBuilderAdapter(runner=runner)
+            session = adapter.start_session(repo_root, {"objective": "Add feature"})
+
+            result = adapter.send_task(session, "Do the task.", timeout=1)
+
+            self.assertEqual("timed_out", result.status)
+            self.assertEqual("session-missing", result.session_id)
+            self.assertEqual((), result.files_changed)
 
 
 if __name__ == "__main__":

@@ -43,6 +43,17 @@ class StateMachineTests(unittest.TestCase):
 
         self.assertEqual(Phase.FINAL_GATE, machine.snapshot.phase)
 
+    def test_backend_only_path_may_pause_in_audit_ready_before_final_gate(self) -> None:
+        machine = StateMachine("run-003b")
+
+        machine.transition_to(Phase.PREPARE_WORKSPACE, "workspace ready")
+        machine.transition_to(Phase.BUILD, "builder start")
+        machine.transition_to(Phase.LOCAL_VERIFY, "candidate built")
+        machine.transition_to(Phase.AUDIT_READY, "backend candidate ready for review")
+        machine.transition_to(Phase.FINAL_GATE, "review complete")
+
+        self.assertEqual(Phase.FINAL_GATE, machine.snapshot.phase)
+
     def test_illegal_transition_is_rejected(self) -> None:
         machine = StateMachine("run-004")
         machine.transition_to(Phase.PREPARE_WORKSPACE, "workspace ready")

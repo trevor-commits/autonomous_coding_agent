@@ -44,11 +44,13 @@ PHASE_ACTIONS: dict[Phase, tuple[ActionType, ...]] = {
     ),
     Phase.AUDIT_READY: (
         ActionType.COLLECT_CONTEXT,
+        ActionType.REQUEST_BUILDER_TASK,
         ActionType.RECORD_DECISION,
         ActionType.PROPOSE_TERMINAL_STATE,
     ),
     Phase.FINAL_GATE: (
         ActionType.COLLECT_CONTEXT,
+        ActionType.REQUEST_BUILDER_TASK,
         ActionType.RUN_CONTRACT_COMMAND,
         ActionType.RECORD_DECISION,
         ActionType.PROPOSE_TERMINAL_STATE,

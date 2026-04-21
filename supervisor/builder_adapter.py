@@ -142,7 +142,7 @@ class CodexBuilderAdapter(BuilderAdapter):
             status = "completed" if completed.returncode == 0 else "failed"
             stdout = completed.stdout
         except subprocess.TimeoutExpired as exc:
-            stdout = exc.stdout or ""
+            stdout = _coerce_subprocess_output(exc.stdout)
             status = "timed_out"
 
         duration = round(time.monotonic() - started, 3)
@@ -207,6 +207,8 @@ class CodexBuilderAdapter(BuilderAdapter):
         return args
 
     def _current_changed_files(self, worktree_path: Path) -> tuple[str, ...]:
+        if not worktree_path.exists():
+            return ()
         completed = self.git_runner(
             ["git", "status", "--porcelain", "--untracked-files=all"],
             cwd=worktree_path,
@@ -245,6 +247,14 @@ def _parse_json_lines(stdout: str) -> list[dict[str, Any]]:
         if isinstance(payload, dict):
             events.append(payload)
     return events
+
+
+def _coerce_subprocess_output(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
 
 
 def _extract_session_id(events: Sequence[dict[str, Any]]) -> str | None:

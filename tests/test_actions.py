@@ -66,6 +66,22 @@ class ActionValidationTests(unittest.TestCase):
         self.assertIn(ActionType.RUN_UI_SUITE, actions)
         self.assertIn(ActionType.PROPOSE_TERMINAL_STATE, actions)
 
+    def test_audit_ready_allows_review_requested_builder_turn(self) -> None:
+        action = Action(
+            action_type=ActionType.REQUEST_BUILDER_TASK,
+            payload={"description": "Address the candidate review findings."},
+        )
+
+        validate_action_for_phase(Phase.AUDIT_READY, action)
+
+    def test_final_gate_allows_review_requested_builder_turn(self) -> None:
+        action = Action(
+            action_type=ActionType.REQUEST_BUILDER_TASK,
+            payload={"description": "Collect one more evidence-backed fix before readiness."},
+        )
+
+        validate_action_for_phase(Phase.FINAL_GATE, action)
+
 
 class ManualStrategyTests(unittest.TestCase):
     def test_parse_manual_action_accepts_shorthand(self) -> None:

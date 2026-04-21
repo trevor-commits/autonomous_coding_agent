@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Any, Sequence
 
 from supervisor.actions import Action
-from supervisor.models import ActionType
+from supervisor.models import ActionType, ReadinessVerdict
 from supervisor.contracts import RepoContract, RunContract
+from supervisor.verifier import CommandExecutionResult
 from supervisor.verifier import VerificationSummary
 
 
@@ -85,6 +86,47 @@ class SimpleStrategy:
             },
         )
 
+    def candidate_review_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        changed_files: Sequence[str],
+        artifact_manifest: Sequence[str],
+        command_results: Sequence[CommandExecutionResult],
+    ) -> Action:
+        return Action(
+            action_type=ActionType.RECORD_DECISION,
+            payload={
+                "reason": (
+                    f"Green candidate for `{run_contract.objective}` is ready for the final gate "
+                    "after deterministic verification."
+                )
+            },
+        )
+
+    def final_audit_action(
+        self,
+        run_contract: RunContract,
+        repo_contract: RepoContract,
+        *,
+        changed_files: Sequence[str],
+        artifact_manifest: Sequence[str],
+        command_results: Sequence[CommandExecutionResult],
+        failure_fingerprints: Sequence[str],
+    ) -> Action:
+        return Action(
+            action_type=ActionType.PROPOSE_TERMINAL_STATE,
+            payload={
+                "run_state": "COMPLETE",
+                "readiness_verdict": ReadinessVerdict.READY.value,
+                "reason": (
+                    f"Deterministic checks for `{run_contract.objective}` are green and the "
+                    "required artifacts are present."
+                ),
+            },
+        )
+
     def blocking_action_for_failure(
         self,
         summary: VerificationSummary,
@@ -102,3 +144,6 @@ class SimpleStrategy:
             action_type=ActionType.PROPOSE_TERMINAL_STATE,
             payload={"run_state": "BLOCKED", "reason": reason},
         )
+
+    def consume_pending_cost(self) -> float:
+        return 0.0

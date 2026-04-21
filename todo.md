@@ -88,7 +88,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-11` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.8 | why this exists: codify the Codex conversation lifecycle before longer implementation work starts | origin source: Trevor Codex conversation lifecycle request recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-10` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.7 | why this exists: codify the ChatGPT Pro strategic audit cadence | origin source: Trevor request to integrate ChatGPT Pro recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-9` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (architecture checkpoint repair landed as `95a6271`; awaiting Cowork/Trevor state move) | why this exists: force an architecture checkpoint before deeper Phase 1 buildout | origin source: 2026-04-15 Claude Code plan-review finding
-- `GIL-8` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-20 (`ADR-0002` landed on `codex/gil8-audit-tiebreaker-protocol`; awaiting Cowork/Trevor state move) | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
+- `GIL-8` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-20 (`ADR-0002` landed as `7d6202e` on `main`; awaiting Cowork/Trevor state move) | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-15` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog governance follow-up, not on the active phase path yet) | why this exists: codify the Linear operating model details that were surfaced but not promoted into the main execution path | origin source: 2026-04-15 Linear governance buildout gap
 - `GIL-14` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog correction, not on the active phase path yet) | why this exists: deduplicate terminal-state, single-writer, and phase-machine restatements in companion docs | origin source: 2026-04-15 Claude Code audit finding `P2-7`
 - `GIL-12` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog docs correction, not on the active phase path yet) | why this exists: replace `/Users/gillettes/Coding Projects/Autonomous Coding Agent/…` absolute links with relative repo paths across live navigation/onboarding docs (`README.md`, `GUIDE.md`, `AGENTS.md`, `design-history/README.md`, and in-scope `docs/*.md`) so the repo is portable across checkout roots; preserve historical `design-history/` content and external-tool paths | origin source: 2026-04-15 Cowork audit finding on `design-history/README.md`, scope widened by the 2026-04-17 full-repo audit
@@ -142,7 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
-- [x] 2026-04-20 | GIL-8: record ADR-0002 audit tiebreaker protocol — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-20
+- [x] 2026-04-20 | GIL-8: record ADR-0002 audit tiebreaker protocol — landed as `7d6202e`; full record in Work Record Log 2026-04-20
 - [x] 2026-04-19 | GIL-30: start the first bounded-Claude strategy slice with prompt-pack files, Claude BUILD routing, and typed fallback integration — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-19 | GIL-30: wire candidate review and final audit into the runtime with review-requested rebuilds and final-gate terminal decisions — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-19 | GIL-30: add trace-backed benchmark grading and comparison tooling for Phase 4 strategy proof — landed as `17070c5`; full record in Work Record Log 2026-04-19
@@ -299,11 +299,77 @@ Trevor direction on 2026-04-20 to defer the `GIL-30` revisit, continue with
 the recommended path, and move to the next queued governance lane.
 
 led to:
-landing commit SHA recorded in immediate closeout on branch
-`codex/gil8-audit-tiebreaker-protocol`; `design-history/ADR-0002-audit-tiebreaker-protocol.md`
+`7d6202e`; `design-history/ADR-0002-audit-tiebreaker-protocol.md`; merged
+onto `main` on 2026-04-20
 
 linear:
 GIL-8
+
+### 2026-04-20 | self-contained: close merged branch refs and stale detached worktree | by: Codex
+
+Problem:
+After `GIL-8` landed, the repo still presented stale branch state: the active
+branch ledger still listed `codex/gil8-audit-tiebreaker-protocol`, the merged
+`codex/gil30-bounded-claude-strategy` branch was still retained locally and on
+origin, the old Claude audit branch still existed locally, and a clean
+detached worktree under `.codex/worktrees/6183/Autonomous Coding Agent`
+remained attached even though its tip was already contained in `main`.
+
+Reasoning:
+The right follow-through was to finish the closeout immediately instead of
+leaving "merged-pending-cleanup" state behind. Branch sprawl in this repo is
+already a known source of confusion, so once the unique work was confirmed safe
+on `main`, the next honest step was to delete the redundant refs, remove the
+stale worktree, and update `todo.md` so later chats do not have to reconstruct
+what is still live.
+
+Diagnosis inputs:
+Direct reads of `todo.md` `Active Branch Ledger`, `Branch History`, and the
+2026-04-20 `GIL-8` / `GIL-30` records; `git branch -vv`; `git rev-list
+--left-right --count main...<branch>` for the remaining named branches; `git
+branch --contains a3cacc1`; `git worktree list --porcelain`; `git stash list`;
+and `git status -sb`.
+
+Implementation inputs:
+Fast-forwarded `main` to `7d6202e`; deleted local branches
+`codex/gil8-audit-tiebreaker-protocol`,
+`codex/gil30-bounded-claude-strategy`, and
+`claude-code/audit-post-7258c90-2026-04-19`; deleted remote branch
+`origin/codex/gil30-bounded-claude-strategy`; removed the detached worktree at
+`/Users/gillettes/.codex/worktrees/6183/Autonomous Coding Agent`; updated
+`todo.md`.
+
+Fix:
+The repo's branch ledger now reflects reality: `GIL-8` is recorded as landed
+on `main`, `codex/gil8-audit-tiebreaker-protocol` and
+`claude-code/audit-post-7258c90-2026-04-19` moved into `Branch History`,
+`codex/gil30-bounded-claude-strategy` is recorded as fully cleaned up, and the
+stale detached worktree is gone. I intentionally left the two existing stashes
+in place because they may still hold recovery state and were not needed to
+complete this closeout safely.
+
+Self-audit:
+1. Ran `git branch -vv` plus `git rev-list --left-right --count main...codex/gil8-audit-tiebreaker-protocol`, `main...codex/gil30-bounded-claude-strategy`, and `main...claude-code/audit-post-7258c90-2026-04-19` before cleanup; results showed `GIL-8` had one unique commit to land and the other two branches were already fully contained in `main`.
+2. Ran `git merge --ff-only codex/gil8-audit-tiebreaker-protocol`; `main` advanced cleanly from `41b88c6` to `7d6202e`.
+3. Deleted the merged local refs, deleted `origin/codex/gil30-bounded-claude-strategy`, and removed the stale detached worktree; post-cleanup `git status -sb` stayed clean except for the pre-existing untracked `tmp/` directory.
+4. Ran `git stash list`; retained `stash@{0}` and `stash@{1}` intentionally because this task did not prove they are disposable and branch cleanup should preserve possible recovery data rather than guess.
+5. Ran `git diff --check`; output empty for this ledger-closeout patch.
+Ripple Check attestation: this slice changed branch-lifecycle truth in `todo.md`, so I updated the `Linear Issue Ledger` home text for `GIL-8`, the `Completed` index, the `Work Record Log`, the `Active Branch Ledger`, the `Branch History`, and the `Test Evidence Log` together in the same commit.
+Linear-coverage disposition: `self-contained: branch/worktree cleanup after already-landed branches were merged or contained in main`; no new `GIL-N` issue is needed because this task only reconciles repo-side lifecycle state after existing landings.
+
+triggered by:
+Trevor request on 2026-04-20 to merge/delete the remaining ACA branches and
+finish the cleanup instead of leaving the resolved refs around.
+
+led to:
+`7d6202e` on `main`; `todo.md` branch-history closeout update; removal of
+local branches `codex/gil8-audit-tiebreaker-protocol`,
+`codex/gil30-bounded-claude-strategy`,
+`claude-code/audit-post-7258c90-2026-04-19`; removal of detached worktree
+`/Users/gillettes/.codex/worktrees/6183/Autonomous Coding Agent`
+
+linear:
+self-contained: branch/worktree cleanup after already-landed branches were merged or contained in main
 
 ### 2026-04-19 | GIL-30 | by: Codex
 
@@ -3795,16 +3861,12 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-- `codex/gil8-audit-tiebreaker-protocol`
-  source chat: current 2026-04-20 next-steps thread
-  last refreshed by chat: current 2026-04-20 next-steps thread
-  purpose: land `ADR-0002` and close `GIL-8` cleanly after deferring the `GIL-30` builder-envelope revisit
-  merge expectation: merge to `main` once `ADR-0002`, the design-history index, and the durable queue records are all landed together
-  exit checklist: `design-history/ADR-0002-audit-tiebreaker-protocol.md` landed; design-history discovery surfaces updated; `todo.md` marks `GIL-8` complete and promotes the next ADR lane; branch merged or explicitly closed
-  delete when: merged to `main`
+- None currently.
 
 ## Branch History
-- `codex/gil30-bounded-claude-strategy` | close date: 2026-04-20 | outcome: merged | merge target: `main` | resulting reference: branch tip `8350cb5` merged into `main` via merge commit `41b88c6`, carrying the full Phase 4 bounded-Claude control-plane line plus the recorded no-win benchmark proof and deferred builder-envelope revisit note | cleanup: local branch retained temporarily while `GIL-30` remains a deferred backlog item; safe to delete after Trevor confirms no immediate Phase 4 follow-up branch is needed
+- `codex/gil8-audit-tiebreaker-protocol` | close date: 2026-04-20 | outcome: merged | merge target: `main` | resulting reference: `main` fast-forwarded from `41b88c6` to branch tip `7d6202e`, carrying `ADR-0002` plus the related changelog/guide/design-history/todo indexing updates | cleanup: local branch deleted in this closeout; remote branch deleted after `main` push in this same task
+- `codex/gil30-bounded-claude-strategy` | close date: 2026-04-20 | outcome: merged | merge target: `main` | resulting reference: branch tip `8350cb5` merged into `main` via merge commit `41b88c6`, carrying the full Phase 4 bounded-Claude control-plane line plus the recorded no-win benchmark proof and deferred builder-envelope revisit note | cleanup: local and remote branches deleted in this closeout; any future Phase 4 revisit should start from a new task branch
+- `claude-code/audit-post-7258c90-2026-04-19` | close date: 2026-04-20 | outcome: merged | merge target: `main` | resulting reference: branch tip `66dd61a` was already contained in `main` before this closeout and remained preserved there | cleanup: local branch deleted in this closeout; no remote branch existed
 - `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
 - `codex/coderabbit-flow-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` contains branch tip `44ba5ed`; local and remote refs deleted in this cleanup task | cleanup: local and remote branches deleted
 - `codex/marcopolo-not-needed-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `0d5f115` merged into `main` in this cleanup task | cleanup: local and remote branches deleted; attached worktree removed
@@ -3877,6 +3939,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-20 | command(s): `git branch -vv`; `git rev-list --left-right --count main...codex/gil8-audit-tiebreaker-protocol`; `git rev-list --left-right --count main...codex/gil30-bounded-claude-strategy`; `git rev-list --left-right --count main...claude-code/audit-post-7258c90-2026-04-19`; `git merge --ff-only codex/gil8-audit-tiebreaker-protocol`; `git branch -d codex/gil8-audit-tiebreaker-protocol`; `git branch -d codex/gil30-bounded-claude-strategy`; `git branch -d claude-code/audit-post-7258c90-2026-04-19`; `git push origin --delete codex/gil30-bounded-claude-strategy`; `git worktree remove "/Users/gillettes/.codex/worktrees/6183/Autonomous Coding Agent"`; `git stash list`; `git diff --check` | result: pass — `GIL-8` fast-forwarded cleanly onto `main`, the other remaining named branches were already fully contained in `main`, the redundant local refs plus the remote `gil30` ref and stale detached worktree were removed without conflict, the two old stashes were deliberately retained as possible recovery state, and the closeout patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 self-contained branch/worktree cleanup entry | by: Codex | linear: self-contained: branch/worktree cleanup after already-landed branches were merged or contained in main
 - 2026-04-20 | command(s): `rg -n "ADR-0002|Audit Tiebreaker|tiebreaker" GUIDE.md design-history/README.md todo.md`; direct reread of `design-history/ADR-0002-audit-tiebreaker-protocol.md`; `git diff --check` | result: pass — the new ADR closes the queued `GIL-8` gap, the design-history and guide surfaces both index it, the active queue and durable records reference it, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 `GIL-8` | by: Codex | linear: GIL-8
 - 2026-04-19 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_benchmark_eval tests.test_reports tests.test_main`; temporary Python harness running `execute_run(..., cleanup_worktree=True, builder_timeout_seconds=180)` for `benchmark-001` through `benchmark-004` under both `simple` and `claude` against a disposable ordinary clone of `gillette-website` with rewritten temp contracts under `tmp/gil30-benchmark-contracts/`; `python3 -m supervisor.benchmark_eval --report ... > design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; temporary Python summary using `supervisor.benchmark_eval.compare_benchmark_reports(...)` to write `comparison.json`; `git diff --check` | result: pass — the timeout-path hardening tests are green, all 8 live positive-fixture benchmark runs produced durable reports on the clean clone, and the recorded comparison artifacts show no strategy wins: both `simple` and `claude` blocked after one builder turn due timeout on every fixture even at a 180-second cap; the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.json`; `Active Branch Ledger` | by: Codex | linear: GIL-30
 - 2026-04-19 | command(s): `python3 -m unittest tests.test_reports tests.test_benchmark_eval tests.test_main.SupervisorMainTests.test_execute_run_completes_after_single_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; `python3 -m supervisor.benchmark_eval --help`; `git diff --check` | result: pass — readiness reports now emit strategy/turn/cost/time metrics, the benchmark comparison module handles both current and historical report shapes and renders the expected comparison summary, runtime wiring records the new metrics on real execute-run paths, the new benchmark-eval CLI resolves, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30

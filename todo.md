@@ -16,7 +16,7 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 **Shortest valid path:** `bible-ai` Phase 0 proof landed → finish the remaining repo-local Phase 0 and lifecycle work → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: `GIL-10` is the active lane. `GIL-8` is now landed as `ADR-0002`, and the `GIL-30` builder-envelope revisit remains intentionally deferred: when Phase 4 reopens, start with the Codex builder timeout ceiling rather than more Claude prompt tuning. The next queued governance work is `GIL-10` and `GIL-11`.
+Current goal: `GIL-11` is the active lane. `GIL-10` is now landed as `ADR-0004`, `GIL-8` remains landed as `ADR-0002`, and the `GIL-30` builder-envelope revisit remains intentionally deferred: when Phase 4 reopens, start with the Codex builder timeout ceiling rather than more Claude prompt tuning. The next queued governance work is `GIL-11`.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
@@ -29,7 +29,7 @@ Current goal: `GIL-10` is the active lane. `GIL-8` is now landed as `ADR-0002`, 
 - [x] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
 - [x] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
 - [x] Phase 0.6 (GIL-9): draft ADR-0003 "Phase 1 Subphase 2 Architecture Checkpoint" — after supervisor subphases 1.1 and 1.2 land (contract parsing, run directory, shell/path guardrails, single-writer lock), pause before subphase 1.3 and run an architecture audit against the schemas, action set, and invariants. If the design still fits, continue. If not, rescope before deepening the Phase 1.3 runtime surface on top of a shaky foundation.
-- [ ] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
+- [x] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
 - [ ] Phase 0.8 (GIL-11): draft ADR-0005 "Codex Conversation Lifecycle" — fresh Codex conversation per bounded task; repo docs are the persistent memory, not Codex chat history. Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round, every ADR that changes an operating decision, whenever Codex begins hallucinating or contradicting the repo. Permitted same conversation: mid-task repair within one bounded task before the commit lands; active debugging of a single issue with ongoing context; multi-commit prompts where sub-commits depend on context. Hard caps: one prompt + its immediate repair loops per conversation, never spanning two prompts; repair loops hitting round 3 in the same conversation must close and restart with the auditor's latest findings as the brief; never reuse a Codex conversation across a phase boundary. Rationale: avoid context rot, stale memory, prompt pollution, and audit-scope ambiguity.
 - [x] Phase 0.4 (GIL-24): local tool-readiness checks passed for `codex`, `claude`, `python3`, and `npx playwright`; see `Test Evidence Log` 2026-04-17.
 - [x] Phase 1.1 (GIL-25): deterministic supervisor foundation landed across the initial state-machine slice (`3f9aa53`), contract/worktree/policy controls (`69cd3c2`), and deterministic verification/reporting layer (`4c6e980`); this is no longer the active lane.
@@ -86,7 +86,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-19` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-16 (trimmed-v1 envelope landing; awaiting Cowork/Trevor state move) | why this exists: trim the v1 implementation surface before the heavier Phase 5 memory hardening work | origin source: phase-plan refinement accepted in `Feedback Decision Log` 2026-04-15
 - `GIL-24` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (local tool-readiness proof recorded; awaiting Cowork/Trevor state move) | why this exists: verify local tool readiness before the first implementation pass | origin source: Phase 0 prerequisites in `IMPLEMENTATION-PLAN.md` and `todo.md`
 - `GIL-11` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.8 | why this exists: codify the Codex conversation lifecycle before longer implementation work starts | origin source: Trevor Codex conversation lifecycle request recorded in `Feedback Decision Log` 2026-04-15
-- `GIL-10` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.7 | why this exists: codify the ChatGPT Pro strategic audit cadence | origin source: Trevor request to integrate ChatGPT Pro recorded in `Feedback Decision Log` 2026-04-15
+- `GIL-10` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-20 (`ADR-0004` landed on branch `trevor/gil-10-draft-adr-0004-chatgpt-pro-strategic-audit-cadence`; awaiting Cowork/Trevor state move) | why this exists: codify the ChatGPT Pro strategic audit cadence | origin source: Trevor request to integrate ChatGPT Pro recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-9` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (architecture checkpoint repair landed as `95a6271`; awaiting Cowork/Trevor state move) | why this exists: force an architecture checkpoint before deeper Phase 1 buildout | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-8` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-20 (`ADR-0002` landed as `7d6202e` on `main`; awaiting Cowork/Trevor state move) | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-15` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog governance follow-up, not on the active phase path yet) | why this exists: codify the Linear operating model details that were surfaced but not promoted into the main execution path | origin source: 2026-04-15 Linear governance buildout gap
@@ -136,13 +136,14 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 |---|---|---|---|---|---|
 | Claude Code | **Primary auditor** — line-by-line diff/test/invariant review, cross-doc consistency; may also author targeted fix code | 7258c90 | 2026-04-17 | Delegated-subagent line-level audit of 8 code-relevant commits `21b8898..7258c90` on branch `codex/coderabbit-flow-docs` as part of the 2026-04-17 full-repo audit pass 2. GIL-72 push-before-AI-Audit implementation: PASS on all four criteria (push precedes state move, push failure routes to `_block_issue`, snapshot hash + deadline revalidated against live Linear issue, `queue-blocker.json` durable closeout record on both failure paths). Three load-bearing invariants: scope enforcement PASS (`contracts.py:87-122`, `policy.py:118-119`; tests in `test_contracts.py`, `test_policy.py`), single-writer lease PASS (`worktree_manager.py:69-95` atomic `open("x")`; `test_worktree.py:49`), deny-list PASS (`policy.py:31-72`). Findings: P1 `queue_intake.py:11` imports `UTC` from datetime (Python 3.11+ only) — already tracked by GIL-66; P2 bare `except Exception: pass` in `queue_intake.py:525` worktree cleanup. No new scope/lease/deny-list gaps introduced | Audit Record Log 2026-04-17 full-repo audit pass 2 entry below |
 | Claude Cowork | Orchestrator (primary) — lightweight spec-alignment check after Code's audit | 7258c90 | 2026-04-17 | 2026-04-17 full-repo audit pass 2: Linear coverage DRIFT (4) — ledger missing GIL-68/69/70/71; Cross-doc coherence DRIFT (4 P1–P3 + 2 legacy) — 2 P1 Ripple misses (`42847da` → `LOGIC.md`; `9c2a861` → `PROJECT_INTENT.md`) compensated late, 1 P2 (`cf4e626` partial LINEAR.md sync), 3 P3 open from GIL-44 (dup `## Repo Principles` heading in AGENTS.project.md:7,155; unmoved `SCOPING-three-pillar-principles.md`; bare `- AGENTS.md` at IMPLEMENTATION-PLAN.md:350); GIL-12 unchanged (10 files with `/Users/gillettes`); Continuity DRIFT (12 commits without Work Record narrative; backfilled via consolidated Cowork entry in this commit). Orchestrator cleanup landed: 4 ledger entries + 1 consolidated Work Record + watermark refresh + this Audit Record entry. Remediation prompts drafted: GIL-12, GIL-44, GIL-66, GIL-67. P1 Ripple repair prompts still need drafting | Audit Record Log 2026-04-17 full-repo audit pass 2 entry below |
-| ChatGPT Pro | Strategic / governance auditor | (none yet) | (none yet) | Phase-exit gate auditor; engaged at phase boundaries per ADR-0004 (queued) | — |
+| ChatGPT Pro | Strategic / governance auditor | (none yet) | (none yet) | Cadence now codified in `ADR-0004`; no Pro audit has been recorded yet | — |
 | Codex | Self-audit (not a gate) | 8cf198e | 2026-04-16 | Audited the queue/provenance durable trail from multiple angles against `8cf198e`: found missing `GIL-45` / `GIL-46` repo coverage, stale placeholder SHA and `led to:` records, one unlogged `GIL-33` provenance-gap follow-up at `14407f8`, and a misattributed `GIL-42` completion trail in Linear. Repaired the repo-side trail under `GIL-45` and filed `GIL-46` for runtime enforcement. | Audit Record Log 2026-04-16 entry below |
 
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-20 | GIL-8: record ADR-0002 audit tiebreaker protocol — landed as `7d6202e`; full record in Work Record Log 2026-04-20
+- [x] 2026-04-20 | GIL-10: record ADR-0004 ChatGPT Pro strategic audit cadence — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-20
 - [x] 2026-04-20 | self-contained: promote `GIL-30` benchmark contracts from local `tmp/` into durable repo artifacts — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-20
 - [x] 2026-04-19 | GIL-30: start the first bounded-Claude strategy slice with prompt-pack files, Claude BUILD routing, and typed fallback integration — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-19 | GIL-30: wire candidate review and final audit into the runtime with review-requested rebuilds and final-gate terminal decisions — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
@@ -305,6 +306,62 @@ onto `main` on 2026-04-20
 
 linear:
 GIL-8
+
+### 2026-04-20 | GIL-10 | by: Codex
+
+Problem:
+The repo had already assigned ChatGPT Pro a real role in planning notes,
+testing cadence, and role-boundary language, but it still lacked the accepted
+ADR that explains exactly when Pro is engaged, what Pro is responsible for,
+what Pro must not do, and what briefing/output shape keeps the strategic audit
+lane bounded instead of fuzzy.
+
+Reasoning:
+Once `GIL-8` landed, `GIL-10` was the next load-bearing governance gap. The
+repo was already referring to Pro "per ADR-0004" in active docs, so leaving
+the cadence undocumented would keep a real operating rule half-landed. The
+right move was to promote the already-accepted audit cadence into a first-class
+ADR and update the discovery plus queue surfaces in the same landing.
+
+Diagnosis inputs:
+Direct rereads of `todo.md` `Active Next Steps`, `Linear Issue Ledger`,
+`Audit Watermarks`, `Testing Cadence Matrix`, and `Feedback Decision Log`
+entries from 2026-04-15 and 2026-04-16; `CLAUDE.md`; `IMPLEMENTATION-PLAN.md`;
+`design-history/ADR-0002-audit-tiebreaker-protocol.md`;
+`design-history/ADR-0003-phase-1-architecture-checkpoint.md`;
+`design-history/README.md`; `GUIDE.md`; and `CHANGELOG.md`.
+
+Implementation inputs:
+Added `design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md`;
+updated `design-history/README.md`, `GUIDE.md`, `CHANGELOG.md`, and `todo.md`.
+
+Fix:
+The repo now has an accepted `ADR-0004` that codifies ChatGPT Pro as the
+strategic/governance auditor with a bounded cadence: every phase boundary,
+jointly with Claude Code at the Phase 1 mid-build checkpoint, quarterly across
+the whole repo, and ad hoc when Trevor requests or drift is suspected. The ADR
+also fixes the scope boundary, required audit brief, required output shape, and
+the `ADR-0002` disagreement path when Pro and Claude Code materially disagree.
+
+Self-audit:
+1. Re-read `design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md`; confirmed it captures the exact cadence, scope exclusions, brief shape, output shape, and tiebreaker routing already described in the accepted `todo.md` feedback trail without widening Pro into line-level verification.
+2. Ran `rg -n "ADR-0004|ChatGPT Pro strategic|strategic / governance auditor|phase boundary strategic audit" GUIDE.md design-history/README.md CHANGELOG.md todo.md CLAUDE.md`; output shows the ADR is indexed from the guide/history surfaces and the active queue/audit surfaces now point at a real accepted decision instead of a queued placeholder.
+3. Ran `git diff --check`; output empty; the patch is whitespace-clean.
+4. Checked `CLAUDE.md`, `LINEAR.md`, and `IMPLEMENTATION-PLAN.md` for required companion changes. `CLAUDE.md` already matched the accepted role boundary and cadence framing, `todo.md` already held the testing-cadence row and queue wording, and neither `LINEAR.md` nor `IMPLEMENTATION-PLAN.md` required a text change beyond the new ADR becoming real.
+Ripple Check attestation: because this slice added a new ADR and changed an active governance decision from queued to accepted, I updated the design-history index, the main guide, the changelog, the active queue, the ledger home, the auditor watermark summary, the completed index, and this Work Record in the same change.
+Linear-coverage disposition: `GIL-10` remains the issue home for this ADR landing. No new follow-up issue was opened because `GIL-11` is already queued as the next governance lane.
+
+triggered by:
+Trevor direction on 2026-04-20 to complete the next queued repo steps after
+the branch cleanup and artifact-preservation work.
+
+led to:
+landing commit SHA recorded in immediate closeout on branch
+`trevor/gil-10-draft-adr-0004-chatgpt-pro-strategic-audit-cadence`;
+`design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md`
+
+linear:
+GIL-10
 
 ### 2026-04-20 | self-contained: promote `GIL-30` benchmark contracts from local `tmp/` into durable repo artifacts | by: Codex
 
@@ -3915,7 +3972,13 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-- None currently.
+- `trevor/gil-10-draft-adr-0004-chatgpt-pro-strategic-audit-cadence`
+  source chat: current 2026-04-20 "Complete the next steps" thread
+  last refreshed by chat: current 2026-04-20 `GIL-10` ADR landing thread
+  purpose: land `ADR-0004` and close `GIL-10` cleanly after the `GIL-8` / branch-cleanup follow-through
+  merge expectation: merge to `main` after branch review and closeout verification
+  exit checklist: `design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md` landed; design-history and guide discovery surfaces updated; `todo.md` moves `GIL-10` from queued next step to landed record; branch pushed; branch merged or explicitly closed
+  delete when: merged to `main`
 
 ## Branch History
 - `codex/gil8-audit-tiebreaker-protocol` | close date: 2026-04-20 | outcome: merged | merge target: `main` | resulting reference: `main` fast-forwarded from `41b88c6` to branch tip `7d6202e`, carrying `ADR-0002` plus the related changelog/guide/design-history/todo indexing updates | cleanup: local branch deleted in this closeout; remote branch deleted after `main` push in this same task
@@ -3993,6 +4056,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-20 | command(s): direct rereads of `design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md`, `CLAUDE.md`, and the relevant `todo.md` queue/audit sections; `rg -n "ADR-0004|ChatGPT Pro strategic|strategic / governance auditor|phase boundary strategic audit" GUIDE.md design-history/README.md CHANGELOG.md todo.md CLAUDE.md`; `git diff --check` | result: pass — the new ADR captures the accepted Pro cadence, scope boundary, briefing contract, output shape, and `ADR-0002` disagreement path; the design-history and guide surfaces index it; the active queue and watermark surfaces now point at an accepted ADR instead of a queued placeholder; and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 `GIL-10` | by: Codex | linear: GIL-10
 - 2026-04-20 | command(s): `find tmp -maxdepth 3 -type f`; direct review of `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`; move four JSON contracts into `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/contracts/`; `git status -sb`; `git diff --check` | result: pass — the only leftover local temp state was the four benchmark replay contracts from the already-recorded `GIL-30` comparison run; they are now preserved in the same durable artifact bundle as the comparison outputs, `tmp/` is gone, and the promotion patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 self-contained benchmark-contract preservation entry | by: Codex | linear: self-contained: preserve already-used GIL-30 benchmark replay contracts in repo-visible artifacts
 - 2026-04-20 | command(s): `git branch -vv`; `git rev-list --left-right --count main...codex/gil8-audit-tiebreaker-protocol`; `git rev-list --left-right --count main...codex/gil30-bounded-claude-strategy`; `git rev-list --left-right --count main...claude-code/audit-post-7258c90-2026-04-19`; `git merge --ff-only codex/gil8-audit-tiebreaker-protocol`; `git branch -d codex/gil8-audit-tiebreaker-protocol`; `git branch -d codex/gil30-bounded-claude-strategy`; `git branch -d claude-code/audit-post-7258c90-2026-04-19`; `git push origin --delete codex/gil30-bounded-claude-strategy`; `git worktree remove "/Users/gillettes/.codex/worktrees/6183/Autonomous Coding Agent"`; `git stash list`; `git diff --check` | result: pass — `GIL-8` fast-forwarded cleanly onto `main`, the other remaining named branches were already fully contained in `main`, the redundant local refs plus the remote `gil30` ref and stale detached worktree were removed without conflict, the two old stashes were deliberately retained as possible recovery state, and the closeout patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 self-contained branch/worktree cleanup entry | by: Codex | linear: self-contained: branch/worktree cleanup after already-landed branches were merged or contained in main
 - 2026-04-20 | command(s): `rg -n "ADR-0002|Audit Tiebreaker|tiebreaker" GUIDE.md design-history/README.md todo.md`; direct reread of `design-history/ADR-0002-audit-tiebreaker-protocol.md`; `git diff --check` | result: pass — the new ADR closes the queued `GIL-8` gap, the design-history and guide surfaces both index it, the active queue and durable records reference it, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 `GIL-8` | by: Codex | linear: GIL-8

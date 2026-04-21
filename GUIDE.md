@@ -208,6 +208,8 @@ Key historical records:
 - [design-history/AUDIT-2026-04-14.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/AUDIT-2026-04-14.md)
 - [design-history/ADR-0001-terminal-state-normalization.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0001-terminal-state-normalization.md)
 - [design-history/ADR-0002-audit-tiebreaker-protocol.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0002-audit-tiebreaker-protocol.md)
+- [design-history/ADR-0003-phase-1-architecture-checkpoint.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0003-phase-1-architecture-checkpoint.md)
+- [design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md)
 
 ## Where Feedback, Audits, And Plan Refinements Live
 

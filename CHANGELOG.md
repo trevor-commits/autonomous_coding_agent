@@ -29,6 +29,10 @@
 
 ## 2026-04-20
 
+- Landed `GIL-10` / `ADR-0004`:
+  - added the ChatGPT Pro strategic-audit cadence under `design-history/ADR-0004-chatgpt-pro-strategic-audit-cadence.md`
+  - codified the phase-boundary, Phase 1 checkpoint, quarterly, and ad hoc audit triggers for Pro
+  - recorded the required audit-brief shape, output format, and `ADR-0002` disagreement path
 - Landed `GIL-8` / `ADR-0002`:
   - added the audit tiebreaker protocol under `design-history/ADR-0002-audit-tiebreaker-protocol.md`
   - indexed the ADR from the design-history guide surfaces

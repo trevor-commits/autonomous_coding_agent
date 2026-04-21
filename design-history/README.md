@@ -27,5 +27,6 @@ Some archived documents intentionally preserve superseded terminology, layout as
 - `ADR-0001-terminal-state-normalization.md`: current ADR for run-state/readiness vocabulary.
 - `ADR-0002-audit-tiebreaker-protocol.md`: accepted protocol for resolving substantive Codex-versus-auditor disagreement with evidence restatement plus Trevor arbitration.
 - `ADR-0003-phase-1-architecture-checkpoint.md`: accepted architecture checkpoint after the landed Phase 1 supervisor foundation, including the action-boundary drift repairs required before Phase 2.
+- `ADR-0004-chatgpt-pro-strategic-audit-cadence.md`: accepted cadence, scope boundary, audit-brief shape, and disagreement path for recurring ChatGPT Pro strategic/governance audits.
 - `ADR-0006-linear-authority-boundary.md`: Linear authority boundary audit and governance decision.
 - `codex-cleanup-prompts.md`: archived prompt batch that drove the initial Phase 0 cleanup wave.

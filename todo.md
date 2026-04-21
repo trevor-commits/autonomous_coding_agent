@@ -16,7 +16,7 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 **Shortest valid path:** `bible-ai` Phase 0 proof landed → finish the remaining repo-local Phase 0 and lifecycle work → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
 
 ## Active Next Steps
-Current goal: `GIL-8` is the active lane. Phase 4 proof on `codex/gil30-bounded-claude-strategy` is complete enough to pause: the bounded prompt family, review/final-gate routing, and per-run grading surface are wired, and live comparative benchmark artifacts exist for `benchmark-001` through `benchmark-004`, but both `simple` and `claude` still block after one builder turn because the Codex builder lane times out even at a 180-second cap. The `GIL-30` builder-envelope revisit is intentionally deferred and recorded below so the repo can move on to the queued governance ADRs (`GIL-8`, `GIL-10`, `GIL-11`) instead of burning more cycles on Claude prompt tuning before the builder lane can finish even one positive fixture.
+Current goal: `GIL-10` is the active lane. `GIL-8` is now landed as `ADR-0002`, and the `GIL-30` builder-envelope revisit remains intentionally deferred: when Phase 4 reopens, start with the Codex builder timeout ceiling rather than more Claude prompt tuning. The next queued governance work is `GIL-10` and `GIL-11`.
 
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
@@ -27,7 +27,7 @@ Current goal: `GIL-8` is the active lane. Phase 4 proof on `codex/gil30-bounded-
 - [x] Phase 0.2 (GIL-21): the `bible-ai` clean-checkout proof landed on `agent/codex/2026-04-17/bib-9-clean-checkout-ci-parity` as `99198863a4ea2e10db19f74f59608d7b3cbd40d7`; a fresh clone passed setup, test, preview health, and `smoke-public` with no prior `.autoclaw/` state.
 - [x] Phase 0.2a (GIL-22): the `bible-ai` CI-parity note landed at `.agent/ci-parity.md` on `agent/codex/2026-04-17/bib-9-clean-checkout-ci-parity` as `99198863a4ea2e10db19f74f59608d7b3cbd40d7`.
 - [x] Phase 0.3 (GIL-23): create at least 6–8 benchmark run contracts, driven by supervisor invariant coverage. Required fixtures include a dedicated case for each of: forbidden-path write, missing-evidence COMPLETE attempt, illegal phase transition, single-writer lock violation, rollback correctness, failure-fingerprint normalization. The 6–8 count is a floor; add more if invariant coverage demands it. Do not cap at 3–5.
-- [ ] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
+- [x] Phase 0.5 (GIL-8): draft ADR-0002 "Audit Tiebreaker Protocol" — when Codex and the auditor disagree on whether a finding is real, the auditor restates the finding with concrete evidence (file:line or command output), Codex restates its position, and Trevor arbitrates. The decision lands in the Feedback Decision Log tagged "tiebreaker". No finding bounces between Codex and auditor without human resolution.
 - [x] Phase 0.6 (GIL-9): draft ADR-0003 "Phase 1 Subphase 2 Architecture Checkpoint" — after supervisor subphases 1.1 and 1.2 land (contract parsing, run directory, shell/path guardrails, single-writer lock), pause before subphase 1.3 and run an architecture audit against the schemas, action set, and invariants. If the design still fits, continue. If not, rescope before deepening the Phase 1.3 runtime surface on top of a shaky foundation.
 - [ ] Phase 0.7 (GIL-10): draft ADR-0004 "ChatGPT Pro Strategic Audit Cadence" — Pro is the recurring strategic/governance auditor, distinct from Claude Code (primary line-by-line auditor) and Claude Cowork (primary orchestrator; spec-alignment pass only). Pro audits at every phase boundary (0A, 0B, 0C, 1, 2, 3, 4) as a gate; jointly with Claude Code at the Phase 1 mid-build architecture checkpoint; quarterly across the whole repo; and ad hoc when Trevor requests. Pro's scope is phase-intent alignment, scope creep, governance posture, architectural drift, and meta-checks on what the Claudes aren't catching. Pro does NOT verify schemas, test results, or file:line correctness. Each audit requires an orchestrator-prepared brief (PROJECT_INTENT, canonical-architecture, relevant ADRs, commit-range fingerprint, todo.md Audit Record Log and Feedback Decision Log tails). Output shape matches existing audits: GREEN/YELLOW/RED per scope line, P1/P2/P3 findings, punch list, explicit not-checked list. Tiebreaker protocol from ADR-0002 applies when Pro and Claude Code disagree.
 - [ ] Phase 0.8 (GIL-11): draft ADR-0005 "Codex Conversation Lifecycle" — fresh Codex conversation per bounded task; repo docs are the persistent memory, not Codex chat history. Required new conversation: every new prompt or punch list, every phase boundary, every audit-triggered repair round, every ADR that changes an operating decision, whenever Codex begins hallucinating or contradicting the repo. Permitted same conversation: mid-task repair within one bounded task before the commit lands; active debugging of a single issue with ongoing context; multi-commit prompts where sub-commits depend on context. Hard caps: one prompt + its immediate repair loops per conversation, never spanning two prompts; repair loops hitting round 3 in the same conversation must close and restart with the auditor's latest findings as the brief; never reuse a Codex conversation across a phase boundary. Rationale: avoid context rot, stale memory, prompt pollution, and audit-scope ambiguity.
@@ -88,7 +88,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - `GIL-11` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.8 | why this exists: codify the Codex conversation lifecycle before longer implementation work starts | origin source: Trevor Codex conversation lifecycle request recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-10` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.7 | why this exists: codify the ChatGPT Pro strategic audit cadence | origin source: Trevor request to integrate ChatGPT Pro recorded in `Feedback Decision Log` 2026-04-15
 - `GIL-9` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-17 (architecture checkpoint repair landed as `95a6271`; awaiting Cowork/Trevor state move) | why this exists: force an architecture checkpoint before deeper Phase 1 buildout | origin source: 2026-04-15 Claude Code plan-review finding
-- `GIL-8` | status: `Ready for Build` | todo home: `Active Next Steps` Phase 0.5 | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
+- `GIL-8` | status: `Ready for Build` | todo home: `Work Record Log` 2026-04-20 (`ADR-0002` landed on `codex/gil8-audit-tiebreaker-protocol`; awaiting Cowork/Trevor state move) | why this exists: codify the audit tiebreaker protocol before more review loops accumulate | origin source: 2026-04-15 Claude Code plan-review finding
 - `GIL-15` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog governance follow-up, not on the active phase path yet) | why this exists: codify the Linear operating model details that were surfaced but not promoted into the main execution path | origin source: 2026-04-15 Linear governance buildout gap
 - `GIL-14` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog correction, not on the active phase path yet) | why this exists: deduplicate terminal-state, single-writer, and phase-machine restatements in companion docs | origin source: 2026-04-15 Claude Code audit finding `P2-7`
 - `GIL-12` | status: `Ready for Build` | todo home: `Linear Issue Ledger` (backlog docs correction, not on the active phase path yet) | why this exists: replace `/Users/gillettes/Coding Projects/Autonomous Coding Agent/…` absolute links with relative repo paths across live navigation/onboarding docs (`README.md`, `GUIDE.md`, `AGENTS.md`, `design-history/README.md`, and in-scope `docs/*.md`) so the repo is portable across checkout roots; preserve historical `design-history/` content and external-tool paths | origin source: 2026-04-15 Cowork audit finding on `design-history/README.md`, scope widened by the 2026-04-17 full-repo audit
@@ -142,6 +142,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 ## Completed
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
+- [x] 2026-04-20 | GIL-8: record ADR-0002 audit tiebreaker protocol — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-20
 - [x] 2026-04-19 | GIL-30: start the first bounded-Claude strategy slice with prompt-pack files, Claude BUILD routing, and typed fallback integration — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-19 | GIL-30: wire candidate review and final audit into the runtime with review-requested rebuilds and final-gate terminal decisions — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-19
 - [x] 2026-04-19 | GIL-30: add trace-backed benchmark grading and comparison tooling for Phase 4 strategy proof — landed as `17070c5`; full record in Work Record Log 2026-04-19
@@ -250,6 +251,59 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-20 | GIL-8 | by: Codex
+
+Problem:
+The repo had already committed to a multi-actor audit model, but it still had
+no accepted protocol for what happens when Codex and an auditor disagree on a
+finding. That left a real governance gap: repeated disagreement could bounce in
+chat without a bounded path to evidence, arbitration, and durable recording.
+
+Reasoning:
+The right next step was to close the smallest missing governance contract
+before opening more audit-heavy lanes. `GIL-8` was already queued as the first
+of the remaining ADR trio, and it is load-bearing for later work like
+`GIL-10`, because strategic audits only help if disagreement already has a
+clear escalation path.
+
+Diagnosis inputs:
+Direct rereads of `todo.md` `Active Next Steps`, `Feedback Decision Log`, and
+`Linear Issue Ledger`; `PROMPTS.md` section 6.3 (`reviewer disagreement`);
+`design-history/ADR-0001-terminal-state-normalization.md`;
+`design-history/ADR-0003-phase-1-architecture-checkpoint.md`;
+`design-history/README.md`; `GUIDE.md`; and the original `GIL-8` wording in
+the roadmap plus issue ledger.
+
+Implementation inputs:
+Added `design-history/ADR-0002-audit-tiebreaker-protocol.md`; updated
+`design-history/README.md`, `GUIDE.md`, `CHANGELOG.md`, and `todo.md`.
+
+Fix:
+The repo now has an accepted `ADR-0002` that defines when the tiebreaker
+triggers, what evidence the auditor must restate, how Codex must answer, when
+Trevor arbitrates, where the decision is recorded, and the hard rule that a
+material finding may not bounce between Codex and the auditor without human
+resolution once the trigger is met.
+
+Self-audit:
+1. Re-read `design-history/ADR-0002-audit-tiebreaker-protocol.md`; confirmed it closes the exact gap described in `GIL-8` without drifting into `GIL-10` strategic-cadence territory.
+2. Ran `rg -n "ADR-0002|Audit Tiebreaker|tiebreaker" GUIDE.md design-history/README.md todo.md`; output shows the new ADR is indexed from the design-history surfaces and referenced from the active queue/governance surfaces.
+3. Ran `git diff --check`; output empty; the patch is whitespace-clean.
+4. Did not modify `LINEAR.md`, `CLAUDE.md`, or `PROMPTS.md` because this slice adds the missing ADR decision itself rather than changing the underlying workflow text those documents already use. The next ADR/governance slices can reference `ADR-0002` directly.
+Ripple Check attestation: because this slice added a new ADR, I updated the design-history index, the main guide, the changelog, the active queue, the ledger home, the completed index, and this Work Record in the same change.
+Linear-coverage disposition: `GIL-8` remains the issue home for this ADR landing. No new follow-up issue was opened because the remaining adjacent governance work is already queued as `GIL-10` and `GIL-11`.
+
+triggered by:
+Trevor direction on 2026-04-20 to defer the `GIL-30` revisit, continue with
+the recommended path, and move to the next queued governance lane.
+
+led to:
+landing commit SHA recorded in immediate closeout on branch
+`codex/gil8-audit-tiebreaker-protocol`; `design-history/ADR-0002-audit-tiebreaker-protocol.md`
+
+linear:
+GIL-8
 
 ### 2026-04-19 | GIL-30 | by: Codex
 
@@ -3741,15 +3795,16 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-- `codex/gil30-bounded-claude-strategy`
-  source chat: current Phase 4 kickoff thread on 2026-04-19
-  last refreshed by chat: current Phase 4 live benchmark proof thread on 2026-04-19
-  purpose: carry `GIL-30` through the bounded Claude control-plane, live comparison proof, and the final decision on whether Phase 4 should continue by retuning the builder lane or close with a no-win result
-  merge expectation: either merge to `main` with the explicit "no measurable Claude gain under the current builder bottleneck" result recorded, or explicitly split any builder-lane retuning into a narrower successor branch before merge
-  exit checklist: prompt-pack files landed; Claude BUILD/stall/candidate-review/final-audit routing tested; per-run benchmark metrics plus comparison tooling landed; live comparison artifacts recorded for `benchmark-001` through `benchmark-004`; `todo.md` reflects that both strategies timed out with no wins; branch either merged with that result or explicitly superseded by a narrower follow-up branch
-  delete when: merged to `main` or explicitly superseded by a replacement `GIL-30` branch
+- `codex/gil8-audit-tiebreaker-protocol`
+  source chat: current 2026-04-20 next-steps thread
+  last refreshed by chat: current 2026-04-20 next-steps thread
+  purpose: land `ADR-0002` and close `GIL-8` cleanly after deferring the `GIL-30` builder-envelope revisit
+  merge expectation: merge to `main` once `ADR-0002`, the design-history index, and the durable queue records are all landed together
+  exit checklist: `design-history/ADR-0002-audit-tiebreaker-protocol.md` landed; design-history discovery surfaces updated; `todo.md` marks `GIL-8` complete and promotes the next ADR lane; branch merged or explicitly closed
+  delete when: merged to `main`
 
 ## Branch History
+- `codex/gil30-bounded-claude-strategy` | close date: 2026-04-20 | outcome: merged | merge target: `main` | resulting reference: branch tip `8350cb5` merged into `main` via merge commit `41b88c6`, carrying the full Phase 4 bounded-Claude control-plane line plus the recorded no-win benchmark proof and deferred builder-envelope revisit note | cleanup: local branch retained temporarily while `GIL-30` remains a deferred backlog item; safe to delete after Trevor confirms no immediate Phase 4 follow-up branch is needed
 - `codex/audit` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` @ `5f3b507` (PR #3) | cleanup: local and remote branches deleted
 - `codex/coderabbit-flow-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: `origin/main` contains branch tip `44ba5ed`; local and remote refs deleted in this cleanup task | cleanup: local and remote branches deleted
 - `codex/marcopolo-not-needed-docs` | close date: 2026-04-19 | outcome: merged | merge target: `main` | resulting reference: branch tip `0d5f115` merged into `main` in this cleanup task | cleanup: local and remote branches deleted; attached worktree removed
@@ -3822,6 +3877,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-20 | command(s): `rg -n "ADR-0002|Audit Tiebreaker|tiebreaker" GUIDE.md design-history/README.md todo.md`; direct reread of `design-history/ADR-0002-audit-tiebreaker-protocol.md`; `git diff --check` | result: pass — the new ADR closes the queued `GIL-8` gap, the design-history and guide surfaces both index it, the active queue and durable records reference it, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-20 `GIL-8` | by: Codex | linear: GIL-8
 - 2026-04-19 | command(s): `python3 -m unittest tests.test_builder_adapter tests.test_benchmark_eval tests.test_reports tests.test_main`; temporary Python harness running `execute_run(..., cleanup_worktree=True, builder_timeout_seconds=180)` for `benchmark-001` through `benchmark-004` under both `simple` and `claude` against a disposable ordinary clone of `gillette-website` with rewritten temp contracts under `tmp/gil30-benchmark-contracts/`; `python3 -m supervisor.benchmark_eval --report ... > design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; temporary Python summary using `supervisor.benchmark_eval.compare_benchmark_reports(...)` to write `comparison.json`; `git diff --check` | result: pass — the timeout-path hardening tests are green, all 8 live positive-fixture benchmark runs produced durable reports on the clean clone, and the recorded comparison artifacts show no strategy wins: both `simple` and `claude` blocked after one builder turn due timeout on every fixture even at a 180-second cap; the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.md`; `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/comparison.json`; `Active Branch Ledger` | by: Codex | linear: GIL-30
 - 2026-04-19 | command(s): `python3 -m unittest tests.test_reports tests.test_benchmark_eval tests.test_main.SupervisorMainTests.test_execute_run_completes_after_single_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; `python3 -m supervisor.benchmark_eval --help`; `git diff --check` | result: pass — readiness reports now emit strategy/turn/cost/time metrics, the benchmark comparison module handles both current and historical report shapes and renders the expected comparison summary, runtime wiring records the new metrics on real execute-run paths, the new benchmark-eval CLI resolves, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30
 - 2026-04-19 | command(s): `python3 -m unittest tests.test_strategy_claude tests.test_main.SupervisorMainTests.test_execute_run_candidate_review_can_request_another_builder_turn tests.test_main.SupervisorMainTests.test_execute_run_final_audit_can_block_run tests.test_main.SupervisorMainTests.test_execute_run_supports_claude_strategy_for_first_build_slice`; `python3 -m unittest tests.test_strategy_simple tests.test_strategy_schema tests.test_actions tests.test_state_machine`; `python3 -m unittest tests.test_main.SupervisorMainTests.test_execute_run_retries_with_failure_fingerprint_context tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_iteration_budget_is_exceeded tests.test_main.SupervisorMainTests.test_execute_run_blocks_when_repo_root_mismatches_run_contract`; `git diff --check`; `python3 -m supervisor.main --help` | result: pass — `AUDIT_READY` and `FINAL_GATE` now drive real candidate-review and final-audit decisions, review-requested rebuilds and final-audit blocks are covered directly, widened action legality and the backend-only audit pause are covered directly, the recent retry/budget/repo-path protections still pass, the patch is whitespace-clean, and the module CLI still resolves | log/PR reference: `Work Record Log` 2026-04-19 `GIL-30`; `Active Branch Ledger` | by: Codex | linear: GIL-30

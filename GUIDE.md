@@ -207,6 +207,7 @@ Key historical records:
 - [design-history/feedback-reconciliation-2026-04-14.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/feedback-reconciliation-2026-04-14.md)
 - [design-history/AUDIT-2026-04-14.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/AUDIT-2026-04-14.md)
 - [design-history/ADR-0001-terminal-state-normalization.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0001-terminal-state-normalization.md)
+- [design-history/ADR-0002-audit-tiebreaker-protocol.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/ADR-0002-audit-tiebreaker-protocol.md)
 
 ## Where Feedback, Audits, And Plan Refinements Live
 

@@ -27,6 +27,13 @@
   - recorded eight paired live benchmark artifacts for `benchmark-001` through `benchmark-004` under `design-history/artifacts/gil30-benchmark-comparison-2026-04-19/`
   - captured the current Phase 4 result in durable comparison summaries: both `simple` and `claude` timed out after one builder turn on every positive fixture, so no Claude-only wins are proven under the current builder lane
 
+## 2026-04-20
+
+- Landed `GIL-8` / `ADR-0002`:
+  - added the audit tiebreaker protocol under `design-history/ADR-0002-audit-tiebreaker-protocol.md`
+  - indexed the ADR from the design-history guide surfaces
+  - updated the durable queue so `GIL-8` is closed and the deferred `GIL-30` builder-envelope revisit remains recorded for later
+
 ## 2026-04-17
 
 - Added the first `GIL-57` manual queue-intake slice:

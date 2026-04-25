@@ -13,7 +13,13 @@ from typing import Protocol
 from supervisor.actions import Action
 from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuilderAdapter, build_builder_prompt
-from supervisor.contracts import RepoContract, RunContract, load_repo_contract, load_run_contract
+from supervisor.contracts import (
+    ContractValidationError,
+    RepoContract,
+    RunContract,
+    load_repo_contract,
+    load_run_contract,
+)
 from supervisor.fingerprints import FailureFingerprintStore
 from supervisor.models import ActionType, Phase, ReadinessVerdict, RunSnapshot, RunState
 from supervisor.queue_intake import LinearGraphQLClient, ManualQueueRunner
@@ -657,7 +663,10 @@ def _enforce_builder_policies(
                 f"Builder command `{normalized}` is not allowed in Phase 2: {decision.reason}."
             )
     for relative_path in builder_result.files_changed:
-        enforce_scope(repo_root, run_contract, repo_root / relative_path)
+        try:
+            enforce_scope(repo_root, run_contract, repo_root / relative_path)
+        except ContractValidationError as exc:
+            raise PolicyViolationError(str(exc)) from exc
         decision = classify_path_change(relative_path)
         if decision.shell_class is not ShellClass.AUTO_ALLOW:
             raise PolicyViolationError(

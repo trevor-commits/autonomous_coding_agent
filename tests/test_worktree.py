@@ -1,6 +1,7 @@
 import subprocess
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from supervisor.worktree_manager import WorktreeError, WorktreeManager
@@ -62,6 +63,33 @@ class WorktreeManagerTests(unittest.TestCase):
                     manager.acquire_lease("run-002", workspace.worktree_path, workspace.branch_name)
             finally:
                 manager.remove_builder_worktree(workspace)
+
+    def test_concurrent_builder_worktree_creation_allows_one_writer(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            manager = WorktreeManager(repo_root)
+
+            def create_workspace() -> object:
+                try:
+                    return manager.create_builder_worktree(
+                        run_id="run-003",
+                        task_slug="Concurrent edit",
+                    )
+                except WorktreeError as exc:
+                    return exc
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                results = list(executor.map(lambda _: create_workspace(), range(2)))
+
+            successes = [result for result in results if not isinstance(result, Exception)]
+            failures = [result for result in results if isinstance(result, WorktreeError)]
+
+            self.assertEqual(1, len(successes))
+            self.assertEqual(1, len(failures))
+            self.assertIn("Single-writer lease already exists", str(failures[0]))
+
+            manager.remove_builder_worktree(successes[0])
 
 
 if __name__ == "__main__":

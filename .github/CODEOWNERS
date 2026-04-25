@@ -1,0 +1,16 @@
+# Keep control-plane and governance changes explicitly owned.
+* @trevor-commits
+
+/.github/ @trevor-commits
+/schemas/ @trevor-commits
+/supervisor/ @trevor-commits
+/tests/ @trevor-commits
+
+/AGENTS.md @trevor-commits
+/AGENTS.project.md @trevor-commits
+/CLAUDE.md @trevor-commits
+/CONTINUITY.md @trevor-commits
+/COHERENCE.md @trevor-commits
+/LINEAR.md @trevor-commits
+/PROJECT_INTENT.md @trevor-commits
+/todo.md @trevor-commits

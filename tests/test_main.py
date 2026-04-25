@@ -625,6 +625,75 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
             self.assertIn("git push", "\n".join(outcome.report.unresolved_blockers))
 
+    def test_execute_run_blocks_builder_changes_outside_run_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = MultiFileBuilderAdapter([{"README.md": "scope drift\n"}])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            blockers = "\n".join(outcome.report.unresolved_blockers)
+            self.assertIn("README.md", blockers)
+            self.assertIn("violates run scope", blockers)
+
+    def test_execute_run_blocks_forbidden_builder_command_categories(self) -> None:
+        forbidden_commands = (
+            "git push origin main",
+            "git pull",
+            "git merge main",
+            "git rebase main",
+            "git checkout main",
+            "git switch main",
+            "sudo true",
+            "ssh example.com",
+            "scp file example.com:/tmp/file",
+            "rm -rf src",
+            "npm install",
+            "pnpm install",
+            "yarn install",
+            "pip install requests",
+            "uv pip install requests",
+            "poetry install",
+            "prisma migrate deploy",
+            "alembic upgrade head",
+            "rake db:migrate",
+            "terraform plan",
+            "pulumi up",
+            "kubectl get pods",
+            "docker compose build",
+            "docker build .",
+        )
+        for command in forbidden_commands:
+            with self.subTest(command=command):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    repo_root = Path(tmpdir)
+                    run_contract_path = _init_target_repo(repo_root)
+                    adapter = FakeBuilderAdapter(
+                        ["fixed"],
+                        commands_per_turn=[(command,)],
+                    )
+
+                    outcome = execute_run(
+                        repo_root=repo_root,
+                        run_contract_path=run_contract_path,
+                        builder_adapter=adapter,
+                        strategy=SimpleStrategy(),
+                        cleanup_worktree=False,
+                    )
+
+                    self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+                    blockers = "\n".join(outcome.report.unresolved_blockers)
+                    self.assertIn(command, blockers)
+                    self.assertIn("not allowed in Phase 2", blockers)
+
     def test_execute_run_retries_after_app_launch_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

@@ -6,6 +6,8 @@
 
 ---
 
+## Repo Principles
+
 Load `CONTINUITY.md` and `COHERENCE.md` before any task. Their principles, plus the Linear-at-the-core rule in `LINEAR.md`, govern every rule below.
 
 ## Roles

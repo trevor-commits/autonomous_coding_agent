@@ -29,6 +29,7 @@ Use these files for current truth:
 - [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md): approved design baseline for the first runnable local single-run harness on top of the current supervisor foundation.
 - [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md): operator-board governance for Linear usage; repo docs remain authoritative.
 - [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md): step-by-step Linear setup runbook and known-pitfalls list for bootstrapping new projects.
+- [pyproject.toml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/pyproject.toml): Python runtime floor and package dependencies for the supervisor implementation.
 - [.coderabbit.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml): repo-local CodeRabbit PR-review configuration; GitHub App installation remains a manual operator step.
 - [.brooks-lint.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.brooks-lint.yaml): repo-local Brooks Lint boundary config; keeps archive/runtime directories out of default Brooks review scope while leaving decay-risk defaults intact.
 

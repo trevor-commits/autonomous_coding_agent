@@ -5,6 +5,7 @@ import unittest
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 
@@ -14,6 +15,7 @@ from supervisor.queue_intake import (
     LinearIssue,
     LinearIssueDescription,
     ManualQueueRunner,
+    QueueError,
     QueueIssueNormalizer,
     QueueIssueSelector,
     QueueLinearClient,
@@ -235,13 +237,39 @@ class QueueNormalizerTests(unittest.TestCase):
 
             self.assertTrue(normalized.spec_path.exists())
             self.assertEqual(("src", "tests"), normalized.run_contract.scope.allowed_paths)
-            self.assertEqual(("env", "infra"), normalized.run_contract.scope.forbidden_paths)
+            self.assertEqual((".env", "infra"), normalized.run_contract.scope.forbidden_paths)
             self.assertEqual(("lint", "test"), normalized.run_contract.queue.verification_pack)
             self.assertEqual(3, normalized.run_contract.constraints.max_repair_loops)
             self.assertEqual(3, normalized.run_contract.queue.retry_budget)
             payload = json.loads(normalized.run_contract_path.read_text())
             self.assertEqual(["lint", "test"], payload["verification_pack"])
             self.assertTrue(payload["run_id"].startswith("GIL-200-"))
+
+    def test_normalizer_rejects_authoritative_spec_outside_repo(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            _init_queue_repo(repo_root)
+            (root / "outside.md").write_text("# outside\n")
+
+            for spec_path in ("../outside.md", "..\\outside.md"):
+                with self.subTest(spec_path=spec_path):
+                    issue = LinearIssue(
+                        id="GIL-201",
+                        identifier="GIL-201",
+                        title="Escape queue issue",
+                        description=_description(spec_path=spec_path),
+                        status="Ready for Build",
+                        priority=2,
+                        updated_at=_updated_at(hours_ago=1),
+                        labels=tuple(),
+                    )
+
+                    with self.assertRaises(QueueError) as ctx:
+                        QueueIssueNormalizer(repo_root).normalize(issue)
+
+                    self.assertIn("inside", str(ctx.exception))
 
 
 class QueueDrainRunnerTests(unittest.TestCase):
@@ -516,6 +544,50 @@ class QueueDrainRunnerTests(unittest.TestCase):
             self.assertNotEqual(before_sha, after_sha)
             self.assertIn("GIL-700", _git(repo_root, "log", "--oneline", "-1").stdout)
             self.assertIn("GIL-700", _git(remote_root, "log", "--oneline", "-1", "main").stdout)
+
+    def test_successful_cleanup_failure_is_recorded_without_blocking_completion(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            remote_root = root / "remote.git"
+            _init_queue_repo(repo_root, remote_path=remote_root)
+            issue = LinearIssue(
+                id="GIL-800",
+                identifier="GIL-800",
+                title="Cleanup warning issue",
+                description=_description(verification_pack="`test`", retry_budget="2"),
+                status="Ready for Build",
+                priority=2,
+                updated_at=_updated_at(hours_ago=1),
+                labels=tuple(),
+            )
+            client = RecordingLinearClient([issue])
+            adapter = QueueAwareBuilderAdapter({"GIL-800": ("fixed",)})
+
+            with patch(
+                "supervisor.queue_intake.WorktreeManager.remove_builder_worktree",
+                side_effect=RuntimeError("cleanup failed"),
+            ):
+                summary = ManualQueueRunner(
+                    repo_root=repo_root,
+                    linear_client=client,
+                    builder_adapter=adapter,
+                    strategy=SimpleStrategy(),
+                    team_key="GIL",
+                    cleanup_success_worktree=True,
+                ).drain()
+
+            self.assertEqual(1, summary.completed_count)
+            self.assertEqual(
+                [("GIL-800", "Building"), ("GIL-800", "AI Audit")],
+                client.transitions,
+            )
+            cleanup_comments = [body for _issue_id, body in client.comments if body.startswith("Cleanup warning:")]
+            self.assertTrue(cleanup_comments)
+            self.assertIn("cleanup failed", cleanup_comments[0])
+            warning_files = list((repo_root / ".autoclaw").glob("runs/*/reports/queue-cleanup-warning.json"))
+            self.assertEqual(1, len(warning_files))
 
 
 if __name__ == "__main__":

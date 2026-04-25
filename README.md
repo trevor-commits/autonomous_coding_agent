@@ -9,6 +9,15 @@ Read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CO
 - Need reading order, document roles, and file lookup: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
 - Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md), then [AGENTS.project.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.project.md) for the authoritative repo-local overlay
 
+## Local Runtime
+
+The supervisor code targets Python 3.11 or newer. Runtime dependencies are declared in [pyproject.toml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/pyproject.toml): `jsonschema>=4.0.0` and `PyYAML>=6.0.0`.
+
+Common local checks:
+
+- `python3 -m unittest discover -s tests -v`
+- `python3 -m compileall -q supervisor tests`
+
 ## Active Docs
 
 Read these when working on the current system:

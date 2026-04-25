@@ -310,19 +310,27 @@ def _build_repo_env(payload: dict[str, Any]) -> RepoEnvConfig:
 
 
 def _normalize_relative_path(value: str) -> str:
-    path = PurePosixPath(value)
+    path = PurePosixPath(value.replace("\\", "/"))
     if path.is_absolute():
         raise ContractValidationError(
             f"Relative scope paths may not be absolute: `{value}`.",
             run_state=RunState.UNSUPPORTED,
         )
-    normalized = path.as_posix().lstrip("./")
+    if ".." in path.parts:
+        raise ContractValidationError(
+            f"Relative scope paths may not traverse parents: `{value}`.",
+            run_state=RunState.UNSUPPORTED,
+        )
+    normalized = path.as_posix()
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    normalized = normalized.rstrip("/")
     if normalized in {"", "."}:
         raise ContractValidationError(
             f"Relative scope path `{value}` resolves to the repo root, which is too broad.",
             run_state=RunState.UNSUPPORTED,
         )
-    return normalized.rstrip("/")
+    return normalized
 
 
 def _path_matches_prefix(relative_path: str, prefix: str) -> bool:

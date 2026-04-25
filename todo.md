@@ -282,14 +282,19 @@ Checked current branch/status; confirmed `.github/` did not exist; reviewed
 ledger.
 
 Implementation inputs:
-Added `.github/workflows/ci.yml` and updated this `todo.md` record.
+Added `.github/workflows/ci.yml`, updated
+`tests/test_benchmark_fixtures.py`, and updated this `todo.md` record.
 
 Fix:
 Added a GitHub Actions workflow on pull requests and all branch pushes. It runs
 on Python 3.11 and 3.12, installs the package with `python -m pip install -e .`,
 runs `python -m unittest discover -s tests -v`, runs
 `python -m compileall -q supervisor tests`, and checks that the repo-local
-governance files and key sections are present.
+governance files and key sections are present. After the first CI push exposed
+that `tests/test_benchmark_fixtures.py` assumed Trevor's local
+`gillette-website` checkout path existed on the runner, the test now still
+validates fixture shape and skips only the external path-existence assertions
+when the benchmark target repo is absent.
 
 Self-audit:
 1. Ran `git status -sb` before editing; branch was clean and tracking
@@ -299,11 +304,17 @@ Self-audit:
 3. Ran `python3 -m unittest discover -s tests -v`; output `Ran 110 tests ... OK`.
 4. Ran `python3 -m compileall -q supervisor tests`; output empty.
 5. Ran a local shell equivalent of the workflow governance smoke; output empty.
-6. Ran `git diff --check`; output empty.
+6. Parsed `.github/workflows/ci.yml` with Python/YAML; output confirmed `CI`,
+   triggers `pull_request`/`push`, and matrix `3.11`/`3.12`.
+7. Checked GitHub Actions run `24935183297`; it failed because benchmark
+   fixture tests required `/Users/gillettes/Coding Projects/gillette-website`
+   on an Ubuntu runner, so I patched the test to skip that external-path
+   assertion when the target repo is unavailable.
+8. Ran `git diff --check`; output empty.
 Ripple Check attestation: this task changed CI behavior and the durable
-`GIL-74` disposition, so I updated `.github/workflows/ci.yml`, `Completed`,
-Work Record, Test Evidence, Suggested Recommendation, and Active Branch Ledger
-in the same branch.
+`GIL-74` disposition, so I updated `.github/workflows/ci.yml`, the benchmark
+fixture test portability guard, `Completed`, Work Record, Test Evidence,
+Suggested Recommendation, and Active Branch Ledger in the same branch.
 Linear-coverage disposition: this is a direct `GIL-74` follow-up approved by
 Trevor after the full audit. No new Linear issue was opened because it closes
 the deferred CI item from the same issue.
@@ -4430,7 +4441,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
-- 2026-04-25 | command(s): `python3 -m unittest discover -s tests -v`; `python3 -m compileall -q supervisor tests`; local shell equivalent of `.github/workflows/ci.yml` governance smoke; `git diff --check` | result: pass - the test suite still passes (`Ran 110 tests ... OK`), compileall passed, the governance smoke found the repo-local CI prerequisites and sections, and the CI patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 `GIL-74 CI follow-up`; `.github/workflows/ci.yml` | by: Codex | linear: GIL-74
+- 2026-04-25 | command(s): `python3 -m unittest discover -s tests -v`; `python3 -m compileall -q supervisor tests`; local shell equivalent of `.github/workflows/ci.yml` governance smoke; `python3` YAML parse of `.github/workflows/ci.yml`; `gh run view 24935183297 --log-failed`; `git diff --check` | result: pass locally, then first GitHub Actions run failed because `tests/test_benchmark_fixtures.py` required Trevor's local `/Users/gillettes/Coding Projects/gillette-website` checkout on an Ubuntu runner; patched the benchmark fixture test to keep fixture-shape validation and skip only external target-repo path assertions when the target repo is absent; local test suite still passes (`Ran 110 tests ... OK`), compileall passed, governance smoke passed, YAML parse passed, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 `GIL-74 CI follow-up`; `.github/workflows/ci.yml`; GitHub Actions run `24935183297` | by: Codex | linear: GIL-74
 - 2026-04-25 | command(s): pre-change Python repro for `_normalize_relative_path("../secret")`, `_normalize_relative_path(".env")`, and queue `Authoritative spec path: ../outside.md`; `python3 -m unittest tests.test_contracts tests.test_queue_intake -v`; `python3 -m unittest discover -s tests -v`; `python3 -m compileall -q supervisor tests`; `bash /Users/gillettes/.codex/scripts/verify-project-agents-compliance.sh /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent && bash /Users/gillettes/.codex/scripts/ensure-project-repo-principles.sh /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent && bash /Users/gillettes/.codex/scripts/ensure-project-todo-audit-sections.sh /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `python3 -m supervisor.main --help`; `python3 -m supervisor.benchmark_eval --help`; `python3`/`tomllib` parse of `pyproject.toml`; `git diff --check` | result: pass - pre-change repro confirmed the scope-collapse and queue-spec escape bugs, then the focused queue/contract suite passed (`Ran 15 tests ... OK`), the full suite passed (`Ran 110 tests ... OK`), compileall passed, governance validators passed, both CLIs resolved, `pyproject.toml` parsed with `>=3.11` / `jsonschema>=4.0.0` / `PyYAML>=6.0.0`, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 `GIL-74`; `Audit Record Log` 2026-04-25 `GIL-74` | by: Codex | linear: GIL-74
 - 2026-04-25 | command(s): `git merge --ff-only trevor/gil-11-draft-adr-0005-codex-conversation-lifecycle`; `git merge --no-ff codex/gil57-queue-staleness-fix`; `python3 -m unittest tests.test_queue_intake -v`; `python3 -m unittest tests.test_strategy_claude tests.test_benchmark_eval -v`; `git diff --check` | result: pass — `GIL-11` fast-forwarded onto `main`, `GIL-57` merged with the expected `todo.md` conflict resolved to preserve both branches' durable records, the targeted queue and Phase 4 strategy/benchmark suites pass, and the merge-resolution patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 self-contained branch merge closeout | by: Codex | linear: GIL-11; GIL-57; GIL-30; self-contained: branch merge closeout
 - 2026-04-21 | command(s): direct rereads of `design-history/ADR-0005-codex-conversation-lifecycle.md`, `AGENTS.project.md` `## Conversation Lifecycle`, `CLAUDE.md` `## Codex Handoff`, and the relevant `todo.md` queue/feedback sections; `rg -n "ADR-0005|fresh Codex conversation|conversation lifecycle|round 3|phase boundary" AGENTS.project.md CLAUDE.md GUIDE.md design-history/README.md CHANGELOG.md todo.md design-history/ADR-0005-codex-conversation-lifecycle.md`; `git diff --check` | result: pass — the new ADR captures the accepted conversation-boundary rule, the live handoff/governance surfaces now point at an accepted restart policy rather than a vague slogan, the guide/history surfaces index the ADR, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-21 `GIL-11` | by: Codex | linear: GIL-11

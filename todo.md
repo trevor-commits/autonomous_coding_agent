@@ -145,6 +145,7 @@ Each AI auditor records the most recent commit it has audited so the next sessio
 Preserve a durable completion trail for verified work instead of deleting it from active planning.
 Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title — landed as <SHA>; full record in Work Record Log YYYY-MM-DD`. Existing entries below are preserved as written.
 - [x] 2026-04-25 | GIL-74: full repo audit and remediation pass - queue path hardening, cleanup-warning evidence, runtime metadata, and governance validator repair - landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-25
+- [x] 2026-04-25 | GIL-74: add minimal GitHub Actions CI after explicit CI/CD approval - landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-25
 - [x] 2026-04-25 | self-contained: merge and close `trevor/gil-11-draft-adr-0005-codex-conversation-lifecycle` plus `codex/gil57-queue-staleness-fix` into `main` — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-25
 - [x] 2026-04-21 | GIL-57 + GIL-30: stabilize queue-test staleness fixtures and clarify the benchmark bundle as timeout-ceiling evidence rather than comparative proof — landed as `3fca35e`; full record in Work Record Log 2026-04-21
 - [x] 2026-04-20 | GIL-8: record ADR-0002 audit tiebreaker protocol — landed as `7d6202e`; full record in Work Record Log 2026-04-20
@@ -259,6 +260,63 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-04-25 | GIL-74 CI follow-up | by: Codex
+
+Problem:
+The `GIL-74` full audit intentionally deferred CI because repo AGENTS required
+explicit approval before changing CI/CD or repo settings. Trevor then approved
+making the suggested CI/CD/repo-setting change.
+
+Reasoning:
+The right first CI surface is small and repo-owned: install the package from
+`pyproject.toml`, run the full Python unit suite, compile the supervisor and
+test sources, and run a lightweight governance smoke against repo-local files.
+The global validator scripts under `/Users/gillettes/.codex` should not be
+called from GitHub Actions because GitHub-hosted runners will not have that
+operator-local path.
+
+Diagnosis inputs:
+Checked current branch/status; confirmed `.github/` did not exist; reviewed
+`pyproject.toml`; reviewed the `GIL-74` deferred CI recommendation and branch
+ledger.
+
+Implementation inputs:
+Added `.github/workflows/ci.yml` and updated this `todo.md` record.
+
+Fix:
+Added a GitHub Actions workflow on pull requests and all branch pushes. It runs
+on Python 3.11 and 3.12, installs the package with `python -m pip install -e .`,
+runs `python -m unittest discover -s tests -v`, runs
+`python -m compileall -q supervisor tests`, and checks that the repo-local
+governance files and key sections are present.
+
+Self-audit:
+1. Ran `git status -sb` before editing; branch was clean and tracking
+   `origin/trevor/gil-74-full-repo-audit-and-remediation-pass`.
+2. Confirmed no existing `.github/` workflow surface was present before this
+   change.
+3. Ran `python3 -m unittest discover -s tests -v`; output `Ran 110 tests ... OK`.
+4. Ran `python3 -m compileall -q supervisor tests`; output empty.
+5. Ran a local shell equivalent of the workflow governance smoke; output empty.
+6. Ran `git diff --check`; output empty.
+Ripple Check attestation: this task changed CI behavior and the durable
+`GIL-74` disposition, so I updated `.github/workflows/ci.yml`, `Completed`,
+Work Record, Test Evidence, Suggested Recommendation, and Active Branch Ledger
+in the same branch.
+Linear-coverage disposition: this is a direct `GIL-74` follow-up approved by
+Trevor after the full audit. No new Linear issue was opened because it closes
+the deferred CI item from the same issue.
+
+triggered by:
+Trevor request on 2026-04-25: "change CI/CD/repo settings to what you suggest".
+
+led to:
+Landing commit SHA recorded in immediate closeout on branch
+`trevor/gil-74-full-repo-audit-and-remediation-pass`.
+
+linear:
+GIL-74
 
 ### 2026-04-25 | GIL-74 | by: Codex
 
@@ -4252,7 +4310,7 @@ Keep materially new suggestions here so they survive beyond the current chat.
 - 2026-04-17: Run a small `plugin-eval` comparison across baseline, `CodeRabbit`, and the `Autopilot` / `Cavekit` / `HOTL` stack on 3-5 real bounded tasks before promoting any of them from "available" to "proven". Status: deferred until Trevor wants evidence-backed plugin adoption. Source: `GIL-54` plugin research and operator-cheat-sheet landing. by: Codex. linear: self-contained until selected.
 - 2026-04-17: Revisit `Session Orchestrator` and `Agent Message Queue` only after a real implementation repo exposes multi-session or cross-agent handoff pain that the current queue/supervisor model cannot handle cleanly. Status: deferred until Phase 2+ implementation work surfaces that pressure. Source: `GIL-54` plugin research and operator-cheat-sheet landing. by: Codex. linear: self-contained until selected.
 - 2026-04-17: If Trevor widens the Codex app surface beyond the current enabled baseline, start with `Slack`, `Notion`, `Google Drive`, `Jam`, `Stripe`, `Amplitude`, `Neon Postgres`, `Help Scout`, and `Readwise`; treat `Sentry` as already enabled locally but still awaiting auth plus first real project use, and treat `Attio` and `Scite` as the next conditional adds if CRM clutter or research-heavy work becomes real. Status: deferred until Trevor wants app-surface expansion. Source: `GIL-63` marketplace-app evaluation memo, later corrected by the Brooks Lint + Sentry setup-sync follow-up. by: Codex. linear: self-contained until selected.
-- 2026-04-25: Add a minimal GitHub Actions workflow for `python3 -m unittest discover -s tests -v`, `python3 -m compileall -q supervisor tests`, and the repo governance validator once Trevor explicitly approves CI/CD/repo-settings changes. Status: deferred; the full audit confirmed the repo now has enough Python metadata for CI, but the local AGENTS boundary says not to change CI/CD settings unless requested. Source: `GIL-74` full repo audit. by: Codex. linear: self-contained until selected.
+- 2026-04-25: Add a minimal GitHub Actions workflow for `python3 -m unittest discover -s tests -v`, `python3 -m compileall -q supervisor tests`, and a repo-local governance smoke once Trevor explicitly approves CI/CD/repo-settings changes. Status: completed after Trevor approved CI/CD/repo-settings changes; implemented in `.github/workflows/ci.yml` on the `GIL-74` branch. Source: `GIL-74` full repo audit. by: Codex. linear: GIL-74.
 
 ## Active Branch Ledger
 Keep one entry per non-trivial active branch so any chat can see why it exists, which chat opened or resumed it, what work is active, what must happen before merge or closeout, and whether the branch should be deleted or intentionally retained.
@@ -4267,13 +4325,13 @@ Each active branch entry should include:
 - `retain reason` when not deleting
 
 ### `trevor/gil-74-full-repo-audit-and-remediation-pass`
-- status: active; implementation and verification complete, pending commit/push closeout
+- status: active; audit remediation and CI follow-up complete, pending final commit/push closeout
 - created: 2026-04-25
 - base: `main` @ `844dc9b85835152e5801a064cb1666d7017a6296`
 - worktree: `/Users/gillettes/Coding Projects/Autonomous Coding Agent`
 - source chat: 2026-04-25 "full and thorough audit on this repo from every angle and implement everything found"
-- last refreshed by chat: 2026-04-25 "GIL-74 audit fixes and verification complete"
-- purpose: Audit the current ACA repo across intent, architecture, runtime, governance, verification, Linear coverage, and forward-plan fit; land bounded high-confidence fixes and durable findings.
+- last refreshed by chat: 2026-04-25 "GIL-74 CI follow-up after explicit approval"
+- purpose: Audit the current ACA repo across intent, architecture, runtime, governance, verification, Linear coverage, and forward-plan fit; land bounded high-confidence fixes, durable findings, and the explicitly approved CI follow-up.
 - linked issue: `GIL-74`
 - plugin mirror: Linear `GIL-74` created in `Building`; branch name from Linear `trevor/gil-74-full-repo-audit-and-remediation-pass`
 - merge expectation: merge to `main`
@@ -4285,7 +4343,7 @@ Each active branch entry should include:
   - [x] Required verification evidence recorded
   - [x] Linear mirror refreshed
   - [x] `todo.md` completed/work/test records updated
-  - [ ] Commit pushed (closeout command pending after this record lands)
+  - [ ] Commit pushed (CI follow-up commit pending after this record lands)
   - [ ] Merge or explicit closeout decided
 - delete when: after merge/closeout and branch cleanup completes
 - retain reason: n/a
@@ -4372,6 +4430,7 @@ If it's not here, it isn't remembered.
 
 ## Test Evidence Log
 If it's not here, it isn't remembered.
+- 2026-04-25 | command(s): `python3 -m unittest discover -s tests -v`; `python3 -m compileall -q supervisor tests`; local shell equivalent of `.github/workflows/ci.yml` governance smoke; `git diff --check` | result: pass - the test suite still passes (`Ran 110 tests ... OK`), compileall passed, the governance smoke found the repo-local CI prerequisites and sections, and the CI patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 `GIL-74 CI follow-up`; `.github/workflows/ci.yml` | by: Codex | linear: GIL-74
 - 2026-04-25 | command(s): pre-change Python repro for `_normalize_relative_path("../secret")`, `_normalize_relative_path(".env")`, and queue `Authoritative spec path: ../outside.md`; `python3 -m unittest tests.test_contracts tests.test_queue_intake -v`; `python3 -m unittest discover -s tests -v`; `python3 -m compileall -q supervisor tests`; `bash /Users/gillettes/.codex/scripts/verify-project-agents-compliance.sh /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent && bash /Users/gillettes/.codex/scripts/ensure-project-repo-principles.sh /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent && bash /Users/gillettes/.codex/scripts/ensure-project-todo-audit-sections.sh /Users/gillettes/Coding\\ Projects/Autonomous\\ Coding\\ Agent`; `python3 -m supervisor.main --help`; `python3 -m supervisor.benchmark_eval --help`; `python3`/`tomllib` parse of `pyproject.toml`; `git diff --check` | result: pass - pre-change repro confirmed the scope-collapse and queue-spec escape bugs, then the focused queue/contract suite passed (`Ran 15 tests ... OK`), the full suite passed (`Ran 110 tests ... OK`), compileall passed, governance validators passed, both CLIs resolved, `pyproject.toml` parsed with `>=3.11` / `jsonschema>=4.0.0` / `PyYAML>=6.0.0`, and the final patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 `GIL-74`; `Audit Record Log` 2026-04-25 `GIL-74` | by: Codex | linear: GIL-74
 - 2026-04-25 | command(s): `git merge --ff-only trevor/gil-11-draft-adr-0005-codex-conversation-lifecycle`; `git merge --no-ff codex/gil57-queue-staleness-fix`; `python3 -m unittest tests.test_queue_intake -v`; `python3 -m unittest tests.test_strategy_claude tests.test_benchmark_eval -v`; `git diff --check` | result: pass — `GIL-11` fast-forwarded onto `main`, `GIL-57` merged with the expected `todo.md` conflict resolved to preserve both branches' durable records, the targeted queue and Phase 4 strategy/benchmark suites pass, and the merge-resolution patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-25 self-contained branch merge closeout | by: Codex | linear: GIL-11; GIL-57; GIL-30; self-contained: branch merge closeout
 - 2026-04-21 | command(s): direct rereads of `design-history/ADR-0005-codex-conversation-lifecycle.md`, `AGENTS.project.md` `## Conversation Lifecycle`, `CLAUDE.md` `## Codex Handoff`, and the relevant `todo.md` queue/feedback sections; `rg -n "ADR-0005|fresh Codex conversation|conversation lifecycle|round 3|phase boundary" AGENTS.project.md CLAUDE.md GUIDE.md design-history/README.md CHANGELOG.md todo.md design-history/ADR-0005-codex-conversation-lifecycle.md`; `git diff --check` | result: pass — the new ADR captures the accepted conversation-boundary rule, the live handoff/governance surfaces now point at an accepted restart policy rather than a vague slogan, the guide/history surfaces index the ADR, and the patch is whitespace-clean | log/PR reference: `Work Record Log` 2026-04-21 `GIL-11` | by: Codex | linear: GIL-11

@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import unittest
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import yaml
@@ -18,6 +19,9 @@ from supervisor.queue_intake import (
     QueueLinearClient,
 )
 from supervisor.strategy_simple import SimpleStrategy
+
+
+_FIXTURE_NOW = datetime.now(UTC).replace(microsecond=0)
 
 
 def _git(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -123,6 +127,10 @@ def _description(
     return "\n".join(lines)
 
 
+def _updated_at(*, hours_ago: int) -> str:
+    return (_FIXTURE_NOW - timedelta(hours=hours_ago)).isoformat().replace("+00:00", "Z")
+
+
 class RecordingLinearClient(QueueLinearClient):
     def __init__(self, issues: list[LinearIssue]) -> None:
         self.issues = {issue.identifier: issue for issue in issues}
@@ -187,12 +195,12 @@ class QueueSelectorTests(unittest.TestCase):
             description=_description(),
             status="Ready for Build",
             priority=3,
-            updated_at="2026-04-17T01:00:00Z",
+            updated_at=_updated_at(hours_ago=2),
             labels=tuple(),
         )
         issues = [
             eligible,
-            replace(eligible, id="GIL-101", identifier="GIL-101", updated_at="2026-04-17T02:00:00Z"),
+            replace(eligible, id="GIL-101", identifier="GIL-101", updated_at=_updated_at(hours_ago=1)),
             replace(eligible, id="GIL-102", identifier="GIL-102", description=_description(execution_mode="Manual")),
             replace(eligible, id="GIL-103", identifier="GIL-103", description=_description(execution_lane="Claude Code")),
             replace(eligible, id="GIL-104", identifier="GIL-104", description=_description(risk_level="High")),
@@ -219,7 +227,7 @@ class QueueNormalizerTests(unittest.TestCase):
                 description=_description(verification_pack="`lint`, `test`", retry_budget="3"),
                 status="Ready for Build",
                 priority=2,
-                updated_at="2026-04-17T03:00:00Z",
+                updated_at=_updated_at(hours_ago=1),
                 labels=tuple(),
             )
 
@@ -252,7 +260,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                     description=_description(verification_pack="`test`", retry_budget="2"),
                     status="Ready for Build",
                     priority=2,
-                    updated_at="2026-04-17T01:00:00Z",
+                    updated_at=_updated_at(hours_ago=2),
                     labels=tuple(),
                 ),
                 LinearIssue(
@@ -262,7 +270,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                     description=_description(verification_pack="`test`", retry_budget="1"),
                     status="Ready for Build",
                     priority=3,
-                    updated_at="2026-04-17T02:00:00Z",
+                    updated_at=_updated_at(hours_ago=1),
                     labels=tuple(),
                 ),
                 LinearIssue(
@@ -272,7 +280,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                     description=_description(execution_mode="Manual"),
                     status="Ready for Build",
                     priority=1,
-                    updated_at="2026-04-17T00:00:00Z",
+                    updated_at=_updated_at(hours_ago=3),
                     labels=tuple(),
                 ),
             ]
@@ -331,7 +339,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                 description=_description(verification_pack="`test`", retry_budget="2"),
                 status="Ready for Build",
                 priority=2,
-                updated_at="2026-04-17T01:00:00Z",
+                updated_at=_updated_at(hours_ago=1),
                 labels=tuple(),
             )
             client = RecordingLinearClient([issue])
@@ -381,7 +389,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                     description=_description(verification_pack="`test`", retry_budget="2"),
                     status="Ready for Build",
                     priority=2,
-                    updated_at="2026-04-17T01:00:00Z",
+                    updated_at=_updated_at(hours_ago=2),
                     labels=tuple(),
                 ),
                 LinearIssue(
@@ -391,7 +399,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                     description=_description(verification_pack="`test`", retry_budget="2"),
                     status="Ready for Build",
                     priority=3,
-                    updated_at="2026-04-17T02:00:00Z",
+                    updated_at=_updated_at(hours_ago=1),
                     labels=tuple(),
                 ),
             ]
@@ -439,7 +447,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                 description=_description(verification_pack="`test`", retry_budget="2"),
                 status="Ready for Build",
                 priority=2,
-                updated_at="2026-04-17T01:00:00Z",
+                updated_at=_updated_at(hours_ago=1),
                 labels=tuple(),
             )
             client = RecordingLinearClient([issue])
@@ -487,7 +495,7 @@ class QueueDrainRunnerTests(unittest.TestCase):
                 description=_description(verification_pack="`test`", retry_budget="2"),
                 status="Ready for Build",
                 priority=2,
-                updated_at="2026-04-17T01:00:00Z",
+                updated_at=_updated_at(hours_ago=1),
                 labels=tuple(),
             )
             client = RecordingLinearClient([issue])

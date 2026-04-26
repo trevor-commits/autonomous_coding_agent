@@ -358,7 +358,11 @@ class QueueIssueNormalizer:
                 f"Issue `{issue.identifier}` is missing `Allowed paths:` required for queue normalization."
             )
 
-        verification_pack = description.verification_pack or _default_verification_pack(repo_contract)
+        verification_pack = _validated_verification_pack(
+            repo_contract,
+            description.verification_pack or _default_verification_pack(repo_contract),
+            issue_identifier=issue.identifier,
+        )
         retry_budget = description.retry_budget if description.retry_budget is not None else _default_retry_budget(
             description.risk_level
         )
@@ -726,6 +730,27 @@ def _default_verification_pack(repo_contract: RepoContract) -> tuple[str, ...]:
         if getattr(commands, name)
     )
     return pack or ("test",)
+
+
+def _validated_verification_pack(
+    repo_contract: RepoContract,
+    verification_pack: tuple[str, ...],
+    *,
+    issue_identifier: str,
+) -> tuple[str, ...]:
+    allowed = {
+        name
+        for name in ("setup", "format", "lint", "typecheck", "test", "seed_testdata")
+        if getattr(repo_contract.commands, name)
+    }
+    unsupported = tuple(name for name in verification_pack if name not in allowed)
+    if unsupported:
+        allowed_text = ", ".join(sorted(allowed)) or "none"
+        raise QueueError(
+            f"Issue `{issue_identifier}` verification pack includes unsupported command(s): "
+            f"{', '.join(unsupported)}. Allowed repo-contract verification commands: {allowed_text}."
+        )
+    return verification_pack
 
 
 def _default_retry_budget(risk_level: str) -> int:

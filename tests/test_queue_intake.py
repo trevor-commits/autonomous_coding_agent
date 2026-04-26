@@ -271,6 +271,49 @@ class QueueNormalizerTests(unittest.TestCase):
 
                     self.assertIn("inside", str(ctx.exception))
 
+    def test_normalizer_rejects_unknown_verification_pack_command(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_queue_repo(repo_root)
+            issue = LinearIssue(
+                id="GIL-202",
+                identifier="GIL-202",
+                title="Reject unknown verification command",
+                description=_description(verification_pack="`test`, `deploy`"),
+                status="Ready for Build",
+                priority=2,
+                updated_at=_updated_at(hours_ago=1),
+                labels=tuple(),
+            )
+
+            with self.assertRaises(QueueError) as ctx:
+                QueueIssueNormalizer(repo_root).normalize(issue)
+
+            message = str(ctx.exception)
+            self.assertIn("unsupported command", message)
+            self.assertIn("deploy", message)
+            self.assertIn("test", message)
+
+    def test_normalizer_rejects_ui_smoke_as_deterministic_pack_command(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_queue_repo(repo_root)
+            issue = LinearIssue(
+                id="GIL-203",
+                identifier="GIL-203",
+                title="Reject UI command in deterministic pack",
+                description=_description(verification_pack="`ui_smoke`"),
+                status="Ready for Build",
+                priority=2,
+                updated_at=_updated_at(hours_ago=1),
+                labels=tuple(),
+            )
+
+            with self.assertRaises(QueueError) as ctx:
+                QueueIssueNormalizer(repo_root).normalize(issue)
+
+            self.assertIn("ui_smoke", str(ctx.exception))
+
 
 class QueueDrainRunnerTests(unittest.TestCase):
     def test_manual_drain_claims_runs_and_releases_issues_sequentially(self) -> None:

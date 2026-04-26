@@ -122,13 +122,27 @@ def execute_run(
     run_contract = load_run_contract(run_contract_path)
     machine = StateMachine(run_contract.run_id)
     machine.transition_to(Phase.PREPARE_WORKSPACE, "Run contract loaded; preparing workspace.")
+    wall_clock_started = time.monotonic()
     run_store = RunStore(repo_root, run_contract.run_id)
     worktree_manager = WorktreeManager(repo_root)
     workspace = worktree_manager.create_builder_worktree(
         run_id=run_contract.run_id,
         task_slug=run_contract.objective,
     )
-    repo_contract = load_repo_contract(workspace.worktree_path)
+    try:
+        repo_contract = load_repo_contract(workspace.worktree_path)
+    except ContractValidationError as exc:
+        return _initial_contract_failure_outcome(
+            machine=machine,
+            run_store=run_store,
+            run_contract=run_contract,
+            workspace=workspace,
+            worktree_manager=worktree_manager,
+            strategy=strategy,
+            error=exc,
+            wall_clock_started=wall_clock_started,
+            cleanup_worktree=cleanup_worktree,
+        )
     run_store.initialize(
         repo_contract=repo_contract,
         run_contract=run_contract,
@@ -181,7 +195,6 @@ def execute_run(
     run_started_at = datetime.now(timezone.utc)
     total_cost_spent = 0.0
     all_failure_fingerprints: set[str] = set()
-    wall_clock_started = time.monotonic()
 
     try:
         _validate_repo_root_matches_contract(repo_root, run_contract)
@@ -434,6 +447,63 @@ def execute_run(
         summary_path=summary_path,
         workspace=workspace,
         builder_turns=session.turn_count,
+    )
+
+
+def _initial_contract_failure_outcome(
+    *,
+    machine: StateMachine,
+    run_store: RunStore,
+    run_contract: RunContract,
+    workspace: BuilderWorkspace,
+    worktree_manager: WorktreeManager,
+    strategy: RuntimeStrategy,
+    error: ContractValidationError,
+    wall_clock_started: float,
+    cleanup_worktree: bool,
+) -> RunExecutionOutcome:
+    run_store.initialize(
+        repo_contract={
+            "validation_error": str(error),
+            "run_state": error.run_state.value,
+        },
+        run_contract=run_contract,
+        initial_state=machine.snapshot,
+    )
+    if error.run_state is RunState.UNSUPPORTED:
+        machine.mark_unsupported(str(error))
+        queue_exit_reason = "unsupported by repo contract"
+        unresolved_blockers = (str(error),)
+    else:
+        machine.block(str(error), readiness_verdict=ReadinessVerdict.NOT_READY)
+        queue_exit_reason = "blocked by repo contract"
+        unresolved_blockers = (str(error),)
+    run_store.write_state(machine.snapshot)
+    artifact_manifest = ("reports/final-report.json", "reports/final-summary.md")
+    report = build_readiness_report(
+        snapshot=machine.snapshot,
+        run_contract=run_contract,
+        command_results=tuple(),
+        strategy_name=_strategy_name(strategy),
+        builder_turns=0,
+        run_duration_seconds=round(time.monotonic() - wall_clock_started, 3),
+        total_cost_dollars=0.0,
+        changed_files=tuple(),
+        artifact_manifest=artifact_manifest,
+        unresolved_blockers=unresolved_blockers,
+        queue_exit_reason=queue_exit_reason,
+        failure_fingerprints=tuple(),
+    )
+    report_path, summary_path = write_readiness_reports(run_store, report)
+    if cleanup_worktree:
+        worktree_manager.remove_builder_worktree(workspace)
+    return RunExecutionOutcome(
+        snapshot=machine.snapshot,
+        report=report,
+        report_path=report_path,
+        summary_path=summary_path,
+        workspace=workspace,
+        builder_turns=0,
     )
 
 

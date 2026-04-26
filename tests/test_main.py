@@ -356,6 +356,59 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual(0, len(adapter.prompts))
             self.assertIn("does not match run contract repo_path", "\n".join(outcome.report.unresolved_blockers))
 
+    def test_execute_run_marks_missing_repo_contract_unsupported_before_builder_starts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _git(repo_root, "init")
+            _git(repo_root, "config", "user.name", "Codex")
+            _git(repo_root, "config", "user.email", "codex@example.com")
+            (repo_root / ".gitignore").write_text(".autoclaw/\nworktrees/\n")
+            (repo_root / "README.md").write_text("# target repo\n")
+            _git(repo_root, "add", ".")
+            _git(repo_root, "commit", "-m", "init without contract")
+            run_contract_path = repo_root / "run-contract.json"
+            run_contract_path.write_text(
+                json.dumps(
+                    {
+                        "run_id": "missing-contract-001",
+                        "repo_path": str(repo_root),
+                        "objective": "Exercise missing repo contract handling",
+                        "scope": {
+                            "allowed_paths": ["src/"],
+                            "forbidden_paths": [".env"],
+                        },
+                        "acceptance": {
+                            "functional": ["repo contract failure is controlled"],
+                            "quality_gates": ["no builder dispatch"],
+                            "ui_checks": [],
+                        },
+                        "constraints": {
+                            "single_writer": True,
+                            "max_repair_loops": 1,
+                            "max_iterations": 1,
+                            "max_cost_dollars": 1.0,
+                            "hard_timeout_seconds": 60,
+                        },
+                    }
+                )
+            )
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("UNSUPPORTED", outcome.snapshot.run_state.value)
+            self.assertEqual(0, outcome.builder_turns)
+            self.assertEqual(0, len(adapter.prompts))
+            self.assertIn("Missing repo contract", "\n".join(outcome.report.unresolved_blockers))
+            self.assertEqual("unsupported by repo contract", outcome.report.queue_exit_reason)
+            self.assertTrue(outcome.report_path.exists())
+
     def test_execute_run_completes_after_single_builder_turn(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

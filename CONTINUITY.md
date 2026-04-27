@@ -32,7 +32,7 @@ Before ending a turn or landing a commit, ask:
 
 If the answer to any of those questions is "something," the task is not closed yet.
 
-## Work Record format
+## Work Record Format
 
 Every bounded task, fix, or audit writes a Work Record in `todo.md`.
 

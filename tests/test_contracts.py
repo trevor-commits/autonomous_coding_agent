@@ -97,6 +97,7 @@ class ContractParsingTests(unittest.TestCase):
 
             self.assertEqual("benchmark-001", contract.run_id)
             self.assertEqual(("src", "tests"), contract.scope.allowed_paths)
+            self.assertEqual((".env", "infra"), contract.scope.forbidden_paths)
             self.assertEqual(False, contract.constraints.auto_push)
 
     def test_invalid_scope_path_is_rejected(self) -> None:
@@ -104,6 +105,18 @@ class ContractParsingTests(unittest.TestCase):
             contract_path = Path(tmpdir) / "run-contract.json"
             payload = _valid_run_contract("/tmp/repo")
             payload["scope"]["allowed_paths"] = ["/absolute/path"]
+            contract_path.write_text(json.dumps(payload))
+
+            with self.assertRaises(ContractValidationError) as ctx:
+                load_run_contract(contract_path)
+
+            self.assertEqual(RunState.UNSUPPORTED, ctx.exception.run_state)
+
+    def test_parent_traversal_scope_path_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "run-contract.json"
+            payload = _valid_run_contract("/tmp/repo")
+            payload["scope"]["allowed_paths"] = ["../outside"]
             contract_path.write_text(json.dumps(payload))
 
             with self.assertRaises(ContractValidationError) as ctx:

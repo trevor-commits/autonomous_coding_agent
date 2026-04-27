@@ -344,7 +344,11 @@ class QueueIssueNormalizer:
         ids = ids or build_queue_run_ids(issue.identifier)
         repo_contract = load_repo_contract(self.repo_root)
         description = issue.parsed_description()
-        spec_path = (self.repo_root / description.authoritative_spec_path).resolve()
+        spec_path = _resolve_repo_relative_path(
+            self.repo_root,
+            description.authoritative_spec_path,
+            "Authoritative spec path",
+        )
         if not spec_path.exists():
             raise QueueError(
                 f"Authoritative spec path `{description.authoritative_spec_path}` does not exist in `{self.repo_root}`."
@@ -354,7 +358,11 @@ class QueueIssueNormalizer:
                 f"Issue `{issue.identifier}` is missing `Allowed paths:` required for queue normalization."
             )
 
-        verification_pack = description.verification_pack or _default_verification_pack(repo_contract)
+        verification_pack = _validated_verification_pack(
+            repo_contract,
+            description.verification_pack or _default_verification_pack(repo_contract),
+            issue_identifier=issue.identifier,
+        )
         retry_budget = description.retry_budget if description.retry_budget is not None else _default_retry_budget(
             description.risk_level
         )
@@ -530,8 +538,23 @@ class ManualQueueRunner:
         if self.cleanup_success_worktree:
             try:
                 WorktreeManager(self.repo_root).remove_builder_worktree(outcome.workspace)
-            except Exception:
-                pass
+            except Exception as exc:
+                cleanup_path = run_store.write_report(
+                    "queue-cleanup-warning.json",
+                    {
+                        "issue_id": issue.identifier,
+                        "run_id": normalized.ids.run_id,
+                        "claim_id": normalized.ids.claim_id,
+                        "run_trace_id": normalized.ids.run_trace_id,
+                        "reason": str(exc),
+                        "worktree_path": str(outcome.workspace.worktree_path),
+                        "branch_name": outcome.workspace.branch_name,
+                    },
+                )
+                self.linear_client.create_comment(
+                    issue.id,
+                    _render_cleanup_warning_comment(normalized.ids, str(exc), cleanup_path),
+                )
 
     def _revalidate_snapshot(
         self,
@@ -678,6 +701,18 @@ def _split_csv_field(value: str | None) -> tuple[str, ...]:
     return tuple(part.rstrip("/") if part not in {".env"} else part for part in parts if part)
 
 
+def _resolve_repo_relative_path(repo_root: Path, value: str, field_name: str) -> Path:
+    candidate = Path(value.replace("\\", "/"))
+    if candidate.is_absolute():
+        raise QueueError(f"{field_name} must be relative to the repo root: `{value}`.")
+    resolved = (repo_root / candidate).resolve()
+    try:
+        resolved.relative_to(repo_root)
+    except ValueError as exc:
+        raise QueueError(f"{field_name} must stay inside `{repo_root}`: `{value}`.") from exc
+    return resolved
+
+
 def _parse_bool(value: str) -> bool:
     normalized = value.strip().lower()
     if normalized == "yes":
@@ -695,6 +730,27 @@ def _default_verification_pack(repo_contract: RepoContract) -> tuple[str, ...]:
         if getattr(commands, name)
     )
     return pack or ("test",)
+
+
+def _validated_verification_pack(
+    repo_contract: RepoContract,
+    verification_pack: tuple[str, ...],
+    *,
+    issue_identifier: str,
+) -> tuple[str, ...]:
+    allowed = {
+        name
+        for name in ("setup", "format", "lint", "typecheck", "test", "seed_testdata")
+        if getattr(repo_contract.commands, name)
+    }
+    unsupported = tuple(name for name in verification_pack if name not in allowed)
+    if unsupported:
+        allowed_text = ", ".join(sorted(allowed)) or "none"
+        raise QueueError(
+            f"Issue `{issue_identifier}` verification pack includes unsupported command(s): "
+            f"{', '.join(unsupported)}. Allowed repo-contract verification commands: {allowed_text}."
+        )
+    return verification_pack
 
 
 def _default_retry_budget(risk_level: str) -> int:
@@ -767,6 +823,19 @@ def _render_blocker_comment(ids: QueueRunIds, reason: str, artifact_path: Path) 
     return "\n".join(
         [
             "Blocker:",
+            f"- Run ID: `{ids.run_id}`",
+            f"- Claim ID: `{ids.claim_id}`",
+            f"- Trace ID: `{ids.run_trace_id}`",
+            f"- Reason: {reason}",
+            f"- Artifact: `{artifact_path}`",
+        ]
+    )
+
+
+def _render_cleanup_warning_comment(ids: QueueRunIds, reason: str, artifact_path: Path) -> str:
+    return "\n".join(
+        [
+            "Cleanup warning:",
             f"- Run ID: `{ids.run_id}`",
             f"- Claim ID: `{ids.claim_id}`",
             f"- Trace ID: `{ids.run_trace_id}`",

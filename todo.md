@@ -4498,33 +4498,8 @@ Each active branch entry should include:
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
 
-### `trevor/gil-74-full-repo-audit-and-remediation-pass`
-- status: active; audit remediation, CI/CodeQL hardening, and 2026-04-26 runtime-invariant follow-up pushed, pending PR/merge or explicit closeout
-- created: 2026-04-25
-- base: `main` @ `844dc9b85835152e5801a064cb1666d7017a6296`
-- worktree: `/Users/gillettes/Coding Projects/Autonomous Coding Agent`
-- source chat: 2026-04-25 "full and thorough audit on this repo from every angle and implement everything found"
-- last refreshed by chat: 2026-04-26 "GIL-74 full control-plane audit follow-up"
-- purpose: Audit the current ACA repo across intent, architecture, runtime, governance, verification, Linear coverage, remote CI/CodeQL, and forward-plan fit; land bounded high-confidence fixes, durable findings, explicitly approved CI hardening, and the 2026-04-26 runtime-invariant follow-up.
-- linked issue: `GIL-74`
-- plugin mirror: Linear `GIL-74` created in `Building`; branch name from Linear `trevor/gil-74-full-repo-audit-and-remediation-pass`
-- merge expectation: merge to `main`
-- merge target: `main`
-- review surface: `Audit Record Log` 2026-04-25/2026-04-26 `GIL-74`; `Work Record Log` 2026-04-25/2026-04-26 `GIL-74`; `Test Evidence Log` 2026-04-25/2026-04-26 `GIL-74`; live GitHub Actions/CodeQL runs recorded in Test Evidence
-- exit checklist:
-  - [x] Audit record written
-  - [x] Bounded fixes implemented or explicitly deferred
-  - [x] Required verification evidence recorded
-  - [x] Linear mirror refreshed
-  - [x] `todo.md` completed/work/test records updated
-  - [x] Commit pushed
-  - [ ] Merge or explicit closeout decided
-- delete when: after merge/closeout and branch cleanup completes
-- retain reason: n/a
-- cleanup command: `git branch -d trevor/gil-74-full-repo-audit-and-remediation-pass && git push origin --delete trevor/gil-74-full-repo-audit-and-remediation-pass`
-- linked PR/audit/completion record: no PR open as of 2026-04-26 audit; `Audit Record Log` 2026-04-25/2026-04-26 `GIL-74`; `Completed` 2026-04-25/2026-04-26 `GIL-74`
-
 ## Branch History
+- `trevor/gil-74-full-repo-audit-and-remediation-pass` | close date: 2026-04-26 | outcome: merged via PR #4 after full GIL-74 audit/remediation, CI/CodeQL hardening, integration-invariant coverage, and queue verification-contract startup hardening | merge target: `main` | resulting reference: branch tip `3d97db4` plus PR #4 merge result on `main` | cleanup: remote branch deleted by PR merge; local branch can be deleted after checkout moves to `main`
 - `codex/gil57-queue-staleness-fix` | close date: 2026-04-25 | outcome: merged | merge target: `main` | resulting reference: branch tip `3fca35e` merged into `main` in this closeout, carrying the queue staleness fixture repair plus the tightened `GIL-30` benchmark interpretation | cleanup: local and remote branches deleted after merge
 - `trevor/gil-11-draft-adr-0005-codex-conversation-lifecycle` | close date: 2026-04-25 | outcome: merged | merge target: `main` | resulting reference: `main` fast-forwarded from `17f2003` to branch tip `11e8ba7`, carrying `ADR-0005` plus the related changelog/guide/design-history/todo updates | cleanup: local and remote branches deleted after merge
 - `trevor/gil-10-draft-adr-0004-chatgpt-pro-strategic-audit-cadence` | close date: 2026-04-21 | outcome: merged | merge target: `main` | resulting reference: `main` fast-forwarded from `083fea6` to branch tip `17f2003`, carrying `ADR-0004` plus the related changelog/guide/design-history/todo updates | cleanup: local and remote branches deleted after merge

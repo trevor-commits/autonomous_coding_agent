@@ -192,3 +192,7 @@ The next implementation work should align with the phased plan in `canonical-arc
 - [MANDATORY_TASK_CLASSIFICATION] classify task tier per `TASK_CLASSIFICATION.md`; match verification depth and playbook loading to tier
 - [MANDATORY_TRUST_GATE] evaluate Trust Gate triggers at session intake per `session-intake-closeout` skill; when `on`, require `Evidence Checked`, `Decision Status` labels (`Confirmed` / `Inferred` / `Needs More Evidence` / `Do Not Do Yet`), `Challenge Findings`, and `Unresolved` sections at closeout; no polished final recommendation for uncertain items
 - [MANDATORY_ANTI_THRASH] after 2 grounded attempts at the same problem, narrow scope, request the smallest missing artifact, or escalate; do not retry unchanged approach
+
+## Coder Craft Evidence Gate
+
+- For meaningful AI-assisted implementation, debugging, code review, unfamiliar API/citation work, or AI-only-operator handoffs, load `/Users/gillettes/.codex/policies/CODER_CRAFT_FORCING_FUNCTIONS.md` and scale the evidence to blast radius.

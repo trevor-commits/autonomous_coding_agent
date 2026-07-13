@@ -27,6 +27,16 @@ _SECRET_PATTERNS = (
     re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]{16,}\b", re.IGNORECASE),
     re.compile(r"\b(?:password|passwd|token|secret)\s*[:=]\s*\S{8,}", re.IGNORECASE),
 )
+_RAW_PRIVATE_KEYS = frozenset(
+    {
+        "raw_content",
+        "raw_transcript",
+        "transcript_body",
+        "email_body",
+        "message_body",
+        "private_content",
+    }
+)
 
 
 class PartnerContractError(ValueError):
@@ -78,6 +88,7 @@ def validate_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
     identity = _copy_mapping(payload, "identity")
     supplied_hash = identity.pop("content_hash", None)
     _validate_schema(identity, "partner-identity.schema.json")
+    _reject_raw_private_keys(identity)
     _reject_secret_like_values(identity)
     _require_unique_ids(identity, IDENTITY_LIST_FIELDS)
     computed_hash = canonical_hash(identity)
@@ -90,8 +101,20 @@ def validate_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
 def validate_wake_snapshot(payload: Mapping[str, Any]) -> dict[str, Any]:
     snapshot = _copy_mapping(payload, "wake snapshot")
     _validate_schema(snapshot, "partner-wake-snapshot.schema.json")
+    _reject_raw_private_keys(snapshot)
     _reject_secret_like_values(snapshot)
     snapshot["identity"] = validate_identity(snapshot["identity"])
+    snapshot["approvals"] = [
+        validate_document(approval, "partner-approval.schema.json")
+        for approval in snapshot["approvals"]
+    ]
+    snapshot["executor_outcomes"] = [
+        validate_document(outcome, "partner-outcome.schema.json")
+        for outcome in snapshot["executor_outcomes"]
+    ]
+    maturity = snapshot["maturity"]
+    if maturity["accepted_count"] > maturity["proposal_count"]:
+        raise PartnerContractError("Maturity accepted_count cannot exceed proposal_count.")
     _require_unique_ids(
         snapshot,
         ("goals", "observations", "approvals", "executor_outcomes", "inferred_preferences"),
@@ -109,6 +132,8 @@ def apply_identity_amendments(
     for approval_payload in approvals:
         approval = _copy_mapping(approval_payload, "identity amendment approval")
         _validate_schema(approval, "partner-approval.schema.json")
+        _reject_raw_private_keys(approval)
+        _reject_secret_like_values(approval)
         if "amendment_id" in approval:
             amendment_id = str(approval["amendment_id"])
         else:
@@ -145,6 +170,7 @@ def apply_identity_amendments(
 def validate_document(payload: Mapping[str, Any], schema_name: str) -> dict[str, Any]:
     document = _copy_mapping(payload, schema_name)
     _validate_schema(document, schema_name)
+    _reject_raw_private_keys(document)
     _reject_secret_like_values(document)
     return document
 
@@ -229,3 +255,15 @@ def _reject_secret_like_values(payload: Any, path: str = "<root>") -> None:
         return
     if isinstance(payload, str) and any(pattern.search(payload) for pattern in _SECRET_PATTERNS):
         raise PartnerContractError(f"Secret-like content is forbidden at `{path}`.")
+
+
+def _reject_raw_private_keys(payload: Any, path: str = "<root>") -> None:
+    if isinstance(payload, Mapping):
+        for key, value in payload.items():
+            if str(key).lower() in _RAW_PRIVATE_KEYS:
+                raise PartnerContractError(f"Raw private content field is forbidden at `{path}.{key}`.")
+            _reject_raw_private_keys(value, f"{path}.{key}")
+        return
+    if isinstance(payload, list):
+        for index, value in enumerate(payload):
+            _reject_raw_private_keys(value, f"{path}[{index}]")

@@ -48,6 +48,8 @@ class CodexBuilderAdapterTests(unittest.TestCase):
         self.assertIn("pnpm test", prompt)
         self.assertIn("local-verify-test-login-failed", prompt)
         self.assertIn("Do not commit, push, switch branches, or control a browser.", prompt)
+        self.assertIn("Execute no shell command outside", prompt)
+        self.assertIn("git rev-parse --show-toplevel", prompt)
 
     def test_adapter_parses_json_events_and_reuses_session_id(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

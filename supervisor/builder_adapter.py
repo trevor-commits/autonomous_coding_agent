@@ -92,6 +92,13 @@ def build_builder_prompt(
         "- Do not commit, push, switch branches, or control a browser.",
         "- Do not write outside allowed paths.",
         "- Treat any high-risk operation as unsupported in this phase.",
+        "- Execute no shell command outside the repo contract commands or these bounded forms: "
+        "`pwd`; `git status -sb`; `git status --short`; `git rev-parse --show-toplevel`; "
+        "`git log -1 --oneline`; `git diff --check`; `git diff --stat`; "
+        "`git diff --name-only`; relative-path `find` optionally piped to exact `sort`; "
+        "and `rg --files` with bounded glob/relative-path arguments optionally piped to "
+        "`sed -n '<start>,<end>p'`. Exact safe forms may be chained with `&&`.",
+        "- If another shell command appears necessary, report it as a blocker instead of running it.",
         "",
         "Required response:",
         "- files changed",

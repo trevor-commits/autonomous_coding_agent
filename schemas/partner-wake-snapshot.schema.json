@@ -46,6 +46,15 @@
       "type": "array",
       "maxItems": 100,
       "items": {"$ref": "#/$defs/inferredPreference"}
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_proposals", "max_envelopes"],
+      "properties": {
+        "max_proposals": {"type": "integer", "minimum": 0, "maximum": 1},
+        "max_envelopes": {"type": "integer", "minimum": 0, "maximum": 1}
+      }
     }
   },
   "$defs": {

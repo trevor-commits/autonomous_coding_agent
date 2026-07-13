@@ -100,6 +100,7 @@ def validate_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 def validate_wake_snapshot(payload: Mapping[str, Any]) -> dict[str, Any]:
     snapshot = _copy_mapping(payload, "wake snapshot")
+    snapshot.setdefault("budgets", {"max_proposals": 1, "max_envelopes": 1})
     _validate_schema(snapshot, "partner-wake-snapshot.schema.json")
     _reject_raw_private_keys(snapshot)
     _reject_secret_like_values(snapshot)

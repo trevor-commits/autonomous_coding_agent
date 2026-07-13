@@ -30,8 +30,8 @@
 - [x] **Step 2.3:** Implement typed loaders/canonical hashes in `supervisor/partner_contracts.py`; run GREEN.
 - [x] **Step 2.4:** Add RED scoring/tie/staleness/project-kind cases in `tests/test_partner_initiative.py`.
 - [x] **Step 2.5:** Implement deterministic ranking in `supervisor/partner_initiative.py`; run GREEN.
-- [ ] **Step 2.6:** Add RED capability/maturity/approval/identity-no-authority/idempotency cases in `tests/test_partner_authority.py` and `tests/test_partner_runtime.py`.
-- [ ] **Step 2.7:** Implement one-decision stateless policy in `supervisor/partner_policy.py`; run GREEN.
+- [x] **Step 2.6:** Add RED capability/maturity/approval/identity-no-authority/idempotency cases in `tests/test_partner_authority.py` and `tests/test_partner_runtime.py`.
+- [x] **Step 2.7:** Implement one-decision stateless policy in `supervisor/partner_runtime.py`; run GREEN.
 - [ ] **Step 2.8:** Add RED/GREEN benefit and lesson-candidate logic in `tests/test_partner_learning.py` and `supervisor/partner_learning.py`.
 - [ ] **Step 2.9:** Add RED/GREEN JSON CLI cases in `tests/test_partner_cli.py` and `supervisor/partner_cli.py`.
 - [ ] **Step 2.10:** Run all partner tests, full ACA tests, and commit the coherent partner-policy outcome.

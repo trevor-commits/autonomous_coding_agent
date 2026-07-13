@@ -76,13 +76,13 @@ max_iterations: 4
 verify: python3 -m unittest discover -s tests -p 'test_partner_authority.py' -v
 gate: human
 
-- [ ] **Step 10: Write decision and idempotency tests**
+- [x] **Step 10: Write decision and idempotency tests**
 action: Add failing tests for unhealthy/busy/no-evidence no-ops, max-one proposal or executor envelope, duplicate wake keys, stale evidence, budgets, immutable hashes, and no long-lived state mutation in ACA.
 loop: false
 verify: ! python3 -m unittest discover -s tests -p "test_partner_runtime.py" -v
 gate: human
 
-- [ ] **Step 11: Implement the stateless partner decision runtime**
+- [x] **Step 11: Implement the stateless partner decision runtime**
 action: Combine the supplied global identity/goals/observations/outcomes snapshot with initiative and authority policy to emit one typed no-op, proposal, executor envelope, or lesson candidate without scheduling or storing global truth.
 loop: until decision-runtime tests pass
 max_iterations: 5

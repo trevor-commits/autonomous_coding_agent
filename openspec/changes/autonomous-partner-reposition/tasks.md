@@ -11,7 +11,7 @@
 - [x] 2.1 Add global bootstrap identity and schemas for identity, wake snapshot, decision, approval, executor envelope, outcome, and lesson candidate.
 - [x] 2.2 Implement strict stateless contract loading, canonical hashing, and private/secret-content rejection.
 - [x] 2.3 Add RED/GREEN initiative scoring for utility, repair, research, care, and creative proposals.
-- [ ] 2.4 Add RED/GREEN default-deny authority, maturity thresholds, idempotency, and one-decision-per-wake behavior.
+- [x] 2.4 Add RED/GREEN default-deny authority, maturity thresholds, idempotency, and one-decision-per-wake behavior.
 - [ ] 2.5 Add RED/GREEN measured-benefit and provenance-bound lesson candidates without long-lived ACA memory.
 - [ ] 2.6 Add a machine-readable partner CLI for validate, decide, and reconcile-candidate operations.
 

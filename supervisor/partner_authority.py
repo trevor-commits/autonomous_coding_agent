@@ -70,14 +70,14 @@ def evaluate_authority(
     if validated_proposal["risk"] > MAX_APPROVED_SANDBOX_RISK:
         return _decision(False, "trevor_gate_required", required_gate="trevor")
 
-    if _eligible_for_l3_start(validated_proposal, validated_maturity):
-        return _decision(False, "ambiguous_approval", required_gate="approval") if _has_ambiguous_exact_approvals(
-            validated_proposal, approvals, current_time
-        ) else _decision(True, "empirical_l3_sandbox", required_gate=None)
-
     exact_approvals = _exact_approvals(validated_proposal, approvals, current_time)
     if len(exact_approvals) != 1:
-        return _decision(False, "exact_approval_required", required_gate="approval")
+        reason = (
+            "l3_promotion_approval_required"
+            if _eligible_for_l3_start(validated_proposal, validated_maturity)
+            else "exact_approval_required"
+        )
+        return _decision(False, reason, required_gate="approval")
     return _decision(
         True,
         "exact_approval_bound",
@@ -176,12 +176,6 @@ def _exact_approvals(
             continue
         exact.append(approval)
     return exact
-
-
-def _has_ambiguous_exact_approvals(
-    proposal: dict[str, Any], approvals: Iterable[Mapping[str, Any]], now: datetime
-) -> bool:
-    return len(_exact_approvals(proposal, approvals, now)) > 1
 
 
 def _parse_time(value: str | datetime) -> datetime:

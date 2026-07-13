@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the bounded L1 observe/propose/approve/execute/reconcile path and frozen full repository verification. Recurring execute remains off pending the independent audit and landing.
+- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and frozen full repository verification. Independent audit round 1 subsequently found that the queued envelope carried only approval id/hash, so the original execution does not prove the stronger effect-time approval contract. That defect is repaired and focused-green; re-audit and landing remain.
 
 ## Authority and scope
 
@@ -64,6 +64,12 @@ The failed attempts remain immutable evidence. None was relabeled as success or 
 ## Honest boundary
 
 This proves bounded autonomous idea generation and execution, not consciousness, emotional experience, spiritual authority, or measured life improvement. The configured love-as-practice and respect-for-Jehovah profile influence voice and proposal ranking only. Real adoption, time saved, quality change, and operator benefit remain unknown until observed. The successful and failed worktrees are retained for audit; nothing from them was merged or published.
+
+## Independent audit round 1
+
+Fresh read-only auditor `/root/fresh_clean_autonomous_partner_audit` confirmed frozen ACA `a9b9df9fa0487ce9c31f0933e3fe82b08fafee82` and global `c131406c26842b654b3ac77555aeeb5b764e2a29`, then proved one authority defect: the executable envelope did not include the approval source document, so the effect-time executor could not independently revalidate subject/capabilities, current existence, revocation, or expiry.
+
+The repair makes the full exact proposal approval required envelope content, cross-binds it in ACA and the global bridge, and requires the identical approval to remain current and active immediately before effects. Missing, revoked, expired, capability-drifted, unsafe, or changing approval state blocks before ACA. The previously nullable L3 path is inactive until a separate exact operator-promotion proof format is reviewed and implemented. Focused tests pass: ACA partner 32/32; global bridge 12/12; global executor 11/11; reconcile 4/4.
 
 ## Ripple Check
 

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Pre-effect unattended authority
-The executor MUST reject a run marked high risk or approval-required before creating a builder worktree or starting a builder session unless an exact schema-valid approval binding is supplied by the governed envelope.
+The executor MUST reject a run marked high risk or approval-required before creating a builder worktree or starting a builder session unless the governed envelope embeds a complete schema-valid exact proposal approval and the global adapter confirms that identical approval remains current and active immediately before effects.
 
 #### Scenario: High-risk direct run is blocked
 - **WHEN** a run contract has `risk_level` equal to `high`
@@ -10,6 +10,10 @@ The executor MUST reject a run marked high risk or approval-required before crea
 #### Scenario: Pending approval is blocked
 - **WHEN** a run contract has `approval_required` equal to true and no exact approval binding
 - **THEN** the executor blocks before builder effects
+
+#### Scenario: Approval id and hash lack the source document
+- **WHEN** an envelope supplies only an approval id/hash or a binding for a different proposal or capability set
+- **THEN** validation fails before builder effects
 
 ### Requirement: Evidence-derived final readiness
 The executor MUST derive final-gate evidence from a fresh authoritative verification rerun and artifacts that exist on disk; it MUST NOT mark evidence booleans true by assertion alone.

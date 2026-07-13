@@ -15,6 +15,17 @@ def _learning():
 
 
 def _envelope() -> dict[str, Any]:
+    approval = {
+        "schema_version": "1",
+        "approval_id": "approval-001",
+        "approval_kind": "proposal",
+        "subject_id": "proposal-001",
+        "subject_hash": canonical_hash(_proposal()),
+        "approved": True,
+        "approved_at": "2026-07-13T19:55:00Z",
+        "expires_at": "2026-07-13T22:00:00Z",
+        "capability_classes": ["local_read", "sandbox_write"],
+    }
     envelope = {
         "schema_version": "1",
         "envelope_id": "envelope-001",
@@ -22,7 +33,8 @@ def _envelope() -> dict[str, Any]:
         "proposal_id": "proposal-001",
         "proposal_hash": canonical_hash(_proposal()),
         "approval_id": "approval-001",
-        "approval_hash": "2" * 64,
+        "approval_hash": canonical_hash(approval),
+        "approval_binding": approval,
         "executor_id": "autonomous-coding-agent",
         "strategy": "simple",
         "builder_model": "gpt-5.5",

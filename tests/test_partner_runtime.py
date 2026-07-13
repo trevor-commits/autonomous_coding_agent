@@ -208,6 +208,8 @@ class PartnerRuntimeTests(unittest.TestCase):
         self.assertEqual("simple", envelope["strategy"])
         self.assertEqual("gpt-5.5", envelope["builder_model"])
         self.assertEqual("high", envelope["builder_reasoning_effort"])
+        self.assertEqual("approval-001", envelope["approval_binding"]["approval_id"])
+        self.assertEqual(canonical_hash(envelope["approval_binding"]), envelope["approval_hash"])
         self.assertEqual(canonical_hash(envelope["run_contract"]), envelope["run_contract_hash"])
         self.assertEqual(envelope["content_hash"], canonical_hash(envelope))
         self.assertEqual(envelope_decision["content_hash"], canonical_hash(envelope_decision))

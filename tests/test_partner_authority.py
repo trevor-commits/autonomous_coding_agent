@@ -125,7 +125,7 @@ class PartnerAuthorityTests(unittest.TestCase):
         self.assertTrue(allowed["authorized"])
         self.assertEqual("exact_approval_bound", allowed["reason_code"])
 
-    def test_l3_graduation_is_empirical_and_low_risk_only(self) -> None:
+    def test_l3_thresholds_do_not_bypass_effect_time_approval(self) -> None:
         authority = _authority()
         proposal = _proposal()
         graduated = _maturity(
@@ -134,15 +134,25 @@ class PartnerAuthorityTests(unittest.TestCase):
             accepted_count=8,
             completed_episode_count=10,
         )
-        self.assertTrue(
-            authority.evaluate_authority(
-                proposal,
-                maturity=graduated,
-                approvals=[],
-                now=NOW,
-                kill_switches=(),
-            )["authorized"]
+        gated = authority.evaluate_authority(
+            proposal,
+            maturity=graduated,
+            approvals=[],
+            now=NOW,
+            kill_switches=(),
         )
+        self.assertFalse(gated["authorized"])
+        self.assertEqual("l3_promotion_approval_required", gated["reason_code"])
+
+        exact = authority.evaluate_authority(
+            proposal,
+            maturity=graduated,
+            approvals=[_approval(proposal)],
+            now=NOW,
+            kill_switches=(),
+        )
+        self.assertTrue(exact["authorized"])
+        self.assertEqual("exact_approval_bound", exact["reason_code"])
 
         below_thresholds = (
             {**graduated, "proposal_count": 9, "accepted_count": 9},

@@ -191,6 +191,20 @@ def validate_executor_envelope(payload: Mapping[str, Any]) -> dict[str, Any]:
     if not capabilities or not capabilities.issubset(_EXECUTOR_SANDBOX_CAPABILITIES):
         raise PartnerContractError("Executor envelope contains unsupported capability classes.")
 
+    approval = validate_document(envelope["approval_binding"], "partner-approval.schema.json")
+    if approval.get("approval_kind") != "proposal" or approval.get("approved") is not True:
+        raise PartnerContractError("Executor envelope requires an approved proposal binding.")
+    if envelope["approval_id"] != approval.get("approval_id"):
+        raise PartnerContractError("Executor envelope approval id does not match its binding.")
+    if envelope["approval_hash"] != canonical_hash(approval):
+        raise PartnerContractError("Executor envelope approval hash does not match its binding.")
+    if approval.get("subject_id") != envelope["proposal_id"]:
+        raise PartnerContractError("Executor envelope approval subject id does not match its proposal.")
+    if approval.get("subject_hash") != envelope["proposal_hash"]:
+        raise PartnerContractError("Executor envelope approval subject hash does not match its proposal.")
+    if set(approval.get("capability_classes", [])) != capabilities:
+        raise PartnerContractError("Executor envelope approval capabilities do not match its proposal.")
+
     run_contract = validate_document(envelope["run_contract"], "run-contract.schema.json")
     if envelope["run_contract_hash"] != canonical_hash(run_contract):
         raise PartnerContractError("Executor run contract hash does not match its content.")

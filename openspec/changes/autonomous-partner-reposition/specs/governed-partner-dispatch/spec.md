@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Frozen executor envelope
-An executor envelope MUST contain a schema version, envelope/work-order ID, executor identifier, strategy, wake/proposal/approval bindings, the complete embedded run contract, its canonical SHA-256, capability classes, risk, and envelope SHA-256; unknown fields or binding mismatches MUST fail closed. Embedding the contract removes the external-path time-of-check/time-of-use gap.
+An executor envelope MUST contain a schema version, envelope/work-order ID, executor identifier, strategy, wake/proposal bindings, the complete exact proposal-approval document and its canonical SHA-256, the complete embedded run contract and its canonical SHA-256, capability classes, risk, and envelope SHA-256; unknown fields or binding mismatches MUST fail closed. The executor MUST require the identical approval to remain current, unrevoked, unambiguous, and unexpired immediately before effects. Embedding both documents removes the external-path time-of-check/time-of-use gap while the current-store check preserves revocation.
 
 #### Scenario: Contract changes after queueing
 - **WHEN** the embedded run contract no longer matches the queued canonical SHA-256
@@ -10,6 +10,14 @@ An executor envelope MUST contain a schema version, envelope/work-order ID, exec
 #### Scenario: Trace identity mismatch
 - **WHEN** work-order ID, run ID, or run-trace ID do not satisfy the binding rule
 - **THEN** the adapter rejects the envelope
+
+#### Scenario: Approval is revoked after queueing
+- **WHEN** the exact approval embedded in the envelope is absent or changed in the current approval store at effect time
+- **THEN** the executor blocks before starting ACA
+
+#### Scenario: Approval expires while queued
+- **WHEN** the embedded approval is no longer active at effect time
+- **THEN** the executor blocks before starting ACA
 
 ### Requirement: Existing global queue remains sole dispatcher
 The partner bridge MUST place at most one already-authorized immutable envelope in the existing autonomous-loop ready queue and MUST NOT create another scheduler, daemon, packet queue, or execution lock.

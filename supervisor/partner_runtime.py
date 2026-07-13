@@ -165,6 +165,10 @@ def _build_executor_envelope(
         ),
         None,
     )
+    if approval is None:
+        raise PartnerRuntimeError(
+            "Executable partner envelopes require a full exact proposal approval binding."
+        )
     seed = f"{snapshot['wake_id']}:{proposal['id']}:{proposal['content_hash']}"
     envelope_id = "envelope-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:24]
     risk_level = _risk_level(float(proposal["risk"]))
@@ -186,7 +190,8 @@ def _build_executor_envelope(
         "proposal_id": proposal["id"],
         "proposal_hash": proposal["content_hash"],
         "approval_id": approval_id,
-        "approval_hash": canonical_hash(approval) if approval is not None else None,
+        "approval_hash": canonical_hash(approval),
+        "approval_binding": copy.deepcopy(approval),
         "executor_id": "autonomous-coding-agent",
         "strategy": "simple",
         "builder_model": "gpt-5.5",

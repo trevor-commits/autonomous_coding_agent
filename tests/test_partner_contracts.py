@@ -234,6 +234,26 @@ class PartnerExecutorEnvelopeContractTests(unittest.TestCase):
         high_risk["risk_level"] = "high"
         high_risk["content_hash"] = contracts.canonical_hash(high_risk)
         cases.append(high_risk)
+        missing_binding = copy.deepcopy(envelope)
+        del missing_binding["approval_binding"]
+        missing_binding["content_hash"] = contracts.canonical_hash(missing_binding)
+        cases.append(missing_binding)
+        wrong_approval_subject = copy.deepcopy(envelope)
+        wrong_approval_subject["approval_binding"]["subject_id"] = "different-proposal"
+        wrong_approval_subject["approval_hash"] = contracts.canonical_hash(
+            wrong_approval_subject["approval_binding"]
+        )
+        wrong_approval_subject["content_hash"] = contracts.canonical_hash(wrong_approval_subject)
+        cases.append(wrong_approval_subject)
+        wrong_approval_capabilities = copy.deepcopy(envelope)
+        wrong_approval_capabilities["approval_binding"]["capability_classes"] = ["local_read"]
+        wrong_approval_capabilities["approval_hash"] = contracts.canonical_hash(
+            wrong_approval_capabilities["approval_binding"]
+        )
+        wrong_approval_capabilities["content_hash"] = contracts.canonical_hash(
+            wrong_approval_capabilities
+        )
+        cases.append(wrong_approval_capabilities)
         for field, value in (
             ("claim_id", "different-envelope"),
             ("run_trace_id", "different-wake"),

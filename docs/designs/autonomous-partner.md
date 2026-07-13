@@ -74,7 +74,7 @@ global identity + governed goals/observations + executor outcomes
  existing ACA deterministic supervisor -> verifier -> audit
 ```
 
-**New in this repository:** a typed stateless partner-policy input/output contract; deterministic initiative scoring; authority classification; a CLI; an immutable executor-envelope adapter contract; schemas, fixtures, and tests. The existing executor is hardened before it receives unattended packets.
+**New in this repository:** a typed stateless partner-policy input/output contract; deterministic initiative scoring; authority classification; a CLI; an immutable executor-envelope adapter contract; schemas, fixtures, and tests. Each executable envelope embeds the full exact proposal approval, not only its id/hash, so ACA can cross-bind subject and capabilities. The existing executor is hardened before it receives unattended packets.
 
 **Extended in this repository:** final-gate evidence verification, unattended-authority preflight, default-deny shell policy, actual-diff scope enforcement, atomic run truth, canonical architecture, project intent, rules, structure/navigation docs, and the run contract only where needed to accept partner provenance.
 
@@ -103,10 +103,10 @@ Learning is outcome-derived. The ACA policy emits a lesson candidate with source
 | **L0** | Existing supervisor plus observe-only global heartbeat | Executor P0 safety defects are fixed; identity, authority, and receipt contracts pass hermetic tests |
 | **L1** | Partner observes and proposes; every self-project needs approval | At least 10 real proposals, at least 80% accepted, no severe gate or privacy failure |
 | **L2** | Approved goals and accepted self-projects dispatch one sandboxed episode | At least 10 completed bounded episodes with clean independent audits and measured benefit |
-| **L3** | Low-risk sandbox projects may start without per-project approval | Continuous health guard; quarterly authority review; any severe failure demotes to L1 |
+| **L3** | Low-risk sandbox projects may start without per-project approval only after a separate exact operator-approved promotion proof format is implemented and activated | Continuous health guard; quarterly authority review; any severe failure demotes to L1 |
 
 **Current state:** L0.
-**Target for this initiative:** implement the complete L1/L2 path and the L3 promotion machinery; do not falsify the empirical thresholds required to activate L3.
+**Target for this initiative:** implement the complete L1/L2 path and the empirical L3 eligibility calculations; do not activate L3 until both the real thresholds and a separately reviewed exact operator-promotion proof exist. A maturity counter or `level: L3` file alone never removes per-project approval.
 
 ## 7. Phase breakdown
 
@@ -159,7 +159,7 @@ This design is accepted because Trevor explicitly chose to keep and reposition t
 
 - **Auto-approved:** read approved local health summaries; maintain state; score opportunities; draft proposals; create artifacts in a sandbox; run deterministic tests; queue an already-approved bounded packet.
 - **Trevor-gated:** outward communication/publish, payment, credentials, new private-data sources, destructive actions, identity/value changes, and any L3 promotion.
-- **Fail closed:** missing/invalid identity, ambiguous approval, unhealthy governor/executor, stale evidence, duplicated idempotency key, unsafe capability, budget exhaustion, or receipt/packet drift.
+- **Fail closed:** missing/invalid identity, missing full approval binding, approval subject/capability mismatch, approval revocation/expiry before effects, ambiguous approval, unhealthy governor/executor, stale evidence, duplicated idempotency key, unsafe capability, budget exhaustion, or receipt/packet drift.
 - **Stop/demotion:** existing global kill switches stop all partner dispatch; a severe gate/privacy failure demotes initiative to proposal-only until independently repaired and reviewed.
 
 ## 12. References

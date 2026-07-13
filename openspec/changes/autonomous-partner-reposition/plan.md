@@ -43,13 +43,13 @@
 - [x] **Step 3.3:** Extend `scripts/autonomous-loop` only at its documented runner/receipt seam; do not change scheduler, selection, lock, or packet ownership.
 - [x] **Step 3.4:** Wire existing identity/goals/observations/benefit/memory inputs and approval/lesson outputs without adding a second long-lived state store.
 - [x] **Step 3.5:** Add a bounded read-only idea producer that cites only approved current evidence while deterministic code fixes authority, workspace, paths, capabilities, and budgets.
-- [ ] **Step 3.5:** Run bridge, autonomous-loop, health, global verifier, and cross-repo compatibility checks; commit the coherent bridge outcome.
+- [x] **Step 3.6:** Run bridge, autonomous-loop, health, global verifier, and cross-repo compatibility checks; commit the coherent bridge outcome.
 
 ## Task 4: Live Proof, Independent Audit, And Landing
 
-- [ ] **Step 4.1:** Reconcile ACA/global canonical docs, runbooks, ledgers, dependency maps, and project memory.
-- [ ] **Step 4.2:** Run full ACA/global automated verification and freeze relevant hashes.
-- [ ] **Step 4.3:** Run the isolated live observe/proposal/deny/approve/envelope/outcome/lesson/kill-switch pilot and write durable evidence.
-- [ ] **Step 4.4:** Start a fresh read-only audit session against the frozen branches, rerun its evidence, and record findings.
+- [x] **Step 4.1:** Reconcile ACA/global canonical docs, runbooks, ledgers, dependency maps, and project memory.
+- [x] **Step 4.2:** Run full ACA/global automated verification and freeze relevant hashes.
+- [x] **Step 4.3:** Run the isolated live observe/proposal/deny/approve/envelope/outcome/lesson/kill-switch pilot and write durable evidence.
+- [x] **Step 4.4:** Start a fresh read-only audit session against the frozen branches, rerun its evidence, and record findings.
 - [ ] **Step 4.5:** Add regressions and fixes for every accepted finding; repeat audit until review-clean.
 - [ ] **Step 4.6:** Complete `verify.md`, `retrospective.md`, OpenSpec archive, Ripple Check, completion/test/audit records, scoped commits/pushes, and remote containment verification.

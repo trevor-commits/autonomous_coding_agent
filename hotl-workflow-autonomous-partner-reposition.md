@@ -39,13 +39,13 @@ max_iterations: 5
 verify: python3 -m unittest discover -s tests -p 'test_main.py' -v && python3 -m unittest discover -s tests -p 'test_policy.py' -v && python3 -m unittest discover -s tests -p 'test_run_store.py' -v
 gate: human
 
-- [ ] **Step 4: Write partner identity and snapshot contract tests**
+- [x] **Step 4: Write partner identity and snapshot contract tests**
 action: Add failing tests for global identity schema validation, stable hashing, configured-versus-inferred labels, approved amendment overlays, bounded snapshot fields, and rejection of raw private content or secrets.
 loop: false
 verify: ! python3 -m unittest discover -s tests -p "test_partner_contracts.py" -v
 gate: human
 
-- [ ] **Step 5: Implement identity and stateless snapshot contracts**
+- [x] **Step 5: Implement identity and stateless snapshot contracts**
 action: Add the global bootstrap Partner profile plus ACA schemas/loaders for bounded identity, goals, observations, approvals, maturity statistics, and executor outcomes; do not add another partner database.
 loop: until partner contract tests pass
 max_iterations: 4

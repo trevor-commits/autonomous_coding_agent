@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/partner-executor-envelope.schema.json",
+  "title": "Partner Executor Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_id",
+    "wake_id",
+    "proposal_id",
+    "proposal_hash",
+    "approval_id",
+    "approval_hash",
+    "run_contract",
+    "capability_classes",
+    "risk_level",
+    "created_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "envelope_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "wake_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "proposal_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "proposal_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "approval_id": {"type": ["string", "null"], "maxLength": 160},
+    "approval_hash": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "run_contract": {"type": "object"},
+    "capability_classes": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 80}
+    },
+    "risk_level": {"enum": ["low", "medium", "high"]},
+    "created_at": {"type": "string", "minLength": 20, "maxLength": 40},
+    "content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -51,6 +51,10 @@ class PolicyTests(unittest.TestCase):
         decision = classify_command("pnpm install")
         self.assertEqual(ShellClass.ESCALATE, decision.shell_class)
 
+    def test_unknown_command_is_not_auto_allowed(self) -> None:
+        decision = classify_command("mystery-tool --perform-unclassified-action")
+        self.assertIsNot(ShellClass.AUTO_ALLOW, decision.shell_class)
+
     def test_auth_and_infra_paths_require_escalation(self) -> None:
         self.assertEqual(
             ShellClass.ESCALATE,

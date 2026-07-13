@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import shlex
+import subprocess
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -37,7 +38,7 @@ from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.state_machine import StateMachine
 from supervisor.strategy_simple import SimpleStrategy
 from supervisor.ui_verifier import UIVerificationSummary, UIVerifier
-from supervisor.verifier import VerificationMode, VerificationSummary, Verifier
+from supervisor.verifier import CommandExecutionResult, VerificationMode, VerificationSummary, Verifier
 from supervisor.worktree_manager import BuilderWorkspace, WorktreeManager
 
 
@@ -120,6 +121,7 @@ def execute_run(
 ) -> RunExecutionOutcome:
     repo_root = Path(repo_root).resolve()
     run_contract = load_run_contract(run_contract_path)
+    _validate_unattended_authority(run_contract)
     machine = StateMachine(run_contract.run_id)
     machine.transition_to(Phase.PREPARE_WORKSPACE, "Run contract loaded; preparing workspace.")
     wall_clock_started = time.monotonic()
@@ -225,19 +227,19 @@ def execute_run(
                 prior_failure_fingerprints=prior_failures,
             )
             builder_result = builder_adapter.send_task(session, prompt, timeout=builder_timeout_seconds)
-            last_changed_files = builder_result.files_changed
-            cumulative_changed_files.update(builder_result.files_changed)
 
             if builder_result.status != "completed":
                 raise PolicyViolationError(
                     f"Builder session ended with status `{builder_result.status}`."
                 )
-            _enforce_builder_policies(
+            actual_changed_files = _enforce_builder_policies(
                 workspace.worktree_path,
                 run_contract,
                 repo_contract,
                 builder_result,
             )
+            last_changed_files = actual_changed_files
+            cumulative_changed_files.update(actual_changed_files)
 
             machine.transition_to(
                 Phase.LOCAL_VERIFY,
@@ -245,13 +247,14 @@ def execute_run(
             )
             run_store.write_state(machine.snapshot)
             last_summary = verifier.run(
-                mode=_verification_mode_for(builder_result),
-                changed_files=builder_result.files_changed,
+                mode=_verification_mode_for(actual_changed_files),
+                changed_files=actual_changed_files,
             )
             all_failure_fingerprints.update(last_summary.failures)
             command_history.extend(last_summary.commands)
             artifact_manifest.update(_verification_artifact_manifest(last_summary))
-            artifact_manifest.add("reports/failure-fingerprints.json")
+            if fingerprint_store.path.exists():
+                artifact_manifest.add("reports/failure-fingerprints.json")
 
             if last_summary.all_passed:
                 if repo_contract.commands.ui_smoke:
@@ -293,7 +296,7 @@ def execute_run(
                     active_app_session = launch.session
                     machine.transition_to(Phase.UI_VERIFY, "App is healthy; running UI smoke suite.")
                     run_store.write_state(machine.snapshot)
-                    ui_summary = ui_verifier.run(changed_files=builder_result.files_changed)
+                    ui_summary = ui_verifier.run(changed_files=actual_changed_files)
                     command_history.extend(ui_summary.command_results)
                     artifact_manifest.update(ui_summary.artifact_manifest)
                     ui_failure_fingerprints = _ui_failure_fingerprints(ui_summary)
@@ -310,9 +313,10 @@ def execute_run(
                             run_contract=run_contract,
                             repo_contract=repo_contract,
                             changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
-                            artifact_manifest=tuple(sorted(artifact_manifest)),
-                            command_history=tuple(command_history),
-                            failure_fingerprints=(),
+                            artifact_manifest=artifact_manifest,
+                            command_history=command_history,
+                            all_failure_fingerprints=all_failure_fingerprints,
+                            verifier=verifier,
                             success_reason="UI verification passed.",
                         )
                         total_cost_spent += strategy.consume_pending_cost()
@@ -360,9 +364,10 @@ def execute_run(
                     run_contract=run_contract,
                     repo_contract=repo_contract,
                     changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
-                    artifact_manifest=tuple(sorted(artifact_manifest)),
-                    command_history=tuple(command_history),
-                    failure_fingerprints=(),
+                    artifact_manifest=artifact_manifest,
+                    command_history=command_history,
+                    all_failure_fingerprints=all_failure_fingerprints,
+                    verifier=verifier,
                     success_reason="Deterministic verification passed.",
                 )
                 total_cost_spent += strategy.consume_pending_cost()
@@ -529,8 +534,8 @@ def _strategy_name(strategy: RuntimeStrategy) -> str:
     return type(strategy).__name__.replace("Strategy", "").lower() or "unknown"
 
 
-def _verification_mode_for(builder_result: BuilderResult) -> VerificationMode:
-    if builder_result.files_changed:
+def _verification_mode_for(changed_files: tuple[str, ...]) -> VerificationMode:
+    if changed_files:
         return VerificationMode.TARGETED
     return VerificationMode.FULL
 
@@ -564,6 +569,18 @@ def _validate_repo_root_matches_contract(repo_root: Path, run_contract: RunContr
         raise PolicyViolationError(
             "Resolved repo root "
             f"`{repo_root}` does not match run contract repo_path `{contract_repo_root}`."
+        )
+
+
+def _validate_unattended_authority(run_contract: RunContract) -> None:
+    risk_level = (run_contract.queue.risk_level or "").strip().lower()
+    if risk_level == "high":
+        raise PolicyViolationError(
+            "high risk work is outside unattended executor authority."
+        )
+    if run_contract.queue.approval_required is True:
+        raise PolicyViolationError(
+            "approval is required before this run may create a workspace or dispatch a builder."
         )
 
 
@@ -601,9 +618,10 @@ def _run_review_and_final_gate(
     run_contract: RunContract,
     repo_contract: RepoContract,
     changed_files: tuple[str, ...],
-    artifact_manifest: tuple[str, ...],
-    command_history: tuple[CommandExecutionResult, ...],
-    failure_fingerprints: tuple[str, ...],
+    artifact_manifest: set[str],
+    command_history: list[CommandExecutionResult],
+    all_failure_fingerprints: set[str],
+    verifier: Verifier,
     success_reason: str,
 ) -> ReviewOutcome:
     machine.transition_to(Phase.AUDIT_READY, "Green candidate ready for review.")
@@ -612,8 +630,8 @@ def _run_review_and_final_gate(
         run_contract,
         repo_contract,
         changed_files=changed_files,
-        artifact_manifest=artifact_manifest,
-        command_results=command_history,
+        artifact_manifest=tuple(sorted(artifact_manifest)),
+        command_results=tuple(command_history),
     )
     review_outcome = _apply_review_action(machine, candidate_action)
     if review_outcome.pending_build_description or review_outcome.terminal:
@@ -623,20 +641,75 @@ def _run_review_and_final_gate(
 
     machine.transition_to(Phase.FINAL_GATE, "Candidate review accepted the green candidate.")
     run_store.write_state(machine.snapshot)
-    machine.record_final_gate_evidence(
-        required_artifacts_present=True,
-        authoritative_checks_passed=True,
-        unresolved_high_severity_findings=bool(failure_fingerprints),
+
+    missing_artifacts = _missing_artifacts(run_store, artifact_manifest)
+    if missing_artifacts:
+        reason = "Required final-gate artifacts are missing: " + ", ".join(missing_artifacts) + "."
+        machine.record_final_gate_evidence(
+            required_artifacts_present=False,
+            authoritative_checks_passed=False,
+            unresolved_high_severity_findings=False,
+        )
+        machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+        return ReviewOutcome(
+            terminal=True,
+            queue_exit_reason="blocked by missing final-gate artifacts",
+            unresolved_blockers=(reason,),
+        )
+
+    final_summary = verifier.run(
+        mode=VerificationMode.FULL,
+        changed_files=changed_files,
     )
+    command_history.extend(final_summary.commands)
+    artifact_manifest.update(_verification_artifact_manifest(final_summary))
+    all_failure_fingerprints.update(final_summary.failures)
+    fingerprint_report = run_store.reports_dir / "failure-fingerprints.json"
+    if fingerprint_report.exists():
+        artifact_manifest.add("reports/failure-fingerprints.json")
+    missing_artifacts = _missing_artifacts(run_store, artifact_manifest)
+    unresolved_final_failures = final_summary.failures
+    machine.record_final_gate_evidence(
+        required_artifacts_present=not missing_artifacts,
+        authoritative_checks_passed=final_summary.all_passed,
+        unresolved_high_severity_findings=bool(unresolved_final_failures),
+    )
+    if missing_artifacts or not final_summary.all_passed:
+        reasons: list[str] = []
+        if missing_artifacts:
+            reasons.append("missing artifacts: " + ", ".join(missing_artifacts))
+        if not final_summary.all_passed:
+            failed_commands = [result.name for result in final_summary.commands if not result.succeeded]
+            reasons.append("authoritative final checks failed: " + ", ".join(failed_commands))
+        reason = "; ".join(reasons) + "."
+        machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+        return ReviewOutcome(
+            terminal=True,
+            queue_exit_reason="blocked by authoritative final gate",
+            unresolved_blockers=(reason,),
+        )
+
     final_action = strategy.final_audit_action(
         run_contract,
         repo_contract,
         changed_files=changed_files,
-        artifact_manifest=artifact_manifest,
-        command_results=command_history,
-        failure_fingerprints=failure_fingerprints,
+        artifact_manifest=tuple(sorted(artifact_manifest)),
+        command_results=tuple(command_history),
+        failure_fingerprints=unresolved_final_failures,
     )
     return _apply_final_gate_action(machine, final_action, default_success_reason=success_reason)
+
+
+def _missing_artifacts(run_store: RunStore, artifact_manifest: set[str]) -> tuple[str, ...]:
+    missing: list[str] = []
+    for relative_path in sorted(artifact_manifest):
+        candidate = Path(relative_path)
+        if candidate.is_absolute() or ".." in candidate.parts:
+            missing.append(relative_path)
+            continue
+        if not (run_store.root / candidate).is_file():
+            missing.append(relative_path)
+    return tuple(missing)
 
 
 def _apply_review_action(machine: StateMachine, action: Action) -> ReviewOutcome:
@@ -724,7 +797,7 @@ def _enforce_builder_policies(
     run_contract: RunContract,
     repo_contract: RepoContract,
     builder_result: BuilderResult,
-) -> None:
+) -> tuple[str, ...]:
     for command in builder_result.commands_run:
         normalized = _normalize_builder_command(command)
         decision = classify_command(normalized, repo_contract)
@@ -732,7 +805,10 @@ def _enforce_builder_policies(
             raise PolicyViolationError(
                 f"Builder command `{normalized}` is not allowed in Phase 2: {decision.reason}."
             )
-    for relative_path in builder_result.files_changed:
+    changed_files = tuple(
+        sorted(set(builder_result.files_changed) | set(_actual_changed_files(repo_root)))
+    )
+    for relative_path in changed_files:
         try:
             enforce_scope(repo_root, run_contract, repo_root / relative_path)
         except ContractValidationError as exc:
@@ -742,6 +818,37 @@ def _enforce_builder_policies(
             raise PolicyViolationError(
                 f"Builder path `{relative_path}` is not allowed in Phase 2: {decision.reason}."
             )
+    return changed_files
+
+
+def _actual_changed_files(repo_root: Path) -> tuple[str, ...]:
+    completed = subprocess.run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout).strip() or "unknown git status failure"
+        raise PolicyViolationError(f"Could not reconcile the authoritative worktree diff: {detail}.")
+
+    entries = completed.stdout.split("\0")
+    changed: list[str] = []
+    index = 0
+    while index < len(entries):
+        entry = entries[index]
+        if not entry:
+            index += 1
+            continue
+        if len(entry) < 4:
+            raise PolicyViolationError(
+                f"Could not parse authoritative worktree diff entry `{entry}`."
+            )
+        status = entry[:2]
+        changed.append(entry[3:])
+        index += 2 if "R" in status or "C" in status else 1
+    return tuple(sorted(set(changed)))
 
 
 def _normalize_builder_command(command: str) -> str:

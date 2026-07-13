@@ -90,8 +90,8 @@ def classify_command(command: str, repo_contract: RepoContract | None = None) ->
             reason="matches escalate-only shell policy",
         )
     return CommandDecision(
-        shell_class=ShellClass.AUTO_ALLOW,
-        reason="safe by default under current policy envelope",
+        shell_class=ShellClass.ESCALATE,
+        reason="command is not an exact repo-contract command or a classified policy command",
     )
 
 

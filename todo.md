@@ -18,6 +18,8 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 ## Active Next Steps
 Current goal: the queued ADR tranche is now complete through `GIL-11`. `GIL-11` lands `ADR-0005`, `GIL-10` is landed as `ADR-0004`, `GIL-8` remains landed as `ADR-0002`, and the `GIL-30` builder-envelope revisit remains intentionally deferred: when Phase 4 reopens, start with the Codex builder timeout ceiling rather than more Claude prompt tuning. The next major queued work is the `GIL-30` builder-envelope revisit when Trevor wants Phase 4 reopened.
 
+Current execution packet (2026-07-13): reposition the repository as the hardened bounded executor and stateless partner-policy layer beneath the existing global governor. Source: Codex `019f5c92-0af9-7fe1-97e4-b860aab357e2`; design: `docs/designs/autonomous-partner.md`; OpenSpec: `openspec/changes/autonomous-partner-reposition/`; workflow: `hotl-workflow-autonomous-partner-reposition.md`; linear: `self-contained: Linear tooling is unavailable in this session and Trevor must not be asked to configure it, so repo artifacts carry the task until an authorized surface can reconcile a live issue.`
+
 > **Coverage invariant:** every item below carries its Linear issue ID in parentheses, and every live Linear issue also appears in `## Linear Issue Ledger` with `todo home:`, `why this exists:`, and `origin source:`. Adding an item without a matching `GIL-N` issue or leaving a live issue out of the ledger violates the invariant defined in `LINEAR.md` § Coverage Invariant and `CLAUDE.md` § Linear.
 
 - [x] Full repo audit and remediation pass (GIL-74): audit the repo from intent, architecture, runtime code, governance, Linear coverage, verification, security/privacy, DevEx, branch state, and forward-plan angles; implement bounded high-confidence fixes surfaced by the audit; record findings, fixes, evidence, and remaining follow-ups in the repo.
@@ -262,6 +264,31 @@ linear:
 ```
 
 Entries landed before 2026-04-16 may not follow this format. The rule applies forward.
+
+### 2026-07-13 | autonomous-partner reposition and executor hardening | by: Codex
+
+Problem:
+The repository contains a useful deterministic delivery harness, but it is not connected to the persistent global governor and cannot yet be trusted for unattended partner episodes. The current executor also contains pre-existing false-final-gate, direct-run authority, permissive shell-default, actual-diff, and atomic-state gaps.
+
+Reasoning:
+Keep the tested supervisor as the per-episode legality/evidence engine. Keep long-lived identity, goals, learning, recurrence, and decision routing in the existing global governor. Add a stateless partner-policy boundary here and one hash-bound global adapter instead of creating another scheduler or memory system.
+
+Diagnosis inputs:
+Claude session `bb90d05d-86d3-4140-9e6c-78d2847c4d72`; current Codex thread `019f5c92-0af9-7fe1-97e4-b860aab357e2`; full 116-test baseline; `canonical-architecture.md`; `PROJECT_INTENT.md`; `RULES.md`; `STRUCTURE.md`; `supervisor/main.py`; `supervisor/policy.py`; `supervisor/run_store.py`; global ER-109/118/139/141 records; global autonomous-loop code/runbook; independent `/root/architecture_seam` read-only analysis.
+
+Implementation inputs:
+Accepted design `docs/designs/autonomous-partner.md`; `hotl-workflow-autonomous-partner-reposition.md`; OpenSpec change `openspec/changes/autonomous-partner-reposition/`; isolated branch/worktree `codex/autonomous-partner-reposition-20260713` at `/Users/gillettes/Coding Projects/aca-worktrees/autonomous-partner-reposition`.
+
+Fix:
+In progress. Planned order: harden executor truth/authority first, add stateless partner contracts and policy, integrate the global bridge, run a live bounded pilot, obtain a fresh independent audit, repair to clean, then land.
+
+Self-audit:
+Pre-code packet only. I verified the branch starts at `origin/main@0cc306b`, the design/workflow exist, the HOTL document linter passes, the OpenSpec bridge schema validates, and the architecture challenger supplied file/line evidence. I did not verify implementation or live behavior because code has not been written yet. Ripple Check: all known source-of-truth surfaces are listed in the workflow for same-change reconciliation. Linear coverage: explicit self-contained disposition above because the connector is unavailable and Trevor must not be asked to configure it.
+
+by: Codex `019f5c92-0af9-7fe1-97e4-b860aab357e2`
+triggered by: Trevor's keep-and-reposition decision and expanded autonomous-partner request
+led to: `docs/designs/autonomous-partner.md`; `openspec/changes/autonomous-partner-reposition/`; active HOTL run `autonomous-partner-reposition-20260713T203857Z`
+linear: self-contained: Linear tooling unavailable in this session; repo artifacts are authoritative pending later authorized reconciliation
 
 ### 2026-04-29 | cross-AI audit of 5fb1eeb | by: Codex
 
@@ -4582,6 +4609,8 @@ Each active branch entry should include:
 - `exit checklist`
 - `delete when` or `retain after close`
 - `retain reason` when not deleting
+
+- `codex/autonomous-partner-reposition-20260713` | status: active implementation | source chat: Codex `019f5c92-0af9-7fe1-97e4-b860aab357e2` | last refreshed by chat: same | purpose: harden ACA as the bounded executor and add the stateless partner-policy seam for ER-141 | worktree: `/Users/gillettes/Coding Projects/aca-worktrees/autonomous-partner-reposition` | linked issue: self-contained due unavailable Linear tool | plugin mirror: unavailable | merge expectation: merge to `main` only after full tests, live pilot, Ripple Check, OpenSpec verify/archive, and fresh independent review-clean | exit checklist: implementation; full verification; audit/fix loop; commit/push; remote containment; repo record reconciliation | delete when: landed on `origin/main` and branch/worktree closeout is recorded | linked completion record: pending.
 
 ## Branch History
 - `trevor/gil-74-full-repo-audit-and-remediation-pass` | close date: 2026-04-26 | outcome: merged via PR #4 after full GIL-74 audit/remediation, CI/CodeQL hardening, integration-invariant coverage, and queue verification-contract startup hardening | merge target: `main` | resulting reference: branch tip `3d97db4` plus PR #4 merge result on `main` | cleanup: remote branch deleted by PR merge; local branch can be deleted after checkout moves to `main`

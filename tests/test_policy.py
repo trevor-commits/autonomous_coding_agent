@@ -55,6 +55,24 @@ class PolicyTests(unittest.TestCase):
         decision = classify_command("mystery-tool --perform-unclassified-action")
         self.assertIsNot(ShellClass.AUTO_ALLOW, decision.shell_class)
 
+    def test_bounded_read_only_find_is_allowed(self) -> None:
+        decision = classify_command(
+            "find . -maxdepth 2 -name AGENTS.project.md -o -name PROJECT_INTENT.md -o -name todo.md"
+        )
+        self.assertEqual(ShellClass.AUTO_ALLOW, decision.shell_class)
+
+    def test_effectful_or_unbounded_find_is_not_auto_allowed(self) -> None:
+        commands = (
+            "find . -delete",
+            "find . -exec rm -rf {} ;",
+            "find / -name '*.pem'",
+            "find ../outside -name '*.md'",
+            "find . -name '*.md' | xargs rm",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertIsNot(ShellClass.AUTO_ALLOW, classify_command(command).shell_class)
+
     def test_auth_and_infra_paths_require_escalation(self) -> None:
         self.assertEqual(
             ShellClass.ESCALATE,

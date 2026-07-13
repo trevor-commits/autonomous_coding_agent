@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import shlex
 
 from supervisor.contracts import RepoContract, RunContract
 
@@ -71,6 +72,11 @@ AUTO_DENY_PATHS = (
     ".env.local",
 )
 
+_FIND_NO_ARGUMENT = {"-print", "-print0", "-prune", "-o", "-a", "-not", "!", "(", ")"}
+_FIND_STRING_ARGUMENT = {"-name", "-iname", "-path", "-wholename", "-type"}
+_FIND_INTEGER_ARGUMENT = {"-maxdepth", "-mindepth"}
+_FIND_EFFECT_ACTIONS = {"-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprintf", "-fls"}
+
 
 def classify_command(command: str, repo_contract: RepoContract | None = None) -> CommandDecision:
     normalized = command.strip()
@@ -89,10 +95,55 @@ def classify_command(command: str, repo_contract: RepoContract | None = None) ->
             shell_class=ShellClass.ESCALATE,
             reason="matches escalate-only shell policy",
         )
+    if _is_bounded_read_only_find(normalized):
+        return CommandDecision(
+            shell_class=ShellClass.AUTO_ALLOW,
+            reason="bounded read-only find command",
+        )
     return CommandDecision(
         shell_class=ShellClass.ESCALATE,
         reason="command is not an exact repo-contract command or a classified policy command",
     )
+
+
+def _is_bounded_read_only_find(command: str) -> bool:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+    if not tokens or tokens[0] != "find" or len(tokens) > 80:
+        return False
+    if any(token in {";", "&&", "||", "|", ">", ">>", "<"} for token in tokens):
+        return False
+    index = 1
+    expression_started = False
+    while index < len(tokens):
+        token = tokens[index]
+        if token in _FIND_EFFECT_ACTIONS:
+            return False
+        if token in _FIND_NO_ARGUMENT:
+            expression_started = True
+            index += 1
+            continue
+        if token in _FIND_INTEGER_ARGUMENT:
+            expression_started = True
+            if index + 1 >= len(tokens) or not tokens[index + 1].isdigit():
+                return False
+            index += 2
+            continue
+        if token in _FIND_STRING_ARGUMENT:
+            expression_started = True
+            if index + 1 >= len(tokens) or len(tokens[index + 1]) > 300:
+                return False
+            index += 2
+            continue
+        if token.startswith("-") or expression_started:
+            return False
+        root = PurePosixPath(token)
+        if root.is_absolute() or ".." in root.parts:
+            return False
+        index += 1
+    return True
 
 
 def classify_path_change(relative_path: str) -> CommandDecision:

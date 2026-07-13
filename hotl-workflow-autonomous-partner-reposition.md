@@ -63,13 +63,13 @@ loop: until initiative tests pass
 max_iterations: 4
 verify: python3 -m unittest discover -s tests -p 'test_partner_initiative.py' -v
 
-- [ ] **Step 8: Write authority-gate adversarial tests**
+- [x] **Step 8: Write authority-gate adversarial tests**
 action: Add failing tests proving personality, interests, model text, ambiguous approvals, and high scores cannot authorize outward, credential, payment, destructive, identity-change, or policy-change effects.
 loop: false
 verify: ! python3 -m unittest discover -s tests -p "test_partner_authority.py" -v
 gate: human
 
-- [ ] **Step 9: Implement default-deny authority**
+- [x] **Step 9: Implement default-deny authority**
 action: Implement capability classification, maturity-level rules, empirical promotion thresholds, kill-switch checks, explicit approval binding, and reason-coded denials.
 loop: until authority tests pass
 max_iterations: 4

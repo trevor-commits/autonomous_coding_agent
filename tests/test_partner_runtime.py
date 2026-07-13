@@ -206,6 +206,8 @@ class PartnerRuntimeTests(unittest.TestCase):
         self.assertFalse(envelope["run_contract"]["approval_required"])
         self.assertEqual("autonomous-coding-agent", envelope["executor_id"])
         self.assertEqual("simple", envelope["strategy"])
+        self.assertEqual("gpt-5.5", envelope["builder_model"])
+        self.assertEqual("high", envelope["builder_reasoning_effort"])
         self.assertEqual(canonical_hash(envelope["run_contract"]), envelope["run_contract_hash"])
         self.assertEqual(envelope["content_hash"], canonical_hash(envelope))
         self.assertEqual(envelope_decision["content_hash"], canonical_hash(envelope_decision))

@@ -25,6 +25,8 @@ def _envelope() -> dict[str, Any]:
         "approval_hash": "2" * 64,
         "executor_id": "autonomous-coding-agent",
         "strategy": "simple",
+        "builder_model": "gpt-5.5",
+        "builder_reasoning_effort": "high",
         "run_contract": {"run_id": "run-001"},
         "run_contract_hash": canonical_hash({"run_id": "run-001"}),
         "capability_classes": ["local_read", "sandbox_write"],

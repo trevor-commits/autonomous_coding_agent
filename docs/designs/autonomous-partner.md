@@ -78,7 +78,7 @@ global identity + governed goals/observations + executor outcomes
 
 **Extended in this repository:** final-gate evidence verification, unattended-authority preflight, default-deny shell policy, actual-diff scope enforcement, atomic run truth, canonical architecture, project intent, rules, structure/navigation docs, and the run contract only where needed to accept partner provenance.
 
-**New in `global-implementations`:** the machine-readable identity profile; a thin bridge that assembles a bounded snapshot from existing global truth, invokes the policy CLI, records the decision, and optionally queues one already-authorized immutable executor envelope. Long-lived goals, benefit measures, and promoted lessons remain in existing global surfaces.
+**New in `global-implementations`:** the machine-readable identity profile; a bounded read-only idea generator that can turn approved current observations into one schema-constrained candidate; a thin bridge that assembles a bounded snapshot from existing global truth, invokes the policy CLI, records the decision, and optionally queues one already-authorized immutable executor envelope. Deterministic code, not the model, supplies the ACA workspace, per-proposal path, capabilities, forbidden paths, budgets, and no-push/no-merge contract. Long-lived goals, benefit measures, and promoted lessons remain in existing global surfaces.
 
 **Left untouched:** the supervisor phase machine, sole-writer/browser invariants, Mission Control ownership, `chat-source`, and provider-specific worker dispatch.
 
@@ -90,7 +90,7 @@ This repository does not create a second partner database. The committed global 
 
 ### Initiative and creativity
 
-Idle-time initiative ranks evidence-backed opportunities by expected benefit, harm prevented, interest fit, novelty, effort, confidence, and risk. Creative work is a first-class project kind rather than a loophole: writing, visual concepts, music/singing experiments, and playful prototypes use the same budgets, sandbox, provenance, and approval rules as utility work.
+Idle-time initiative ranks evidence-backed opportunities by expected benefit, harm prevented, interest fit, novelty, effort, confidence, and risk. When no candidate already exists, the global governor may spend one read-only schema-bound model call to choose only among approved goal, observation, and interest IDs; the resulting project remains a proposal until deterministic authority approves it. Creative work is a first-class project kind rather than a loophole: writing, visual concepts, music/singing experiments, and playful prototypes use the same budgets, sandbox, provenance, and approval rules as utility work.
 
 ### Learning and growth
 

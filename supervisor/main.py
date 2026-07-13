@@ -868,6 +868,11 @@ def main() -> int:
     parser.add_argument("--linear-token-env", default="LINEAR_API_TOKEN")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--strategy", default="simple", choices=("simple", "claude"))
+    parser.add_argument("--builder-model")
+    parser.add_argument(
+        "--builder-reasoning-effort",
+        choices=("low", "medium", "high", "xhigh"),
+    )
     parser.add_argument("--cleanup-worktree", action="store_true")
     args = parser.parse_args()
     strategy = _build_strategy(args.strategy)
@@ -883,7 +888,10 @@ def main() -> int:
         summary = ManualQueueRunner(
             repo_root=Path(args.repo_path),
             linear_client=LinearGraphQLClient(token=token),
-            builder_adapter=CodexBuilderAdapter(),
+            builder_adapter=CodexBuilderAdapter(
+                model=args.builder_model,
+                reasoning_effort=args.builder_reasoning_effort,
+            ),
             strategy=strategy,
             team_key=args.team_key,
             cleanup_success_worktree=args.cleanup_worktree,
@@ -905,7 +913,10 @@ def main() -> int:
     outcome = execute_run(
         repo_root=Path(args.repo_path),
         run_contract_path=Path(args.run_contract),
-        builder_adapter=CodexBuilderAdapter(),
+        builder_adapter=CodexBuilderAdapter(
+            model=args.builder_model,
+            reasoning_effort=args.builder_reasoning_effort,
+        ),
         strategy=strategy,
         cleanup_worktree=args.cleanup_worktree,
     )

@@ -185,6 +185,8 @@ def validate_executor_envelope(payload: Mapping[str, Any]) -> dict[str, Any]:
         raise PartnerContractError("Executor envelope content_hash does not match its content.")
     if envelope["risk_level"] not in {"low", "medium"}:
         raise PartnerContractError("Executor envelope risk must be low or medium.")
+    if envelope["builder_model"] != "gpt-5.5" or envelope["builder_reasoning_effort"] != "high":
+        raise PartnerContractError("Partner executor model routing must remain gpt-5.5/high.")
     capabilities = set(envelope["capability_classes"])
     if not capabilities or not capabilities.issubset(_EXECUTOR_SANDBOX_CAPABILITIES):
         raise PartnerContractError("Executor envelope contains unsupported capability classes.")

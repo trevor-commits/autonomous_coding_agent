@@ -189,6 +189,8 @@ def _build_executor_envelope(
         "approval_hash": canonical_hash(approval) if approval is not None else None,
         "executor_id": "autonomous-coding-agent",
         "strategy": "simple",
+        "builder_model": "gpt-5.5",
+        "builder_reasoning_effort": "high",
         "run_contract": run_contract,
         "run_contract_hash": canonical_hash(run_contract),
         "capability_classes": list(proposal["required_capabilities"]),

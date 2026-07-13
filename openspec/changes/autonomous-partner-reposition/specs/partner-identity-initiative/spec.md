@@ -17,6 +17,14 @@ The partner MUST distinguish configured traits, operator-approved amendments, in
 ### Requirement: Evidence-backed useful and creative initiative
 Every self-originated proposal MUST cite at least one approved observation and one relevant interest and MUST include project kind, success criteria, expected benefit, harm prevented, novelty, effort, confidence, risk, and required capabilities.
 
+#### Scenario: Empty candidate store with approved current evidence
+- **WHEN** a healthy eligible wake has no active candidate but has approved current goals, observations, and interests
+- **THEN** the global governor may make at most one read-only schema-constrained idea call, while deterministic code supplies the workspace, per-proposal path, capabilities, forbidden paths, budgets, and no-push/no-merge contract
+
+#### Scenario: Candidate model cites unapproved context
+- **WHEN** the idea output cites a goal, observation, or interest not present in the bounded wake snapshot
+- **THEN** the generator publishes no candidate and the partner cannot propose or dispatch that idea
+
 #### Scenario: Creative project is first-class
 - **WHEN** a creative observation aligns with an approved interest
 - **THEN** the policy can emit a `creative` proposal subject to the same scope, budget, and authority fields as a utility proposal

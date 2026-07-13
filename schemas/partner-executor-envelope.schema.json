@@ -14,6 +14,8 @@
     "approval_hash",
     "executor_id",
     "strategy",
+    "builder_model",
+    "builder_reasoning_effort",
     "run_contract",
     "run_contract_hash",
     "capability_classes",
@@ -31,6 +33,8 @@
     "approval_hash": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "executor_id": {"const": "autonomous-coding-agent"},
     "strategy": {"enum": ["simple", "claude"]},
+    "builder_model": {"const": "gpt-5.5"},
+    "builder_reasoning_effort": {"const": "high"},
     "run_contract": {"type": "object"},
     "run_contract_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "capability_classes": {

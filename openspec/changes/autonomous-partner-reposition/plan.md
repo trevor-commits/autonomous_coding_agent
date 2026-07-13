@@ -42,6 +42,7 @@
 - [x] **Step 3.2:** Implement `scripts/autonomous-partner-bridge` and the ACA runner adapter using explicit absolute paths and bounded JSON output.
 - [x] **Step 3.3:** Extend `scripts/autonomous-loop` only at its documented runner/receipt seam; do not change scheduler, selection, lock, or packet ownership.
 - [x] **Step 3.4:** Wire existing identity/goals/observations/benefit/memory inputs and approval/lesson outputs without adding a second long-lived state store.
+- [x] **Step 3.5:** Add a bounded read-only idea producer that cites only approved current evidence while deterministic code fixes authority, workspace, paths, capabilities, and budgets.
 - [ ] **Step 3.5:** Run bridge, autonomous-loop, health, global verifier, and cross-repo compatibility checks; commit the coherent bridge outcome.
 
 ## Task 4: Live Proof, Independent Audit, And Landing

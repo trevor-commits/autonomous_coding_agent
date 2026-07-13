@@ -1,0 +1,7 @@
+version: 1
+stack: python-library
+commands:
+  setup: python3 -c "print('setup ok')"
+  test: python3 -m unittest discover -s tests -v
+  app_up: python3 -m http.server 8765
+  app_health: http://127.0.0.1:8765/

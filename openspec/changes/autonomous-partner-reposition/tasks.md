@@ -21,6 +21,7 @@
 - [x] 3.2 Implement the thin global bridge and ACA executor adapter without changing scheduler ownership.
 - [x] 3.3 Extend global autonomous-loop evidence and health checks for partner decisions and adapter outcomes.
 - [x] 3.4 Integrate approved identity/goals/observations/benefit/memory inputs and approval/lesson outputs through existing global surfaces.
+- [x] 3.5 Add a bounded self-originated candidate producer that cites only approved current evidence and cannot choose authority, workspace, paths, or effectful capabilities.
 
 ## 4. Proof, Documentation, And Landing
 

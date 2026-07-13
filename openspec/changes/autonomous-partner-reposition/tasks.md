@@ -25,9 +25,9 @@
 
 ## 4. Proof, Documentation, And Landing
 
-- [ ] 4.1 Reconcile ACA/global canonical docs, runbooks, governance ledgers, dependency maps, and project memory.
-- [ ] 4.2 Run focused/full automated suites, validators, shell checks, OpenSpec strict validation, and whitespace checks.
-- [ ] 4.3 Run an isolated live observe → proposal → denied dispatch → approval → one envelope → outcome → lesson-candidate → kill-switch pilot.
+- [x] 4.1 Reconcile ACA/global canonical docs, runbooks, governance ledgers, dependency maps, and project memory.
+- [x] 4.2 Run focused/full automated suites, validators, shell checks, OpenSpec strict validation, and whitespace checks.
+- [x] 4.3 Run an isolated live observe → proposal → denied dispatch → approval → one envelope → outcome → lesson-candidate → kill-switch pilot.
 - [ ] 4.4 Run a fresh independent architecture/code/security/privacy/spec/live-proof audit and record every finding.
 - [ ] 4.5 Repair accepted findings with regressions and re-audit until review-clean.
 - [ ] 4.6 Complete verify/retrospective/archive plus Ripple Check, commit/push both scoped branches, and verify remote containment.

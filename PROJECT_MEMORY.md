@@ -14,12 +14,16 @@
 
 ## Current implementation state
 
-- Executor evidence, unattended-authority, command-default, actual-diff, and atomic-state defects are repaired with regressions.
-- Identity, initiative ranking, authority, one-decision runtime, outcome learning, CLI, schemas, snapshot builder, global bridge, queue integration, and executor adapter exist on isolated branches.
-- Remaining: full verification, live bounded pilot, fresh independent audit, accepted-finding repairs, OpenSpec archive, Ripple Check closeout, commit/push/landing.
+- Executor evidence, unattended-authority, command-default, actual-diff, atomic-state, bounded worktree-ref, safe discovery-command, and completed-candidate replay defects are repaired with regressions.
+- Identity, initiative ranking, authority, one-decision runtime, outcome learning, CLI, schemas, snapshot builder, real model candidate generation, global bridge, queue integration, executor adapter, and exact completion retirement exist on isolated branches.
+- The isolated live pilot passed observe, proposal, pre-approval denial, synthetic exact approval, dry-run, real `gpt-5.5`/high retained-worktree execution, 159-test final rerun, outcome/unknown-benefit reconciliation, no-replay retirement, and kill-switch proof. Evidence: `records/verification/2026-07-13-autonomous-partner-pilot.md`.
+- Frozen full verification is green: Python compileall, all 159 unit tests, strict OpenSpec validation, and whitespace checks passed on 2026-07-13.
+- Remaining: fresh independent audit, accepted-finding repairs if any, OpenSpec archive, Ripple Check closeout, commit/push/origin-main landing, and observe-only immutable deployment proof.
 
 ## Gotchas
 
 - ACA run `COMPLETE` means a verified retained worktree/report, not automatic merge or publish.
 - Empty observations/candidates are the safe default; the policy never invents evidence.
 - The global bridge and ACA envelope schemas are a cross-repo compatibility boundary and must be changed together.
+- Structured-output schemas accepted by local validators may include keywords rejected by the Codex output-schema API; keep model schemas to the supported subset and retain deterministic post-validation.
+- Completed proposal state must be retired by exact hash after outcome reconciliation or a later wake can requeue an already-complete run ID.

@@ -89,12 +89,12 @@ max_iterations: 5
 verify: python3 -m unittest discover -s tests -p 'test_partner_runtime.py' -v
 gate: human
 
-- [ ] **Step 12: Write outcome-learning candidate tests**
+- [x] **Step 12: Write outcome-learning candidate tests**
 action: Add failing tests for executor receipt reconciliation, measured benefit, goal progression suggestions, scoped lesson candidates, expiry, contradiction handling, and gated identity-amendment proposals.
 loop: false
 verify: ! python3 -m unittest discover -s tests -p "test_partner_learning.py" -v
 
-- [ ] **Step 13: Implement outcome-derived learning candidates**
+- [x] **Step 13: Implement outcome-derived learning candidates**
 action: Convert executor outcomes into provenance-bound benefit and lesson candidates for the existing global memory/improvement layer while keeping identity/value amendments approval-gated.
 loop: until learning-candidate tests pass
 max_iterations: 4

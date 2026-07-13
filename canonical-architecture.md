@@ -147,6 +147,16 @@ Periodic reconciliation sweeps remain valid as a safety net for missed events, b
 
 Autonomy should expand only when the system can explain what happened and measure whether it improved.
 
+### 3.10 Persistent Partner, Stateless Executor Policy
+
+The repository is the bounded policy and episode-execution layer beneath the existing global autonomous governor. The global governor remains the sole owner of recurrence, durable identity, goals, approved observations, maturity, approvals, outcome promotion, benefit accounting, and the ready queue. This repository does not add a daemon, scheduler, partner database, or transcript memory.
+
+Each partner wake is a bounded snapshot. `supervisor.partner_runtime` emits exactly one hash-bound `no_op`, `proposal`, `executor_envelope`, or `blocked` decision. Personality and interests may rank evidence-backed utility, repair, research, care, and creative opportunities; they never enlarge authority. Low/medium-risk sandbox envelopes require exact approval until empirical maturity thresholds are met. Outward communication, publishing, payment, credentials, destructive work, identity/value changes, policy/security changes, merge, deploy, and force-push remain operator-gated.
+
+An executable envelope embeds the complete run contract and binds its hash, wake, proposal, approval, executor, strategy, capability classes, and risk. The global bridge may queue at most one such envelope through the existing autonomous loop. The episode executor revalidates the envelope, retains the verified worktree by default, and reports success only when the supervisor returns `COMPLETE` + `READY` with an existing report whose SHA-256 matches. Outcome and lesson objects are candidates for global promotion, never silent long-lived memory or identity mutation here.
+
+The accepted strategic design, maturity ladder, privacy model, and cross-repo proof contract live in `docs/designs/autonomous-partner.md`. That design is an active architecture companion, not design history.
+
 That requires:
 
 - traceable run execution with correlated logs, spans, and artifacts

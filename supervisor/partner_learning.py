@@ -58,15 +58,33 @@ def derive_learning_candidates(
         validated_outcome["run_state"] == "COMPLETE"
         and validated_outcome["readiness_verdict"] == "READY"
     )
-    measured_benefit = measures["benefit_score"] if successful else 0.0
-    harm_prevented = measures["harm_prevented_score"] if successful else 0.0
+    if not successful:
+        benefit_status = "not_realized"
+        measured_benefit: float | None = 0.0
+        harm_prevented: float | None = 0.0
+    elif measures["benefit_score"] is None:
+        benefit_status = "unknown"
+        measured_benefit = None
+        harm_prevented = None
+    else:
+        benefit_status = "measured"
+        measured_benefit = measures["benefit_score"]
+        harm_prevented = measures["harm_prevented_score"]
     benefit_candidate: dict[str, Any] = {
         "source_outcome_id": validated_outcome["outcome_id"],
         "source_receipt_hash": validated_outcome["receipt_hash"],
         "proposal_id": validated_proposal["id"],
         "successful": successful,
+        "benefit_status": benefit_status,
         "measured_benefit": measured_benefit,
         "harm_prevented": harm_prevented,
+        "evidence": {
+            "produced_artifact": measures["produced_artifact"],
+            "adopted_use": measures["adopted_use"],
+            "time_saved_minutes": measures["time_saved_minutes"],
+            "quality_change": measures["quality_change"],
+            "operator_feedback": measures["operator_feedback"],
+        },
     }
     benefit_candidate["content_hash"] = canonical_hash(benefit_candidate)
 
@@ -122,13 +140,40 @@ def _validate_proposal(proposal: Mapping[str, Any]) -> dict[str, Any]:
 def _validate_measures(measures: Any, proposal: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(measures, dict):
         raise PartnerLearningError("Outcome measures must be an object.")
-    required = {"benefit_score", "harm_prevented_score", "goal_progress", "lesson_signals"}
+    required = {
+        "produced_artifact",
+        "adopted_use",
+        "time_saved_minutes",
+        "quality_change",
+        "operator_feedback",
+        "benefit_score",
+        "harm_prevented_score",
+        "goal_progress",
+        "lesson_signals",
+    }
     if set(measures) != required:
         raise PartnerLearningError("Outcome measures contain missing or unknown fields.")
+    if not isinstance(measures["produced_artifact"], bool):
+        raise PartnerLearningError("Outcome produced_artifact must be boolean.")
+    if measures["adopted_use"] is not None and not isinstance(measures["adopted_use"], bool):
+        raise PartnerLearningError("Outcome adopted_use must be boolean or null.")
     for field in ("benefit_score", "harm_prevented_score"):
         value = measures[field]
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
-            raise PartnerLearningError(f"Outcome measure `{field}` must be between 0 and 1.")
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1
+        ):
+            raise PartnerLearningError(f"Outcome measure `{field}` must be null or between 0 and 1.")
+    if (measures["benefit_score"] is None) != (measures["harm_prevented_score"] is None):
+        raise PartnerLearningError("Benefit and harm-prevented scores must become known together.")
+    for field in ("time_saved_minutes", "quality_change"):
+        value = measures[field]
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, (int, float))
+        ):
+            raise PartnerLearningError(f"Outcome measure `{field}` must be numeric or null.")
+    feedback = measures["operator_feedback"]
+    if feedback is not None and (not isinstance(feedback, str) or len(feedback) > 1000):
+        raise PartnerLearningError("Outcome operator_feedback must be bounded text or null.")
     progress = measures["goal_progress"]
     if not isinstance(progress, dict) or not set(progress).issubset(set(proposal["goal_ids"])):
         raise PartnerLearningError("Outcome goal progress must reference only proposal goals.")

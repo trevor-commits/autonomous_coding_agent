@@ -42,6 +42,7 @@ def _candidate() -> dict[str, Any]:
         "id": "proposal-001",
         "origin": "self_originated",
         "project_kind": "creative",
+        "goal_ids": ["goal-001"],
         "observation_ids": ["observation-001"],
         "interest_ids": ["helpful-projects"],
         "success_criteria": ["Produce one bounded verified artifact."],
@@ -57,6 +58,24 @@ def _candidate() -> dict[str, Any]:
             "run_id": "partner-run-001",
             "repo_path": "/tmp/partner-sandbox",
             "objective": "Create one bounded local artifact",
+            "scope": {
+                "allowed_paths": ["artifacts/"],
+                "forbidden_paths": [".env", "infra/"],
+            },
+            "acceptance": {
+                "functional": ["Create one bounded local artifact."],
+                "quality_gates": ["Deterministic tests pass."],
+                "ui_checks": [],
+            },
+            "constraints": {
+                "single_writer": True,
+                "auto_push": False,
+                "auto_merge": False,
+                "max_repair_loops": 1,
+                "max_iterations": 3,
+                "max_cost_dollars": 1.0,
+                "hard_timeout_seconds": 300,
+            },
         },
     }
 
@@ -180,6 +199,14 @@ class PartnerRuntimeTests(unittest.TestCase):
         self.assertEqual("executor_envelope", envelope_decision["decision_type"])
         envelope = envelope_decision["payload"]["executor_envelope"]
         self.assertEqual("proposal-001", envelope["proposal_id"])
+        self.assertEqual(envelope["envelope_id"], envelope["run_contract"]["claim_id"])
+        self.assertEqual("wake-001", envelope["run_contract"]["run_trace_id"])
+        self.assertEqual(envelope["proposal_hash"], envelope["run_contract"]["issue_snapshot_hash"])
+        self.assertEqual("Low", envelope["run_contract"]["risk_level"])
+        self.assertFalse(envelope["run_contract"]["approval_required"])
+        self.assertEqual("autonomous-coding-agent", envelope["executor_id"])
+        self.assertEqual("simple", envelope["strategy"])
+        self.assertEqual(canonical_hash(envelope["run_contract"]), envelope["run_contract_hash"])
         self.assertEqual(envelope["content_hash"], canonical_hash(envelope))
         self.assertEqual(envelope_decision["content_hash"], canonical_hash(envelope_decision))
 

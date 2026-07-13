@@ -17,10 +17,10 @@
 
 ## 3. Global Governor And Executor Integration
 
-- [ ] 3.1 Add RED bridge tests for discovery, timeouts, schema/hash/binding validation, kill-switch races, and no-clobber queue publish.
-- [ ] 3.2 Implement the thin global bridge and ACA executor adapter without changing scheduler ownership.
-- [ ] 3.3 Extend global autonomous-loop evidence and health checks for partner decisions and adapter outcomes.
-- [ ] 3.4 Integrate approved identity/goals/observations/benefit/memory inputs and approval/lesson outputs through existing global surfaces.
+- [x] 3.1 Add RED bridge tests for discovery, timeouts, schema/hash/binding validation, kill-switch races, and no-clobber queue publish.
+- [x] 3.2 Implement the thin global bridge and ACA executor adapter without changing scheduler ownership.
+- [x] 3.3 Extend global autonomous-loop evidence and health checks for partner decisions and adapter outcomes.
+- [x] 3.4 Integrate approved identity/goals/observations/benefit/memory inputs and approval/lesson outputs through existing global surfaces.
 
 ## 4. Proof, Documentation, And Landing
 

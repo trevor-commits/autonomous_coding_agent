@@ -37,6 +37,9 @@ _RAW_PRIVATE_KEYS = frozenset(
         "private_content",
     }
 )
+_EXECUTOR_SANDBOX_CAPABILITIES = frozenset(
+    {"local_read", "sandbox_write", "deterministic_test", "local_artifact"}
+)
 
 
 class PartnerContractError(ValueError):
@@ -174,6 +177,37 @@ def validate_document(payload: Mapping[str, Any], schema_name: str) -> dict[str,
     _reject_raw_private_keys(document)
     _reject_secret_like_values(document)
     return document
+
+
+def validate_executor_envelope(payload: Mapping[str, Any]) -> dict[str, Any]:
+    envelope = validate_document(payload, "partner-executor-envelope.schema.json")
+    if envelope["content_hash"] != canonical_hash(envelope):
+        raise PartnerContractError("Executor envelope content_hash does not match its content.")
+    if envelope["risk_level"] not in {"low", "medium"}:
+        raise PartnerContractError("Executor envelope risk must be low or medium.")
+    capabilities = set(envelope["capability_classes"])
+    if not capabilities or not capabilities.issubset(_EXECUTOR_SANDBOX_CAPABILITIES):
+        raise PartnerContractError("Executor envelope contains unsupported capability classes.")
+
+    run_contract = validate_document(envelope["run_contract"], "run-contract.schema.json")
+    if envelope["run_contract_hash"] != canonical_hash(run_contract):
+        raise PartnerContractError("Executor run contract hash does not match its content.")
+    bindings = {
+        "claim_id": envelope["envelope_id"],
+        "run_trace_id": envelope["wake_id"],
+        "issue_snapshot_hash": envelope["proposal_hash"],
+        "risk_level": envelope["risk_level"].title(),
+        "approval_required": False,
+    }
+    for field, expected in bindings.items():
+        if run_contract.get(field) != expected:
+            raise PartnerContractError(
+                f"Executor run contract `{field}` does not match its envelope binding."
+            )
+    constraints = run_contract["constraints"]
+    if constraints.get("auto_push") is True or constraints.get("auto_merge") is True:
+        raise PartnerContractError("Partner executor may not auto-push or auto-merge.")
+    return envelope
 
 
 def validate_safe_payload(payload: Mapping[str, Any], label: str = "payload") -> dict[str, Any]:

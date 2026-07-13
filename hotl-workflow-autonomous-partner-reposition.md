@@ -113,25 +113,25 @@ max_iterations: 4
 verify: python3 -m unittest discover -s tests -p 'test_partner_cli.py' -v
 gate: human
 
-- [ ] **Step 16: Write global bridge tests**
+- [x] **Step 16: Write global bridge tests**
 action: In the isolated global branch, add failing hermetic tests for bridge discovery, partner timeouts, JSON validation, kill-switch inheritance, one-packet queueing, and receipt binding.
 loop: false
 verify: bash scripts/autonomous-partner-bridge.test.sh
 
-- [ ] **Step 17: Implement the thin global bridge**
+- [x] **Step 17: Implement the thin global bridge**
 action: Add the bridge and extend the existing autonomous heartbeat to invoke it without becoming a second scheduler or inventing unapproved work.
 loop: until bridge and autonomous-loop tests pass
 max_iterations: 5
 verify: bash scripts/autonomous-partner-bridge.test.sh && bash scripts/autonomous-loop.test.sh && bash scripts/autonomous-loop-health.test.sh
 gate: human
 
-- [ ] **Step 18: Reconcile canonical docs and schemas**
+- [x] **Step 18: Reconcile canonical docs and schemas**
 action: Update source-of-truth architecture, intent, rules, structure, navigation, runbook, schemas, OpenSpec artifacts, project memory, todo records, and dependency maps without rewriting design history.
 loop: until repo and OpenSpec validators pass
 max_iterations: 4
 verify: openspec validate --all --strict --no-interactive
 
-- [ ] **Step 19: Run the complete automated verification stack**
+- [x] **Step 19: Run the complete automated verification stack**
 action: Run compilation, focused partner suites, the entire existing test suite, global policy/repo verifiers, shell syntax, ShellCheck where available, and whitespace checks; repair owned failures.
 loop: until all owned checks are green
 max_iterations: 6

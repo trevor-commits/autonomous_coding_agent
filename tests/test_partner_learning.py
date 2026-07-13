@@ -23,7 +23,10 @@ def _envelope() -> dict[str, Any]:
         "proposal_hash": canonical_hash(_proposal()),
         "approval_id": "approval-001",
         "approval_hash": "2" * 64,
+        "executor_id": "autonomous-coding-agent",
+        "strategy": "simple",
         "run_contract": {"run_id": "run-001"},
+        "run_contract_hash": canonical_hash({"run_id": "run-001"}),
         "capability_classes": ["local_read", "sandbox_write"],
         "risk_level": "low",
         "created_at": "2026-07-13T20:00:00Z",
@@ -35,6 +38,11 @@ def _envelope() -> dict[str, Any]:
 def _outcome(**measure_overrides: Any) -> dict[str, Any]:
     envelope = _envelope()
     measures = {
+        "produced_artifact": True,
+        "adopted_use": True,
+        "time_saved_minutes": 12.0,
+        "quality_change": 0.5,
+        "operator_feedback": "Useful in the bounded pilot.",
         "benefit_score": 0.8,
         "harm_prevented_score": 0.4,
         "goal_progress": {"goal-001": 0.5},
@@ -104,12 +112,34 @@ class PartnerLearningTests(unittest.TestCase):
         benefit = result["benefit_candidate"]
         self.assertEqual(0.8, benefit["measured_benefit"])
         self.assertEqual(0.4, benefit["harm_prevented"])
+        self.assertEqual("measured", benefit["benefit_status"])
+        self.assertTrue(benefit["evidence"]["produced_artifact"])
         self.assertEqual("outcome-001", benefit["source_outcome_id"])
         self.assertEqual("3" * 64, benefit["source_receipt_hash"])
         self.assertEqual(
             [{"goal_id": "goal-001", "progress_delta": 0.5, "source_outcome_id": "outcome-001"}],
             result["goal_progression_candidates"],
         )
+
+    def test_completion_without_adoption_evidence_keeps_benefit_unknown(self) -> None:
+        learning = _learning()
+        result = learning.derive_learning_candidates(
+            _outcome(
+                adopted_use=None,
+                time_saved_minutes=None,
+                quality_change=None,
+                operator_feedback=None,
+                benefit_score=None,
+                harm_prevented_score=None,
+            ),
+            envelope=_envelope(),
+            proposal=_proposal(),
+            now=NOW,
+        )
+        benefit = result["benefit_candidate"]
+        self.assertEqual("unknown", benefit["benefit_status"])
+        self.assertIsNone(benefit["measured_benefit"])
+        self.assertIsNone(benefit["harm_prevented"])
 
     def test_lessons_are_scoped_expiring_candidates_and_identity_never_rewrites_silently(self) -> None:
         learning = _learning()

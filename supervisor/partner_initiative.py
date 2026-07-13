@@ -103,6 +103,7 @@ def _validated_proposal(raw: Mapping[str, Any]) -> dict[str, Any]:
     required = {
         "id",
         "project_kind",
+        "goal_ids",
         "observation_ids",
         "interest_ids",
         "success_criteria",
@@ -119,7 +120,7 @@ def _validated_proposal(raw: Mapping[str, Any]) -> dict[str, Any]:
         raise PartnerInitiativeError(
             f"Initiative proposal `{proposal['id']}` has an unsupported project kind."
         )
-    for field in ("observation_ids", "interest_ids", "success_criteria", "required_capabilities"):
+    for field in ("goal_ids", "observation_ids", "interest_ids", "success_criteria", "required_capabilities"):
         values = proposal[field]
         if not isinstance(values, list) or any(not isinstance(value, str) or not value for value in values):
             raise PartnerInitiativeError(

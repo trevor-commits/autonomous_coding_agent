@@ -15,6 +15,7 @@ from supervisor.partner_contracts import (
     load_json_document,
     validate_document,
     validate_safe_payload,
+    validate_executor_envelope,
     validate_wake_snapshot,
 )
 from supervisor.partner_learning import PartnerLearningError, derive_learning_candidates
@@ -79,6 +80,9 @@ def _build_parser() -> JsonArgumentParser:
     approval_parser = subparsers.add_parser("approve")
     approval_parser.add_argument("--approval-file", required=True)
 
+    envelope_parser = subparsers.add_parser("validate-envelope")
+    envelope_parser.add_argument("--envelope", required=True)
+
     wake_parser = subparsers.add_parser("wake")
     _add_wake_arguments(wake_parser)
 
@@ -115,6 +119,7 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
             "kind": "identity_bootstrap",
             "name": identity["name"],
             "identity_hash": identity["content_hash"],
+            "identity": identity,
             "stored": False,
         }
     if args.command == "observe":
@@ -148,6 +153,18 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
             load_json_document(args.approval_file), "partner-approval.schema.json"
         )
         return {"ok": True, **approval, "stored": False}
+    if args.command == "validate-envelope":
+        envelope = validate_executor_envelope(load_json_document(args.envelope))
+        return {
+            "ok": True,
+            "envelope_id": envelope["envelope_id"],
+            "wake_id": envelope["wake_id"],
+            "proposal_id": envelope["proposal_id"],
+            "content_hash": envelope["content_hash"],
+            "repo_path": envelope["run_contract"]["repo_path"],
+            "run_id": envelope["run_contract"]["run_id"],
+            "executed": False,
+        }
     if args.command in {"wake", "propose"}:
         mode = "propose" if args.command == "propose" else args.mode
         snapshot = load_json_document(args.snapshot)

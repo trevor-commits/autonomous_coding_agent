@@ -166,21 +166,39 @@ def _build_executor_envelope(
         None,
     )
     seed = f"{snapshot['wake_id']}:{proposal['id']}:{proposal['content_hash']}"
+    envelope_id = "envelope-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:24]
+    risk_level = _risk_level(float(proposal["risk"]))
+    run_contract = copy.deepcopy(proposal["run_contract"])
+    run_contract.update(
+        {
+            "claim_id": envelope_id,
+            "run_trace_id": snapshot["wake_id"],
+            "queue_entry_reason": "authorized autonomous partner envelope",
+            "issue_snapshot_hash": proposal["content_hash"],
+            "risk_level": risk_level.title(),
+            "approval_required": False,
+        }
+    )
     envelope: dict[str, Any] = {
         "schema_version": "1",
-        "envelope_id": "envelope-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:24],
+        "envelope_id": envelope_id,
         "wake_id": snapshot["wake_id"],
         "proposal_id": proposal["id"],
         "proposal_hash": proposal["content_hash"],
         "approval_id": approval_id,
         "approval_hash": canonical_hash(approval) if approval is not None else None,
-        "run_contract": copy.deepcopy(proposal["run_contract"]),
+        "executor_id": "autonomous-coding-agent",
+        "strategy": "simple",
+        "run_contract": run_contract,
+        "run_contract_hash": canonical_hash(run_contract),
         "capability_classes": list(proposal["required_capabilities"]),
-        "risk_level": _risk_level(float(proposal["risk"])),
+        "risk_level": risk_level,
         "created_at": _format_time(now),
     }
     envelope["content_hash"] = canonical_hash(envelope)
-    validate_document(envelope, "partner-executor-envelope.schema.json")
+    from supervisor.partner_contracts import validate_executor_envelope
+
+    validate_executor_envelope(envelope)
     return envelope
 
 

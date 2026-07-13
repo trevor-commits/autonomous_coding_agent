@@ -12,6 +12,7 @@ Use these files for current truth:
 - [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md): what must be recorded before work can survive a conversation boundary.
 - [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md): what must ripple when a live doc changes, including the Dependency Map and Ripple Check.
 - [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md): repo purpose, primary users, non-goals, success criteria.
+- [PROJECT_MEMORY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_MEMORY.md): hot cross-session goal, decisions, implementation state, and partner-specific gotchas.
 - [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md): authoritative architecture.
 - [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md): conceptual behavior and control flow.
 - [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md): enforceable constraints and stop conditions.
@@ -20,6 +21,8 @@ Use these files for current truth:
 - [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md): exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 - [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md): build order and phase verification.
 - [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md): repo-specific guidance for which Superpowers skills are worth using in this architecture/governance repo.
+- [docs/designs/autonomous-partner.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/designs/autonomous-partner.md): accepted global-governor/ACA split, partner identity/initiative intent, maturity ladder, privacy boundary, and proof contract.
+- [openspec/changes/autonomous-partner-reposition/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/openspec/changes/autonomous-partner-reposition): active spec-driven implementation and verification record until archive.
 - [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md): repo-local guidance for how the April 16, 2026 Codex update should change operator workflow and where plugin use/not-use decisions now live.
 - [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md): practical operating split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`, `Brooks Lint`, `Sentry`, and `plugin-eval`, plus the current shortlist of further plugin candidates worth spiking later.
 - [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md): exact install state, plugin ids, auth prerequisites, and settings posture for the installed operator plugins `Autopilot`, `HOTL`, `Cavekit`, `Brooks Lint`, and `Sentry`.
@@ -50,6 +53,7 @@ Where does X go:
 - New benchmark fixture: `fixtures/`
 - New supervisor test: `tests/`
 - New runtime artifact: `.autoclaw/runs/<run-id>/`
+- New persistent partner goal/approval/outcome: the existing global governor surface, not this repo; ACA receives it in a bounded wake snapshot.
 - New policy rule or placement decision: `RULES.md` or `STRUCTURE.md`
 - New ADR or archived reconciliation: `design-history/`
 

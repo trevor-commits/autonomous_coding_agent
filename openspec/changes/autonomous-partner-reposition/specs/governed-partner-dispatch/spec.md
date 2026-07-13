@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Frozen executor envelope
-An executor envelope MUST contain a schema version, work-order ID, executor identifier, absolute repository path, absolute run-contract path, run-contract SHA-256, strategy, governed database path, and approval path/hash when required; unknown fields or binding mismatches MUST fail closed.
+An executor envelope MUST contain a schema version, envelope/work-order ID, executor identifier, strategy, wake/proposal/approval bindings, the complete embedded run contract, its canonical SHA-256, capability classes, risk, and envelope SHA-256; unknown fields or binding mismatches MUST fail closed. Embedding the contract removes the external-path time-of-check/time-of-use gap.
 
 #### Scenario: Contract changes after queueing
-- **WHEN** the run-contract bytes no longer match the queued SHA-256
+- **WHEN** the embedded run contract no longer matches the queued canonical SHA-256
 - **THEN** the adapter blocks before invoking ACA
 
 #### Scenario: Trace identity mismatch
@@ -26,7 +26,7 @@ All existing autonomous-loop kill switches MUST block partner queueing and execu
 - **THEN** no new envelope is queued and the decision receipt records the stop
 
 ### Requirement: Structured adapter result
-The adapter MUST return a bounded structured result containing terminal state, readiness verdict, report path, and report SHA-256; it MUST NOT copy raw worker output, secrets, or private observation content into the global dispatch receipt.
+The adapter MUST return a bounded structured result containing terminal state, readiness verdict, retained worktree path, report path, and report SHA-256; it MUST NOT copy raw worker output, secrets, or private observation content into the global dispatch receipt.
 
 #### Scenario: Successful episode
 - **WHEN** ACA returns a schema-valid `COMPLETE` plus `READY` report backed by final evidence

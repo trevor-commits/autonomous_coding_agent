@@ -37,6 +37,7 @@ This map is append-only. Every future commit that adds a new inter-doc reference
 | Linear-Core governance | `LINEAR.md` `## Linear-at-the-core`; every forward log-entry shape in `todo.md`; `RULES.md` `R-LIN-*` | Actionable work must resolve to Linear or an explicit disposition everywhere it can be recorded. |
 | `QUEUE-RUNS.md` | `LINEAR.md`; `PROMPTS.md`; `RULES.md`; `AGENTS.project.md`; `CLAUDE.md`; `GUIDE.md`; `README.md`; `todo.md` | Queue intake, lane ownership, prompt rendering, stop or skip policy, and closeout records must stay synchronized or unattended execution will drift. |
 | Role boundaries | `CLAUDE.md`; `AGENTS.project.md`; `LINEAR.md`; `IMPLEMENTATION-PLAN.md`; `todo.md` `## Audit Watermarks` | Ownership drift creates audit ambiguity and false completion signals across the repo. |
+| Autonomous partner contracts or architecture | `canonical-architecture.md`; `PROJECT_INTENT.md`; `LOGIC.md`; `RULES.md`; `STRUCTURE.md`; `README.md`; `GUIDE.md`; `schemas/README.md`; `docs/designs/autonomous-partner.md`; active OpenSpec change; global bridge/runbook/ER-141 record | The global-governor/ACA split, authority fields, and live adapter must change as one cross-repo contract. |
 
 ## Staleness and Orphans
 

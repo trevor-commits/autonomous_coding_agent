@@ -205,5 +205,52 @@ class PartnerWakeSnapshotContractTests(unittest.TestCase):
             contracts.validate_wake_snapshot(secret)
 
 
+class PartnerExecutorEnvelopeContractTests(unittest.TestCase):
+    def test_envelope_requires_exact_hash_authority_and_run_contract_bindings(self) -> None:
+        contracts = _contracts()
+        from tests.test_partner_runtime import NOW, _candidate, _snapshot
+        from supervisor.partner_runtime import decide_wake
+
+        decision = decide_wake(
+            _snapshot(approval=True),
+            candidates=[_candidate()],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+        )
+        envelope = decision["payload"]["executor_envelope"]
+        self.assertEqual(envelope, contracts.validate_executor_envelope(envelope))
+
+        cases = []
+        bad_hash = copy.deepcopy(envelope)
+        bad_hash["content_hash"] = "0" * 64
+        cases.append(bad_hash)
+        bad_contract_hash = copy.deepcopy(envelope)
+        bad_contract_hash["run_contract_hash"] = "0" * 64
+        bad_contract_hash["content_hash"] = contracts.canonical_hash(bad_contract_hash)
+        cases.append(bad_contract_hash)
+        high_risk = copy.deepcopy(envelope)
+        high_risk["risk_level"] = "high"
+        high_risk["content_hash"] = contracts.canonical_hash(high_risk)
+        cases.append(high_risk)
+        for field, value in (
+            ("claim_id", "different-envelope"),
+            ("run_trace_id", "different-wake"),
+            ("issue_snapshot_hash", "0" * 64),
+            ("risk_level", "High"),
+            ("approval_required", True),
+        ):
+            changed = copy.deepcopy(envelope)
+            changed["run_contract"][field] = value
+            changed["content_hash"] = contracts.canonical_hash(changed)
+            cases.append(changed)
+
+        for changed in cases:
+            with self.subTest(changed=changed):
+                with self.assertRaises(contracts.PartnerContractError):
+                    contracts.validate_executor_envelope(changed)
+
+
 if __name__ == "__main__":
     unittest.main()

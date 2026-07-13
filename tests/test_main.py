@@ -8,7 +8,7 @@ import yaml
 
 from supervisor.app_supervisor import AppLaunchSummary, AppSession
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, BuilderSession
-from supervisor.main import execute_run
+from supervisor.main import _exit_code_for_run_state, execute_run
 from supervisor.policy import PolicyViolationError
 from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.ui_verifier import UIVerificationSummary
@@ -351,6 +351,14 @@ def _ui_failure() -> UIVerificationSummary:
             "artifacts/screenshots/settings-save-disabled.png",
         ),
     )
+
+
+class SupervisorCliExitCodeTests(unittest.TestCase):
+    def test_noncomplete_run_states_fail_the_process(self) -> None:
+        self.assertEqual(0, _exit_code_for_run_state("COMPLETE"))
+        for run_state in ("BLOCKED", "UNSUPPORTED", "IN_PROGRESS"):
+            with self.subTest(run_state=run_state):
+                self.assertNotEqual(0, _exit_code_for_run_state(run_state))
 
 
 class SupervisorMainTests(unittest.TestCase):

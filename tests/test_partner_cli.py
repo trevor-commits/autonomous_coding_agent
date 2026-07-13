@@ -44,6 +44,7 @@ class PartnerCliTests(unittest.TestCase):
             self.assertEqual(0, init_rc)
             self.assertEqual("Partner", initialized["name"])
             self.assertRegex(initialized["identity_hash"], r"^[0-9a-f]{64}$")
+            self.assertEqual(initialized["identity_hash"], initialized["identity"]["content_hash"])
             self.assertEqual(0, observe_rc)
             self.assertEqual("observe_only", observed["mode"])
             self.assertEqual(1, observed["observation_count"])
@@ -126,6 +127,48 @@ class PartnerCliTests(unittest.TestCase):
             self.assertEqual(0, rc)
             self.assertIn("benefit_candidate", result)
             self.assertNotIn("identity", result)
+
+    def test_validate_envelope_is_effect_free_and_rejects_binding_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            snapshot_path = _write(root / "snapshot.json", _snapshot(approval=True))
+            candidates_path = _write(root / "candidates.json", [_candidate()])
+            health_path = _write(root / "health.json", {"healthy": True, "reason_codes": []})
+            wake_rc, decision, _ = _invoke(
+                [
+                    "wake",
+                    "--snapshot",
+                    str(snapshot_path),
+                    "--candidates",
+                    str(candidates_path),
+                    "--health",
+                    str(health_path),
+                    "--now",
+                    NOW,
+                    "--mode",
+                    "execute",
+                ]
+            )
+            self.assertEqual(0, wake_rc)
+            envelope = decision["payload"]["executor_envelope"]
+            envelope_path = _write(root / "envelope.json", envelope)
+
+            rc, validated, _ = _invoke(
+                ["validate-envelope", "--envelope", str(envelope_path)]
+            )
+            self.assertEqual(0, rc)
+            self.assertEqual(envelope["envelope_id"], validated["envelope_id"])
+            self.assertEqual(envelope["content_hash"], validated["content_hash"])
+            self.assertFalse(validated["executed"])
+
+            envelope["run_contract"]["claim_id"] = "drifted"
+            envelope["content_hash"] = _cli().canonical_hash(envelope)
+            _write(envelope_path, envelope)
+            bad_rc, bad, _ = _invoke(
+                ["validate-envelope", "--envelope", str(envelope_path)]
+            )
+            self.assertNotEqual(0, bad_rc)
+            self.assertEqual("contract_invalid", bad["error_code"])
 
     def test_errors_are_json_and_secret_values_are_never_accepted_or_echoed(self) -> None:
         rc, output, stderr = _invoke(["status", "--secret", "TOPSECRET_VALUE_123"])

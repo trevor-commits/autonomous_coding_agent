@@ -21,7 +21,7 @@
 - [x] **Step 1.5:** Reconcile actual `git status --porcelain` paths in `supervisor/main.py`; prove an omitted forbidden path blocks.
 - [x] **Step 1.6:** Implement same-directory fsync plus atomic replace in `supervisor/run_store.py`; prove failed publish preserves prior JSON.
 - [x] **Step 1.7:** Run `python3 -m unittest tests.test_main tests.test_policy tests.test_run_store` and refactor without changing behavior.
-- [ ] **Step 1.8:** Commit the coherent executor-hardening outcome with its tests and OpenSpec task updates.
+- [x] **Step 1.8:** Commit the coherent executor-hardening outcome with its tests and OpenSpec task updates.
 
 ## Task 2: Partner Identity, Initiative, And Learning Policy
 
@@ -34,14 +34,14 @@
 - [x] **Step 2.7:** Implement one-decision stateless policy in `supervisor/partner_runtime.py`; run GREEN.
 - [x] **Step 2.8:** Add RED/GREEN benefit and lesson-candidate logic in `tests/test_partner_learning.py` and `supervisor/partner_learning.py`.
 - [x] **Step 2.9:** Add RED/GREEN JSON CLI cases in `tests/test_partner_cli.py` and `supervisor/partner_cli.py`.
-- [ ] **Step 2.10:** Run all partner tests, full ACA tests, and commit the coherent partner-policy outcome.
+- [x] **Step 2.10:** Run all partner tests, full ACA tests, and commit the coherent partner-policy outcome.
 
 ## Task 3: Global Bridge And Governed Dispatch
 
-- [ ] **Step 3.1:** Add RED cases in `scripts/autonomous-partner-bridge.test.sh` for discovery, timeout, schema/hash/binding, kill-switch race, and no-clobber publish.
-- [ ] **Step 3.2:** Implement `scripts/autonomous-partner-bridge` and the ACA runner adapter using explicit absolute paths and bounded JSON output.
-- [ ] **Step 3.3:** Extend `scripts/autonomous-loop` only at its documented runner/receipt seam; do not change scheduler, selection, lock, or packet ownership.
-- [ ] **Step 3.4:** Wire existing identity/goals/observations/benefit/memory inputs and approval/lesson outputs without adding a second long-lived state store.
+- [x] **Step 3.1:** Add RED cases in `scripts/autonomous-partner-bridge.test.sh` for discovery, timeout, schema/hash/binding, kill-switch race, and no-clobber publish.
+- [x] **Step 3.2:** Implement `scripts/autonomous-partner-bridge` and the ACA runner adapter using explicit absolute paths and bounded JSON output.
+- [x] **Step 3.3:** Extend `scripts/autonomous-loop` only at its documented runner/receipt seam; do not change scheduler, selection, lock, or packet ownership.
+- [x] **Step 3.4:** Wire existing identity/goals/observations/benefit/memory inputs and approval/lesson outputs without adding a second long-lived state store.
 - [ ] **Step 3.5:** Run bridge, autonomous-loop, health, global verifier, and cross-repo compatibility checks; commit the coherent bridge outcome.
 
 ## Task 4: Live Proof, Independent Audit, And Landing

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shlex
@@ -913,11 +914,29 @@ def main() -> int:
             {
                 "run_id": outcome.report.run_id,
                 "run_state": outcome.snapshot.run_state.value,
+                "readiness_verdict": (
+                    outcome.snapshot.readiness_verdict.value
+                    if outcome.snapshot.readiness_verdict is not None
+                    else None
+                ),
                 "report_path": str(outcome.report_path),
+                "report_sha256": _file_sha256(outcome.report_path),
                 "summary_path": str(outcome.summary_path),
+                "worktree_path": str(outcome.workspace.worktree_path),
             }
         )
     )
+    return _exit_code_for_run_state(outcome.snapshot.run_state.value)
+
+
+def _exit_code_for_run_state(run_state: str) -> int:
+    return 0 if run_state == RunState.COMPLETE.value else 2
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def _build_strategy(name: str) -> RuntimeStrategy:
     if name == "claude":
         return ClaudeStrategy()

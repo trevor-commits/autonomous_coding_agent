@@ -38,6 +38,7 @@ def _proposal(
     proposal = {
         "id": proposal_id,
         "project_kind": project_kind,
+        "goal_ids": ["goal-001"],
         "observation_ids": [observation_id],
         "interest_ids": ["helpful-projects"],
         "success_criteria": ["Produce one bounded, verifiable artifact."],

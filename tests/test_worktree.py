@@ -64,6 +64,24 @@ class WorktreeManagerTests(unittest.TestCase):
             finally:
                 manager.remove_builder_worktree(workspace)
 
+    def test_long_objective_uses_bounded_stable_branch_component(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            manager = WorktreeManager(repo_root)
+            objective = "Create a useful retained-worktree artifact " * 20
+
+            workspace = manager.create_builder_worktree(
+                run_id="partner-run-long-objective-001",
+                task_slug=objective,
+            )
+            try:
+                slug_component = workspace.branch_name.split("/")[1]
+                self.assertLessEqual(len(slug_component), 80)
+                self.assertRegex(slug_component, r"-[0-9a-f]{12}$")
+            finally:
+                manager.remove_builder_worktree(workspace)
+
     def test_concurrent_builder_worktree_creation_allows_one_writer(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

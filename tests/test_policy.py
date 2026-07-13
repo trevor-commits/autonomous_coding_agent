@@ -59,6 +59,7 @@ class PolicyTests(unittest.TestCase):
         commands = (
             "find . -maxdepth 2 -name AGENTS.project.md -o -name PROJECT_INTENT.md -o -name todo.md",
             "find partner-projects/proposal-001 -maxdepth 3 -type f | sort",
+            "pwd && rg --files -g '!*tests*' -g '!*.env*' partner-projects/proposal-001 | sed -n '1,120p'",
         )
         for command in commands:
             with self.subTest(command=command):
@@ -77,6 +78,11 @@ class PolicyTests(unittest.TestCase):
             "find . -type f | sort -o /tmp/exfiltrated",
             "find . -type f | sort && rm -rf safe-looking-name",
             "find . -type f | uniq",
+            "rg --files ../outside",
+            "rg --files --pre 'rm -rf /' .",
+            "rg --files . | sed -i backup",
+            "rg --files . > /tmp/repo-files",
+            "pwd && mystery-tool --perform-unclassified-action",
         )
         for command in commands:
             with self.subTest(command=command):

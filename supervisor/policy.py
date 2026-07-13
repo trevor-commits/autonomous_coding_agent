@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path, PurePosixPath
+import re
 import shlex
 
 from supervisor.contracts import RepoContract, RunContract
@@ -95,10 +96,10 @@ def classify_command(command: str, repo_contract: RepoContract | None = None) ->
             shell_class=ShellClass.ESCALATE,
             reason="matches escalate-only shell policy",
         )
-    if _is_bounded_read_only_find(normalized):
+    if _is_bounded_read_only_discovery(normalized):
         return CommandDecision(
             shell_class=ShellClass.AUTO_ALLOW,
-            reason="bounded read-only find command",
+            reason="bounded read-only discovery command",
         )
     return CommandDecision(
         shell_class=ShellClass.ESCALATE,
@@ -106,19 +107,54 @@ def classify_command(command: str, repo_contract: RepoContract | None = None) ->
     )
 
 
-def _is_bounded_read_only_find(command: str) -> bool:
+def _is_bounded_read_only_discovery(command: str) -> bool:
+    if len(command) > 4000:
+        return False
     try:
-        tokens = shlex.split(command)
+        lexer = shlex.shlex(command, posix=True, punctuation_chars="|&;<>")
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        tokens = list(lexer)
     except ValueError:
         return False
-    if not tokens or tokens[0] != "find" or len(tokens) > 80:
+    if not tokens or len(tokens) > 80:
         return False
-    if "|" in tokens:
-        pipe_indexes = [index for index, token in enumerate(tokens) if token == "|"]
-        if len(pipe_indexes) != 1 or tokens[pipe_indexes[0] + 1 :] != ["sort"]:
+    if any(token in {";", "||", ">", ">>", "<", "<<", "&"} for token in tokens):
+        return False
+
+    sequences = _split_tokens(tokens, "&&")
+    if sequences is None:
+        return False
+    for sequence in sequences:
+        pipeline = _split_tokens(sequence, "|")
+        if pipeline is None or len(pipeline) > 3:
             return False
-        tokens = tokens[: pipe_indexes[0]]
-    if any(token in {";", "&&", "||", ">", ">>", "<"} for token in tokens):
+        source = pipeline[0]
+        if source == ["pwd"]:
+            if len(pipeline) != 1:
+                return False
+            continue
+        if not (_is_bounded_find_tokens(source) or _is_bounded_rg_files_tokens(source)):
+            return False
+        if any(not _is_output_only_filter(stage) for stage in pipeline[1:]):
+            return False
+    return True
+
+
+def _split_tokens(tokens: list[str], delimiter: str) -> list[list[str]] | None:
+    groups: list[list[str]] = [[]]
+    for token in tokens:
+        if token == delimiter:
+            if not groups[-1]:
+                return None
+            groups.append([])
+        else:
+            groups[-1].append(token)
+    return groups if groups[-1] else None
+
+
+def _is_bounded_find_tokens(tokens: list[str]) -> bool:
+    if not tokens or tokens[0] != "find":
         return False
     index = 1
     expression_started = False
@@ -149,6 +185,42 @@ def _is_bounded_read_only_find(command: str) -> bool:
             return False
         index += 1
     return True
+
+
+def _is_bounded_rg_files_tokens(tokens: list[str]) -> bool:
+    if len(tokens) < 2 or tokens[:2] != ["rg", "--files"]:
+        return False
+    index = 2
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"-g", "--glob"}:
+            if index + 1 >= len(tokens) or len(tokens[index + 1]) > 300:
+                return False
+            index += 2
+            continue
+        if token in {"--hidden", "--no-hidden", "--no-ignore", "--no-ignore-vcs"}:
+            index += 1
+            continue
+        if token.startswith("-"):
+            return False
+        root = PurePosixPath(token)
+        if len(token) > 300 or root.is_absolute() or ".." in root.parts:
+            return False
+        index += 1
+    return True
+
+
+def _is_output_only_filter(tokens: list[str]) -> bool:
+    if tokens == ["sort"]:
+        return True
+    if len(tokens) != 3 or tokens[:2] != ["sed", "-n"]:
+        return False
+    match = re.fullmatch(r"(\d{1,6})(?:,(\d{1,6}))?p", tokens[2])
+    if match is None:
+        return False
+    start = int(match.group(1))
+    end = int(match.group(2) or match.group(1))
+    return 1 <= start <= end <= 10000
 
 
 def classify_path_change(relative_path: str) -> CommandDecision:

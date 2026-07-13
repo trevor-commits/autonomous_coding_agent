@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and frozen full repository verification. Independent audit round 1 subsequently found that the queued envelope carried only approval id/hash, so the original execution does not prove the stronger effect-time approval contract. That defect is repaired and focused-green; re-audit and landing remain.
+- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path, the repaired effect-time approval integration, and frozen full repository verification. Independent audit round 1 found that the original queued envelope carried only approval id/hash; the repaired path now proves both a revoked-approval denial before effects and a successful full-binding sandbox execution. Fresh re-audit and landing remain.
 
 ## Authority and scope
 
@@ -70,6 +70,20 @@ This proves bounded autonomous idea generation and execution, not consciousness,
 Fresh read-only auditor `/root/fresh_clean_autonomous_partner_audit` confirmed frozen ACA `a9b9df9fa0487ce9c31f0933e3fe82b08fafee82` and global `c131406c26842b654b3ac77555aeeb5b764e2a29`, then proved one authority defect: the executable envelope did not include the approval source document, so the effect-time executor could not independently revalidate subject/capabilities, current existence, revocation, or expiry.
 
 The repair makes the full exact proposal approval required envelope content, cross-binds it in ACA and the global bridge, and requires the identical approval to remain current and active immediately before effects. Missing, revoked, expired, capability-drifted, unsafe, or changing approval state blocks before ACA. The previously nullable L3 path is inactive until a separate exact operator-promotion proof format is reviewed and implemented. Focused tests pass: ACA partner 32/32; global bridge 12/12; global executor 11/11; reconcile 4/4.
+
+### Repaired effect-time integration
+
+- Runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-effect-time-233607`.
+- Frozen repair tips: ACA `4fc20498964c57dfe3595bc828f00e0b07aece29`; global `f31cb7cbf0d7ff59ace2c79638937495b0b26418`.
+- Positive dry-run envelope validation passed without effects.
+- Removing the exact approval from the current approval store produced exit `65` before ACA or builder execution.
+- Restoring the identical active approval produced `COMPLETE / READY` in `129.249s`, one builder turn, two successful 159-test runs, no failure fingerprints, and no unresolved blockers.
+- Repaired retained artifact SHA-256: `448d2eb58b3df26dc36ee37ad162e3163510ff4c7ba3547f94bd41c6457c153d`.
+- Envelope file SHA-256: `6c8461c493f0ca4cdcf015493c183d838c944717688a23edbd54e134ebd11947`.
+- Dry-run result SHA-256: `5cfd9bcc9fcd2955e280d8e325ef21e2594fb5ec9286dd565059b098e9304a19`.
+- Revoked-approval result SHA-256: `e4ff7aa757daf254995c57c3227e5a4db43bbde0bfc0873414395e23027d9a5f`.
+- Execute result SHA-256: `acc096d358eb7f9efa57ea6217f956ba9d427f6cd48fb3ea2be432f3b35ac6f9`.
+- Final report SHA-256: `c8778c1016b7b639ffbdd639670273b2d1c6284f23a5a6e089cd746922808d5a`.
 
 ## Ripple Check
 

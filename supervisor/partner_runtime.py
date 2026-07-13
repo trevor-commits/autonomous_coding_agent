@@ -31,12 +31,15 @@ def decide_wake(
     busy: bool,
     kill_switches: Iterable[str],
     prior_decisions: Iterable[Mapping[str, Any]] = (),
+    mode: str = "execute",
 ) -> dict[str, Any]:
     validated_snapshot = validate_wake_snapshot(snapshot)
     current_time = _parse_time(now)
     health_state = _validate_health(health)
     if not isinstance(busy, bool):
         raise PartnerRuntimeError("busy must be boolean.")
+    if mode not in {"observe", "propose", "execute"}:
+        raise PartnerRuntimeError("mode must be observe, propose, or execute.")
 
     existing = _prior_decision(validated_snapshot, prior_decisions)
     if existing is not None:
@@ -61,6 +64,8 @@ def decide_wake(
             (),
             {"active_kill_switches": list(active_switches)},
         )
+    if mode == "observe":
+        return _build_decision(validated_snapshot, "no_op", ("observe_only",), (), {})
 
     budgets = validated_snapshot["budgets"]
     if budgets["max_proposals"] == 0:
@@ -96,6 +101,14 @@ def decide_wake(
             validated_snapshot,
             "proposal",
             (authority["reason_code"],),
+            evidence_ids,
+            {"proposal": selected, "authority": authority},
+        )
+    if mode == "propose":
+        return _build_decision(
+            validated_snapshot,
+            "proposal",
+            ("proposal_mode",),
             evidence_ids,
             {"proposal": selected, "authority": authority},
         )

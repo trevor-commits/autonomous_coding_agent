@@ -100,13 +100,13 @@ loop: until learning-candidate tests pass
 max_iterations: 4
 verify: python3 -m unittest discover -s tests -p 'test_partner_learning.py' -v
 
-- [ ] **Step 14: Write CLI contract tests**
+- [x] **Step 14: Write CLI contract tests**
 action: Add failing tests for init, observe, add-goal, propose, approve, wake, reconcile, status, and machine-readable error/receipt output.
 loop: false
 verify: ! python3 -m unittest discover -s tests -p "test_partner_cli.py" -v
 gate: human
 
-- [ ] **Step 15: Implement the operator and governor CLI**
+- [x] **Step 15: Implement the operator and governor CLI**
 action: Add a dependency-free CLI that exposes partner operations, defaults to observe-only, emits JSON, and never accepts secrets as arguments.
 loop: until CLI tests pass
 max_iterations: 4

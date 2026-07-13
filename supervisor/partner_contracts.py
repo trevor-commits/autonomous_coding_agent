@@ -176,6 +176,13 @@ def validate_document(payload: Mapping[str, Any], schema_name: str) -> dict[str,
     return document
 
 
+def validate_safe_payload(payload: Mapping[str, Any], label: str = "payload") -> dict[str, Any]:
+    document = _copy_mapping(payload, label)
+    _reject_raw_private_keys(document)
+    _reject_secret_like_values(document)
+    return document
+
+
 def _validate_identity_amendment(amendment: dict[str, Any]) -> None:
     allowed_fields = {"schema_version", "amendment_id", "base_identity_hash", "changes"}
     if set(amendment) != allowed_fields:

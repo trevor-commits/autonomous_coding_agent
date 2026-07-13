@@ -33,7 +33,7 @@
 - [x] **Step 2.6:** Add RED capability/maturity/approval/identity-no-authority/idempotency cases in `tests/test_partner_authority.py` and `tests/test_partner_runtime.py`.
 - [x] **Step 2.7:** Implement one-decision stateless policy in `supervisor/partner_runtime.py`; run GREEN.
 - [x] **Step 2.8:** Add RED/GREEN benefit and lesson-candidate logic in `tests/test_partner_learning.py` and `supervisor/partner_learning.py`.
-- [ ] **Step 2.9:** Add RED/GREEN JSON CLI cases in `tests/test_partner_cli.py` and `supervisor/partner_cli.py`.
+- [x] **Step 2.9:** Add RED/GREEN JSON CLI cases in `tests/test_partner_cli.py` and `supervisor/partner_cli.py`.
 - [ ] **Step 2.10:** Run all partner tests, full ACA tests, and commit the coherent partner-policy outcome.
 
 ## Task 3: Global Bridge And Governed Dispatch

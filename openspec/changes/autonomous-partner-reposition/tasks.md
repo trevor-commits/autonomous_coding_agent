@@ -13,7 +13,7 @@
 - [x] 2.3 Add RED/GREEN initiative scoring for utility, repair, research, care, and creative proposals.
 - [x] 2.4 Add RED/GREEN default-deny authority, maturity thresholds, idempotency, and one-decision-per-wake behavior.
 - [x] 2.5 Add RED/GREEN measured-benefit and provenance-bound lesson candidates without long-lived ACA memory.
-- [ ] 2.6 Add a machine-readable partner CLI for validate, decide, and reconcile-candidate operations.
+- [x] 2.6 Add a machine-readable partner CLI for validate, decide, and reconcile-candidate operations.
 
 ## 3. Global Governor And Executor Integration
 

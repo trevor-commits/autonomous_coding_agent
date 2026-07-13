@@ -77,6 +77,16 @@ _FIND_NO_ARGUMENT = {"-print", "-print0", "-prune", "-o", "-a", "-not", "!", "("
 _FIND_STRING_ARGUMENT = {"-name", "-iname", "-path", "-wholename", "-type"}
 _FIND_INTEGER_ARGUMENT = {"-maxdepth", "-mindepth"}
 _FIND_EFFECT_ACTIONS = {"-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprintf", "-fls"}
+_READ_ONLY_METADATA_COMMANDS = {
+    ("pwd",),
+    ("git", "status", "-sb"),
+    ("git", "status", "--short"),
+    ("git", "rev-parse", "--show-toplevel"),
+    ("git", "log", "-1", "--oneline"),
+    ("git", "diff", "--check"),
+    ("git", "diff", "--stat"),
+    ("git", "diff", "--name-only"),
+}
 
 
 def classify_command(command: str, repo_contract: RepoContract | None = None) -> CommandDecision:
@@ -130,7 +140,7 @@ def _is_bounded_read_only_discovery(command: str) -> bool:
         if pipeline is None or len(pipeline) > 3:
             return False
         source = pipeline[0]
-        if source == ["pwd"]:
+        if tuple(source) in _READ_ONLY_METADATA_COMMANDS:
             if len(pipeline) != 1:
                 return False
             continue

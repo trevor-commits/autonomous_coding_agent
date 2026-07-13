@@ -60,6 +60,7 @@ class PolicyTests(unittest.TestCase):
             "find . -maxdepth 2 -name AGENTS.project.md -o -name PROJECT_INTENT.md -o -name todo.md",
             "find partner-projects/proposal-001 -maxdepth 3 -type f | sort",
             "pwd && rg --files -g '!*tests*' -g '!*.env*' partner-projects/proposal-001 | sed -n '1,120p'",
+            "pwd && git status -sb && git rev-parse --show-toplevel && git log -1 --oneline",
         )
         for command in commands:
             with self.subTest(command=command):
@@ -83,6 +84,11 @@ class PolicyTests(unittest.TestCase):
             "rg --files . | sed -i backup",
             "rg --files . > /tmp/repo-files",
             "pwd && mystery-tool --perform-unclassified-action",
+            "git checkout main",
+            "git branch new-branch",
+            "git fetch origin",
+            "git rev-parse HEAD",
+            "git diff -- .env",
         )
         for command in commands:
             with self.subTest(command=command):

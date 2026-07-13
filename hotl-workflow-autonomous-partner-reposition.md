@@ -52,12 +52,12 @@ max_iterations: 4
 verify: python3 -m unittest discover -s tests -p 'test_partner_contracts.py' -v
 gate: human
 
-- [ ] **Step 6: Write initiative and creativity scoring tests**
+- [x] **Step 6: Write initiative and creativity scoring tests**
 action: Add failing tests for benefit, harm prevention, interest fit, novelty, effort, confidence, risk, staleness, project kinds, and deterministic tie-breaking.
 loop: false
 verify: ! python3 -m unittest discover -s tests -p "test_partner_initiative.py" -v
 
-- [ ] **Step 7: Implement initiative selection**
+- [x] **Step 7: Implement initiative selection**
 action: Implement typed evidence-backed proposal generation and deterministic ranking for utility, repair, research, care, and creative projects.
 loop: until initiative tests pass
 max_iterations: 4

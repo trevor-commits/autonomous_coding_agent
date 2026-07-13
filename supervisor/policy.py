@@ -113,7 +113,12 @@ def _is_bounded_read_only_find(command: str) -> bool:
         return False
     if not tokens or tokens[0] != "find" or len(tokens) > 80:
         return False
-    if any(token in {";", "&&", "||", "|", ">", ">>", "<"} for token in tokens):
+    if "|" in tokens:
+        pipe_indexes = [index for index, token in enumerate(tokens) if token == "|"]
+        if len(pipe_indexes) != 1 or tokens[pipe_indexes[0] + 1 :] != ["sort"]:
+            return False
+        tokens = tokens[: pipe_indexes[0]]
+    if any(token in {";", "&&", "||", ">", ">>", "<"} for token in tokens):
         return False
     index = 1
     expression_started = False

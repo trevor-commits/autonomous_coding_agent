@@ -56,10 +56,16 @@ class PolicyTests(unittest.TestCase):
         self.assertIsNot(ShellClass.AUTO_ALLOW, decision.shell_class)
 
     def test_bounded_read_only_find_is_allowed(self) -> None:
-        decision = classify_command(
-            "find . -maxdepth 2 -name AGENTS.project.md -o -name PROJECT_INTENT.md -o -name todo.md"
+        commands = (
+            "find . -maxdepth 2 -name AGENTS.project.md -o -name PROJECT_INTENT.md -o -name todo.md",
+            "find partner-projects/proposal-001 -maxdepth 3 -type f | sort",
         )
-        self.assertEqual(ShellClass.AUTO_ALLOW, decision.shell_class)
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertEqual(
+                    ShellClass.AUTO_ALLOW,
+                    classify_command(command).shell_class,
+                )
 
     def test_effectful_or_unbounded_find_is_not_auto_allowed(self) -> None:
         commands = (
@@ -68,6 +74,9 @@ class PolicyTests(unittest.TestCase):
             "find / -name '*.pem'",
             "find ../outside -name '*.md'",
             "find . -name '*.md' | xargs rm",
+            "find . -type f | sort -o /tmp/exfiltrated",
+            "find . -type f | sort && rm -rf safe-looking-name",
+            "find . -type f | uniq",
         )
         for command in commands:
             with self.subTest(command=command):

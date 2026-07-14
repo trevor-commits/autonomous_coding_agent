@@ -101,7 +101,7 @@ class ProcessRunnerTests(unittest.TestCase):
                 f"open({str(pid_file)!r}, 'w').write(str(os.getpid())); "
                 f"open({str(started)!r}, 'w').write('started'); "
                 "signal.signal(signal.SIGTERM, signal.SIG_IGN); "
-                "time.sleep(0.8); "
+                "time.sleep(3); "
                 f"open({str(residue)!r}, 'w').write('late')"
             )
             parent = (
@@ -115,7 +115,7 @@ class ProcessRunnerTests(unittest.TestCase):
                     [sys.executable, "-c", parent],
                     capture_output=True,
                     text=True,
-                    timeout=0.3,
+                    timeout=1.0,
                 )
 
             time.sleep(1)

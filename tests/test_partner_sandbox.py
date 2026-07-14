@@ -135,11 +135,13 @@ class PartnerCommandSandboxTests(unittest.TestCase):
             sentinel = repo_root / "src" / "escaped-after-timeout.txt"
             child = "; ".join(
                 (
+                    "import os",
                     "import signal, time",
                     "from pathlib import Path",
                     "signal.signal(signal.SIGTERM, signal.SIG_IGN)",
+                    "Path('src/descendant.pid').write_text(str(os.getpid()))",
                     "Path('src/descendant-started.txt').write_text('started\\n')",
-                    "time.sleep(0.8)",
+                    "time.sleep(3)",
                     "Path('src/escaped-after-timeout.txt').write_text('escaped\\n')",
                 )
             )
@@ -153,12 +155,15 @@ class PartnerCommandSandboxTests(unittest.TestCase):
                 sandbox.run(
                     f"python3 -c {shlex.quote(child)} & /bin/sleep 30",
                     environment={"AUTOCLAW_RUN_ID": "sandbox-timeout-test"},
-                    timeout=0.3,
+                    timeout=1.0,
                 )
-            time.sleep(0.8)
+            time.sleep(1)
 
             self.assertTrue(started.exists())
             self.assertFalse(sentinel.exists())
+            descendant_pid = int((repo_root / "src/descendant.pid").read_text())
+            with self.assertRaises(ProcessLookupError):
+                os.kill(descendant_pid, 0)
 
 
 if __name__ == "__main__":

@@ -233,10 +233,12 @@ class CodexBuilderAdapterTests(unittest.TestCase):
             child = "; ".join(
                 (
                     "import signal, time",
+                    "import os",
                     "from pathlib import Path",
                     "signal.signal(signal.SIGTERM, signal.SIG_IGN)",
+                    "Path('src/descendant.pid').write_text(str(os.getpid()))",
                     "Path('src/descendant-started.txt').write_text('started\\n')",
-                    "time.sleep(0.8)",
+                    "time.sleep(3)",
                     "Path('src/escaped-after-timeout.txt').write_text('escaped\\n')",
                 )
             )
@@ -258,14 +260,17 @@ class CodexBuilderAdapterTests(unittest.TestCase):
                     "_build_args",
                     return_value=[sys.executable, "-c", parent],
                 ):
-                    result = adapter.send_task(session, "Do the task.", timeout=0.3)
+                    result = adapter.send_task(session, "Do the task.", timeout=1.0)
             finally:
                 adapter.close_session(session)
-            time.sleep(0.8)
+            time.sleep(1)
 
             self.assertEqual("timed_out", result.status)
             self.assertTrue(started.exists())
             self.assertFalse(sentinel.exists())
+            descendant_pid = int((repo_root / "src/descendant.pid").read_text())
+            with self.assertRaises(ProcessLookupError):
+                os.kill(descendant_pid, 0)
 
     def test_adapter_rejects_missing_or_unsafe_profile_paths_before_dispatch(
         self,

@@ -58,6 +58,10 @@ The model builder MUST be limited to scoped patch application plus bounded filen
 - **WHEN** a builder attempts a nested, compound, privileged, remote, destructive, or Git state-moving command
 - **THEN** the request is denied before any narrower allowlist is considered
 
+#### Scenario: Contract text hides execution behind an interpreter, host tool, or Git helper
+- **WHEN** an exact contract command uses inline interpreter evaluation, an effectful Python module, shell `-c`/stdin/process substitution, an unapproved environment assignment, a direct network/macOS outward-action tool, a Git alias/config/external-diff/textconv/helper/pager override, an unknown Git subcommand, or an unsafe shell-script path
+- **THEN** the supervisor denies it before contract allowlisting, disables repository hooks/fsmonitor and Apple Event or distributed-notification escape paths at execution time, and keeps bounded repo-relative shell scripts plus a tiny typed test-environment allowlist eligible under the deterministic sandbox
+
 ### Requirement: Deterministic execution is supervisor-sandboxed
 Every repository command executed for setup, verification, or final evidence MUST run in a supervisor-owned no-network sandbox with a scrubbed environment, private runtime directories, closed stdin, read access limited to the exact worktree plus required system runtime files, and write access limited to declared run paths plus supervisor temporary state.
 
@@ -73,6 +77,10 @@ Every repository command executed for setup, verification, or final evidence MUS
 - **WHEN** any targeted or final verification command changes the authoritative worktree diff, including the bytes of an already changed file
 - **THEN** the supervisor blocks the run because verification cannot become a second writer
 
+#### Scenario: Command times out or the supervisor is interrupted
+- **WHEN** a deterministic command or builder session exceeds its deadline or its caller is interrupted
+- **THEN** the supervisor snapshots the owned descendant tree, signals the isolated process group and observed descendants, stops and force-kills any survivor including a descendant that called `setsid()`, reaps the leader before returning, and bounds captured output on both success and failure so no observed descendant can continue effects after the boundary returns
+
 ### Requirement: Sensitive residue is independently checked
 The supervisor MUST fingerprint sensitive residue before model or repository effects and recheck it after builder, verification, UI, and final-verification stages using direct filesystem inspection independent of Git visibility. Unexpected creation or mutation of `.env*`, nested `.git`, or nested `.agent` content MUST block readiness.
 
@@ -83,6 +91,10 @@ The supervisor MUST fingerprint sensitive residue before model or repository eff
 #### Scenario: Sensitive path is replaced through a symlink
 - **WHEN** an allowed runtime or worktree path resolves outside its approved root
 - **THEN** the supervisor rejects the path before model or command execution
+
+#### Scenario: Supervisor storage ancestry or leaf is linked
+- **WHEN** a `.autoclaw` run/lease path or builder worktree path contains a symlink, a non-directory ancestry component, a non-regular file leaf, or a multiply linked file leaf
+- **THEN** the supervisor rejects the path without following or modifying the linked target
 
 ### Requirement: Atomic run truth
 Every JSON state or report update MUST be written to a same-directory temporary file, flushed, fsynced, and atomically replaced so a failed publish preserves the prior complete JSON document.

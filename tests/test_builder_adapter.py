@@ -2,9 +2,12 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from supervisor.builder_adapter import CodexBuilderAdapter, build_builder_prompt
 
@@ -219,6 +222,50 @@ class CodexBuilderAdapterTests(unittest.TestCase):
             self.assertEqual("timed_out", result.status)
             self.assertEqual("session-missing", result.session_id)
             self.assertEqual((), result.files_changed)
+
+    def test_adapter_timeout_stops_descendants_before_they_can_write(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            (repo_root / "src").mkdir()
+            started = repo_root / "src" / "descendant-started.txt"
+            sentinel = repo_root / "src" / "escaped-after-timeout.txt"
+            child = "; ".join(
+                (
+                    "import signal, time",
+                    "from pathlib import Path",
+                    "signal.signal(signal.SIGTERM, signal.SIG_IGN)",
+                    "Path('src/descendant-started.txt').write_text('started\\n')",
+                    "time.sleep(0.8)",
+                    "Path('src/escaped-after-timeout.txt').write_text('escaped\\n')",
+                )
+            )
+            parent = "; ".join(
+                (
+                    "import subprocess, sys, time",
+                    f"subprocess.Popen([sys.executable, '-c', {child!r}])",
+                    "time.sleep(30)",
+                )
+            )
+            adapter = CodexBuilderAdapter()
+            session = adapter.start_session(
+                repo_root,
+                {"objective": "Add feature", "allowed_paths": ("src/",)},
+            )
+            try:
+                with patch.object(
+                    adapter,
+                    "_build_args",
+                    return_value=[sys.executable, "-c", parent],
+                ):
+                    result = adapter.send_task(session, "Do the task.", timeout=0.3)
+            finally:
+                adapter.close_session(session)
+            time.sleep(0.8)
+
+            self.assertEqual("timed_out", result.status)
+            self.assertTrue(started.exists())
+            self.assertFalse(sentinel.exists())
 
     def test_adapter_rejects_missing_or_unsafe_profile_paths_before_dispatch(
         self,

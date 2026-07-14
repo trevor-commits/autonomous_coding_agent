@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 import platform
 import shlex
+import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -82,6 +84,17 @@ class PartnerCommandSandboxTests(unittest.TestCase):
                 allowed_paths=("src", "tests"),
                 runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
             )
+            launch_environment = sandbox.launch_environment(
+                {"AUTOCLAW_RUN_ID": "sandbox-test"}
+            )
+            self.assertEqual("/dev/null", launch_environment["GIT_CONFIG_GLOBAL"])
+            self.assertEqual("core.hooksPath", launch_environment["GIT_CONFIG_KEY_0"])
+            self.assertEqual("/dev/null", launch_environment["GIT_CONFIG_VALUE_0"])
+            self.assertEqual("core.fsmonitor", launch_environment["GIT_CONFIG_KEY_1"])
+            self.assertEqual("false", launch_environment["GIT_CONFIG_VALUE_1"])
+            profile = sandbox.profile_path.read_text(encoding="utf-8")
+            self.assertIn("(deny appleevent-send)", profile)
+            self.assertIn("(deny distributed-notification-post)", profile)
             original = os.environ.get("ACA_HOST_SECRET")
             os.environ["ACA_HOST_SECRET"] = "host-secret-marker"
             try:
@@ -113,6 +126,39 @@ class PartnerCommandSandboxTests(unittest.TestCase):
             self.assertFalse((repo_root / "OUTSIDE.txt").exists())
             self.assertFalse((repo_root / "src" / ".env").exists())
             self.assertFalse((repo_root / "src" / "nested" / ".git").exists())
+
+    def test_timeout_stops_descendants_before_they_can_write(self) -> None:
+        with tempfile.TemporaryDirectory() as repo_tmp:
+            repo_root = Path(repo_tmp)
+            (repo_root / "src").mkdir()
+            started = repo_root / "src" / "descendant-started.txt"
+            sentinel = repo_root / "src" / "escaped-after-timeout.txt"
+            child = "; ".join(
+                (
+                    "import signal, time",
+                    "from pathlib import Path",
+                    "signal.signal(signal.SIGTERM, signal.SIG_IGN)",
+                    "Path('src/descendant-started.txt').write_text('started\\n')",
+                    "time.sleep(0.8)",
+                    "Path('src/escaped-after-timeout.txt').write_text('escaped\\n')",
+                )
+            )
+            sandbox = PartnerCommandSandbox(
+                repo_root=repo_root,
+                allowed_paths=("src",),
+                runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
+            )
+
+            with self.assertRaises(subprocess.TimeoutExpired):
+                sandbox.run(
+                    f"python3 -c {shlex.quote(child)} & /bin/sleep 30",
+                    environment={"AUTOCLAW_RUN_ID": "sandbox-timeout-test"},
+                    timeout=0.3,
+                )
+            time.sleep(0.8)
+
+            self.assertTrue(started.exists())
+            self.assertFalse(sentinel.exists())
 
 
 if __name__ == "__main__":

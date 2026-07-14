@@ -116,12 +116,13 @@ class VerifierTests(unittest.TestCase):
                 )
                 + "\n"
             )
+            (repo_root / "scripts" / "test_probe.py").write_text('print("test ok")\n')
             repo_contract = RepoContract(
                 version=1,
                 stack="fullstack-web",
                 commands=RepoCommands(
                     setup="python3 scripts/secure_probe.py",
-                    test="python3 -c 'print(\"test ok\")'",
+                    test="python3 scripts/test_probe.py",
                     app_up="pnpm dev",
                     app_health="http://127.0.0.1:3000/health",
                 ),

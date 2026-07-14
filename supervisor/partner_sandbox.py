@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path, PurePosixPath
 from typing import Callable, Mapping, Sequence
 
+from supervisor.process_runner import run_process_group
+
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
@@ -55,7 +57,7 @@ class PartnerCommandSandbox:
         self.temp_dir = self.runtime_dir / "tmp"
         self.cache_dir = self.home_dir / "cache"
         self.profile_path = self.runtime_dir / "partner-command.sb"
-        self.runner = runner or subprocess.run
+        self.runner = runner or run_process_group
 
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
         self.home_dir.mkdir(parents=True, exist_ok=True)
@@ -113,6 +115,16 @@ class PartnerCommandSandbox:
             "CFFIXED_USER_HOME": str(self.home_dir),
             "PYTHONDONTWRITEBYTECODE": "1",
             "CI": "1",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "core.hooksPath",
+            "GIT_CONFIG_VALUE_0": "/dev/null",
+            "GIT_CONFIG_KEY_1": "core.fsmonitor",
+            "GIT_CONFIG_VALUE_1": "false",
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_PAGER": "cat",
+            "PAGER": "cat",
             "LANG": "en_US.UTF-8",
             "LC_ALL": "en_US.UTF-8",
         }
@@ -188,6 +200,8 @@ class PartnerCommandSandbox:
                 "(version 1)",
                 "(allow default)",
                 "(deny network*)",
+                "(deny appleevent-send)",
+                "(deny distributed-notification-post)",
                 "(deny user-preference-read)",
                 "(deny mach-lookup "
                 '(global-name "com.apple.securityd") '

@@ -39,7 +39,56 @@ AUTO_DENY_GIT_SUBCOMMANDS = {
     "switch",
 }
 
-AUTO_DENY_EXECUTABLES = {"sudo", "ssh", "scp"}
+SAFE_GIT_SUBCOMMANDS = {"diff", "log", "rev-parse", "status"}
+
+AUTO_DENY_EXECUTABLES = {
+    "afplay",
+    "alias",
+    "curl",
+    "defaults",
+    "diskutil",
+    "env",
+    "eval",
+    "launchctl",
+    "kill",
+    "killall",
+    "nc",
+    "ncat",
+    "open",
+    "osascript",
+    "pbcopy",
+    "pbpaste",
+    "pkill",
+    "reboot",
+    "say",
+    "scp",
+    "security",
+    "shutdown",
+    "socat",
+    "source",
+    "ssh",
+    "sudo",
+    "wget",
+}
+
+SAFE_CONTRACT_ENVIRONMENT = {
+    "CI": {"0", "1", "false", "true"},
+    "NODE_ENV": {"test"},
+    "PYTHONDONTWRITEBYTECODE": {"1"},
+    "PYTHONUNBUFFERED": {"1"},
+}
+
+INLINE_EVALUATOR_FLAGS = {
+    "node": {"-e", "--eval", "-p", "--print"},
+    "perl": {"-e"},
+    "python": {"-c"},
+    "python3": {"-c"},
+    "ruby": {"-e"},
+}
+
+PYTHON_EFFECT_MODULES = {"ensurepip", "pip", "venv", "virtualenv"}
+
+UNSAFE_GIT_HELPER_FLAGS = {"--ext-diff", "--textconv"}
 
 ESCALATE_PREFIXES = (
     "npm install",
@@ -133,6 +182,8 @@ def _contains_absolute_deny(command: str) -> bool:
 
     if not command or len(command) > 100_000:
         return True
+    if any(character in command for character in ("\n", "\r", "$", "`")):
+        return True
     try:
         lexer = shlex.shlex(command, posix=True, punctuation_chars="|&;<>()")
         lexer.whitespace_split = True
@@ -144,15 +195,38 @@ def _contains_absolute_deny(command: str) -> bool:
         return True
 
     for index, token in enumerate(tokens):
+        assignment = re.fullmatch(r"([A-Za-z_][A-Za-z0-9_]*)=(.*)", token, re.DOTALL)
+        if assignment:
+            allowed_values = SAFE_CONTRACT_ENVIRONMENT.get(assignment.group(1))
+            if allowed_values is None or assignment.group(2) not in allowed_values:
+                return True
+            continue
         executable = Path(token).name.lower()
         if executable in AUTO_DENY_EXECUTABLES:
             return True
-        if executable == "git":
-            for candidate in tokens[index + 1 :]:
-                if candidate in {"&&", "||", ";", "|", "&", "(", ")"}:
-                    break
-                if candidate.lower() in AUTO_DENY_GIT_SUBCOMMANDS:
-                    return True
+        if executable in {
+            "bash",
+            "dash",
+            "sh",
+            "zsh",
+        } and _shell_script_is_absolute_deny(tokens, index):
+            return True
+        if executable in {"awk", "gawk"} and _awk_is_absolute_deny(tokens, index):
+            return True
+        evaluator = re.sub(r"[0-9.]+$", "", executable)
+        if evaluator in INLINE_EVALUATOR_FLAGS:
+            segment = [value.lower() for value in _command_segment(tokens, index)]
+            if any(flag in INLINE_EVALUATOR_FLAGS[evaluator] for flag in segment):
+                return True
+            if evaluator in {"python", "python3"}:
+                for position, candidate in enumerate(segment[:-1]):
+                    if (
+                        candidate == "-m"
+                        and segment[position + 1] in PYTHON_EFFECT_MODULES
+                    ):
+                        return True
+        if executable == "git" and _git_command_is_absolute_deny(tokens, index):
+            return True
         if executable == "rm":
             flags = "".join(
                 candidate[1:]
@@ -161,13 +235,103 @@ def _contains_absolute_deny(command: str) -> bool:
             ).lower()
             if "f" in flags and ("r" in flags or "R" in flags):
                 return True
-        if executable in {"bash", "sh", "zsh"}:
-            for flag_index in range(index + 1, min(index + 4, len(tokens))):
-                if tokens[flag_index] in {"-c", "-lc"} and flag_index + 1 < len(tokens):
-                    if _contains_absolute_deny(tokens[flag_index + 1]):
-                        return True
-                    break
     return False
+
+
+def _command_segment(tokens: list[str], executable_index: int) -> list[str]:
+    separators = {"&&", "||", ";", "|", "&", "(", ")"}
+    segment: list[str] = []
+    for candidate in tokens[executable_index + 1 :]:
+        if candidate in separators:
+            break
+        segment.append(candidate)
+    return segment
+
+
+def _safe_repo_script_path(value: str, suffix: str) -> bool:
+    path = PurePosixPath(value.replace("\\", "/"))
+    return (
+        bool(path.parts)
+        and not path.is_absolute()
+        and "." not in path.parts
+        and ".." not in path.parts
+        and path.suffix == suffix
+        and all(re.fullmatch(r"[A-Za-z0-9._-]+", part) for part in path.parts)
+    )
+
+
+def _shell_script_is_absolute_deny(tokens: list[str], executable_index: int) -> bool:
+    segment = _command_segment(tokens, executable_index)
+    if not segment or segment[0] in {"-c", "-lc", "-s", "--stdin"}:
+        return True
+    position = 0
+    while position < len(segment) and segment[position] in {
+        "--",
+        "-e",
+        "-u",
+        "-eu",
+        "-ue",
+        "-x",
+        "-ex",
+        "-eux",
+    }:
+        position += 1
+    if position >= len(segment) or not _safe_repo_script_path(segment[position], ".sh"):
+        return True
+    return any(
+        not re.fullmatch(r"[A-Za-z0-9._/:=@+-]+", candidate)
+        for candidate in segment[position + 1 :]
+    )
+
+
+def _awk_is_absolute_deny(tokens: list[str], executable_index: int) -> bool:
+    segment = _command_segment(tokens, executable_index)
+    return not (
+        len(segment) >= 2
+        and segment[0] == "-f"
+        and _safe_repo_script_path(segment[1], ".awk")
+        and all(
+            re.fullmatch(r"[A-Za-z0-9._/:=@+-]+", candidate)
+            for candidate in segment[2:]
+        )
+    )
+
+
+def _git_command_is_absolute_deny(tokens: list[str], git_index: int) -> bool:
+    segment = _command_segment(tokens, git_index)
+    if not segment:
+        return True
+
+    lowered = [candidate.lower() for candidate in segment]
+    if any(candidate in AUTO_DENY_GIT_SUBCOMMANDS for candidate in lowered):
+        return True
+    if any(candidate in UNSAFE_GIT_HELPER_FLAGS for candidate in lowered):
+        return True
+    if any(candidate == "-c" for candidate in segment) or any(
+        candidate.startswith("--config-env")
+        or candidate.startswith("--exec-path")
+        or candidate.startswith("--git-dir")
+        or candidate.startswith("--work-tree")
+        or candidate.startswith("--namespace")
+        for candidate in lowered
+    ):
+        return True
+
+    position = 0
+    while position < len(segment):
+        candidate = segment[position]
+        if candidate == "-C":
+            if position + 1 >= len(segment) or segment[position + 1] != ".":
+                return True
+            position += 2
+            continue
+        if candidate in {"--no-pager", "--no-optional-locks"}:
+            position += 1
+            continue
+        if candidate.startswith("-"):
+            return True
+        return candidate.lower() not in SAFE_GIT_SUBCOMMANDS
+    return True
 
 
 def _is_bounded_read_only_discovery(command: str) -> bool:

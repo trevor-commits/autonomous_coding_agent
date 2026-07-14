@@ -51,14 +51,76 @@ class PolicyTests(unittest.TestCase):
         commands = (
             "git push origin main",
             "git -C . push origin main",
+            "eval 'git push origin main'",
+            "env -S 'git push origin main'",
+            "alias gp='git push'; gp origin main",
+            "git -c alias.x=push x origin main",
+            "git -c 'alias.x=!git push' x",
+            "git --config-env=alias.x=GIT_ALIAS x origin main",
+            "git x origin main",
+            "x=git; $x push origin main",
+            "GIT_EXTERNAL_DIFF=/tmp/pwn git diff",
+            "GIT_PAGER=/tmp/pwn git log -1",
+            "PAGER=/tmp/pwn git log -1",
+            "GIT_CONFIG_SYSTEM=/tmp/config git status",
+            "GIT_CONFIG_GLOBAL=/tmp/config git diff",
+            "git diff --ext-diff",
+            "git log --textconv --all",
+            "python3 -c 'import os; os.system(\"git push origin main\")'",
+            "python3 -m pip install local-package",
+            "python -m venv .venv",
+            'node -e \'require("child_process").execSync("git push origin main")\'',
+            "perl -e 'system(\"git push origin main\")'",
+            "ruby -e 'system(\"git push origin main\")'",
+            "awk 'BEGIN { system(\"git push origin main\") }'",
+            "bash -c 'git push origin main'",
+            "bash -s",
+            "bash <(printf unsafe)",
+            "bash /tmp/test.sh",
+            "bash ../test.sh",
             "printf ok && git push origin main",
             "zsh -lc 'printf ok; sudo true'",
+            "osascript -e 'tell application \"Finder\" to activate'",
+            "curl https://example.com",
+            "say hello",
             "rm -r -f generated",
         )
         for command in commands:
             with self.subTest(command=command):
                 self.assertEqual(
                     ShellClass.AUTO_DENY,
+                    classify_command(command, allowed_commands=(command,)).shell_class,
+                )
+
+    def test_read_only_git_builtins_can_be_exact_contract_commands(self) -> None:
+        commands = (
+            "git status -sb",
+            "git -C . status --short",
+            "git rev-parse --show-toplevel",
+            "git log -1 --oneline",
+            "git diff --check",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertEqual(
+                    ShellClass.AUTO_ALLOW,
+                    classify_command(command, allowed_commands=(command,)).shell_class,
+                )
+
+    def test_bounded_scripts_and_test_environment_remain_contract_eligible(
+        self,
+    ) -> None:
+        commands = (
+            "bash scripts/test.sh",
+            "sh scripts/test.sh --quick",
+            "CI=1 pnpm test",
+            "NODE_ENV=test npm test",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertEqual(
+                    ShellClass.AUTO_ALLOW,
                     classify_command(command, allowed_commands=(command,)).shell_class,
                 )
 

@@ -9,6 +9,14 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from supervisor.path_safety import (
+    PathSafetyError,
+    ensure_safe_directory,
+    require_missing_path,
+    require_safe_directory,
+    require_single_link_regular_file,
+)
+
 
 class WorktreeError(RuntimeError):
     """Raised when the supervisor cannot create or manage the builder worktree."""
@@ -39,10 +47,20 @@ class WorktreeManager:
     ) -> BuilderWorkspace:
         branch_name = f"run/{_slugify(task_slug)}/{run_id}"
         worktree_path = self.worktrees_root / run_id / "builder"
+        try:
+            ensure_safe_directory(worktree_path.parent, boundary=self.repo_root)
+            require_missing_path(worktree_path, boundary=self.repo_root)
+        except PathSafetyError as exc:
+            raise WorktreeError(str(exc)) from exc
         lease_path = self.acquire_lease(run_id, worktree_path, branch_name)
         try:
-            self.worktrees_root.mkdir(parents=True, exist_ok=True)
-            self._git("worktree", "add", "-b", branch_name, str(worktree_path), base_ref)
+            self._git(
+                "worktree", "add", "-b", branch_name, str(worktree_path), base_ref
+            )
+            require_safe_directory(worktree_path, boundary=self.repo_root)
+        except PathSafetyError as exc:
+            self.release_lease(run_id)
+            raise WorktreeError(str(exc)) from exc
         except Exception:
             self.release_lease(run_id)
             if worktree_path.exists():
@@ -61,7 +79,15 @@ class WorktreeManager:
         *,
         delete_branch: bool = True,
     ) -> None:
-        if workspace.worktree_path.exists():
+        try:
+            workspace.worktree_path.lstat()
+        except FileNotFoundError:
+            pass
+        else:
+            try:
+                require_safe_directory(workspace.worktree_path, boundary=self.repo_root)
+            except PathSafetyError as exc:
+                raise WorktreeError(str(exc)) from exc
             self._git("worktree", "remove", "--force", str(workspace.worktree_path))
         self.release_lease(workspace.run_id)
         if delete_branch:
@@ -73,10 +99,21 @@ class WorktreeManager:
         worktree_path: Path,
         branch_name: str,
     ) -> Path:
-        self.leases_root.mkdir(parents=True, exist_ok=True)
         lease_path = self.leases_root / f"{run_id}.json"
         try:
-            with lease_path.open("x", encoding="utf-8") as handle:
+            ensure_safe_directory(lease_path.parent, boundary=self.repo_root)
+            try:
+                descriptor = os.open(
+                    lease_path,
+                    os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
+                    0o600,
+                )
+            except FileExistsError as exc:
+                require_single_link_regular_file(lease_path, boundary=self.repo_root)
+                raise WorktreeError(
+                    f"Single-writer lease already exists for run `{run_id}`."
+                ) from exc
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
                 json.dump(
                     {
                         "run_id": run_id,
@@ -89,15 +126,21 @@ class WorktreeManager:
                     sort_keys=True,
                 )
                 handle.write("\n")
-        except FileExistsError as exc:
-            raise WorktreeError(
-                f"Single-writer lease already exists for run `{run_id}`."
-            ) from exc
+            require_single_link_regular_file(lease_path, boundary=self.repo_root)
+        except PathSafetyError as exc:
+            raise WorktreeError(str(exc)) from exc
         return lease_path
 
     def release_lease(self, run_id: str) -> None:
         lease_path = self.leases_root / f"{run_id}.json"
-        if lease_path.exists():
+        try:
+            require_single_link_regular_file(lease_path, boundary=self.repo_root)
+            lease_path.lstat()
+        except FileNotFoundError:
+            return
+        except PathSafetyError as exc:
+            raise WorktreeError(str(exc)) from exc
+        else:
             lease_path.unlink()
 
     def _git(self, *args: str) -> None:

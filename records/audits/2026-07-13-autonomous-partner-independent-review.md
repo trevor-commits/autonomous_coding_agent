@@ -31,7 +31,8 @@ The terminal pass independently ran ACA 159/159, global executor 14/14, and glob
 | 6 | Changes required | Fresh post-PR review reproduced last-writer-wins candidate generation, observe/propose decision-key collision, unstructured pre-workspace CLI rejection, stale archive discovery/TBD canonical purposes, and an inconsistent learning exception plus two missing benefit regressions. | Global `51e3720` adds a process lock and mode-bound bridge key/path. ACA `2653e7f` adds mode-bound policy decisions, structured preflight blocks, complete archive discovery/purposes, normalized learning errors, and regressions. RED repros failed exactly as reported; ACA 169/169, candidate 5/5, bridge 13/13, executor 14/14, reconcile 5/5, strict OpenSpec 4/4, and the full global verifier pass. |
 | 7 | Changes required | PR #7 Bugbot proved that `max_proposals=0` short-circuited an exact approved execute candidate even when `max_envelopes=1`. | ACA `84694c6` applies proposal budget only when emitting a proposal; approved execute envelopes use the independent envelope budget. The exact RED failed, the focused GREEN passed, and ACA is 170/170 with strict OpenSpec 4/4. |
 | 8 | Changes required | Fresh exact-tip review plus PR review found loopback server exposure, implicit and coupled wake budgets, effect-time health checked only before queueing, unbounded observation content reaching the model, contract errors echoing supplied private text, and replaceable snapshot/candidate/health inputs used without checking their reported hashes. | ACA `d6f155b` binds the dev server to loopback, requires independent explicit proposal/envelope budgets, makes both-zero a typed no-op, removes the open-ended observation object, scans before schema validation, and emits generic external contract errors without supplied values. Global `5608f7f` projects only closed prompt fields, binds all three bridge inputs through publication, and requires both derived and authoritative loop health before claim and immediately before ACA effects. Exact RED/GREEN regressions pass; ACA 173/173, strict OpenSpec 4/4, candidate 5/5, bridge 14/14, executor 17/17, loop 33/33, and the complete global verifier are green. |
-| 9 | Pending | A fresh exact-tip cumulative review must verify ACA `d6f155b` and global `5608f7f`, including the round-8 repairs and honest product boundary. | No merge or deployment until the reviewer returns `REVIEW-CLEAN`. |
+| 9 | Changes required | GitHub CodeQL found that the private-value rejection regression stored values from variables named `secret` and `secret_key`, causing a high-severity clear-text-sensitive-data alert even though the values were synthetic. | ACA `570eac8` preserves the redaction regression while constructing synthetic forbidden markers from neutral names. Focused CLI 6/6, full ACA 173/173, strict OpenSpec 4/4, both Python CI jobs, CodeQL Python, the CodeQL security gate, Cursor Bugbot, CodeRabbit, and GitGuardian pass; no review thread remains open. |
+| 10 | Pending | A fresh cumulative exact-tip review must verify the superseding ACA and global release tips after the round-9 security-fixture repair and record update. | No merge or deployment until the reviewer returns `REVIEW-CLEAN`. |
 
 The round-2 reviewer returned the exact finding and reproduction but its final prose was blocked by the platform safety classifier. The finding was still treated as real, repaired, regression-covered, and re-audited; the blocked prose was never counted as a clean verdict.
 
@@ -46,7 +47,7 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 **Inferred**
 
-- The repaired release candidate is ready for round-9 exact-tip review, but not yet for merge or deployment.
+- The repaired release candidate is ready for round-10 exact-tip review, but not yet for merge or deployment.
 
 **Unclear or intentionally unproved**
 
@@ -57,6 +58,6 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 ## Dispositions
 
-Every actionable finding through round 8 is fixed and regression-covered. No finding was declined. The prior round-4 `REVIEW-CLEAN` remains valid only for its exact commits; round 9 is the current release verdict gate. The remaining review, landing, deployment, observation-adapter, and residual threat-boundary gates are explicit, not represented as completed live proof.
+Every actionable finding through round 9 is fixed and regression-covered. No finding was declined. The prior round-4 `REVIEW-CLEAN` remains valid only for its exact commits; round 10 is the current release verdict gate. The remaining review, landing, deployment, observation-adapter, and residual threat-boundary gates are explicit, not represented as completed live proof.
 
-Provenance: executor=codex:gpt-5.5:high; audit=L4-reopened; scripts=ACA-unittest,partner-focused-suites,OpenSpec,global-verify,GitHub-PR-review; escalations=0; routing=strong; notes=round-8 authority and privacy repairs green and round-9 verdict pending
+Provenance: executor=codex:gpt-5.5:high; audit=L4-reopened; scripts=ACA-unittest,partner-focused-suites,OpenSpec,global-verify,GitHub-CodeQL,GitHub-PR-review; escalations=0; routing=strong; notes=round-9 CodeQL fixture repair green and round-10 verdict pending

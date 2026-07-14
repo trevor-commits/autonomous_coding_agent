@@ -41,35 +41,39 @@ def decide_wake(
     if mode not in {"observe", "propose", "execute"}:
         raise PartnerRuntimeError("mode must be observe, propose, or execute.")
 
-    existing = _prior_decision(validated_snapshot, prior_decisions)
+    existing = _prior_decision(validated_snapshot, prior_decisions, mode=mode)
     if existing is not None:
         return existing
 
     if not health_state["healthy"]:
         return _build_decision(
             validated_snapshot,
+            mode,
             "no_op",
             ("unhealthy", *health_state["reason_codes"]),
             (),
             {"health": health_state},
         )
     if busy:
-        return _build_decision(validated_snapshot, "no_op", ("busy",), (), {})
+        return _build_decision(validated_snapshot, mode, "no_op", ("busy",), (), {})
     active_switches = tuple(sorted({str(value) for value in kill_switches if str(value)}))
     if active_switches:
         return _build_decision(
             validated_snapshot,
+            mode,
             "blocked",
             ("kill_switch_active",),
             (),
             {"active_kill_switches": list(active_switches)},
         )
     if mode == "observe":
-        return _build_decision(validated_snapshot, "no_op", ("observe_only",), (), {})
+        return _build_decision(validated_snapshot, mode, "no_op", ("observe_only",), (), {})
 
     budgets = validated_snapshot["budgets"]
     if budgets["max_proposals"] == 0:
-        return _build_decision(validated_snapshot, "no_op", ("proposal_budget_exhausted",), (), {})
+        return _build_decision(
+            validated_snapshot, mode, "no_op", ("proposal_budget_exhausted",), (), {}
+        )
 
     prepared_candidates = [_prepare_candidate(candidate) for candidate in candidates]
     ranked = rank_initiatives(
@@ -82,6 +86,7 @@ def decide_wake(
     if not ranked:
         return _build_decision(
             validated_snapshot,
+            mode,
             "no_op",
             ("no_current_approved_evidence",),
             (),
@@ -100,6 +105,7 @@ def decide_wake(
     if not authority["authorized"]:
         return _build_decision(
             validated_snapshot,
+            mode,
             "proposal",
             (authority["reason_code"],),
             evidence_ids,
@@ -108,6 +114,7 @@ def decide_wake(
     if mode == "propose":
         return _build_decision(
             validated_snapshot,
+            mode,
             "proposal",
             ("proposal_mode",),
             evidence_ids,
@@ -116,6 +123,7 @@ def decide_wake(
     if budgets["max_envelopes"] == 0:
         return _build_decision(
             validated_snapshot,
+            mode,
             "proposal",
             ("envelope_budget_exhausted",),
             evidence_ids,
@@ -130,6 +138,7 @@ def decide_wake(
     )
     return _build_decision(
         validated_snapshot,
+        mode,
         "executor_envelope",
         (authority["reason_code"],),
         evidence_ids,
@@ -212,6 +221,7 @@ def _build_executor_envelope(
 
 def _build_decision(
     snapshot: dict[str, Any],
+    mode: str,
     decision_type: str,
     reason_codes: Iterable[str],
     evidence_ids: Iterable[str],
@@ -223,6 +233,7 @@ def _build_decision(
     seed = canonical_hash(
         {
             "wake_id": snapshot["wake_id"],
+            "decision_mode": mode,
             "identity_hash": identity_hash,
             "decision_type": decision_type,
             "reason_codes": normalized_reasons,
@@ -234,7 +245,8 @@ def _build_decision(
         "schema_version": "1",
         "decision_id": "decision-" + seed[:24],
         "wake_id": snapshot["wake_id"],
-        "idempotency_key": snapshot["wake_id"],
+        "decision_mode": mode,
+        "idempotency_key": f"{snapshot['wake_id']}:{mode}",
         "identity_hash": identity_hash,
         "policy_version": POLICY_VERSION,
         "decision_type": decision_type,
@@ -248,7 +260,7 @@ def _build_decision(
 
 
 def _prior_decision(
-    snapshot: dict[str, Any], prior_decisions: Iterable[Mapping[str, Any]]
+    snapshot: dict[str, Any], prior_decisions: Iterable[Mapping[str, Any]], *, mode: str
 ) -> dict[str, Any] | None:
     matching: list[dict[str, Any]] = []
     for candidate in prior_decisions:
@@ -258,7 +270,9 @@ def _prior_decision(
             raise PartnerRuntimeError(f"Prior decision is invalid: {exc}") from exc
         if decision["content_hash"] != canonical_hash(decision):
             raise PartnerRuntimeError("Prior decision content_hash does not match its content.")
-        if decision["idempotency_key"] == snapshot["wake_id"]:
+        if decision["idempotency_key"] == f"{snapshot['wake_id']}:{mode}":
+            if decision["decision_mode"] != mode:
+                raise PartnerRuntimeError("Prior decision mode differs for the same idempotency key.")
             if decision["identity_hash"] != snapshot["identity"]["content_hash"]:
                 raise PartnerRuntimeError("Prior decision identity hash differs for the same wake.")
             matching.append(decision)

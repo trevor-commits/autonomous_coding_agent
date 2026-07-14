@@ -19,7 +19,7 @@ The boundary is fixed. The target repo owns only its `.agent/` contract surface,
 - Root doc files hold the current onboarding, navigation, architecture, rules, planning, and governance records that explain the repo as it exists now.
 - `CONTINUITY.md` lives at the repo root because continuity is a load-bearing rule for every bounded task and its durable record.
 - `COHERENCE.md` lives at the repo root because coherence is a load-bearing rule for every commit and the append-only Dependency Map belongs with the live governance surface.
-- `docs/designs/autonomous-partner.md` is the active cross-repo split/maturity/privacy design. `openspec/changes/autonomous-partner-reposition/` is its implementation record until archive.
+- `docs/designs/autonomous-partner.md` is the active cross-repo split/maturity/privacy design. `openspec/changes/archive/2026-07-14-autonomous-partner-reposition/` is its archived implementation, verification, and retrospective record.
 - `.agent/contract.yml` lets approved partner projects use retained ACA worktrees while the generated run contract limits each project to its own `partner-projects/<proposal-id>/` path.
 
 ## 3. Target-Repo Surface

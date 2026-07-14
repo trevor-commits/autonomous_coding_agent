@@ -53,6 +53,10 @@ class RunExecutionOutcome:
     builder_turns: int
 
 
+class PreflightAuthorityError(PolicyViolationError):
+    """Raised before workspace creation when unattended authority is absent."""
+
+
 class RuntimeStrategy(Protocol):
     def build_action(
         self,
@@ -576,11 +580,11 @@ def _validate_repo_root_matches_contract(repo_root: Path, run_contract: RunContr
 def _validate_unattended_authority(run_contract: RunContract) -> None:
     risk_level = (run_contract.queue.risk_level or "").strip().lower()
     if risk_level == "high":
-        raise PolicyViolationError(
+        raise PreflightAuthorityError(
             "high risk work is outside unattended executor authority."
         )
     if run_contract.queue.approval_required is True:
-        raise PolicyViolationError(
+        raise PreflightAuthorityError(
             "approval is required before this run may create a workspace or dispatch a builder."
         )
 
@@ -918,16 +922,34 @@ def main() -> int:
     if not args.run_contract:
         raise SystemExit("`--run-contract` is required unless `--queue-drain` is set.")
 
-    outcome = execute_run(
-        repo_root=Path(args.repo_path),
-        run_contract_path=Path(args.run_contract),
-        builder_adapter=CodexBuilderAdapter(
-            model=args.builder_model,
-            reasoning_effort=args.builder_reasoning_effort,
-        ),
-        strategy=strategy,
-        cleanup_worktree=args.cleanup_worktree,
-    )
+    try:
+        outcome = execute_run(
+            repo_root=Path(args.repo_path),
+            run_contract_path=Path(args.run_contract),
+            builder_adapter=CodexBuilderAdapter(
+                model=args.builder_model,
+                reasoning_effort=args.builder_reasoning_effort,
+            ),
+            strategy=strategy,
+            cleanup_worktree=args.cleanup_worktree,
+        )
+    except PreflightAuthorityError as exc:
+        run_contract = load_run_contract(Path(args.run_contract))
+        print(
+            json.dumps(
+                {
+                    "run_id": run_contract.run_id,
+                    "run_state": RunState.BLOCKED.value,
+                    "readiness_verdict": ReadinessVerdict.NOT_READY.value,
+                    "report_path": None,
+                    "report_sha256": None,
+                    "summary_path": None,
+                    "worktree_path": None,
+                    "reason": str(exc),
+                }
+            )
+        )
+        return _exit_code_for_run_state(RunState.BLOCKED.value)
     print(
         json.dumps(
             {

@@ -1,7 +1,7 @@
 # executor-evidence-authority Specification
 
 ## Purpose
-TBD - created by archiving change autonomous-partner-reposition. Update Purpose after archive.
+Define the unattended executor's pre-effect authority, evidence-derived readiness, actual-diff enforcement, default-deny command boundary, and atomic run truth.
 ## Requirements
 ### Requirement: Pre-effect unattended authority
 The executor MUST reject a run marked high risk or approval-required before creating a builder worktree or starting a builder session unless the governed envelope embeds a complete schema-valid exact proposal approval and the global adapter confirms that identical approval remains current and active immediately before effects.

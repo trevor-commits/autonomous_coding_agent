@@ -252,6 +252,35 @@ class PartnerRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(first, duplicate)
 
+    def test_observe_decision_does_not_suppress_propose_for_same_wake(self) -> None:
+        runtime = _runtime()
+        observed = runtime.decide_wake(
+            _snapshot(),
+            candidates=[_candidate()],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+            prior_decisions=(),
+            mode="observe",
+        )
+        proposed = runtime.decide_wake(
+            _snapshot(),
+            candidates=[_candidate()],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+            prior_decisions=(observed,),
+            mode="propose",
+        )
+
+        self.assertEqual("no_op", observed["decision_type"])
+        self.assertEqual("proposal", proposed["decision_type"])
+        self.assertEqual("observe", observed["decision_mode"])
+        self.assertEqual("propose", proposed["decision_mode"])
+        self.assertNotEqual(observed["idempotency_key"], proposed["idempotency_key"])
+
     def test_runtime_is_pure_and_does_not_mutate_supplied_global_truth(self) -> None:
         runtime = _runtime()
         snapshot = _snapshot(approval=True)

@@ -123,7 +123,7 @@ Phases are sequential because they share authority and state contracts. Test imp
 
 | Attribute | Goal / measurement |
 |---|---|
-| Reliability | One wake produces at most one decision and one packet; retries are idempotent |
+| Reliability | One wake-mode intent produces at most one decision and one packet; retries are idempotent and observe cannot suppress a deliberate propose/execute intent |
 | Security | Default deny for outward/destructive/credential/payment capabilities; identity never grants authority |
 | Privacy | Observation sources are allowlisted, provenance-bearing, sensitivity-labeled, and redacted from normal receipts |
 | Observability | Every decision has identity hash, evidence IDs, policy version, reason codes, and immutable receipt path |
@@ -135,7 +135,7 @@ Phases are sequential because they share authority and state contracts. Test imp
 
 **Risk: anthropomorphic deception.** A compelling personality could imply consciousness or emotional dependence. Mitigation: identity language separates configured commitments from experience, forbids emotional coercion, and keeps evidence labels on inferred preferences.
 
-**Risk: initiative becomes scope creep.** A model could turn a small observation into an unbounded project. Mitigation: typed proposals, explicit success criteria, bounded paths/budgets, one packet per wake, and deterministic authority classification.
+**Risk: initiative becomes scope creep.** A model could turn a small observation into an unbounded project. Mitigation: typed proposals, explicit success criteria, bounded paths/budgets, one packet per wake-mode intent, and deterministic authority classification.
 
 **Risk: private-context overreach.** Continual learning could become indiscriminate transcript ingestion. Mitigation: no raw transcript adapter in the first release; the partner consumes approved summaries/evidence references and the existing governed memory layer.
 

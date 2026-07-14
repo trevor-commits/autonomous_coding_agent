@@ -3,8 +3,9 @@ from __future__ import annotations
 import importlib
 import unittest
 from typing import Any
+from unittest.mock import patch
 
-from supervisor.partner_contracts import canonical_hash
+from supervisor.partner_contracts import PartnerContractError, canonical_hash
 
 
 NOW = "2026-07-13T21:00:00Z"
@@ -114,6 +115,53 @@ class PartnerLearningTests(unittest.TestCase):
                         proposal=_proposal(),
                         now=NOW,
                     )
+
+    def test_proposal_binding_mismatch_is_rejected(self) -> None:
+        learning = _learning()
+        for proposal in (
+            {**_proposal(), "id": "proposal-other"},
+            {**_proposal(), "expected_benefit": 0.1},
+        ):
+            with self.subTest(proposal=proposal):
+                with self.assertRaises(learning.PartnerLearningError):
+                    learning.derive_learning_candidates(
+                        _outcome(),
+                        envelope=_envelope(),
+                        proposal=proposal,
+                        now=NOW,
+                    )
+
+    def test_unsuccessful_run_records_zero_not_realized_benefit(self) -> None:
+        learning = _learning()
+        outcome = _outcome()
+        outcome["run_state"] = "BLOCKED"
+        outcome["readiness_verdict"] = "NOT_READY"
+        result = learning.derive_learning_candidates(
+            outcome,
+            envelope=_envelope(),
+            proposal=_proposal(),
+            now=NOW,
+        )
+
+        benefit = result["benefit_candidate"]
+        self.assertFalse(benefit["successful"])
+        self.assertEqual("not_realized", benefit["benefit_status"])
+        self.assertEqual(0.0, benefit["measured_benefit"])
+        self.assertEqual(0.0, benefit["harm_prevented"])
+
+    def test_lesson_schema_failure_uses_learning_error_boundary(self) -> None:
+        learning = _learning()
+        signal = _outcome()["measures"]["lesson_signals"][0]
+        with patch(
+            "supervisor.partner_learning.validate_document",
+            side_effect=PartnerContractError("forced schema failure"),
+        ):
+            with self.assertRaisesRegex(learning.PartnerLearningError, "Lesson candidate contract"):
+                learning._lesson_candidates(
+                    [signal],
+                    outcome=_outcome(),
+                    now=learning._parse_time(NOW),
+                )
 
     def test_measured_benefit_and_goal_progress_are_provenance_bound(self) -> None:
         learning = _learning()

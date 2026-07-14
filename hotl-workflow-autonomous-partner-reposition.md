@@ -13,7 +13,7 @@ dirty_worktree: allow
 - **Goal:** ship the complete L1/L2 partner path and L3 promotion machinery defined in `docs/designs/autonomous-partner.md`.
 - **In scope:** executor safety hardening; global identity/goals/learning integration; stateless initiative and authority policy; CLI; executor envelopes; global bridge; health/receipts; live pilot; docs; tests; independent audit; and repair.
 - **Out of scope:** a second scheduler/control plane, covert transcript ingestion, auto-publish/payment/credentials/destructive actions, multi-writer execution, or pretending that configured personality is consciousness.
-- **Risk controls:** TDD, schema-bound crossings, truthful final-gate evidence, unattended-authority preflight, default-deny shell policy, actual-diff reconciliation, atomic run truth, one packet per wake, kill switches, isolated worktrees, immutable receipts, no-new-dependency default, and empirical promotion thresholds.
+- **Risk controls:** TDD, schema-bound crossings, truthful final-gate evidence, unattended-authority preflight, default-deny shell policy, actual-diff reconciliation, atomic run truth, one packet per wake-mode intent, kill switches, isolated worktrees, immutable receipts, no-new-dependency default, and empirical promotion thresholds.
 - **Verification:** focused red/green tests, full suite, global bridge hermetic suite, live bounded pilot, Ripple Check, OpenSpec strict validation, and fresh-session adversarial review.
 - **Rollback:** disable the bridge; set the existing kill switch; remove queued partner packets; revert the two scoped branches; retain append-only receipts for diagnosis.
 - **Review path:** Codex self-audit, independent clean-session code/safety/spec audit, fixes, and repeated review until clean.

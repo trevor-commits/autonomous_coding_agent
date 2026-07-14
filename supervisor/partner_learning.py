@@ -226,7 +226,10 @@ def _lesson_candidates(
             "identity_amendment_required": scope == "identity",
         }
         lesson["content_hash"] = canonical_hash(lesson)
-        validate_document(lesson, "partner-lesson-candidate.schema.json")
+        try:
+            validate_document(lesson, "partner-lesson-candidate.schema.json")
+        except PartnerContractError as exc:
+            raise PartnerLearningError(f"Lesson candidate contract is invalid: {exc}") from exc
         candidates.append(lesson)
     return candidates, contradictions
 

@@ -1,5 +1,6 @@
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -359,6 +360,39 @@ class SupervisorCliExitCodeTests(unittest.TestCase):
         for run_state in ("BLOCKED", "UNSUPPORTED", "IN_PROGRESS"):
             with self.subTest(run_state=run_state):
                 self.assertNotEqual(0, _exit_code_for_run_state(run_state))
+
+    def test_preworkspace_authority_rejection_is_structured_blocked_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            payload = json.loads(run_contract_path.read_text())
+            payload["risk_level"] = "High"
+            run_contract_path.write_text(json.dumps(payload))
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "supervisor.main",
+                    "--repo-path",
+                    str(repo_root),
+                    "--run-contract",
+                    str(run_contract_path),
+                ],
+                cwd=Path(__file__).resolve().parent.parent,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(2, completed.returncode)
+            self.assertNotIn("Traceback", completed.stderr)
+            result = json.loads(completed.stdout)
+            self.assertEqual("benchmark-001", result["run_id"])
+            self.assertEqual("BLOCKED", result["run_state"])
+            self.assertEqual("NOT_READY", result["readiness_verdict"])
+            self.assertIsNone(result["worktree_path"])
+            self.assertIn("high risk", result["reason"])
 
 
 class SupervisorMainTests(unittest.TestCase):

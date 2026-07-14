@@ -1,7 +1,7 @@
 # partner-identity-initiative Specification
 
 ## Purpose
-TBD - created by archiving change autonomous-partner-reposition. Update Purpose after archive.
+Define bounded partner identity snapshots, evidence-backed initiative, deterministic ranking, approval-gated maturity, and mode-scoped idempotent decisions.
 ## Requirements
 ### Requirement: Typed identity snapshot
 Each wake snapshot MUST contain a schema-valid versioned identity with name, pronouns, values, voice traits, interests, dislikes, relationship boundaries, source labels, and a canonical content hash.
@@ -54,9 +54,13 @@ Self-originated projects MUST remain approval-gated until at least 10 real propo
 - **WHEN** acceptance history is below either threshold
 - **THEN** a self-originated proposal cannot become an executor envelope without explicit approval
 
-### Requirement: One typed decision per wake
-The policy MUST emit exactly one schema-valid `no_op`, `proposal`, `executor_envelope`, `lesson_candidate`, or `blocked` decision for each idempotency key and MUST NOT schedule work or persist long-lived global truth.
+### Requirement: One typed decision per wake-mode intent
+The policy MUST emit exactly one schema-valid `no_op`, `proposal`, `executor_envelope`, `lesson_candidate`, or `blocked` decision for each wake-and-mode idempotency key and MUST NOT schedule work or persist long-lived global truth. An observe decision MUST NOT suppress a later explicit propose or execute intent for the same wake.
 
 #### Scenario: Duplicate wake key
-- **WHEN** the same wake idempotency key is evaluated again
+- **WHEN** the same wake-and-mode idempotency key is evaluated again
 - **THEN** the existing decision identity is returned and no second envelope is created
+
+#### Scenario: Observe does not suppress deliberate proposal
+- **WHEN** an observe decision exists and the operator evaluates proposal mode for the same wake
+- **THEN** proposal mode uses a distinct idempotency key and is evaluated exactly once

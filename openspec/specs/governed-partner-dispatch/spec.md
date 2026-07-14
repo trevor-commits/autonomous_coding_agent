@@ -1,7 +1,7 @@
 # governed-partner-dispatch Specification
 
 ## Purpose
-TBD - created by archiving change autonomous-partner-reposition. Update Purpose after archive.
+Define immutable approval-bound partner envelopes and their safe dispatch through the existing global queue, kill switches, and structured ACA adapter boundary.
 ## Requirements
 ### Requirement: Frozen executor envelope
 An executor envelope MUST contain a schema version, envelope/work-order ID, executor identifier, strategy, wake/proposal bindings, the complete exact proposal-approval document and its canonical SHA-256, the complete embedded run contract and its canonical SHA-256, capability classes, risk, and envelope SHA-256; unknown fields or binding mismatches MUST fail closed. The executor MUST require the identical approval to remain current, unrevoked, unambiguous, and unexpired immediately before effects. Embedding both documents removes the external-path time-of-check/time-of-use gap while the current-store check preserves revocation.

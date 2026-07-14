@@ -1,7 +1,7 @@
 # outcome-benefit-learning Specification
 
 ## Purpose
-TBD - created by archiving change autonomous-partner-reposition. Update Purpose after archive.
+Define provenance-bound benefit, goal-progress, and expiring lesson candidates without treating artifact completion as adoption or allowing ACA to promote durable truth.
 ## Requirements
 ### Requirement: Provenance-bound lesson candidates
 The partner policy MUST create lesson candidates only from a schema-valid executor outcome and MUST include source receipt hash, claim, scope, confidence, contradiction state, and expiry or review date.

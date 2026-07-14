@@ -176,6 +176,45 @@ class PartnerCliTests(unittest.TestCase):
         self.assertEqual("secret_arguments_forbidden", output["error_code"])
         self.assertNotIn("TOPSECRET_VALUE_123", json.dumps(output) + stderr)
 
+        with tempfile.TemporaryDirectory() as tmpdir:
+            secret = "sk-" + ("A" * 30)
+            snapshot = _snapshot()
+            snapshot["budgets"]["max_proposals"] = secret
+            snapshot_path = _write(Path(tmpdir) / "snapshot.json", snapshot)
+
+            bad_rc, bad_output, bad_stderr = _invoke(
+                ["observe", "--snapshot", str(snapshot_path)]
+            )
+
+            self.assertNotEqual(0, bad_rc)
+            self.assertEqual("contract_invalid", bad_output["error_code"])
+            self.assertNotIn(secret, json.dumps(bad_output) + bad_stderr)
+
+            private_marker = "PRIVATE-PLAINTEXT-MUST-NOT-ECHO-"
+            oversized = _snapshot()
+            oversized["observations"][0]["summary"] = private_marker * 300
+            oversized_path = _write(Path(tmpdir) / "oversized.json", oversized)
+            oversized_rc, oversized_output, oversized_stderr = _invoke(
+                ["observe", "--snapshot", str(oversized_path)]
+            )
+            self.assertNotEqual(0, oversized_rc)
+            self.assertEqual("contract_invalid", oversized_output["error_code"])
+            self.assertNotIn(
+                private_marker, json.dumps(oversized_output) + oversized_stderr
+            )
+
+            secret_key = "sk-" + ("B" * 30)
+            secret_key_snapshot = _snapshot()
+            secret_key_snapshot["budgets"][secret_key] = 0
+            secret_key_path = _write(Path(tmpdir) / "secret-key.json", secret_key_snapshot)
+            secret_key_rc, secret_key_output, secret_key_stderr = _invoke(
+                ["observe", "--snapshot", str(secret_key_path)]
+            )
+            self.assertNotEqual(0, secret_key_rc)
+            self.assertNotIn(
+                secret_key, json.dumps(secret_key_output) + secret_key_stderr
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

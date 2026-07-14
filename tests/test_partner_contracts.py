@@ -205,6 +205,13 @@ class PartnerWakeSnapshotContractTests(unittest.TestCase):
         with self.assertRaises(contracts.PartnerContractError):
             contracts.validate_wake_snapshot(secret)
 
+        unbounded_private = _snapshot()
+        unbounded_private["observations"][0]["opportunity"] = {
+            "body": "PRIVATE-CONTENT-" * 100_000
+        }
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(unbounded_private)
+
     def test_snapshot_requires_observation_expiry_and_complete_maturity(self) -> None:
         contracts = _contracts()
 

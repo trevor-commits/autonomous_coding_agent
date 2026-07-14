@@ -85,8 +85,7 @@
           "maxItems": 20,
           "uniqueItems": true,
           "items": {"type": "string", "minLength": 1, "maxLength": 80}
-        },
-        "opportunity": {"type": "object"}
+        }
       }
     },
     "maturity": {

@@ -231,6 +231,12 @@ def _error_code(exc: BaseException) -> str:
 
 
 def _safe_error_message(exc: BaseException) -> str:
+    if isinstance(exc, PartnerContractError):
+        return "Partner contract is invalid."
+    if isinstance(exc, PartnerRuntimeError):
+        return "Partner wake is invalid."
+    if isinstance(exc, PartnerLearningError):
+        return "Partner outcome is invalid."
     message = str(exc)
     return message if len(message) <= 500 else message[:497] + "..."
 

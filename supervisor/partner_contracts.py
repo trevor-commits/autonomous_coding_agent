@@ -89,10 +89,10 @@ def load_identity_document(path: Path | str) -> dict[str, Any]:
 
 def validate_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
     identity = _copy_mapping(payload, "identity")
-    supplied_hash = identity.pop("content_hash", None)
-    _validate_schema(identity, "partner-identity.schema.json")
     _reject_raw_private_keys(identity)
     _reject_secret_like_values(identity)
+    supplied_hash = identity.pop("content_hash", None)
+    _validate_schema(identity, "partner-identity.schema.json")
     _require_unique_ids(identity, IDENTITY_LIST_FIELDS)
     computed_hash = canonical_hash(identity)
     if supplied_hash is not None and supplied_hash != computed_hash:
@@ -103,9 +103,9 @@ def validate_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 def validate_wake_snapshot(payload: Mapping[str, Any]) -> dict[str, Any]:
     snapshot = _copy_mapping(payload, "wake snapshot")
-    _validate_schema(snapshot, "partner-wake-snapshot.schema.json")
     _reject_raw_private_keys(snapshot)
     _reject_secret_like_values(snapshot)
+    _validate_schema(snapshot, "partner-wake-snapshot.schema.json")
     snapshot["identity"] = validate_identity(snapshot["identity"])
     snapshot["approvals"] = [
         validate_document(approval, "partner-approval.schema.json")
@@ -134,9 +134,9 @@ def apply_identity_amendments(
     approval_by_amendment: dict[str, dict[str, Any]] = {}
     for approval_payload in approvals:
         approval = _copy_mapping(approval_payload, "identity amendment approval")
-        _validate_schema(approval, "partner-approval.schema.json")
         _reject_raw_private_keys(approval)
         _reject_secret_like_values(approval)
+        _validate_schema(approval, "partner-approval.schema.json")
         if "amendment_id" in approval:
             amendment_id = str(approval["amendment_id"])
         else:
@@ -172,9 +172,9 @@ def apply_identity_amendments(
 
 def validate_document(payload: Mapping[str, Any], schema_name: str) -> dict[str, Any]:
     document = _copy_mapping(payload, schema_name)
-    _validate_schema(document, schema_name)
     _reject_raw_private_keys(document)
     _reject_secret_like_values(document)
+    _validate_schema(document, schema_name)
     return document
 
 
@@ -233,6 +233,8 @@ def validate_safe_payload(payload: Mapping[str, Any], label: str = "payload") ->
 
 
 def _validate_identity_amendment(amendment: dict[str, Any]) -> None:
+    _reject_raw_private_keys(amendment)
+    _reject_secret_like_values(amendment)
     allowed_fields = {"schema_version", "amendment_id", "base_identity_hash", "changes"}
     if set(amendment) != allowed_fields:
         raise PartnerContractError(
@@ -260,7 +262,6 @@ def _validate_identity_amendment(amendment: dict[str, Any]) -> None:
                 raise PartnerContractError(
                     f"Identity amendment field `{field}` must retain operator_approved provenance."
                 )
-    _reject_secret_like_values(amendment)
 
 
 def _validate_schema(payload: dict[str, Any], schema_name: str) -> None:
@@ -275,8 +276,19 @@ def _validate_schema(payload: dict[str, Any], schema_name: str) -> None:
     if errors:
         messages = []
         for error in errors:
-            location = ".".join(str(part) for part in error.absolute_path) or "<root>"
-            messages.append(f"{location}: {error.message}")
+            safe_parts = []
+            for part in error.absolute_path:
+                if isinstance(part, int):
+                    safe_parts.append(str(part))
+                elif isinstance(part, str) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]{0,79}", part):
+                    safe_parts.append(part)
+                else:
+                    safe_parts.append("<field>")
+            location = ".".join(safe_parts) or "<root>"
+            validator = str(error.validator)
+            if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,79}", validator):
+                validator = "schema"
+            messages.append(f"{location}: violates `{validator}` constraint")
         raise PartnerContractError("; ".join(messages))
 
 
@@ -304,6 +316,8 @@ def _require_unique_ids(payload: Mapping[str, Any], fields: Sequence[str]) -> No
 def _reject_secret_like_values(payload: Any, path: str = "<root>") -> None:
     if isinstance(payload, Mapping):
         for key, value in payload.items():
+            if isinstance(key, str) and any(pattern.search(key) for pattern in _SECRET_PATTERNS):
+                raise PartnerContractError("Secret-like content is forbidden in partner documents.")
             _reject_secret_like_values(value, f"{path}.{key}")
         return
     if isinstance(payload, list):
@@ -311,14 +325,14 @@ def _reject_secret_like_values(payload: Any, path: str = "<root>") -> None:
             _reject_secret_like_values(value, f"{path}[{index}]")
         return
     if isinstance(payload, str) and any(pattern.search(payload) for pattern in _SECRET_PATTERNS):
-        raise PartnerContractError(f"Secret-like content is forbidden at `{path}`.")
+        raise PartnerContractError("Secret-like content is forbidden in partner documents.")
 
 
 def _reject_raw_private_keys(payload: Any, path: str = "<root>") -> None:
     if isinstance(payload, Mapping):
         for key, value in payload.items():
             if str(key).lower() in _RAW_PRIVATE_KEYS:
-                raise PartnerContractError(f"Raw private content field is forbidden at `{path}.{key}`.")
+                raise PartnerContractError("Raw private content fields are forbidden in partner documents.")
             _reject_raw_private_keys(value, f"{path}.{key}")
         return
     if isinstance(payload, list):

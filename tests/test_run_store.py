@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from supervisor.run_store import RunStore
 from supervisor.state_machine import StateMachine
@@ -46,6 +47,28 @@ class RunStoreTests(unittest.TestCase):
             self.assertIn("PREPARE_WORKSPACE", store.state_path.read_text())
             self.assertEqual("IN_PROGRESS", json.loads(report_path.read_text())["run_state"])
             self.assertIn("phase started", store.execution_log_path.read_text())
+
+    def test_interrupted_json_write_preserves_last_valid_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            store = RunStore(repo_root, "run-003")
+            target = store.state_path
+            store.write_json(target, {"generation": 1})
+            original_payload = target.read_text()
+            real_write_text = Path.write_text
+
+            def interrupted_write(path: Path, data: str, *args, **kwargs) -> int:
+                if path.parent == target.parent:
+                    real_write_text(path, data[:8], *args, **kwargs)
+                    raise OSError("simulated interrupted write")
+                return real_write_text(path, data, *args, **kwargs)
+
+            with patch.object(Path, "write_text", autospec=True, side_effect=interrupted_write):
+                with self.assertRaisesRegex(OSError, "simulated interrupted write"):
+                    store.write_json(target, {"generation": 2})
+
+            self.assertEqual(original_payload, target.read_text())
+            self.assertEqual({"generation": 1}, json.loads(target.read_text()))
 
 
 if __name__ == "__main__":

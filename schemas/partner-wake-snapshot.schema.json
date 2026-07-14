@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/partner-wake-snapshot.schema.json",
+  "title": "Partner Wake Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "wake_id",
+    "created_at",
+    "identity",
+    "goals",
+    "observations",
+    "approvals",
+    "maturity",
+    "executor_outcomes",
+    "inferred_preferences"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "wake_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "created_at": {"type": "string", "minLength": 20, "maxLength": 40},
+    "identity": {"type": "object"},
+    "goals": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/goal"}
+    },
+    "observations": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/observation"}
+    },
+    "approvals": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"type": "object"}
+    },
+    "maturity": {"$ref": "#/$defs/maturity"},
+    "executor_outcomes": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"type": "object"}
+    },
+    "inferred_preferences": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/inferredPreference"}
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_proposals", "max_envelopes"],
+      "properties": {
+        "max_proposals": {"type": "integer", "minimum": 0, "maximum": 1},
+        "max_envelopes": {"type": "integer", "minimum": 0, "maximum": 1}
+      }
+    }
+  },
+  "$defs": {
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "summary", "source_ref"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "summary": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "source_ref": {"type": "string", "minLength": 1, "maxLength": 500}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "summary", "source_ref", "sensitivity", "observed_at", "expires_at"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "summary": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "source_ref": {"type": "string", "minLength": 1, "maxLength": 500},
+        "sensitivity": {"enum": ["low", "moderate"]},
+        "observed_at": {"type": "string", "minLength": 20, "maxLength": 40},
+        "expires_at": {"type": "string", "minLength": 20, "maxLength": 40},
+        "interest_ids": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 80}
+        },
+        "opportunity": {"type": "object"}
+      }
+    },
+    "maturity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "proposal_count", "accepted_count", "completed_episode_count", "severe_failure"],
+      "properties": {
+        "level": {"enum": ["L0", "L1", "L2", "L3"]},
+        "proposal_count": {"type": "integer", "minimum": 0},
+        "accepted_count": {"type": "integer", "minimum": 0},
+        "completed_episode_count": {"type": "integer", "minimum": 0},
+        "severe_failure": {"type": "boolean"}
+      }
+    },
+    "inferredPreference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "source", "source_ref"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "value": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "source": {"const": "inferred"},
+        "source_ref": {"type": "string", "minLength": 1, "maxLength": 500},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 .autoclaw/
+.hotl/
 .claude/
 worktrees/
 node_modules/

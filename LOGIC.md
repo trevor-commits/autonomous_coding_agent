@@ -107,6 +107,12 @@ The delegation flow within a BUILD phase looks like this:
 
 The key insight: the supervisor asks the AI questions at defined decision points. The AI never tells the supervisor "now run hooks" or "now commit." The supervisor already knows when to do those things because it owns the phase machine.
 
+## Persistent Partner Wake Logic
+
+The persistent layer runs outside this repo in the existing global autonomous loop. Each healthy idle wake composes a bounded snapshot from the configured identity, durable goals, approved observations, explicit approvals, maturity counters, executor outcomes, inferred-preference candidates, budgets, and health. ACA validates that snapshot without storing it.
+
+The policy then returns one result. Observe mode always emits a no-op receipt. Propose/execute mode deterministically ranks only current evidence-backed candidates. An unauthorized candidate becomes a proposal; an authorized low/medium-risk candidate becomes an immutable executor envelope. The global bridge records the decision and may place that one envelope in the existing queue. The global loop remains the only dispatcher and rechecks kill switches before claiming work. The partner executor validates the exact envelope, runs the existing phase machine, and returns a bounded report reference/hash. Outcome reconciliation can propose benefit, goal-progress, and expiring lesson candidates, but only global truth surfaces may promote them.
+
 ## The Typed Action Graph
 
 The AI strategy layer communicates with the supervisor through typed domain actions, not raw commands. This is how delegation stays bounded.

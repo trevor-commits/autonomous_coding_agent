@@ -48,6 +48,8 @@ class CodexBuilderAdapterTests(unittest.TestCase):
         self.assertIn("pnpm test", prompt)
         self.assertIn("local-verify-test-login-failed", prompt)
         self.assertIn("Do not commit, push, switch branches, or control a browser.", prompt)
+        self.assertIn("Execute no shell command outside", prompt)
+        self.assertIn("git rev-parse --show-toplevel", prompt)
 
     def test_adapter_parses_json_events_and_reuses_session_id(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -87,7 +89,11 @@ class CodexBuilderAdapterTests(unittest.TestCase):
                     )
                 return subprocess.CompletedProcess(args=args, returncode=0, stdout=stdout, stderr="")
 
-            adapter = CodexBuilderAdapter(runner=runner)
+            adapter = CodexBuilderAdapter(
+                runner=runner,
+                model="gpt-5.5",
+                reasoning_effort="high",
+            )
             session = adapter.start_session(repo_root, {"objective": "Add feature"})
 
             first = adapter.send_task(session, "Do the first task.", timeout=30)
@@ -101,6 +107,9 @@ class CodexBuilderAdapterTests(unittest.TestCase):
             self.assertEqual("done again", second.final_message)
             self.assertEqual(["codex", "exec"], calls[0][:2])
             self.assertEqual(["codex", "exec", "resume", "session-123"], calls[1][:4])
+            for call in calls:
+                self.assertIn("gpt-5.5", call)
+                self.assertIn('model_reasoning_effort="high"', call)
 
     def test_adapter_handles_timeout_stdout_as_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

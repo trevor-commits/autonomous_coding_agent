@@ -54,6 +54,19 @@
 - No other agent may write to the worktree: not the reviewer, not the strategy layer, not the UI verifier.
 - The supervisor enforces single-writer via a lease mechanism. A second writer cannot acquire the lease while the first holds it.
 
+## Autonomous Partner Rules
+
+- Global surfaces own durable identity, goals, observations, approvals, maturity, outcomes, learning promotion, heartbeat, and queue state. ACA partner policy is stateless.
+- One wake ID produces at most one canonical decision and one executor envelope.
+- Every self-originated proposal cites a current approved observation and configured interest. Missing/stale evidence is a no-op.
+- Personality, voice, interests, dislikes, love-as-practice, and model prose may affect ranking and communication only; they never grant capabilities or relax a gate.
+- Only `local_read`, `sandbox_write`, `deterministic_test`, and `local_artifact` are partner sandbox capabilities. All other capability classes fail closed or require Trevor's exact gate.
+- L1/L2 self-projects require one exact unexpired approval bound to proposal ID, proposal hash, and capability set. L3 applies only after the empirical threshold in `docs/designs/autonomous-partner.md` and only to low-risk sandbox starts.
+- Executor envelopes bind executor ID, strategy, wake, proposal, approval, embedded run contract hash, risk, and capabilities. Any drift fails before worktree effects.
+- Partner executor success requires `COMPLETE`, `READY`, an existing report, and a matching report SHA-256. Verified worktrees are retained by default; landing remains separately governed.
+- Learning is outcome-derived and candidate-only. Identity/value/spiritual/relationship changes require an exact identity-amendment approval.
+- The existing global kill switches block partner evaluation, queue publication, and execution, including switches appearing between observation and publish.
+
 ---
 
 ## Single-Browser-Owner Rules

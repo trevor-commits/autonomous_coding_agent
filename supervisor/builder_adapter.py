@@ -92,6 +92,13 @@ def build_builder_prompt(
         "- Do not commit, push, switch branches, or control a browser.",
         "- Do not write outside allowed paths.",
         "- Treat any high-risk operation as unsupported in this phase.",
+        "- Execute no shell command outside the repo contract commands or these bounded forms: "
+        "`pwd`; `git status -sb`; `git status --short`; `git rev-parse --show-toplevel`; "
+        "`git log -1 --oneline`; `git diff --check`; `git diff --stat`; "
+        "`git diff --name-only`; relative-path `find` optionally piped to exact `sort`; "
+        "and `rg --files` with bounded glob/relative-path arguments optionally piped to "
+        "`sed -n '<start>,<end>p'`. Exact safe forms may be chained with `&&`.",
+        "- If another shell command appears necessary, report it as a blocker instead of running it.",
         "",
         "Required response:",
         "- files changed",
@@ -111,12 +118,16 @@ class CodexBuilderAdapter(BuilderAdapter):
         runner: Runner | None = None,
         git_runner: Runner | None = None,
         model: str | None = None,
+        reasoning_effort: str | None = None,
         sandbox: str = "workspace-write",
     ) -> None:
         self.codex_bin = codex_bin
         self.runner = runner or subprocess.run
         self.git_runner = git_runner or subprocess.run
         self.model = model
+        if reasoning_effort not in {None, "low", "medium", "high", "xhigh"}:
+            raise ValueError("reasoning_effort must be low, medium, high, or xhigh")
+        self.reasoning_effort = reasoning_effort
         self.sandbox = sandbox
 
     def start_session(self, worktree_path: Path, run_context: dict[str, Any]) -> BuilderSession:
@@ -188,6 +199,8 @@ class CodexBuilderAdapter(BuilderAdapter):
             ]
             if self.model:
                 args.extend(["-m", self.model])
+            if self.reasoning_effort:
+                args.extend(["-c", f'model_reasoning_effort="{self.reasoning_effort}"'])
             return args
 
         args = [
@@ -203,6 +216,8 @@ class CodexBuilderAdapter(BuilderAdapter):
         ]
         if self.model:
             args.extend(["-m", self.model])
+        if self.reasoning_effort:
+            args.extend(["-c", f'model_reasoning_effort="{self.reasoning_effort}"'])
         args.append(prompt)
         return args
 

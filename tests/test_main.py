@@ -8,7 +8,8 @@ import yaml
 
 from supervisor.app_supervisor import AppLaunchSummary, AppSession
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, BuilderSession
-from supervisor.main import execute_run
+from supervisor.main import _actual_changed_files, _exit_code_for_run_state, execute_run
+from supervisor.policy import PolicyViolationError
 from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.ui_verifier import UIVerificationSummary
 from supervisor.strategy_simple import SimpleStrategy
@@ -104,8 +105,10 @@ class FakeBuilderAdapter(BuilderAdapter):
         self.writes = writes
         self.commands_per_turn = commands_per_turn or [tuple() for _ in writes]
         self.prompts: list[str] = []
+        self.started_sessions = 0
 
     def start_session(self, worktree_path: Path, run_context: dict) -> BuilderSession:
+        self.started_sessions += 1
         return BuilderSession(worktree_path=Path(worktree_path), run_context=run_context, session_id="fake")
 
     def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
@@ -127,6 +130,24 @@ class FakeBuilderAdapter(BuilderAdapter):
 
     def close_session(self, session: BuilderSession) -> None:
         return None
+
+
+class UnreportedScopeDriftBuilderAdapter(FakeBuilderAdapter):
+    def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
+        result = super().send_task(session, prompt, timeout)
+        (session.worktree_path / "README.md").write_text("unreported scope drift\n")
+        return result
+
+
+class MissingArtifactStrategy(SimpleStrategy):
+    def __init__(self, repo_root: Path, run_id: str) -> None:
+        self.artifact_path = (
+            repo_root / ".autoclaw" / "runs" / run_id / "artifacts" / "logs" / "test.stdout.log"
+        )
+
+    def candidate_review_action(self, *args, **kwargs):
+        self.artifact_path.unlink()
+        return super().candidate_review_action(*args, **kwargs)
 
 
 class MultiFileBuilderAdapter(BuilderAdapter):
@@ -166,12 +187,17 @@ class MultiFileBuilderAdapter(BuilderAdapter):
 
 
 class FakeAppSupervisor:
-    def __init__(self, launches: list[AppLaunchSummary]) -> None:
+    def __init__(self, launches: list[AppLaunchSummary], *, repo_root: Path | None = None) -> None:
         self.launches = launches
+        self.artifact_root = (
+            repo_root / ".autoclaw" / "runs" / "benchmark-001" if repo_root else None
+        )
         self.stopped_sessions: list[AppSession] = []
 
     def launch(self) -> AppLaunchSummary:
-        return self.launches.pop(0)
+        summary = self.launches.pop(0)
+        _materialize_fake_artifacts(self.artifact_root, summary.artifact_manifest)
+        return summary
 
     def stop(self, session: AppSession | None) -> None:
         if session is not None:
@@ -179,11 +205,25 @@ class FakeAppSupervisor:
 
 
 class FakeUIVerifier:
-    def __init__(self, summaries: list[UIVerificationSummary]) -> None:
+    def __init__(self, summaries: list[UIVerificationSummary], *, repo_root: Path | None = None) -> None:
         self.summaries = summaries
+        self.artifact_root = (
+            repo_root / ".autoclaw" / "runs" / "benchmark-001" if repo_root else None
+        )
 
     def run(self, *, changed_files: tuple[str, ...]) -> UIVerificationSummary:
-        return self.summaries.pop(0)
+        summary = self.summaries.pop(0)
+        _materialize_fake_artifacts(self.artifact_root, summary.artifact_manifest)
+        return summary
+
+
+def _materialize_fake_artifacts(root: Path | None, manifest: tuple[str, ...]) -> None:
+    if root is None:
+        return
+    for relative_path in manifest:
+        target = root / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("fake test evidence\n")
 
 
 def _healthy_launch() -> AppLaunchSummary:
@@ -313,7 +353,42 @@ def _ui_failure() -> UIVerificationSummary:
     )
 
 
+class SupervisorCliExitCodeTests(unittest.TestCase):
+    def test_noncomplete_run_states_fail_the_process(self) -> None:
+        self.assertEqual(0, _exit_code_for_run_state("COMPLETE"))
+        for run_state in ("BLOCKED", "UNSUPPORTED", "IN_PROGRESS"):
+            with self.subTest(run_state=run_state):
+                self.assertNotEqual(0, _exit_code_for_run_state(run_state))
+
+
 class SupervisorMainTests(unittest.TestCase):
+    def test_execute_run_rejects_high_risk_or_approval_required_before_workspace_setup(self) -> None:
+        unsafe_queue_metadata = (
+            ("risk_level", "High", "risk"),
+            ("approval_required", True, "approval"),
+        )
+        for field, value, message_fragment in unsafe_queue_metadata:
+            with self.subTest(field=field):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    repo_root = Path(tmpdir)
+                    run_contract_path = _init_target_repo(repo_root)
+                    payload = json.loads(run_contract_path.read_text())
+                    payload[field] = value
+                    run_contract_path.write_text(json.dumps(payload))
+                    adapter = FakeBuilderAdapter(["fixed"])
+
+                    with self.assertRaisesRegex(PolicyViolationError, message_fragment):
+                        execute_run(
+                            repo_root=repo_root,
+                            run_contract_path=run_contract_path,
+                            builder_adapter=adapter,
+                            strategy=SimpleStrategy(),
+                            cleanup_worktree=False,
+                        )
+
+                    self.assertEqual(0, adapter.started_sessions)
+                    self.assertFalse((repo_root / "worktrees" / "benchmark-001").exists())
+
     def test_execute_run_blocks_when_iteration_budget_is_exceeded(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -430,6 +505,63 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual(1, outcome.report.builder_turns)
             self.assertGreaterEqual(outcome.report.run_duration_seconds, 0.0)
             self.assertEqual(1, len(adapter.prompts))
+
+    def test_execute_run_does_not_complete_when_manifest_artifact_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=MissingArtifactStrategy(repo_root, "benchmark-001"),
+                cleanup_worktree=False,
+            )
+
+            self.assertNotEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertNotEqual("READY", getattr(outcome.snapshot.readiness_verdict, "value", None))
+
+    def test_execute_run_does_not_complete_when_authoritative_final_rerun_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            (repo_root / "scripts" / "test.py").write_text(
+                "\n".join(
+                    [
+                        "from pathlib import Path",
+                        "counter = Path('.autoclaw/final-rerun-count')",
+                        "counter.parent.mkdir(parents=True, exist_ok=True)",
+                        "attempt = int(counter.read_text()) + 1 if counter.exists() else 1",
+                        "counter.write_text(str(attempt))",
+                        "task = Path('src/task.txt')",
+                        "if attempt == 1 and task.exists() and task.read_text().strip() == 'fixed':",
+                        "    print('initial verification passed')",
+                        "else:",
+                        "    print('authoritative final rerun failed')",
+                        "    raise SystemExit(1)",
+                    ]
+                )
+            )
+            _git(repo_root, "add", "scripts/test.py")
+            _git(repo_root, "commit", "-m", "make final rerun fail")
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            rerun_count = int(
+                (outcome.workspace.worktree_path / ".autoclaw" / "final-rerun-count").read_text()
+            )
+            self.assertGreaterEqual(rerun_count, 2)
+            self.assertNotEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertNotEqual("READY", getattr(outcome.snapshot.readiness_verdict, "value", None))
 
     def test_execute_run_retries_with_failure_fingerprint_context(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -697,6 +829,41 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("README.md", blockers)
             self.assertIn("violates run scope", blockers)
 
+    def test_execute_run_blocks_unreported_worktree_diff_outside_run_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = UnreportedScopeDriftBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            blockers = "\n".join(outcome.report.unresolved_blockers)
+            self.assertIn("README.md", blockers)
+            self.assertIn("violates run scope", blockers)
+
+    def test_actual_changed_files_includes_both_rename_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_target_repo(repo_root)
+            (repo_root / "infra").mkdir()
+            (repo_root / "infra" / "config.yml").write_text("enabled: true\n")
+            _git(repo_root, "add", "infra/config.yml")
+            _git(repo_root, "commit", "-m", "add protected config")
+
+            _git(repo_root, "mv", "infra/config.yml", "src/config.yml")
+
+            self.assertEqual(
+                ("infra/config.yml", "run-contract.json", "src/config.yml"),
+                _actual_changed_files(repo_root),
+            )
+
     def test_execute_run_blocks_forbidden_builder_command_categories(self) -> None:
         forbidden_commands = (
             "git push origin main",
@@ -752,8 +919,10 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_failed_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_failed_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier([_ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -776,8 +945,10 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["broken", "fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_failed_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_failed_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier([_ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -798,8 +969,10 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_healthy_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -822,7 +995,9 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
+            app_supervisor = FakeAppSupervisor(
+                [_healthy_launch(), _healthy_launch()], repo_root=repo_root
+            )
             ui_failure = UIVerificationSummary(
                 passed=False,
                 command_results=(
@@ -866,7 +1041,7 @@ class SupervisorMainTests(unittest.TestCase):
                 ),
                 artifact_manifest=("artifacts/logs/ui_smoke.stderr.log",),
             )
-            ui_verifier = FakeUIVerifier([ui_failure, _ui_pass()])
+            ui_verifier = FakeUIVerifier([ui_failure, _ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -894,8 +1069,10 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["broken", "fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_healthy_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,

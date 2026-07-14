@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -113,6 +114,10 @@ class WorktreeManager:
             )
 
 
-def _slugify(value: str) -> str:
+def _slugify(value: str, *, max_length: int = 80) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return slug or "task"
+    slug = slug or "task"
+    if len(slug) <= max_length:
+        return slug
+    digest = hashlib.sha256(slug.encode("utf-8")).hexdigest()[:12]
+    return f"{slug[: max_length - len(digest) - 1].rstrip('-')}-{digest}"

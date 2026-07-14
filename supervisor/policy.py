@@ -3,7 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
+import shlex
 
 from supervisor.contracts import RepoContract, RunContract
 
@@ -71,6 +73,21 @@ AUTO_DENY_PATHS = (
     ".env.local",
 )
 
+_FIND_NO_ARGUMENT = {"-print", "-print0", "-prune", "-o", "-a", "-not", "!", "(", ")"}
+_FIND_STRING_ARGUMENT = {"-name", "-iname", "-path", "-wholename", "-type"}
+_FIND_INTEGER_ARGUMENT = {"-maxdepth", "-mindepth"}
+_FIND_EFFECT_ACTIONS = {"-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprintf", "-fls"}
+_READ_ONLY_METADATA_COMMANDS = {
+    ("pwd",),
+    ("git", "status", "-sb"),
+    ("git", "status", "--short"),
+    ("git", "rev-parse", "--show-toplevel"),
+    ("git", "log", "-1", "--oneline"),
+    ("git", "diff", "--check"),
+    ("git", "diff", "--stat"),
+    ("git", "diff", "--name-only"),
+}
+
 
 def classify_command(command: str, repo_contract: RepoContract | None = None) -> CommandDecision:
     normalized = command.strip()
@@ -89,10 +106,131 @@ def classify_command(command: str, repo_contract: RepoContract | None = None) ->
             shell_class=ShellClass.ESCALATE,
             reason="matches escalate-only shell policy",
         )
+    if _is_bounded_read_only_discovery(normalized):
+        return CommandDecision(
+            shell_class=ShellClass.AUTO_ALLOW,
+            reason="bounded read-only discovery command",
+        )
     return CommandDecision(
-        shell_class=ShellClass.AUTO_ALLOW,
-        reason="safe by default under current policy envelope",
+        shell_class=ShellClass.ESCALATE,
+        reason="command is not an exact repo-contract command or a classified policy command",
     )
+
+
+def _is_bounded_read_only_discovery(command: str) -> bool:
+    if len(command) > 4000:
+        return False
+    try:
+        lexer = shlex.shlex(command, posix=True, punctuation_chars="|&;<>")
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        tokens = list(lexer)
+    except ValueError:
+        return False
+    if not tokens or len(tokens) > 80:
+        return False
+    if any(token in {";", "||", ">", ">>", "<", "<<", "&"} for token in tokens):
+        return False
+
+    sequences = _split_tokens(tokens, "&&")
+    if sequences is None:
+        return False
+    for sequence in sequences:
+        pipeline = _split_tokens(sequence, "|")
+        if pipeline is None or len(pipeline) > 3:
+            return False
+        source = pipeline[0]
+        if tuple(source) in _READ_ONLY_METADATA_COMMANDS:
+            if len(pipeline) != 1:
+                return False
+            continue
+        if not (_is_bounded_find_tokens(source) or _is_bounded_rg_files_tokens(source)):
+            return False
+        if any(not _is_output_only_filter(stage) for stage in pipeline[1:]):
+            return False
+    return True
+
+
+def _split_tokens(tokens: list[str], delimiter: str) -> list[list[str]] | None:
+    groups: list[list[str]] = [[]]
+    for token in tokens:
+        if token == delimiter:
+            if not groups[-1]:
+                return None
+            groups.append([])
+        else:
+            groups[-1].append(token)
+    return groups if groups[-1] else None
+
+
+def _is_bounded_find_tokens(tokens: list[str]) -> bool:
+    if not tokens or tokens[0] != "find":
+        return False
+    index = 1
+    expression_started = False
+    while index < len(tokens):
+        token = tokens[index]
+        if token in _FIND_EFFECT_ACTIONS:
+            return False
+        if token in _FIND_NO_ARGUMENT:
+            expression_started = True
+            index += 1
+            continue
+        if token in _FIND_INTEGER_ARGUMENT:
+            expression_started = True
+            if index + 1 >= len(tokens) or not tokens[index + 1].isdigit():
+                return False
+            index += 2
+            continue
+        if token in _FIND_STRING_ARGUMENT:
+            expression_started = True
+            if index + 1 >= len(tokens) or len(tokens[index + 1]) > 300:
+                return False
+            index += 2
+            continue
+        if token.startswith("-") or expression_started:
+            return False
+        root = PurePosixPath(token)
+        if root.is_absolute() or ".." in root.parts:
+            return False
+        index += 1
+    return True
+
+
+def _is_bounded_rg_files_tokens(tokens: list[str]) -> bool:
+    if len(tokens) < 2 or tokens[:2] != ["rg", "--files"]:
+        return False
+    index = 2
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"-g", "--glob"}:
+            if index + 1 >= len(tokens) or len(tokens[index + 1]) > 300:
+                return False
+            index += 2
+            continue
+        if token in {"--hidden", "--no-hidden", "--no-ignore", "--no-ignore-vcs"}:
+            index += 1
+            continue
+        if token.startswith("-"):
+            return False
+        root = PurePosixPath(token)
+        if len(token) > 300 or root.is_absolute() or ".." in root.parts:
+            return False
+        index += 1
+    return True
+
+
+def _is_output_only_filter(tokens: list[str]) -> bool:
+    if tokens == ["sort"]:
+        return True
+    if len(tokens) != 3 or tokens[:2] != ["sed", "-n"]:
+        return False
+    match = re.fullmatch(r"(\d{1,6})(?:,(\d{1,6}))?p", tokens[2])
+    if match is None:
+        return False
+    start = int(match.group(1))
+    end = int(match.group(2) or match.group(1))
+    return 1 <= start <= end <= 10000
 
 
 def classify_path_change(relative_path: str) -> CommandDecision:

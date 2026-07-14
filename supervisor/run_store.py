@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
@@ -69,7 +71,22 @@ class RunStore:
 
     def write_json(self, path: Path, payload: Any) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+        descriptor, temp_name = tempfile.mkstemp(
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+        )
+        os.close(descriptor)
+        temp_path = Path(temp_name)
+        try:
+            temp_path.write_text(serialized, encoding="utf-8")
+            with temp_path.open("rb+") as handle:
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, path)
+        finally:
+            temp_path.unlink(missing_ok=True)
 
     def _serialize(self, payload: Any) -> Any:
         if is_dataclass(payload):

@@ -10,7 +10,7 @@
 - Global surfaces own persistent identity, goals, approved observations, approvals, maturity, learning promotion, benefit, heartbeat, and queue state. ACA owns stateless typed wake policy plus per-episode legality/evidence.
 - Personality and love-as-practice guide voice and ranking, never authority. Respect for Trevor's devotion to Jehovah is a configured relationship boundary, not a claim of divine standing.
 - Recurring observe may deploy after proof. Recurring execute remains off until the bounded pilot and fresh independent audit are clean.
-- L3 low-risk sandbox starts require real history: at least 10 proposals, at least 80 percent accepted, at least 10 completed episodes, and no severe failure.
+- L3 history thresholds are necessary but not sufficient. A separate exact operator-promotion proof format is not implemented, so every effectful proposal still requires a current, exact, proposal-bound approval.
 
 ## Current implementation state
 
@@ -18,7 +18,9 @@
 - Identity, initiative ranking, authority, one-decision runtime, outcome learning, CLI, schemas, snapshot builder, real model candidate generation, global bridge, queue integration, executor adapter, and exact completion retirement exist on isolated branches.
 - The isolated live pilot passed observe, proposal, pre-approval denial, synthetic exact approval, dry-run, real `gpt-5.5`/high retained-worktree execution, 159-test final rerun, outcome/unknown-benefit reconciliation, no-replay retirement, and kill-switch proof. Evidence: `records/verification/2026-07-13-autonomous-partner-pilot.md`.
 - Frozen full verification is green: Python compileall, all 159 unit tests, strict OpenSpec validation, and whitespace checks passed on 2026-07-13.
-- Remaining: fresh independent audit, accepted-finding repairs if any, OpenSpec archive, Ripple Check closeout, commit/push/origin-main landing, and observe-only immutable deployment proof.
+- Four fresh review passes converged after repairing full effect-time approval binding, descriptor-bound approval-store reads, and original-path ancestor validation. The terminal reviewer found no P0-P3 defect at ACA `9275630` and global `a2cedf6`; evidence: `records/audits/2026-07-13-autonomous-partner-independent-review.md`.
+- OpenSpec verification/retrospective are complete and the change is archived at `openspec/changes/archive/2026-07-14-autonomous-partner-reposition/`; its four capability specs are synchronized under `openspec/specs/`.
+- Remaining release gates: origin/main landing and observe-only immutable deployment proof. Recurring execute remains off.
 
 ## Gotchas
 

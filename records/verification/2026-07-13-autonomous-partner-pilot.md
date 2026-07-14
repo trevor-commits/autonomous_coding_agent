@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path, the repaired effect-time approval integration, and frozen full repository verification. Independent audit round 1 found that the original queued envelope carried only approval id/hash; the repaired path now proves both a revoked-approval denial before effects and a successful full-binding sandbox execution. Fresh re-audit and landing remain.
+- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path, the repaired effect-time approval integration, frozen full repository verification, and the completed independent audit/fix loop. Four fresh passes converged to `REVIEW-CLEAN` at ACA `9275630` and global `a2cedf6`. Landing and observe-only deployment remain release gates.
 
 ## Authority and scope
 
@@ -88,3 +88,14 @@ The repair makes the full exact proposal approval required envelope content, cro
 ## Ripple Check
 
 ACA contract/policy/builder changes were paired with the global identity, snapshot, candidate, bridge, executor, reconciliation, loop-health, runbook, ER-141, project-memory, and todo surfaces. The cross-repo envelope/model/run-contract hash boundary stayed synchronized. No second scheduler or partner database was added.
+
+## Independent audit convergence
+
+The full audit lineage is preserved in `records/audits/2026-07-13-autonomous-partner-independent-review.md`.
+
+- Round 1 found that the envelope carried only approval id/hash rather than the full authority document. The repair bound the complete approval into the envelope and revalidated its subject, capabilities, state, lifetime, identity, and exact current-store membership immediately before effects. L3 stays inactive without a separate operator-promotion proof.
+- Round 2 found that resolving the approval-store path before checking it defeated the intended leaf-symlink defense and split authority checks across different opens. The repair uses one descriptor-bound, no-follow lease with device/inode/content checks, a shared writer lock, bounded reads, and atomic-replacement regression coverage.
+- Round 3 found that an ancestor symlink could still be followed before descriptor traversal and that reconciliation repeated the same resolve-before-check pattern. The repair validates every original absolute-path component before use and added ancestor-symlink regressions to execution and reconciliation.
+- Round 4 independently reran ACA 159/159, executor 14/14, and reconciliation 5/5 and returned `REVIEW-CLEAN` with no P0-P3 finding.
+
+Residual boundaries remain explicit: reconciliation does not descriptor-pin the entire publication ancestry against a hostile same-user directory swap; the accepted threat boundary assumes the runtime state directory is not writable by another principal or an uncoordinated writer. Adoption, measured benefit, preference accuracy, long-term health, origin/main landing, and live deployment were not claimed by the review.

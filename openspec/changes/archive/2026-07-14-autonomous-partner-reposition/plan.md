@@ -51,5 +51,5 @@
 - [x] **Step 4.2:** Run full ACA/global automated verification and freeze relevant hashes.
 - [x] **Step 4.3:** Run the isolated live observe/proposal/deny/approve/envelope/outcome/lesson/kill-switch pilot and write durable evidence.
 - [x] **Step 4.4:** Start a fresh read-only audit session against the frozen branches, rerun its evidence, and record findings.
-- [ ] **Step 4.5:** Add regressions and fixes for every accepted finding; repeat audit until review-clean.
-- [ ] **Step 4.6:** Complete `verify.md`, `retrospective.md`, OpenSpec archive, Ripple Check, completion/test/audit records, scoped commits/pushes, and remote containment verification.
+- [x] **Step 4.5:** Add regressions and fixes for every accepted finding; repeat audit until review-clean.
+- [x] **Step 4.6:** Complete `verify.md`, `retrospective.md`, OpenSpec archive, Ripple Check, completion/test/audit records, scoped commits/pushes, and remote containment verification.

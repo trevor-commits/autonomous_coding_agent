@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and repaired effect-time approval integration. Later release reviews correctly reopened additional defects instead of invalidating the preserved pilot evidence. Repairs at ACA `2653e7f` and global `51e3720` pass ACA 169/169 plus the full global verifier; fresh exact-tip review, landing, and observe-only deployment remain release gates.
+- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and repaired effect-time approval integration. Later release reviews correctly reopened additional defects instead of invalidating the preserved pilot evidence. Repairs at ACA `84694c6` and global `b9124a3` pass ACA 170/170 plus the full global verifier; fresh exact-tip review, landing, and observe-only deployment remain release gates.
 
 ## Authority and scope
 
@@ -72,7 +72,7 @@ This proves bounded autonomous idea generation and execution, not consciousness,
 - Direct high-risk CLI RED returned a traceback/no JSON; ACA `2653e7f` now returns structured `BLOCKED / NOT_READY` JSON before workspace creation.
 - Archive-discovery RED found three live stale paths and four placeholder purposes; all current discovery pointers now use the dated archive and all canonical specs have explicit purposes.
 - Learning validation now translates generated-candidate schema failures to `PartnerLearningError`; proposal id/hash mismatch and unsuccessful zero-benefit behavior have durable regressions.
-- ACA full suite: 169/169. Strict canonical OpenSpec: 4/4. Global full verifier: pass. Exact-tip independent review remains pending and therefore no landing/deployment claim is made.
+- ACA full suite: 170/170. Strict canonical OpenSpec: 4/4. Global full verifier: pass. The new regression proves an exact approved execute envelope is not consumed by a zero proposal budget when envelope budget remains. Exact-tip independent review remains pending and therefore no landing/deployment claim is made.
 
 ## Independent audit round 1
 

@@ -7,7 +7,7 @@ The existing repository was kept and repositioned. Its tested supervisor is now 
 ## Evidence
 
 - 22/22 OpenSpec tasks complete on a clean-history release branch.
-- 169 ACA tests pass; strict OpenSpec validation and whitespace checks pass.
+- 170 ACA tests pass; strict OpenSpec validation and whitespace checks pass.
 - One real `gpt-5.5`/high retained-worktree pilot completed with two successful 159-test runs.
 - Six fresh review passes found and repaired approval, filesystem, diff, provenance, schema, concurrency, idempotency, CLI, archive, and learning-boundary defects. A seventh exact-tip verdict remains required before landing.
 - No dependency was added.

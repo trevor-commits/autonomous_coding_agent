@@ -3,14 +3,17 @@ from __future__ import annotations
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
-import tempfile
 import time
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Sequence
+
+from supervisor.policy import ShellClass, classify_command, classify_path_change
 
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
@@ -24,6 +27,8 @@ class BuilderSession:
     turn_count: int = 0
     cumulative_changed_files: tuple[str, ...] = ()
     guard_policy_path: Path | None = None
+    runtime_dir: Path | None = None
+    tool_environment: dict[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -39,11 +44,15 @@ class BuilderResult:
 
 class BuilderAdapter(ABC):
     @abstractmethod
-    def start_session(self, worktree_path: Path, run_context: dict[str, Any]) -> BuilderSession:
+    def start_session(
+        self, worktree_path: Path, run_context: dict[str, Any]
+    ) -> BuilderSession:
         raise NotImplementedError
 
     @abstractmethod
-    def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
+    def send_task(
+        self, session: BuilderSession, prompt: str, timeout: int
+    ) -> BuilderResult:
         raise NotImplementedError
 
     @abstractmethod
@@ -59,7 +68,9 @@ def build_builder_prompt(
 ) -> str:
     allowed_paths = ", ".join(run_context.get("allowed_paths", ())) or "n/a"
     forbidden_paths = ", ".join(run_context.get("forbidden_paths", ())) or "n/a"
-    repo_commands = run_context.get("repo_commands", {})
+    repo_commands = run_context.get(
+        "supervisor_commands", run_context.get("repo_commands", {})
+    )
     command_lines = [
         f"- {name}: {command}"
         for name, command in sorted(repo_commands.items())
@@ -84,7 +95,7 @@ def build_builder_prompt(
         "Forbidden paths:",
         f"- {forbidden_paths}",
         "",
-        "Repo contract commands you may use for targeted checks:",
+        "Supervisor-owned repo checks (listed for context; do not run these yourself):",
         *command_lines,
         "",
         "Prior failure fingerprints:",
@@ -94,17 +105,16 @@ def build_builder_prompt(
         "- Do not commit, push, switch branches, or control a browser.",
         "- Do not write outside allowed paths.",
         "- Treat any high-risk operation as unsupported in this phase.",
-        "- Execute no shell command outside the repo contract commands or these bounded forms: "
-        "`pwd`; `git status -sb`; `git status --short`; `git rev-parse --show-toplevel`; "
-        "`git log -1 --oneline`; `git diff --check`; `git diff --stat`; "
-        "`git diff --name-only`; relative-path `find` optionally piped to exact `sort`; "
+        "- Do not execute repo code or repo-contract checks; the supervisor runs them after your turn.",
+        "- Execute no shell command outside these bounded read-only forms: "
+        "`pwd`; relative-path `find` optionally piped to exact `sort`; "
         "and `rg --files` with bounded glob/relative-path arguments optionally piped to "
         "`sed -n '<start>,<end>p'`. Exact safe forms may be chained with `&&`.",
         "- If another shell command appears necessary, report it as a blocker instead of running it.",
         "",
         "Required response:",
         "- files changed",
-        "- commands run",
+        "- bounded discovery commands run",
         "- result",
         "- residual risks",
         "",
@@ -132,43 +142,69 @@ class CodexBuilderAdapter(BuilderAdapter):
             raise ValueError("reasoning_effort must be low, medium, high, or xhigh")
         self.reasoning_effort = reasoning_effort
 
-    def start_session(self, worktree_path: Path, run_context: dict[str, Any]) -> BuilderSession:
+    def start_session(
+        self, worktree_path: Path, run_context: dict[str, Any]
+    ) -> BuilderSession:
         resolved_worktree = Path(worktree_path).resolve()
+        _assert_safe_runtime_ancestry(resolved_worktree)
+        runtime_dir = (
+            resolved_worktree / ".autoclaw" / "builder-runtime" / uuid.uuid4().hex
+        )
+        runtime_dir.mkdir(parents=True, exist_ok=False)
         session = BuilderSession(
             worktree_path=resolved_worktree,
-            run_context=run_context,
+            run_context=dict(run_context),
+            runtime_dir=runtime_dir,
         )
+        try:
+            self._prepare_session(session, run_context)
+        except Exception:
+            shutil.rmtree(runtime_dir, ignore_errors=True)
+            raise
+        return session
+
+    def _prepare_session(
+        self,
+        session: BuilderSession,
+        run_context: dict[str, Any],
+    ) -> None:
+        resolved_worktree = session.worktree_path
+        if session.runtime_dir is None:
+            raise ValueError("Builder session runtime state is incomplete.")
+        runtime_dir = session.runtime_dir
         self._permission_profile_config(session)
+        original_commands = {
+            name: command
+            for name, command in run_context.get("repo_commands", {}).items()
+            if isinstance(name, str) and isinstance(command, str) and command
+        }
+        for name, command in sorted(original_commands.items()):
+            decision = classify_command(command, allowed_commands=(command,))
+            if decision.shell_class is not ShellClass.AUTO_ALLOW:
+                raise ValueError(
+                    f"Repo command `{name}` cannot enter the builder allowlist: {decision.reason}."
+                )
+        session.run_context["supervisor_commands"] = original_commands
+        session.run_context["repo_commands"] = {}
+        session.tool_environment = _builder_tool_environment(runtime_dir)
         policy = {
             "repo_root": str(resolved_worktree),
             "allowed_paths": list(run_context.get("allowed_paths", ())),
             "forbidden_paths": list(run_context.get("forbidden_paths", ())),
-            "allowed_commands": [
-                command
-                for command in run_context.get("repo_commands", {}).values()
-                if isinstance(command, str) and command
-            ],
+            "allowed_commands": [],
         }
-        handle = tempfile.NamedTemporaryFile(
-            mode="w",
-            prefix="codex-builder-policy-",
-            suffix=".json",
-            delete=False,
-            encoding="utf-8",
+        policy_path = runtime_dir / "builder-policy.json"
+        policy_path.write_text(
+            json.dumps(policy, sort_keys=True) + "\n", encoding="utf-8"
         )
-        try:
-            json.dump(policy, handle, sort_keys=True)
-            handle.write("\n")
-        finally:
-            handle.close()
-        policy_path = Path(handle.name)
         policy_path.chmod(0o600)
         session.guard_policy_path = policy_path
-        return session
 
-    def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
+    def send_task(
+        self, session: BuilderSession, prompt: str, timeout: int
+    ) -> BuilderResult:
         started = time.monotonic()
-        output_last_path = self._temp_output_path()
+        output_last_path = self._temp_output_path(session)
         try:
             args = self._build_args(session, prompt, output_last_path)
             try:
@@ -182,8 +218,10 @@ class CodexBuilderAdapter(BuilderAdapter):
                 )
                 status = "completed" if completed.returncode == 0 else "failed"
                 stdout = completed.stdout
+                stderr = completed.stderr
             except subprocess.TimeoutExpired as exc:
                 stdout = _coerce_subprocess_output(exc.stdout)
+                stderr = _coerce_subprocess_output(exc.stderr)
                 status = "timed_out"
 
             duration = round(time.monotonic() - started, 3)
@@ -192,6 +230,8 @@ class CodexBuilderAdapter(BuilderAdapter):
             final_message = _extract_final_message(raw_events)
             if not final_message and output_last_path.exists():
                 final_message = output_last_path.read_text(encoding="utf-8").strip()
+            if not final_message and stderr:
+                final_message = stderr.strip()
             commands_run = tuple(_extract_command_runs(raw_events))
             files_changed = self._current_changed_files(session.worktree_path)
 
@@ -214,10 +254,12 @@ class CodexBuilderAdapter(BuilderAdapter):
             output_last_path.unlink(missing_ok=True)
 
     def close_session(self, session: BuilderSession) -> None:
-        if session.guard_policy_path is not None:
-            session.guard_policy_path.unlink(missing_ok=True)
+        if session.runtime_dir is not None:
+            shutil.rmtree(session.runtime_dir, ignore_errors=True)
 
-    def _build_args(self, session: BuilderSession, prompt: str, output_last_path: Path) -> list[str]:
+    def _build_args(
+        self, session: BuilderSession, prompt: str, output_last_path: Path
+    ) -> list[str]:
         common = self._guarded_exec_args(session)
         if session.session_id:
             args = [
@@ -251,7 +293,12 @@ class CodexBuilderAdapter(BuilderAdapter):
             raise ValueError("Builder session lacks a pre-effect guard policy.")
         guard_script = Path(__file__).with_name("builder_guard.py").resolve()
         hook_command = shlex.join(
-            [sys.executable, str(guard_script), "--policy", str(session.guard_policy_path)]
+            [
+                sys.executable,
+                str(guard_script),
+                "--policy",
+                str(session.guard_policy_path),
+            ]
         )
         hook_value = (
             '[{ matcher = "^(Bash|apply_patch|Edit|Write)$", hooks = '
@@ -269,7 +316,7 @@ class CodexBuilderAdapter(BuilderAdapter):
             "--disable",
             "apps",
             "-c",
-            'features.hooks=true',
+            "features.hooks=true",
             "-c",
             'approval_policy="never"',
             "-c",
@@ -277,9 +324,13 @@ class CodexBuilderAdapter(BuilderAdapter):
             "-c",
             self._permission_profile_config(session),
             "-c",
+            'shell_environment_policy.inherit="none"',
+            "-c",
+            f"shell_environment_policy.set={_toml_inline_table(session.tool_environment or {})}",
+            "-c",
             'web_search="disabled"',
             "-c",
-            'tools.web_search=false',
+            "tools.web_search=false",
             "-c",
             f"hooks.PreToolUse={hook_value}",
         ]
@@ -300,11 +351,19 @@ class CodexBuilderAdapter(BuilderAdapter):
             require_nonempty=False,
         )
         for allowed in allowed_paths:
-            if any(_profile_path_has_prefix(allowed, forbidden) for forbidden in forbidden_paths):
-                raise ValueError("Builder allowed_paths cannot be nested under forbidden_paths.")
+            if any(
+                _profile_path_has_prefix(allowed, forbidden)
+                for forbidden in forbidden_paths
+            ):
+                raise ValueError(
+                    "Builder allowed_paths cannot be nested under forbidden_paths."
+                )
         path_rules = {".": "read"}
         path_rules.update({path: "write" for path in allowed_paths})
         path_rules.update({path: "deny" for path in forbidden_paths})
+        path_rules.update(
+            {path: "deny" for path in _existing_sensitive_paths(session.worktree_path)}
+        )
         rules = ", ".join(
             f'{json.dumps(path)} = "{access}"'
             for path, access in sorted(path_rules.items())
@@ -312,7 +371,6 @@ class CodexBuilderAdapter(BuilderAdapter):
         return (
             "permissions={ "
             f"{self._PERMISSION_PROFILE} = {{ "
-            'extends = ":read-only", '
             f'filesystem = {{ ":workspace_roots" = {{ {rules} }} }}, '
             "network = { enabled = false } "
             "} }"
@@ -337,13 +395,16 @@ class CodexBuilderAdapter(BuilderAdapter):
             path = line[3:]
             if " -> " in path:
                 path = path.split(" -> ", 1)[1]
-            changed.add(path.strip())
+            normalized = path.strip()
+            if normalized == ".autoclaw" or normalized.startswith(".autoclaw/"):
+                continue
+            changed.add(normalized)
         return tuple(sorted(changed))
 
-    def _temp_output_path(self) -> Path:
-        handle = tempfile.NamedTemporaryFile(prefix="codex-builder-", suffix=".txt", delete=False)
-        handle.close()
-        return Path(handle.name)
+    def _temp_output_path(self, session: BuilderSession) -> Path:
+        if session.runtime_dir is None:
+            raise ValueError("Builder session lacks a runtime directory.")
+        return session.runtime_dir / f"last-message-{uuid.uuid4().hex}.txt"
 
 
 def _parse_json_lines(stdout: str) -> list[dict[str, Any]]:
@@ -387,10 +448,10 @@ def _normalized_profile_paths(
             normalized = normalized[2:]
         normalized = normalized.rstrip("/")
         normalized_values.append(normalized)
-    normalized = tuple(dict.fromkeys(normalized_values))
-    if require_nonempty and not normalized:
+    normalized_paths = tuple(dict.fromkeys(normalized_values))
+    if require_nonempty and not normalized_paths:
         raise ValueError("Builder sessions require at least one allowed path.")
-    for path in normalized:
+    for path in normalized_paths:
         pure_path = PurePosixPath(path)
         if (
             not path
@@ -400,11 +461,64 @@ def _normalized_profile_paths(
             or any(character in path for character in "*?[]")
         ):
             raise ValueError(f"Builder {field} contains an invalid relative path.")
-    return normalized
+    return normalized_paths
 
 
 def _profile_path_has_prefix(relative_path: str, prefix: str) -> bool:
     return relative_path == prefix or relative_path.startswith(prefix + "/")
+
+
+def _toml_inline_table(values: dict[str, str]) -> str:
+    entries = ", ".join(
+        f"{json.dumps(key)} = {json.dumps(value)}"
+        for key, value in sorted(values.items())
+    )
+    return "{ " + entries + " }"
+
+
+def _builder_tool_environment(runtime_dir: Path) -> dict[str, str]:
+    home_dir = runtime_dir / "home"
+    temp_dir = runtime_dir / "tmp"
+    cache_dir = home_dir / "cache"
+    for directory in (home_dir, temp_dir, cache_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+    return {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "HOME": str(home_dir),
+        "TMPDIR": str(temp_dir),
+        "TMP": str(temp_dir),
+        "TEMP": str(temp_dir),
+        "XDG_CACHE_HOME": str(cache_dir),
+        "DARWIN_USER_CACHE_DIR": str(temp_dir),
+        "CFFIXED_USER_HOME": str(home_dir),
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "CI": "1",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8",
+    }
+
+
+def _assert_safe_runtime_ancestry(worktree_path: Path) -> None:
+    cursor = worktree_path
+    for part in (".autoclaw", "builder-runtime"):
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ValueError("Builder runtime ancestry cannot traverse symlinks.")
+
+
+def _existing_sensitive_paths(worktree_path: Path) -> tuple[str, ...]:
+    paths: list[str] = []
+    for root, directories, files in os.walk(worktree_path, followlinks=False):
+        relative_root = Path(root).relative_to(worktree_path)
+        if relative_root == Path("."):
+            directories[:] = [
+                name for name in directories if name not in {".git", ".autoclaw"}
+            ]
+        for name in [*directories, *files]:
+            relative = (relative_root / name).as_posix()
+            if classify_path_change(relative).shell_class is ShellClass.AUTO_DENY:
+                paths.append(relative)
+    return tuple(sorted(set(paths)))
 
 
 def _extract_session_id(events: Sequence[dict[str, Any]]) -> str | None:
@@ -418,7 +532,10 @@ def _extract_final_message(events: Sequence[dict[str, Any]]) -> str:
     final_message = ""
     for event in events:
         item = event.get("item", {})
-        if event.get("type") == "item.completed" and item.get("type") == "agent_message":
+        if (
+            event.get("type") == "item.completed"
+            and item.get("type") == "agent_message"
+        ):
             final_message = item.get("text", "") or ""
     return final_message
 
@@ -427,7 +544,10 @@ def _extract_command_runs(events: Sequence[dict[str, Any]]) -> list[str]:
     commands: list[str] = []
     for event in events:
         item = event.get("item", {})
-        if event.get("type") == "item.completed" and item.get("type") == "command_execution":
+        if (
+            event.get("type") == "item.completed"
+            and item.get("type") == "command_execution"
+        ):
             command = item.get("command")
             if command:
                 commands.append(command)

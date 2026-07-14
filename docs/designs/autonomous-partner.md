@@ -162,6 +162,14 @@ This design is accepted because Trevor explicitly chose to keep and reposition t
 - **Fail closed:** missing/invalid identity, missing full approval binding, approval subject/capability mismatch, approval revocation/expiry before effects, ambiguous approval, unhealthy governor/executor, stale evidence, duplicated idempotency key, unsafe capability, budget exhaustion, or receipt/packet drift.
 - **Stop/demotion:** existing global kill switches stop all partner dispatch; a severe gate/privacy failure demotes initiative to proposal-only until independently repaired and reviewed.
 
+### Partner execution containment
+
+- The Codex builder can make scoped patches and perform bounded filename discovery, but it cannot execute target-repo code or repo-contract commands.
+- The supervisor alone runs deterministic checks, under a scrubbed environment with stdin closed, network denied, reads confined to the worktree and required system runtimes, and writes confined to the run's approved paths plus supervisor temp state.
+- Partner envelopes require empty UI acceptance and cannot enter app launch, browser, or UI verification phases.
+- Nested `.env*`, `.git`, and `.agent` creation or mutation is denied before effects and detected by a filesystem fingerprint independent of Git after builder and verifier phases.
+- Learning promotion binds the outcome to the exact executor receipt and exact report path, bytes, and SHA-256; unsuccessful outcomes cannot emit goal progression, lessons, or contradictions.
+
 ## 12. References
 
 - `canonical-architecture.md`

@@ -30,18 +30,16 @@ class CommandDecision:
     reason: str
 
 
-AUTO_DENY_PREFIXES = (
-    "git push",
-    "git pull",
-    "git merge",
-    "git rebase",
-    "git checkout",
-    "git switch",
-    "sudo",
-    "ssh",
-    "scp",
-    "rm -rf",
-)
+AUTO_DENY_GIT_SUBCOMMANDS = {
+    "push",
+    "pull",
+    "merge",
+    "rebase",
+    "checkout",
+    "switch",
+}
+
+AUTO_DENY_EXECUTABLES = {"sudo", "ssh", "scp"}
 
 ESCALATE_PREFIXES = (
     "npm install",
@@ -68,24 +66,23 @@ ESCALATE_PATH_PARTS = (
     "auth",
 )
 
-AUTO_DENY_PATHS = (
-    ".env",
-    ".env.local",
-)
+AUTO_DENY_PATH_COMPONENTS = {".git", ".agent", ".autoclaw"}
 
 _FIND_NO_ARGUMENT = {"-print", "-print0", "-prune", "-o", "-a", "-not", "!", "(", ")"}
 _FIND_STRING_ARGUMENT = {"-name", "-iname", "-path", "-wholename", "-type"}
 _FIND_INTEGER_ARGUMENT = {"-maxdepth", "-mindepth"}
-_FIND_EFFECT_ACTIONS = {"-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprintf", "-fls"}
+_FIND_EFFECT_ACTIONS = {
+    "-delete",
+    "-exec",
+    "-execdir",
+    "-ok",
+    "-okdir",
+    "-fprint",
+    "-fprintf",
+    "-fls",
+}
 _READ_ONLY_METADATA_COMMANDS = {
     ("pwd",),
-    ("git", "status", "-sb"),
-    ("git", "status", "--short"),
-    ("git", "rev-parse", "--show-toplevel"),
-    ("git", "log", "-1", "--oneline"),
-    ("git", "diff", "--check"),
-    ("git", "diff", "--stat"),
-    ("git", "diff", "--name-only"),
 }
 
 
@@ -96,16 +93,18 @@ def classify_command(
     allowed_commands: tuple[str, ...] = (),
 ) -> CommandDecision:
     normalized = command.strip()
-    contract_commands = repo_contract.commands.auto_allow_commands() if repo_contract else ()
+    if _contains_absolute_deny(normalized):
+        return CommandDecision(
+            shell_class=ShellClass.AUTO_DENY,
+            reason="contains an absolute deny-list shell operation",
+        )
+    contract_commands = (
+        repo_contract.commands.auto_allow_commands() if repo_contract else ()
+    )
     if normalized in {*contract_commands, *allowed_commands}:
         return CommandDecision(
             shell_class=ShellClass.AUTO_ALLOW,
             reason="repo contract command",
-        )
-    if any(normalized.startswith(prefix) for prefix in AUTO_DENY_PREFIXES):
-        return CommandDecision(
-            shell_class=ShellClass.AUTO_DENY,
-            reason="matches deny-list shell policy",
         )
     if any(normalized.startswith(prefix) for prefix in ESCALATE_PREFIXES):
         return CommandDecision(
@@ -121,6 +120,54 @@ def classify_command(
         shell_class=ShellClass.ESCALATE,
         reason="command is not an exact repo-contract command or a classified policy command",
     )
+
+
+def _contains_absolute_deny(command: str) -> bool:
+    """Find effect-time denials anywhere in a shell expression.
+
+    Repo contracts are input, not authority to weaken these denials. Scanning
+    every token is intentionally conservative: a harmless command that merely
+    quotes one of these operation shapes is rejected instead of risking a
+    compound or nested-shell bypass.
+    """
+
+    if not command or len(command) > 100_000:
+        return True
+    try:
+        lexer = shlex.shlex(command, posix=True, punctuation_chars="|&;<>()")
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        tokens = list(lexer)
+    except ValueError:
+        return True
+    if not tokens:
+        return True
+
+    for index, token in enumerate(tokens):
+        executable = Path(token).name.lower()
+        if executable in AUTO_DENY_EXECUTABLES:
+            return True
+        if executable == "git":
+            for candidate in tokens[index + 1 :]:
+                if candidate in {"&&", "||", ";", "|", "&", "(", ")"}:
+                    break
+                if candidate.lower() in AUTO_DENY_GIT_SUBCOMMANDS:
+                    return True
+        if executable == "rm":
+            flags = "".join(
+                candidate[1:]
+                for candidate in tokens[index + 1 :]
+                if candidate.startswith("-") and candidate != "--"
+            ).lower()
+            if "f" in flags and ("r" in flags or "R" in flags):
+                return True
+        if executable in {"bash", "sh", "zsh"}:
+            for flag_index in range(index + 1, min(index + 4, len(tokens))):
+                if tokens[flag_index] in {"-c", "-lc"} and flag_index + 1 < len(tokens):
+                    if _contains_absolute_deny(tokens[flag_index + 1]):
+                        return True
+                    break
+    return False
 
 
 def _is_bounded_read_only_discovery(command: str) -> bool:
@@ -252,10 +299,14 @@ def classify_path_change(relative_path: str) -> CommandDecision:
     normalized = relative_path.strip()
     while normalized.startswith("./"):
         normalized = normalized[2:]
-    if normalized in AUTO_DENY_PATHS or normalized.startswith(".env."):
+    parts = PurePosixPath(normalized.replace("\\", "/")).parts
+    basename = parts[-1] if parts else ""
+    if basename.startswith(".env") or any(
+        part in AUTO_DENY_PATH_COMPONENTS for part in parts
+    ):
         return CommandDecision(
             shell_class=ShellClass.AUTO_DENY,
-            reason="secret file writes are denied",
+            reason="secret and supervisor/control metadata writes are denied",
         )
     if any(part in normalized for part in ESCALATE_PATH_PARTS):
         return CommandDecision(
@@ -268,7 +319,9 @@ def classify_path_change(relative_path: str) -> CommandDecision:
     )
 
 
-def enforce_scope(repo_root: Path | str, run_contract: RunContract, candidate: Path | str) -> None:
+def enforce_scope(
+    repo_root: Path | str, run_contract: RunContract, candidate: Path | str
+) -> None:
     run_contract.scope.assert_allows(Path(repo_root), Path(candidate))
 
 

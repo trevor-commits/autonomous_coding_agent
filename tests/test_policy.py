@@ -47,6 +47,21 @@ class PolicyTests(unittest.TestCase):
         decision = classify_command("git push origin main")
         self.assertEqual(ShellClass.AUTO_DENY, decision.shell_class)
 
+    def test_absolute_denials_override_repo_and_explicit_allowlists(self) -> None:
+        commands = (
+            "git push origin main",
+            "git -C . push origin main",
+            "printf ok && git push origin main",
+            "zsh -lc 'printf ok; sudo true'",
+            "rm -r -f generated",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertEqual(
+                    ShellClass.AUTO_DENY,
+                    classify_command(command, allowed_commands=(command,)).shell_class,
+                )
+
     def test_install_command_requires_escalation(self) -> None:
         decision = classify_command("pnpm install")
         self.assertEqual(ShellClass.ESCALATE, decision.shell_class)
@@ -60,7 +75,6 @@ class PolicyTests(unittest.TestCase):
             "find . -maxdepth 2 -name AGENTS.project.md -o -name PROJECT_INTENT.md -o -name todo.md",
             "find partner-projects/proposal-001 -maxdepth 3 -type f | sort",
             "pwd && rg --files -g '!*tests*' -g '!*.env*' partner-projects/proposal-001 | sed -n '1,120p'",
-            "pwd && git status -sb && git rev-parse --show-toplevel && git log -1 --oneline",
         )
         for command in commands:
             with self.subTest(command=command):
@@ -89,6 +103,8 @@ class PolicyTests(unittest.TestCase):
             "git fetch origin",
             "git rev-parse HEAD",
             "git diff -- .env",
+            "git status -sb",
+            "git diff --check",
             "find .\ntouch owned",
             "find $HOME -name '*.pem'",
             "find ~ -maxdepth 1",
@@ -97,7 +113,9 @@ class PolicyTests(unittest.TestCase):
         )
         for command in commands:
             with self.subTest(command=command):
-                self.assertIsNot(ShellClass.AUTO_ALLOW, classify_command(command).shell_class)
+                self.assertIsNot(
+                    ShellClass.AUTO_ALLOW, classify_command(command).shell_class
+                )
 
     def test_auth_and_infra_paths_require_escalation(self) -> None:
         self.assertEqual(
@@ -110,8 +128,19 @@ class PolicyTests(unittest.TestCase):
         )
 
     def test_secret_file_write_is_denied(self) -> None:
-        decision = classify_path_change(".env.local")
-        self.assertEqual(ShellClass.AUTO_DENY, decision.shell_class)
+        for path in (
+            ".env.local",
+            "src/.env",
+            "apps/web/.env.production",
+            "tools/.envrc",
+            "src/nested/.git/config",
+            "src/.agent/state.json",
+            ".autoclaw/guard.json",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(
+                    ShellClass.AUTO_DENY, classify_path_change(path).shell_class
+                )
 
     def test_scope_enforcement_uses_run_contract(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

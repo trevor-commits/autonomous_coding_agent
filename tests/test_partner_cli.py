@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import tempfile
@@ -9,6 +10,7 @@ from pathlib import Path
 from test_partner_contracts import _identity
 from test_partner_learning import (
     NOW as LEARNING_NOW,
+    REPORT_BYTES,
     _envelope,
     _outcome,
     _proposal,
@@ -43,26 +45,38 @@ class PartnerCliTests(unittest.TestCase):
             identity_path = _write(root / "identity.json", _identity())
             snapshot_path = _write(root / "snapshot.json", _snapshot())
 
-            init_rc, initialized, _ = _invoke(["init", "--identity", str(identity_path)])
-            observe_rc, observed, _ = _invoke(["observe", "--snapshot", str(snapshot_path)])
+            init_rc, initialized, _ = _invoke(
+                ["init", "--identity", str(identity_path)]
+            )
+            observe_rc, observed, _ = _invoke(
+                ["observe", "--snapshot", str(snapshot_path)]
+            )
             status_rc, status, _ = _invoke(["status"])
 
             self.assertEqual(0, init_rc)
             self.assertEqual("Partner", initialized["name"])
             self.assertRegex(initialized["identity_hash"], r"^[0-9a-f]{64}$")
-            self.assertEqual(initialized["identity_hash"], initialized["identity"]["content_hash"])
+            self.assertEqual(
+                initialized["identity_hash"], initialized["identity"]["content_hash"]
+            )
             self.assertEqual(0, observe_rc)
             self.assertEqual("observe_only", observed["mode"])
             self.assertEqual(1, observed["observation_count"])
             self.assertEqual(0, status_rc)
             self.assertEqual("stateless", status["storage"])
 
-    def test_add_goal_and_approve_validate_file_bound_candidates_without_storing(self) -> None:
+    def test_add_goal_and_approve_validate_file_bound_candidates_without_storing(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             goal_path = _write(
                 root / "goal.json",
-                {"id": "goal-002", "summary": "Make one useful artifact", "source_ref": "operator:1"},
+                {
+                    "id": "goal-002",
+                    "summary": "Make one useful artifact",
+                    "source_ref": "operator:1",
+                },
             )
             snapshot = _snapshot(approval=True)
             approval_path = _write(root / "approval.json", snapshot["approvals"][0])
@@ -80,12 +94,16 @@ class PartnerCliTests(unittest.TestCase):
             self.assertFalse(goal.get("stored", True))
             self.assertFalse(approval.get("stored", True))
 
-    def test_wake_defaults_observe_only_and_requires_explicit_mode_for_effectful_envelope(self) -> None:
+    def test_wake_defaults_observe_only_and_requires_explicit_mode_for_effectful_envelope(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             snapshot_path = _write(root / "snapshot.json", _snapshot(approval=True))
             candidates_path = _write(root / "candidates.json", [_candidate()])
-            health_path = _write(root / "health.json", {"healthy": True, "reason_codes": []})
+            health_path = _write(
+                root / "health.json", {"healthy": True, "reason_codes": []}
+            )
             base = [
                 "wake",
                 "--snapshot",
@@ -115,10 +133,14 @@ class PartnerCliTests(unittest.TestCase):
             root = Path(tmpdir)
             envelope_path = _write(root / "envelope.json", _envelope())
             proposal_path = _write(root / "proposal.json", _proposal())
+            report_path = root / "report.json"
+            report_path.write_bytes(REPORT_BYTES)
             receipt_path = root / "receipt.json"
-            receipt_path.write_bytes(_receipt_bytes())
+            receipt_bytes = _receipt_bytes(report_ref=str(report_path))
+            receipt_path.write_bytes(receipt_bytes)
             outcome = _outcome()
             outcome["receipt_ref"] = str(receipt_path)
+            outcome["receipt_hash"] = hashlib.sha256(receipt_bytes).hexdigest()
             outcome_path = _write(root / "outcome.json", outcome)
 
             rc, result, _ = _invoke(
@@ -130,6 +152,8 @@ class PartnerCliTests(unittest.TestCase):
                     str(envelope_path),
                     "--proposal",
                     str(proposal_path),
+                    "--report",
+                    str(report_path),
                     "--receipt",
                     str(receipt_path),
                     "--now",
@@ -140,12 +164,51 @@ class PartnerCliTests(unittest.TestCase):
             self.assertIn("benefit_candidate", result)
             self.assertNotIn("identity", result)
 
+    def test_reconcile_requires_present_unchanged_report_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            envelope_path = _write(root / "envelope.json", _envelope())
+            proposal_path = _write(root / "proposal.json", _proposal())
+            report_path = root / "report.json"
+            report_path.write_bytes(REPORT_BYTES)
+            receipt_path = root / "receipt.json"
+            receipt_bytes = _receipt_bytes(report_ref=str(report_path))
+            receipt_path.write_bytes(receipt_bytes)
+            outcome = _outcome()
+            outcome["receipt_ref"] = str(receipt_path)
+            outcome["receipt_hash"] = hashlib.sha256(receipt_bytes).hexdigest()
+            outcome_path = _write(root / "outcome.json", outcome)
+            base = [
+                "reconcile",
+                "--outcome",
+                str(outcome_path),
+                "--envelope",
+                str(envelope_path),
+                "--proposal",
+                str(proposal_path),
+                "--receipt",
+                str(receipt_path),
+                "--now",
+                LEARNING_NOW,
+            ]
+
+            missing_rc, missing, _ = _invoke(base)
+            report_path.write_bytes(REPORT_BYTES + b"drift")
+            drift_rc, drift, _ = _invoke([*base, "--report", str(report_path)])
+
+            self.assertEqual(64, missing_rc)
+            self.assertEqual("invalid_arguments", missing["error_code"])
+            self.assertEqual(2, drift_rc)
+            self.assertEqual("outcome_invalid", drift["error_code"])
+
     def test_validate_envelope_is_effect_free_and_rejects_binding_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             snapshot_path = _write(root / "snapshot.json", _snapshot(approval=True))
             candidates_path = _write(root / "candidates.json", [_candidate()])
-            health_path = _write(root / "health.json", {"healthy": True, "reason_codes": []})
+            health_path = _write(
+                root / "health.json", {"healthy": True, "reason_codes": []}
+            )
             wake_rc, decision, _ = _invoke(
                 [
                     "wake",
@@ -182,7 +245,9 @@ class PartnerCliTests(unittest.TestCase):
             self.assertNotEqual(0, bad_rc)
             self.assertEqual("contract_invalid", bad["error_code"])
 
-    def test_errors_are_json_and_secret_values_are_never_accepted_or_echoed(self) -> None:
+    def test_errors_are_json_and_secret_values_are_never_accepted_or_echoed(
+        self,
+    ) -> None:
         rc, output, stderr = _invoke(["status", "--secret", "TOPSECRET_VALUE_123"])
         self.assertNotEqual(0, rc)
         self.assertEqual("secret_arguments_forbidden", output["error_code"])
@@ -223,9 +288,7 @@ class PartnerCliTests(unittest.TestCase):
                 ["observe", "--snapshot", str(keyed_path)]
             )
             self.assertNotEqual(0, keyed_rc)
-            self.assertNotIn(
-                forbidden_key, json.dumps(keyed_output) + keyed_stderr
-            )
+            self.assertNotIn(forbidden_key, json.dumps(keyed_output) + keyed_stderr)
 
 
 if __name__ == "__main__":

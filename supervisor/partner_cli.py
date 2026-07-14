@@ -5,7 +5,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Sequence, TextIO
+from typing import Any, Never, Sequence, TextIO
 
 from supervisor.partner_authority import POLICY_VERSION as AUTHORITY_POLICY_VERSION
 from supervisor.partner_contracts import (
@@ -27,7 +27,7 @@ class PartnerCliUsageError(ValueError):
 
 
 class JsonArgumentParser(argparse.ArgumentParser):
-    def error(self, message: str) -> None:
+    def error(self, message: str) -> Never:
         raise PartnerCliUsageError(message)
 
 
@@ -50,7 +50,13 @@ def main(
     except PartnerCliUsageError:
         _write_json(stdout, {"ok": False, "error_code": "invalid_arguments"})
         return 64
-    except (PartnerContractError, PartnerRuntimeError, PartnerLearningError, OSError, ValueError) as exc:
+    except (
+        PartnerContractError,
+        PartnerRuntimeError,
+        PartnerLearningError,
+        OSError,
+        ValueError,
+    ) as exc:
         _write_json(
             stdout,
             {
@@ -93,6 +99,7 @@ def _build_parser() -> JsonArgumentParser:
     reconcile_parser.add_argument("--outcome", required=True)
     reconcile_parser.add_argument("--envelope", required=True)
     reconcile_parser.add_argument("--proposal", required=True)
+    reconcile_parser.add_argument("--report", required=True)
     reconcile_parser.add_argument("--receipt", required=True)
     reconcile_parser.add_argument("--now", default=None)
 
@@ -100,7 +107,9 @@ def _build_parser() -> JsonArgumentParser:
     return parser
 
 
-def _add_wake_arguments(parser: argparse.ArgumentParser, *, include_mode: bool = True) -> None:
+def _add_wake_arguments(
+    parser: argparse.ArgumentParser, *, include_mode: bool = True
+) -> None:
     parser.add_argument("--snapshot", required=True)
     parser.add_argument("--candidates", required=True)
     parser.add_argument("--health", required=True)
@@ -109,7 +118,9 @@ def _add_wake_arguments(parser: argparse.ArgumentParser, *, include_mode: bool =
     parser.add_argument("--kill-switch", action="append", default=[])
     parser.add_argument("--prior-decisions")
     if include_mode:
-        parser.add_argument("--mode", choices=("observe", "propose", "execute"), default="observe")
+        parser.add_argument(
+            "--mode", choices=("observe", "propose", "execute"), default="observe"
+        )
 
 
 def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
@@ -137,9 +148,13 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
             "stored": False,
         }
     if args.command == "add-goal":
-        goal = validate_safe_payload(load_json_document(args.goal_file), "goal candidate")
+        goal = validate_safe_payload(
+            load_json_document(args.goal_file), "goal candidate"
+        )
         if set(goal) != {"id", "summary", "source_ref"}:
-            raise PartnerContractError("Goal candidate fields must be id, summary, and source_ref.")
+            raise PartnerContractError(
+                "Goal candidate fields must be id, summary, and source_ref."
+            )
         if any(not isinstance(goal[field], str) or not goal[field] for field in goal):
             raise PartnerContractError("Goal candidate fields must be non-empty text.")
         return {
@@ -191,6 +206,8 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
             load_json_document(args.outcome),
             envelope=load_json_document(args.envelope),
             proposal=load_json_document(args.proposal),
+            report_bytes=Path(args.report).read_bytes(),
+            report_ref=str(Path(args.report)),
             receipt_bytes=Path(args.receipt).read_bytes(),
             receipt_ref=str(Path(args.receipt)),
             now=args.now or _now(),
@@ -212,9 +229,15 @@ def _load_json_list(path: Path | str, label: str) -> list[dict[str, Any]]:
     try:
         payload = json.loads(document_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise PartnerContractError(f"Could not load {label} file `{document_path}`: {exc}.") from exc
-    if not isinstance(payload, list) or any(not isinstance(item, dict) for item in payload):
-        raise PartnerContractError(f"{label.title()} file must contain a list of objects.")
+        raise PartnerContractError(
+            f"Could not load {label} file `{document_path}`: {exc}."
+        ) from exc
+    if not isinstance(payload, list) or any(
+        not isinstance(item, dict) for item in payload
+    ):
+        raise PartnerContractError(
+            f"{label.title()} file must contain a list of objects."
+        )
     return [validate_safe_payload(item, label) for item in payload]
 
 

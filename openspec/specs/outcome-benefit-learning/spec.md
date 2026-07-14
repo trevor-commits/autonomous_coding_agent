@@ -4,7 +4,7 @@
 Define provenance-bound benefit, goal-progress, and expiring lesson candidates without treating artifact completion as adoption or allowing ACA to promote durable truth.
 ## Requirements
 ### Requirement: Provenance-bound lesson candidates
-The partner policy MUST create lesson candidates only from a schema-valid executor outcome and MUST include source receipt hash, claim, scope, confidence, contradiction state, and expiry or review date.
+The partner policy MUST create lesson candidates only from a schema-valid executor outcome and MUST include source receipt hash, claim, scope, confidence, contradiction state, and expiry or review date. The reconciler MUST bind the receipt to the exact report path, bytes, and SHA-256 named by the executor rather than accepting equivalent or caller-selected evidence.
 
 #### Scenario: Successful verified outcome
 - **WHEN** an episode is `COMPLETE` and `READY` with a valid report hash
@@ -12,7 +12,11 @@ The partner policy MUST create lesson candidates only from a schema-valid execut
 
 #### Scenario: Failed outcome
 - **WHEN** an episode blocks, times out, or has invalid evidence
-- **THEN** the policy cannot emit a success lesson and may emit only a failure-prevention candidate
+- **THEN** the policy emits no goal progression, lesson candidate, or contradiction update
+
+#### Scenario: Caller substitutes a different report
+- **WHEN** reconciliation receives a report path, bytes, or SHA-256 that differs from the exact executor receipt binding
+- **THEN** reconciliation fails closed before learning or goal progression is emitted
 
 ### Requirement: Measured benefit candidate
 An outcome candidate MUST distinguish produced artifact, adopted use, time saved, harm prevented, quality change, operator feedback, and unknown benefit rather than treating completion as benefit.

@@ -24,7 +24,9 @@ class BuilderGuardTests(unittest.TestCase):
         )
         return path
 
-    def test_bash_command_is_denied_before_execution_unless_exactly_allowed(self) -> None:
+    def test_bash_command_is_denied_before_execution_unless_exactly_allowed(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "repo"
             root.mkdir()
@@ -53,7 +55,35 @@ class BuilderGuardTests(unittest.TestCase):
             self.assertEqual("deny", denied["hookSpecificOutput"]["permissionDecision"])
             self.assertFalse((root / "owned").exists())
 
-    def test_apply_patch_is_denied_before_execution_for_out_of_scope_paths(self) -> None:
+    def test_absolute_command_denial_overrides_guard_allowlist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir) / "repo"
+            root.mkdir()
+            policy = self._policy(root)
+            payload = json.loads(policy.read_text())
+            payload["allowed_commands"].extend(
+                ["git push origin main", "printf ok && git push origin main"]
+            )
+            policy.write_text(json.dumps(payload))
+
+            for command in payload["allowed_commands"][-2:]:
+                with self.subTest(command=command):
+                    denied = evaluate_hook_payload(
+                        {
+                            "hook_event_name": "PreToolUse",
+                            "tool_name": "Bash",
+                            "cwd": str(root),
+                            "tool_input": {"command": command},
+                        },
+                        policy_path=policy,
+                    )
+                    self.assertEqual(
+                        "deny", denied["hookSpecificOutput"]["permissionDecision"]
+                    )
+
+    def test_apply_patch_is_denied_before_execution_for_out_of_scope_paths(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir) / "repo"
             root.mkdir()
@@ -94,8 +124,37 @@ class BuilderGuardTests(unittest.TestCase):
             )
 
             self.assertIsNone(allowed)
-            self.assertEqual("deny", forbidden["hookSpecificOutput"]["permissionDecision"])
-            self.assertEqual("deny", outside["hookSpecificOutput"]["permissionDecision"])
+            self.assertEqual(
+                "deny", forbidden["hookSpecificOutput"]["permissionDecision"]
+            )
+            self.assertEqual(
+                "deny", outside["hookSpecificOutput"]["permissionDecision"]
+            )
+
+    def test_apply_patch_denies_nested_secret_and_control_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir) / "repo"
+            root.mkdir()
+            policy = self._policy(root)
+
+            for path in ("src/.env", "src/nested/.git/config", "src/.agent/state.json"):
+                with self.subTest(path=path):
+                    denied = evaluate_hook_payload(
+                        {
+                            "hook_event_name": "PreToolUse",
+                            "tool_name": "apply_patch",
+                            "cwd": str(root),
+                            "tool_input": {
+                                "command": (
+                                    f"*** Begin Patch\n*** Add File: {path}\n+blocked\n*** End Patch"
+                                )
+                            },
+                        },
+                        policy_path=policy,
+                    )
+                    self.assertEqual(
+                        "deny", denied["hookSpecificOutput"]["permissionDecision"]
+                    )
 
     def test_malformed_or_wrong_cwd_hook_input_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -104,7 +163,11 @@ class BuilderGuardTests(unittest.TestCase):
             policy = self._policy(root)
 
             malformed = evaluate_hook_payload(
-                {"hook_event_name": "PreToolUse", "tool_name": "Bash", "cwd": str(root)},
+                {
+                    "hook_event_name": "PreToolUse",
+                    "tool_name": "Bash",
+                    "cwd": str(root),
+                },
                 policy_path=policy,
             )
             wrong_cwd = evaluate_hook_payload(
@@ -117,8 +180,12 @@ class BuilderGuardTests(unittest.TestCase):
                 policy_path=policy,
             )
 
-            self.assertEqual("deny", malformed["hookSpecificOutput"]["permissionDecision"])
-            self.assertEqual("deny", wrong_cwd["hookSpecificOutput"]["permissionDecision"])
+            self.assertEqual(
+                "deny", malformed["hookSpecificOutput"]["permissionDecision"]
+            )
+            self.assertEqual(
+                "deny", wrong_cwd["hookSpecificOutput"]["permissionDecision"]
+            )
 
 
 if __name__ == "__main__":

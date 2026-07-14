@@ -701,6 +701,7 @@ Companion docs should reference this section rather than redefining the vocabula
 
 - ask strategy layer what builder should do next within scope
 - dispatch milestone-scoped build work
+- keep the builder edit-only: scoped patches and bounded filename discovery, never repo-code execution
 - collect builder outputs
 
 ### `LOCAL_VERIFY`
@@ -963,7 +964,9 @@ Rollback-oriented checkpoint recovery is intentionally deferred out of the small
 
 ### Builder
 
-- read-write on one worktree only
+- read one worktree and write only run-contract allowed paths
+- no repo-code or repo-contract command execution; deterministic checks stay supervisor-owned
+- scrubbed tool environment and no network
 
 ### UI verifier
 
@@ -984,8 +987,8 @@ Use three classes:
 
 ### Auto-allow
 
-- repo contract commands
-- safe repo-local reads
+- supervisor-owned repo contract commands executed only by the deterministic verifier
+- bounded builder filename discovery
 - safe file operations inside allowed paths
 
 ### Auto-deny
@@ -1031,12 +1034,12 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 
 ### Builder
 
-- localhost access
-- limited network only when explicitly required for supported setup windows
+- no network
 
 ### UI verifier
 
 - localhost plus explicitly approved hosts only
+- unreachable for partner envelopes, which require empty UI acceptance
 
 ### Reviewer
 

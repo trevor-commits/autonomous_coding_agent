@@ -12,6 +12,8 @@ from supervisor.partner_contracts import PartnerContractError, canonical_hash
 
 NOW = "2026-07-13T21:00:00Z"
 RECEIPT_REF = "receipt:run-001"
+REPORT_REF = "/tmp/partner-sandbox/report.json"
+REPORT_BYTES = b'{"run_id":"run-001","run_state":"COMPLETE"}\n'
 
 
 def _learning():
@@ -63,7 +65,11 @@ def _envelope() -> dict[str, Any]:
 
 
 def _receipt_bytes(
-    *, run_state: str = "COMPLETE", readiness_verdict: str = "READY"
+    *,
+    run_state: str = "COMPLETE",
+    readiness_verdict: str = "READY",
+    report_ref: str = REPORT_REF,
+    report_bytes: bytes = REPORT_BYTES,
 ) -> bytes:
     envelope = _envelope()
     receipt = {
@@ -79,6 +85,8 @@ def _receipt_bytes(
             "run_id": envelope["run_contract"]["run_id"],
             "run_state": run_state,
             "readiness_verdict": readiness_verdict,
+            "report_path": report_ref,
+            "report_sha256": hashlib.sha256(report_bytes).hexdigest(),
         },
     }
     return (json.dumps(receipt, sort_keys=True) + "\n").encode("utf-8")
@@ -181,6 +189,8 @@ class PartnerLearningTests(unittest.TestCase):
                         outcome,
                         envelope=envelope,
                         proposal=_proposal(),
+                        report_bytes=REPORT_BYTES,
+                        report_ref=REPORT_REF,
                         receipt_bytes=_receipt_bytes(),
                         receipt_ref=RECEIPT_REF,
                         now=NOW,
@@ -205,8 +215,31 @@ class PartnerLearningTests(unittest.TestCase):
                         _outcome(),
                         envelope=envelope,
                         proposal=_proposal(),
+                        report_bytes=REPORT_BYTES,
+                        report_ref=REPORT_REF,
                         receipt_bytes=receipt_bytes,
                         receipt_ref=receipt_ref,
+                        now=NOW,
+                    )
+
+    def test_learning_requires_exact_report_bytes_and_path_from_receipt(self) -> None:
+        learning = _learning()
+        cases = (
+            (b"", REPORT_REF, _receipt_bytes()),
+            (REPORT_BYTES + b" ", REPORT_REF, _receipt_bytes()),
+            (REPORT_BYTES, "/tmp/different-report.json", _receipt_bytes()),
+        )
+        for report_bytes, report_ref, receipt_bytes in cases:
+            with self.subTest(report_bytes=report_bytes, report_ref=report_ref):
+                with self.assertRaises(learning.PartnerLearningError):
+                    learning.derive_learning_candidates(
+                        _outcome(),
+                        envelope=_envelope(),
+                        proposal=_proposal(),
+                        report_bytes=report_bytes,
+                        report_ref=report_ref,
+                        receipt_bytes=receipt_bytes,
+                        receipt_ref=RECEIPT_REF,
                         now=NOW,
                     )
 
@@ -222,6 +255,8 @@ class PartnerLearningTests(unittest.TestCase):
                         _outcome(),
                         envelope=_envelope(),
                         proposal=proposal,
+                        report_bytes=REPORT_BYTES,
+                        report_ref=REPORT_REF,
                         receipt_bytes=_receipt_bytes(),
                         receipt_ref=RECEIPT_REF,
                         now=NOW,
@@ -240,6 +275,8 @@ class PartnerLearningTests(unittest.TestCase):
             outcome,
             envelope=_envelope(),
             proposal=_proposal(),
+            report_bytes=REPORT_BYTES,
+            report_ref=REPORT_REF,
             receipt_bytes=blocked_receipt,
             receipt_ref=RECEIPT_REF,
             now=NOW,
@@ -250,6 +287,32 @@ class PartnerLearningTests(unittest.TestCase):
         self.assertEqual("not_realized", benefit["benefit_status"])
         self.assertEqual(0.0, benefit["measured_benefit"])
         self.assertEqual(0.0, benefit["harm_prevented"])
+        self.assertEqual([], result["goal_progression_candidates"])
+        self.assertEqual([], result["lesson_candidates"])
+        self.assertEqual([], result["contradictions"])
+
+    def test_invalid_failed_run_receipt_cannot_emit_learning_candidates(self) -> None:
+        learning = _learning()
+        outcome = _outcome()
+        outcome["run_state"] = "BLOCKED"
+        outcome["readiness_verdict"] = "NOT_READY"
+        invalid_receipt = _receipt_bytes()
+        outcome["receipt_hash"] = hashlib.sha256(invalid_receipt).hexdigest()
+
+        with self.assertRaisesRegex(
+            learning.PartnerLearningError,
+            "Receipt executor result does not match",
+        ):
+            learning.derive_learning_candidates(
+                outcome,
+                envelope=_envelope(),
+                proposal=_proposal(),
+                report_bytes=REPORT_BYTES,
+                report_ref=REPORT_REF,
+                receipt_bytes=invalid_receipt,
+                receipt_ref=RECEIPT_REF,
+                now=NOW,
+            )
 
     def test_lesson_schema_failure_uses_learning_error_boundary(self) -> None:
         learning = _learning()
@@ -258,7 +321,9 @@ class PartnerLearningTests(unittest.TestCase):
             "supervisor.partner_learning.validate_document",
             side_effect=PartnerContractError("forced schema failure"),
         ):
-            with self.assertRaisesRegex(learning.PartnerLearningError, "Lesson candidate contract"):
+            with self.assertRaisesRegex(
+                learning.PartnerLearningError, "Lesson candidate contract"
+            ):
                 learning._lesson_candidates(
                     [signal],
                     outcome=_outcome(),
@@ -271,6 +336,8 @@ class PartnerLearningTests(unittest.TestCase):
             _outcome(),
             envelope=_envelope(),
             proposal=_proposal(),
+            report_bytes=REPORT_BYTES,
+            report_ref=REPORT_REF,
             receipt_bytes=_receipt_bytes(),
             receipt_ref=RECEIPT_REF,
             now=NOW,
@@ -281,9 +348,17 @@ class PartnerLearningTests(unittest.TestCase):
         self.assertEqual("measured", benefit["benefit_status"])
         self.assertTrue(benefit["evidence"]["produced_artifact"])
         self.assertEqual("outcome-001", benefit["source_outcome_id"])
-        self.assertEqual(hashlib.sha256(_receipt_bytes()).hexdigest(), benefit["source_receipt_hash"])
         self.assertEqual(
-            [{"goal_id": "goal-001", "progress_delta": 0.5, "source_outcome_id": "outcome-001"}],
+            hashlib.sha256(_receipt_bytes()).hexdigest(), benefit["source_receipt_hash"]
+        )
+        self.assertEqual(
+            [
+                {
+                    "goal_id": "goal-001",
+                    "progress_delta": 0.5,
+                    "source_outcome_id": "outcome-001",
+                }
+            ],
             result["goal_progression_candidates"],
         )
 
@@ -300,6 +375,8 @@ class PartnerLearningTests(unittest.TestCase):
             ),
             envelope=_envelope(),
             proposal=_proposal(),
+            report_bytes=REPORT_BYTES,
+            report_ref=REPORT_REF,
             receipt_bytes=_receipt_bytes(),
             receipt_ref=RECEIPT_REF,
             now=NOW,
@@ -324,12 +401,16 @@ class PartnerLearningTests(unittest.TestCase):
                 unsupported,
                 envelope=_envelope(),
                 proposal=_proposal(),
+                report_bytes=REPORT_BYTES,
+                report_ref=REPORT_REF,
                 receipt_bytes=_receipt_bytes(),
                 receipt_ref=RECEIPT_REF,
                 now=NOW,
             )
 
-    def test_lessons_are_scoped_expiring_candidates_and_identity_never_rewrites_silently(self) -> None:
+    def test_lessons_are_scoped_expiring_candidates_and_identity_never_rewrites_silently(
+        self,
+    ) -> None:
         learning = _learning()
         signals = [
             {
@@ -355,6 +436,8 @@ class PartnerLearningTests(unittest.TestCase):
             _outcome(lesson_signals=signals),
             envelope=_envelope(),
             proposal=_proposal(),
+            report_bytes=REPORT_BYTES,
+            report_ref=REPORT_REF,
             receipt_bytes=_receipt_bytes(),
             receipt_ref=RECEIPT_REF,
             now=NOW,
@@ -392,13 +475,20 @@ class PartnerLearningTests(unittest.TestCase):
             _outcome(lesson_signals=signals),
             envelope=_envelope(),
             proposal=_proposal(),
+            report_bytes=REPORT_BYTES,
+            report_ref=REPORT_REF,
             receipt_bytes=_receipt_bytes(),
             receipt_ref=RECEIPT_REF,
             now=NOW,
         )
         self.assertEqual([], result["lesson_candidates"])
         self.assertEqual(
-            [{"contradiction_key": "response-detail", "signal_ids": ["signal-a", "signal-b"]}],
+            [
+                {
+                    "contradiction_key": "response-detail",
+                    "signal_ids": ["signal-a", "signal-b"],
+                }
+            ],
             result["contradictions"],
         )
 

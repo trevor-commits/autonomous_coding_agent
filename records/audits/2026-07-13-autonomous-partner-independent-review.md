@@ -55,7 +55,7 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 - Human adoption, measured benefit, long-term health, and preference accuracy require later observation.
 - The committed observation feed is intentionally empty, so this release is a hardened observe-only substrate rather than a currently useful proactive partner. One bounded approved low-sensitivity observation adapter is the next product slice after deployment health proof; adding it during the security closeout would widen privacy scope.
 - Reconciliation does not descriptor-pin the full directory ancestry throughout publication. The current boundary assumes another principal or uncoordinated same-user writer cannot mutate that state tree after validation.
-- The terminal reviewer did not rerun the entire global verifier; the governor's successful current-tip run is the source for that full-stack claim.
+- The terminal reviewer independently reran the complete global verifier at exact global `7aa20e93b9f5e07d16df3a6faa65426e2f7d1fd9`; the scoped record-only follow-up review does not replace that exact implementation-tip proof.
 
 ## Dispositions
 

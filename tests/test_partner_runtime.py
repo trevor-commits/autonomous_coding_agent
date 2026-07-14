@@ -248,6 +248,27 @@ class PartnerRuntimeTests(unittest.TestCase):
         self.assertEqual("executor_envelope", decision["decision_type"])
         self.assertEqual("proposal-001", decision["payload"]["executor_envelope"]["proposal_id"])
 
+    def test_zero_proposal_and_envelope_budgets_emit_nothing(self) -> None:
+        decision = _runtime().decide_wake(
+            _snapshot(
+                approval=True,
+                budgets={"max_proposals": 0, "max_envelopes": 0},
+            ),
+            candidates=[_candidate()],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+            prior_decisions=(),
+            mode="execute",
+        )
+
+        self.assertEqual("no_op", decision["decision_type"])
+        self.assertEqual(
+            ["proposal_budget_exhausted", "envelope_budget_exhausted"],
+            decision["reason_codes"],
+        )
+
     def test_duplicate_wake_returns_the_same_prior_decision(self) -> None:
         runtime = _runtime()
         first = runtime.decide_wake(

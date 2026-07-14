@@ -88,6 +88,7 @@ def _snapshot() -> dict[str, Any]:
                 "source_ref": "observation:observation-001",
             }
         ],
+        "budgets": {"max_proposals": 1, "max_envelopes": 1},
     }
 
 
@@ -216,6 +217,14 @@ class PartnerWakeSnapshotContractTests(unittest.TestCase):
         missing_completed_count["maturity"].pop("completed_episode_count")
         with self.assertRaises(contracts.PartnerContractError):
             contracts.validate_wake_snapshot(missing_completed_count)
+
+    def test_snapshot_requires_explicit_governor_budgets(self) -> None:
+        contracts = _contracts()
+        missing_budgets = _snapshot()
+        missing_budgets.pop("budgets")
+
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(missing_budgets)
 
 
 class PartnerExecutorEnvelopeContractTests(unittest.TestCase):

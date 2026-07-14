@@ -14,7 +14,8 @@
     "approvals",
     "maturity",
     "executor_outcomes",
-    "inferred_preferences"
+    "inferred_preferences",
+    "budgets"
   ],
   "properties": {
     "schema_version": {"const": "1"},

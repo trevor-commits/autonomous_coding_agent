@@ -124,6 +124,15 @@ def decide_wake(
             {"proposal": selected, "authority": authority},
         )
     if budgets["max_envelopes"] == 0:
+        if budgets["max_proposals"] == 0:
+            return _build_decision(
+                validated_snapshot,
+                mode,
+                "no_op",
+                ("proposal_budget_exhausted", "envelope_budget_exhausted"),
+                (),
+                {},
+            )
         return _build_decision(
             validated_snapshot,
             mode,

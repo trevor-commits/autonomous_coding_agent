@@ -1,15 +1,15 @@
 # Retrospective: Autonomous Partner Reposition
 
-## What shipped
+## What the release candidate contains
 
 The existing repository was kept and repositioned. Its tested supervisor is now the bounded episode executor and evidence authority beneath the existing global governor, with a stateless partner-policy seam for personality-shaped initiative, exact approvals, outcome reconciliation, and candidate learning.
 
 ## Evidence
 
-- 20 ACA commits across 79 files; 22/22 OpenSpec tasks complete.
-- 159 ACA tests pass; strict OpenSpec validation and whitespace checks pass.
+- 22/22 OpenSpec tasks complete on a clean-history release branch.
+- 169 ACA tests pass; strict OpenSpec validation and whitespace checks pass.
 - One real `gpt-5.5`/high retained-worktree pilot completed with two successful 159-test runs.
-- Four fresh independent review passes converged to `REVIEW-CLEAN` after three accepted authority-path findings were repaired with regressions.
+- Six fresh review passes found and repaired approval, filesystem, diff, provenance, schema, concurrency, idempotency, CLI, archive, and learning-boundary defects. A seventh exact-tip verdict remains required before landing.
 - No dependency was added.
 
 ## What worked
@@ -24,6 +24,8 @@ The existing repository was kept and repositioned. Its tested supervisor is now 
 - The first envelope bound only approval id/hash, not the complete current authority document.
 - Resolving paths before safety checks neutralized the intended symlink boundary.
 - Descriptor binding covered the leaf but initially missed ancestor redirection.
+- Candidate generation initially allowed overlapping model calls to overwrite active state, and wake-only idempotency let observe suppress proposal mode.
+- Archive discovery and canonical purposes were initially left stale, while one CLI/error boundary was not structured consistently.
 - The real builder used several harmless command shapes outside the finite grammar, so the pilot needed bounded grammar repairs rather than a permissive fallback.
 
 Each miss became a regression, a durable audit entry, and a narrower invariant. No failed pilot or review was relabeled as success.

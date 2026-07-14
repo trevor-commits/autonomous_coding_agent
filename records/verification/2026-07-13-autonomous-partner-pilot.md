@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and repaired effect-time approval integration. Four fresh passes reached `REVIEW-CLEAN` at ACA `9275630` and global `a2cedf6`, then PR review correctly reopened four ACA findings. Their TDD repairs pass 163/163; fresh post-fix review, landing, and observe-only deployment remain release gates.
+- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and repaired effect-time approval integration. Later release reviews correctly reopened additional defects instead of invalidating the preserved pilot evidence. Repairs at ACA `2653e7f` and global `51e3720` pass ACA 169/169 plus the full global verifier; fresh exact-tip review, landing, and observe-only deployment remain release gates.
 
 ## Authority and scope
 
@@ -64,6 +64,15 @@ The failed attempts remain immutable evidence. None was relabeled as success or 
 ## Honest boundary
 
 This proves bounded autonomous idea generation and execution, not consciousness, emotional experience, spiritual authority, or measured life improvement. The configured love-as-practice and respect-for-Jehovah profile influence voice and proposal ranking only. Real adoption, time saved, quality change, and operator benefit remain unknown until observed. The successful and failed worktrees are retained for audit; nothing from them was merged or published.
+
+## Current repaired release verification
+
+- Candidate concurrency RED reproduced both model calls and active-state overwrite; global `51e3720` now allows one generator/model call and returns typed `busy` to the contender. Candidate suite: 5/5.
+- Wake-mode RED reproduced an observe decision suppressing proposal mode; the global bridge and ACA policy now bind `decision_mode` plus `<wake>:<mode>` idempotency. Bridge suite: 13/13.
+- Direct high-risk CLI RED returned a traceback/no JSON; ACA `2653e7f` now returns structured `BLOCKED / NOT_READY` JSON before workspace creation.
+- Archive-discovery RED found three live stale paths and four placeholder purposes; all current discovery pointers now use the dated archive and all canonical specs have explicit purposes.
+- Learning validation now translates generated-candidate schema failures to `PartnerLearningError`; proposal id/hash mismatch and unsuccessful zero-benefit behavior have durable regressions.
+- ACA full suite: 169/169. Strict canonical OpenSpec: 4/4. Global full verifier: pass. Exact-tip independent review remains pending and therefore no landing/deployment claim is made.
 
 ## Independent audit round 1
 

@@ -119,3 +119,18 @@ PR #6 review found four additional ACA defects after the round-4 frozen verdict:
 - Maturity `completed_episode_count` was optional although authority evaluation required it.
 
 Each defect first reproduced red, then received a focused regression and bounded repair. GitGuardian's separate failure was a synthetic `ghp_`-shaped test literal rather than a credential; the fixture now constructs the same runtime secret-like value without a contiguous scanner-triggering literal. Focused tests pass 5/5; full compileall, ACA 163/163, four canonical OpenSpec specs, and whitespace checks pass. Fresh independent post-fix review remains required.
+
+## Current release verification
+
+The user-requested round-8 review of ACA `33e9462` and global `0b180c1` completed historically and led to later repair rounds. The latest containment challenge found additional model-authority, failed-outcome progression, sensitive-residue, host-privacy, exact-report-binding, and verifier-integrity gaps. Those findings are repaired at ACA implementation `87f5378` and global implementation `65a00fd`.
+
+- ACA: 199/199 with the real Codex containment probe enabled.
+- Canonical OpenSpec: 4/4 strict.
+- Global executor: 18/18; reconciliation: 6/6.
+- Complete global verifier: pass with no new source bytecode residue.
+- Recurring execute: still off.
+- Approved observation feed: intentionally empty, so proactive usefulness and measured benefit remain unproved.
+
+The remaining gates are a fresh independent `REVIEW-CLEAN` for the final record-bearing exact tips, origin/main landing, SHA-pinned observe-only deployment, and live health proof.
+
+Provenance: executor=codex:gpt-5.5:high; audit=L4-pending; scripts=ACA-unittest,live-builder-containment,OpenSpec,autonomous-partner-executor.test.sh,autonomous-partner-reconcile.test.sh,global-verify; escalations=0; routing=T3; notes=pilot retained and latest containment repairs green; exact-tip review pending

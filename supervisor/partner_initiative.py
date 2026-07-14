@@ -34,16 +34,21 @@ def rank_initiatives(
     proposals: Iterable[Mapping[str, Any]],
     *,
     approved_observations: Iterable[Mapping[str, Any]],
+    approved_goal_ids: Iterable[str],
     approved_interest_ids: Iterable[str],
     now: str | datetime,
 ) -> list[dict[str, Any]]:
     current_time = _parse_time(now, "now")
+    goals = {str(value) for value in approved_goal_ids if str(value)}
     interests = {str(value) for value in approved_interest_ids if str(value)}
     observations = _validated_observations(approved_observations)
     ranked: list[tuple[float, str, dict[str, Any]]] = []
 
     for raw_proposal in proposals:
         proposal = _validated_proposal(raw_proposal)
+        goal_ids = set(proposal["goal_ids"])
+        if not goal_ids or not goal_ids.issubset(goals):
+            continue
         observation_ids = proposal["observation_ids"]
         if not observation_ids or any(identifier not in observations for identifier in observation_ids):
             continue

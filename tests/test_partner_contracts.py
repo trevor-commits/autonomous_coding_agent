@@ -68,6 +68,7 @@ def _snapshot() -> dict[str, Any]:
                 "source_ref": "health:receipt-001",
                 "sensitivity": "low",
                 "observed_at": "2026-07-13T19:55:00Z",
+                "expires_at": "2026-07-14T19:55:00Z",
             }
         ],
         "approvals": [],
@@ -75,6 +76,7 @@ def _snapshot() -> dict[str, Any]:
             "level": "L1",
             "proposal_count": 0,
             "accepted_count": 0,
+            "completed_episode_count": 0,
             "severe_failure": False,
         },
         "executor_outcomes": [],
@@ -198,11 +200,22 @@ class PartnerWakeSnapshotContractTests(unittest.TestCase):
             contracts.validate_wake_snapshot(raw_private)
 
         secret = _snapshot()
-        secret["observations"][0]["summary"] = (
-            "Captured token ghp_abcdefghijklmnopqrstuvwxyz1234567890"
-        )
+        secret["observations"][0]["summary"] = "Captured token " + "gh" + "p_" + ("a" * 36)
         with self.assertRaises(contracts.PartnerContractError):
             contracts.validate_wake_snapshot(secret)
+
+    def test_snapshot_requires_observation_expiry_and_complete_maturity(self) -> None:
+        contracts = _contracts()
+
+        missing_expiry = _snapshot()
+        missing_expiry["observations"][0].pop("expires_at")
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(missing_expiry)
+
+        missing_completed_count = _snapshot()
+        missing_completed_count["maturity"].pop("completed_episode_count")
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(missing_completed_count)
 
 
 class PartnerExecutorEnvelopeContractTests(unittest.TestCase):

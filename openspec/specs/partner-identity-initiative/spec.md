@@ -10,6 +10,10 @@ Each wake snapshot MUST contain a schema-valid versioned identity with name, pro
 - **WHEN** an identity omits its values or source labels
 - **THEN** the policy emits a blocked decision before initiative scoring
 
+#### Scenario: Incomplete bounded wake evidence is rejected
+- **WHEN** an observation omits its expiry or maturity omits the completed-episode count
+- **THEN** snapshot validation rejects the wake before ranking or authority evaluation
+
 ### Requirement: Honest personality representation
 The partner MUST distinguish configured traits, operator-approved amendments, inferred preferences, and generated ideas, and MUST NOT claim consciousness, feelings, divine approval, or emotional dependence.
 
@@ -56,4 +60,3 @@ The policy MUST emit exactly one schema-valid `no_op`, `proposal`, `executor_env
 #### Scenario: Duplicate wake key
 - **WHEN** the same wake idempotency key is evaluated again
 - **THEN** the existing decision identity is returned and no second envelope is created
-

@@ -58,10 +58,12 @@ def _proposal(
 def _rank(
     proposals: list[dict[str, Any]],
     observations: list[dict[str, Any]] | None = None,
+    goal_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     return _initiative().rank_initiatives(
         proposals,
         approved_observations=observations or [_observation("observation-fresh")],
+        approved_goal_ids=goal_ids or {"goal-001"},
         approved_interest_ids={"helpful-projects"},
         now=NOW,
     )
@@ -142,6 +144,18 @@ class PartnerInitiativeTests(unittest.TestCase):
         ]
 
         self.assertEqual(["proposal-fresh"], [item["id"] for item in _rank(proposals, observations)])
+
+    def test_uncited_or_unapproved_goals_are_excluded(self) -> None:
+        proposals = [
+            _proposal("proposal-current-goal"),
+            _proposal("proposal-unknown-goal", goal_ids=["goal-not-in-wake"]),
+            _proposal("proposal-uncited-goal", goal_ids=[]),
+        ]
+
+        self.assertEqual(
+            ["proposal-current-goal"],
+            [item["id"] for item in _rank(proposals)],
+        )
 
 
 if __name__ == "__main__":

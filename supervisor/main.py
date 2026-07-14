@@ -848,7 +848,15 @@ def _actual_changed_files(repo_root: Path) -> tuple[str, ...]:
             )
         status = entry[:2]
         changed.append(entry[3:])
-        index += 2 if "R" in status or "C" in status else 1
+        if "R" in status or "C" in status:
+            if index + 1 >= len(entries) or not entries[index + 1]:
+                raise PolicyViolationError(
+                    f"Could not parse authoritative worktree rename/copy entry `{entry}`."
+                )
+            changed.append(entries[index + 1])
+            index += 2
+        else:
+            index += 1
     return tuple(sorted(set(changed)))
 
 

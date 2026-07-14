@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path, the repaired effect-time approval integration, frozen full repository verification, and the completed independent audit/fix loop. Four fresh passes converged to `REVIEW-CLEAN` at ACA `9275630` and global `a2cedf6`. Landing and observe-only deployment remain release gates.
+- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and repaired effect-time approval integration. Four fresh passes reached `REVIEW-CLEAN` at ACA `9275630` and global `a2cedf6`, then PR review correctly reopened four ACA findings. Their TDD repairs pass 163/163; fresh post-fix review, landing, and observe-only deployment remain release gates.
 
 ## Authority and scope
 
@@ -99,3 +99,14 @@ The full audit lineage is preserved in `records/audits/2026-07-13-autonomous-par
 - Round 4 independently reran ACA 159/159, executor 14/14, and reconciliation 5/5 and returned `REVIEW-CLEAN` with no P0-P3 finding.
 
 Residual boundaries remain explicit: reconciliation does not descriptor-pin the entire publication ancestry against a hostile same-user directory swap; the accepted threat boundary assumes the runtime state directory is not writable by another principal or an uncoordinated writer. Adoption, measured benefit, preference accuracy, long-term health, origin/main landing, and live deployment were not claimed by the review.
+
+## PR review round 5
+
+PR #6 review found four additional ACA defects after the round-4 frozen verdict:
+
+- NUL-delimited rename/copy status parsing recorded only the destination, so a forbidden renamed-away source path escaped scope and path classification.
+- Initiative ranking validated observations and interests but did not require every cited goal to exist in the current wake.
+- Observation `expires_at` was optional in the schema although ranking read it unconditionally.
+- Maturity `completed_episode_count` was optional although authority evaluation required it.
+
+Each defect first reproduced red, then received a focused regression and bounded repair. GitGuardian's separate failure was a synthetic `ghp_`-shaped test literal rather than a credential; the fixture now constructs the same runtime secret-like value without a contiguous scanner-triggering literal. Focused tests pass 5/5; full compileall, ACA 163/163, four canonical OpenSpec specs, and whitespace checks pass. Fresh independent post-fix review remains required.

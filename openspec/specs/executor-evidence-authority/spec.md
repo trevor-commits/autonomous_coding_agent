@@ -36,6 +36,10 @@ The executor MUST compare the actual worktree diff with builder-reported files a
 - **WHEN** a builder changes an out-of-scope file but omits it from `files_changed`
 - **THEN** the executor blocks and names the actual path
 
+#### Scenario: Rename cannot hide the changed source path
+- **WHEN** a builder renames a file from a forbidden or out-of-scope path into an allowed path
+- **THEN** the executor evaluates both the source and destination paths and blocks the run
+
 ### Requirement: Unknown commands fail closed
 The shell classifier MUST classify an unmatched command as escalation-required or denied; only exact repo-contract commands and explicit safe built-ins may be auto-allowed.
 
@@ -49,4 +53,3 @@ Every JSON state or report update MUST be written to a same-directory temporary 
 #### Scenario: Publish fails
 - **WHEN** atomic replacement fails after a previous state exists
 - **THEN** the previous state remains valid and temporary residue is removed
-

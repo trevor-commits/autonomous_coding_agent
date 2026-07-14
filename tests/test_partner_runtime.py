@@ -129,6 +129,22 @@ def _snapshot(*, stale: bool = False, approval: bool = False, budgets: dict | No
 
 
 class PartnerRuntimeTests(unittest.TestCase):
+    def test_candidate_goal_must_be_present_in_the_current_wake(self) -> None:
+        candidate = _candidate()
+        candidate["goal_ids"] = ["goal-not-in-wake"]
+
+        decision = _runtime().decide_wake(
+            _snapshot(),
+            candidates=[candidate],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+        )
+
+        self.assertEqual("no_op", decision["decision_type"])
+        self.assertIn("no_current_approved_evidence", decision["reason_codes"])
+
     def test_unhealthy_or_busy_short_circuits_without_consuming_candidates(self) -> None:
         runtime = _runtime()
 

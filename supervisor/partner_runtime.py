@@ -75,6 +75,7 @@ def decide_wake(
     ranked = rank_initiatives(
         prepared_candidates,
         approved_observations=validated_snapshot["observations"],
+        approved_goal_ids={item["id"] for item in validated_snapshot["goals"]},
         approved_interest_ids={item["id"] for item in validated_snapshot["identity"]["interests"]},
         now=current_time,
     )

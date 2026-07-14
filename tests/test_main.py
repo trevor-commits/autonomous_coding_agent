@@ -8,7 +8,7 @@ import yaml
 
 from supervisor.app_supervisor import AppLaunchSummary, AppSession
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, BuilderSession
-from supervisor.main import _exit_code_for_run_state, execute_run
+from supervisor.main import _actual_changed_files, _exit_code_for_run_state, execute_run
 from supervisor.policy import PolicyViolationError
 from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.ui_verifier import UIVerificationSummary
@@ -847,6 +847,22 @@ class SupervisorMainTests(unittest.TestCase):
             blockers = "\n".join(outcome.report.unresolved_blockers)
             self.assertIn("README.md", blockers)
             self.assertIn("violates run scope", blockers)
+
+    def test_actual_changed_files_includes_both_rename_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_target_repo(repo_root)
+            (repo_root / "infra").mkdir()
+            (repo_root / "infra" / "config.yml").write_text("enabled: true\n")
+            _git(repo_root, "add", "infra/config.yml")
+            _git(repo_root, "commit", "-m", "add protected config")
+
+            _git(repo_root, "mv", "infra/config.yml", "src/config.yml")
+
+            self.assertEqual(
+                ("infra/config.yml", "run-contract.json", "src/config.yml"),
+                _actual_changed_files(repo_root),
+            )
 
     def test_execute_run_blocks_forbidden_builder_command_categories(self) -> None:
         forbidden_commands = (

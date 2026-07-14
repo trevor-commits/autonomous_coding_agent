@@ -17,10 +17,10 @@
 - Executor evidence, unattended-authority, command-default, actual-diff, atomic-state, bounded worktree-ref, safe discovery-command, and completed-candidate replay defects are repaired with regressions.
 - Identity, initiative ranking, authority, one-decision runtime, outcome learning, CLI, schemas, snapshot builder, real model candidate generation, global bridge, queue integration, executor adapter, and exact completion retirement exist on isolated branches.
 - The isolated live pilot passed observe, proposal, pre-approval denial, synthetic exact approval, dry-run, real `gpt-5.5`/high retained-worktree execution, 159-test final rerun, outcome/unknown-benefit reconciliation, no-replay retirement, and kill-switch proof. Evidence: `records/verification/2026-07-13-autonomous-partner-pilot.md`.
-- Frozen full verification is green: Python compileall, all 159 unit tests, strict OpenSpec validation, and whitespace checks passed on 2026-07-13.
+- PR review later found four ACA gaps: renamed-away source paths were skipped, candidate goals were not bound to the current wake, and schema-valid observations/maturity could omit fields later read unconditionally. TDD repairs now include both rename paths, require current goal provenance, and reject incomplete wake evidence; the full suite is green at 163 tests. The token-shaped test fixture was rewritten without weakening runtime secret rejection.
 - Four fresh review passes converged after repairing full effect-time approval binding, descriptor-bound approval-store reads, and original-path ancestor validation. The terminal reviewer found no P0-P3 defect at ACA `9275630` and global `a2cedf6`; evidence: `records/audits/2026-07-13-autonomous-partner-independent-review.md`.
 - OpenSpec verification/retrospective are complete and the change is archived at `openspec/changes/archive/2026-07-14-autonomous-partner-reposition/`; its four capability specs are synchronized under `openspec/specs/`.
-- Remaining release gates: origin/main landing and observe-only immutable deployment proof. Recurring execute remains off.
+- Remaining release gates: fresh post-PR-fix independent review-clean, origin/main landing, and observe-only immutable deployment proof. Recurring execute remains off.
 
 ## Gotchas
 

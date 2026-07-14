@@ -71,7 +71,7 @@
     "observation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "summary", "source_ref", "sensitivity", "observed_at"],
+      "required": ["id", "summary", "source_ref", "sensitivity", "observed_at", "expires_at"],
       "properties": {
         "id": {"type": "string", "minLength": 1, "maxLength": 160},
         "summary": {"type": "string", "minLength": 1, "maxLength": 2000},
@@ -91,7 +91,7 @@
     "maturity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["level", "proposal_count", "accepted_count", "severe_failure"],
+      "required": ["level", "proposal_count", "accepted_count", "completed_episode_count", "severe_failure"],
       "properties": {
         "level": {"enum": ["L0", "L1", "L2", "L3"]},
         "proposal_count": {"type": "integer", "minimum": 0},

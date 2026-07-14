@@ -8,9 +8,9 @@
 - Full ID: `bb90d05d-86d3-4140-9e6c-78d2847c4d72`
 - Transcript/resolved path: `/Users/gillettes/.claude/projects/-Users-gillettes-Coding-Projects-global-implementations/bb90d05d-86d3-4140-9e6c-78d2847c4d72.jsonl`
 
-## Terminal verdict
+## Round-4 verdict at the frozen pre-PR-review commits
 
-**REVIEW-CLEAN.** Fresh reviewer `/root/final_terminal_partner_review` found no P0, P1, P2, or P3 defect at these exact clean commits:
+**REVIEW-CLEAN for the listed commits, later superseded as the current release verdict by PR review.** Fresh reviewer `/root/final_terminal_partner_review` found no P0, P1, P2, or P3 defect at these exact clean commits:
 
 | Repository | Commit | Branch |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ The terminal pass independently ran ACA 159/159, global executor 14/14, and glob
 | 2 | Changes required | Pre-check path resolution neutralized the intended leaf-symlink defense, and separate reads allowed the checked and used approval-store content to diverge. | One no-follow descriptor-bound lease now covers regular/single-link identity, bounded content, device/inode/content checks, shared writer lock, final path identity, and atomic-replacement regression. Global repair commit `467a770`. |
 | 3 | Changes required | An ancestor symlink was still followed before descriptor traversal; reconciliation repeated the same resolve-before-check pattern. | Original absolute path components are validated before use in execution and reconciliation, with ancestor-symlink regressions. Global repair commit `a2cedf6`. |
 | 4 | Review clean | No actionable defect remained in implemented scope. | Exact critical suites rerun; final verdict preserved above. |
+| 5 | Changes required | GitHub PR review found that rename parsing skipped the renamed-away source path, proposal ranking did not bind cited goals to the current wake, and schema-valid observations/maturity could omit fields read unconditionally later. GitGuardian also flagged a token-shaped synthetic fixture. | TDD repairs now evaluate both rename paths, require nonempty current-wake goal provenance, require observation expiry and completed-episode count in the schema, and construct the synthetic secret marker without a contiguous token literal. Focused 5/5 and full ACA 163/163 pass. Fresh post-fix review remains the release verdict gate. |
 
 The round-2 reviewer returned the exact finding and reproduction but its final prose was blocked by the platform safety classifier. The finding was still treated as real, repaired, regression-covered, and re-audited; the blocked prose was never counted as a clean verdict.
 
@@ -51,6 +52,6 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 ## Dispositions
 
-Every actionable review finding was fixed and regression-covered. No finding was declined. The remaining release gates and residual threat-boundary note are explicit, not represented as implementation defects or completed live proof.
+Every actionable finding through PR round 5 is fixed and regression-covered. No finding was declined. The prior round-4 `REVIEW-CLEAN` remains valid only for its exact commits; a fresh post-fix independent verdict is required before landing. The remaining release gates and residual threat-boundary note are explicit, not represented as completed live proof.
 
-Provenance: executor=codex:gpt-5.5:high; audit=L4; scripts=ACA-unittest,autonomous-partner-executor.test.sh,autonomous-partner-reconcile.test.sh,global-verify; escalations=0; routing=strong; notes=four fresh passes converged to review-clean
+Provenance: executor=codex:gpt-5.5:high; audit=L4-reopened; scripts=ACA-unittest,autonomous-partner-executor.test.sh,autonomous-partner-reconcile.test.sh,global-verify,GitHub-PR-review; escalations=0; routing=strong; notes=round-5 fixes green and fresh verdict pending

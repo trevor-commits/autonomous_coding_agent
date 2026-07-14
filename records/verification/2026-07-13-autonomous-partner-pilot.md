@@ -122,7 +122,7 @@ Each defect first reproduced red, then received a focused regression and bounded
 
 ## Current release verification
 
-The user-requested round-8 review of ACA `33e9462` and global `0b180c1` completed historically and led to later repair rounds. The latest challenge found command-indirection, model-context, descendant-timeout, storage-link, actual-clock, production-override, and publication-order gaps. Those findings plus post-repair timing failures are repaired at ACA implementation `7b69f03` and global implementation `3d27a32`.
+The user-requested round-8 review of ACA `33e9462` and global `0b180c1` completed historically and led to later repair rounds. The latest challenge found command-indirection, model-context, descendant-timeout, storage-link, actual-clock, production-override, and publication-order gaps. Those findings plus post-repair timing failures remain repaired. Global Stage 0 was subsequently rebased onto exact `origin/main@736ec0e` at implementation `47b8432`, preserving the ER-154 converged-web-operator record lane. The live ACA gate then exposed a stale test assumption: bounded `rg --files` discovery is intentionally `AUTO_ALLOW`, so requiring zero commands contradicted the production prompt and classifier. ACA `40d8993` now validates every observed command through the production policy, separately denies the supervisor-owned verification command, and retains all forbidden-effect assertions.
 
 - ACA: 211 tests pass with one intentional live skip; 211/211 pass with the real Codex containment probe enabled.
 - ACA timing stress: the early-app-exit regression passed 30 consecutive runs; all three descendant-timeout boundary tests passed in four simultaneous suites and now assert the child PID is gone.
@@ -133,7 +133,8 @@ The user-requested round-8 review of ACA `33e9462` and global `0b180c1` complete
 - Global timing stress: three simultaneous 19-check platform-probe suites pass after replacing the immediate child-PID assertion with a bounded exit check.
 - Recurring execute: still off.
 - Approved observation feed: intentionally empty, so proactive usefulness and measured benefit remain unproved.
+- Round-15 focused proof: the exact live containment regression passes; the deterministic suite passes 211 tests with one intentional live skip; strict OpenSpec passes 4/4; `git diff --check` is clean. The complete record-tip reruns remain the next release gate.
 
 The remaining Stage 0 gates are a fresh independent `REVIEW-CLEAN` for the final pre-audit record-bearing exact tips, origin/main landing, SHA-pinned observe-only deployment, and live health proof. Post-release work belongs to coordinator Codex `019f5f11-5758-7790-b1b6-6f36cb50868f`: connect a bounded approved observation adapter and design graduated agency so reversible private/local work becomes broadly available without weakening hard gates for destructive, irreversible, credentialed, financial, privacy-expanding, security-sensitive, or outward-facing effects.
 
-Provenance: executor=codex:gpt-5.5:high; audit=L4-pending; scripts=ACA-unittest,live-builder-containment,OpenSpec,autonomous-partner-executor.test.sh,autonomous-partner-reconcile.test.sh,global-verify; escalations=0; routing=T3; notes=pilot retained and latest containment repairs green; exact-tip review pending
+Provenance: executor=codex:gpt-5.5:high; audit=L4-pending; scripts=ACA-unittest,live-builder-containment,OpenSpec,autonomous-partner-executor.test.sh,autonomous-partner-reconcile.test.sh,global-verify; escalations=0; routing=T3; notes=pilot retained; round-15 focused repair green; full exact-tip reruns and review pending

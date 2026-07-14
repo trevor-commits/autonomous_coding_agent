@@ -21,7 +21,7 @@ The terminal pass independently ran ACA 159/159, global executor 14/14, and glob
 
 ## Current release gate after the latest containment challenge
 
-**REPAIRED, FRESH EXACT-TIP REVIEW REQUIRED.** PR review after the round-15 exact tips found five real ACA gaps and one non-defect. ACA `8bef60e` now denies builder reads of repo control metadata except the exact per-session runtime, validates the receipt-bound readiness report schema and terminal fields against the outcome, creates verifier runtime directories through no-follow repo-local ancestry, denies and fingerprints nested `.autoclaw`, and records full file modes so permission widening changes the residue fingerprint. The test-only guard fixture may still exercise an exact configured allowlist; production writes an empty builder allowlist and the live model probe proves repo checks remain denied. Focused 34/34, deterministic ACA 215 with one intentional live skip, 215/215 live-enabled, strict OpenSpec 4/4, project-memory, compile/no-cache, and diff checks pass. Global remains exact `a6f6416` on `origin/main@736ec0e`. Final record tips receive the complete exact reruns; neither PR may merge until a new independent review returns literal `REVIEW-CLEAN` for those tips.
+**REPAIRED, FRESH EXACT-TIP REVIEW REQUIRED.** PR review after the round-15 exact tips found five real ACA gaps and one non-defect. ACA `8bef60e` now denies builder reads of repo control metadata except the exact per-session runtime, validates the receipt-bound readiness report schema and terminal fields against the outcome, creates verifier runtime directories through no-follow repo-local ancestry, denies and fingerprints nested `.autoclaw`, and records full file modes so permission widening changes the residue fingerprint. The test-only guard fixture may still exercise an exact configured allowlist; production writes an empty builder allowlist and the live model probe proves repo checks remain denied. Candidate record tips ACA `59477b818cef680b13c5ecc355564b339daac922` and global `94ff9ba53312c75ccc1b9bf9001d9380139f0a00` pass deterministic ACA 215 with one intentional live skip, live-enabled ACA 215/215, strict OpenSpec 4/4, project-memory, compile/no-cache, diff/status checks, and the complete global verifier. The following evidence-only commits become the exact audit inputs and receive the same full reruns; neither PR may merge until remote gates are clean and a new independent review returns literal `REVIEW-CLEAN` for those exact tips.
 
 ## Finding-to-fix lineage
 
@@ -57,7 +57,7 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 **Inferred**
 
-- The repaired release candidate is locally green at ACA implementation `8bef60e`; global remains exact `a6f6416` on `origin/main@736ec0e`. Final record tips still require complete exact-tip reruns, remote checks, zero unresolved threads, and fresh independent review before merge.
+- Candidate record tips ACA `59477b818cef680b13c5ecc355564b339daac922` and global `94ff9ba53312c75ccc1b9bf9001d9380139f0a00` passed their complete local gates. Evidence-only final tips still require the same exact reruns, remote checks, zero unresolved threads, and fresh independent review before merge.
 
 **Unclear or intentionally unproved**
 
@@ -71,4 +71,4 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 Every actionable finding through round 16 is fixed and regression-covered. Five CodeRabbit findings were accepted; the generic guard-fixture comment was rejected because the production builder policy and live containment evidence prove the opposite behavior. Historical clean verdicts do not authorize the repaired tips. Exact repetition, remote checks, review-thread closure, and a new literal `REVIEW-CLEAN` remain required. Landing, deployment, observation-adapter, and residual threat-boundary gates remain explicit and are not represented as completed live proof.
 
-Provenance: executor=codex:gpt-5.5:high; audit=L4-changes-required-repaired; scripts=ACA-unittest,live-builder-containment,partner-focused-suites,OpenSpec,project-memory,GitHub-PR-review; escalations=0; routing=strong; notes=round-16 local repair green; final record-tip exact repeat and fresh review pending
+Provenance: executor=codex:gpt-5.5:high; audit=L4-pending; scripts=ACA-unittest,live-builder-containment,OpenSpec,project-memory,global-verify; escalations=0; routing=T3; notes=candidate record tips fully green; evidence-only exact repeat and fresh review pending

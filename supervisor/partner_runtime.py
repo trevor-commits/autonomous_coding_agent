@@ -70,11 +70,6 @@ def decide_wake(
         return _build_decision(validated_snapshot, mode, "no_op", ("observe_only",), (), {})
 
     budgets = validated_snapshot["budgets"]
-    if budgets["max_proposals"] == 0:
-        return _build_decision(
-            validated_snapshot, mode, "no_op", ("proposal_budget_exhausted",), (), {}
-        )
-
     prepared_candidates = [_prepare_candidate(candidate) for candidate in candidates]
     ranked = rank_initiatives(
         prepared_candidates,
@@ -103,6 +98,10 @@ def decide_wake(
     )
     evidence_ids = tuple(selected["observation_ids"])
     if not authority["authorized"]:
+        if budgets["max_proposals"] == 0:
+            return _build_decision(
+                validated_snapshot, mode, "no_op", ("proposal_budget_exhausted",), (), {}
+            )
         return _build_decision(
             validated_snapshot,
             mode,
@@ -112,6 +111,10 @@ def decide_wake(
             {"proposal": selected, "authority": authority},
         )
     if mode == "propose":
+        if budgets["max_proposals"] == 0:
+            return _build_decision(
+                validated_snapshot, mode, "no_op", ("proposal_budget_exhausted",), (), {}
+            )
         return _build_decision(
             validated_snapshot,
             mode,

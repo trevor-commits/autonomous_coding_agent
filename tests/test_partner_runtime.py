@@ -230,6 +230,24 @@ class PartnerRuntimeTests(unittest.TestCase):
         self.assertEqual(envelope["content_hash"], canonical_hash(envelope))
         self.assertEqual(envelope_decision["content_hash"], canonical_hash(envelope_decision))
 
+    def test_zero_proposal_budget_does_not_block_authorized_envelope(self) -> None:
+        decision = _runtime().decide_wake(
+            _snapshot(
+                approval=True,
+                budgets={"max_proposals": 0, "max_envelopes": 1},
+            ),
+            candidates=[_candidate()],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+            prior_decisions=(),
+            mode="execute",
+        )
+
+        self.assertEqual("executor_envelope", decision["decision_type"])
+        self.assertEqual("proposal-001", decision["payload"]["executor_envelope"]["proposal_id"])
+
     def test_duplicate_wake_returns_the_same_prior_decision(self) -> None:
         runtime = _runtime()
         first = runtime.decide_wake(

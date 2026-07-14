@@ -2,21 +2,22 @@
 
 ## Result
 
-**REOPENED RELEASE GATE.** The archived tasks/specification remain complete, and post-archive review repairs pass at ACA `84694c6` and global `b9124a3`. A fresh exact-tip terminal review is required before this report returns to final `PASS`.
+**REOPENED RELEASE GATE.** The archived tasks/specification remain complete, and round-12 review repairs pass at ACA `c5f0b960a4bc7055f275ace13a564320bc3156a4` and global `037d1fe0c0330ecf4951cc246610637c67c78fe0`. A fresh exact-tip terminal review is required before this report returns to final `PASS`.
 
 ## Structural validation
 
 - `openspec validate --all --strict --no-interactive`: pass before archive.
 - OpenSpec tasks: 22/22 complete.
-- Release implementation range: `origin/main..84694c6` on clean-history PR #7, paired with global `b9124a3`.
+- Release implementation range: `origin/main..c5f0b96` on clean-history PR #7, paired with global `037d1fe`.
 - `git diff --check`: pass.
 
 ## Behavior and test evidence
 
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m compileall -q supervisor tests`: pass.
-- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v`: 170/170 pass.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v`: 181 discovered; 180 pass and one opt-in live Codex containment test is skipped.
+- `ACA_RUN_LIVE_CODEX_TESTS=1 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_builder_adapter.LiveCodexBuilderBoundaryTests.test_exact_allowed_command_cannot_write_outside_run_scope -v`: pass; an exact allow-listed command wrote inside `src/` while its repository-root write was denied, and the hook separately allowed an in-scope patch while denying a root patch.
 - Repaired live pilot: observe, model proposal, pre-approval denial, full-binding dry-run, revoked-current-approval denial, real retained-worktree execution, two 159-test runs, outcome reconciliation, honest unknown-benefit handling, exact retirement, and kill-switch proof all pass.
-- Historical round-4 independent review: `REVIEW-CLEAN` only for its frozen commits. Current repairs pass ACA 170/170, candidate 5/5, bridge 13/13, executor 14/14, reconciliation 5/5, and the full global verifier; round-8 review is pending after the proposal/envelope budget repair.
+- Historical round-4 and round-11 `REVIEW-CLEAN` verdicts apply only to their frozen commits. Round 12 found later defects; current repairs pass the ACA deterministic suite (180 pass, one opt-in skipped), candidate 5/5, bridge 14/14, executor 18/18, reconciliation 5/5, the separately enabled live containment probe, and the full global verifier. Fresh exact-tip review is pending.
 
 ## Specification sync
 

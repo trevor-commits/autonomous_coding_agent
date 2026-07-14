@@ -19,6 +19,10 @@
 
 The terminal pass independently ran ACA 159/159, global executor 14/14, and global reconciliation 5/5. The governor separately ran the current-tip full global verifier successfully.
 
+## Current release gate after round 12
+
+**REPAIRED, FRESH EXACT-TIP REVIEW REQUIRED.** Round 12 reviewed ACA `d1091fa49dae3336908d7705ccaa9bbb3babc872` and global `c949f24b54189c4075f4a2a25fee1a09940c80fa` and returned changes required. The accepted findings are repaired in ACA `c5f0b960a4bc7055f275ace13a564320bc3156a4` and global `037d1fe0c0330ecf4951cc246610637c67c78fe0`; neither PR may merge until a fresh independent review returns `REVIEW-CLEAN` for the final exact tips.
+
 ## Finding-to-fix lineage
 
 | Round | Independent result | Accepted finding | Repair and proof |
@@ -34,6 +38,7 @@ The terminal pass independently ran ACA 159/159, global executor 14/14, and glob
 | 9 | Changes required | GitHub CodeQL found that the private-value rejection regression stored values from variables named `secret` and `secret_key`, causing a high-severity clear-text-sensitive-data alert even though the values were synthetic. | ACA `570eac8` preserves the redaction regression while constructing synthetic forbidden markers from neutral names. Focused CLI 6/6, full ACA 173/173, strict OpenSpec 4/4, both Python CI jobs, CodeQL Python, the CodeQL security gate, Cursor Bugbot, CodeRabbit, and GitGuardian pass; no review thread remains open. |
 | 10 | Changes required | Governor self-audit reproduced that the global executor regression imported the extensionless runtime without `-B`, leaving `scripts/__pycache__/autonomous-partner-executor…pyc`; the verifier checked only `scripts/lib/__pycache__`, so it passed while dirtying the immutable source runtime. | Global `d574fb4` runs the import regression with bytecode disabled, asserts the executor test leaves no cache, and makes the full verifier fail on either partner or health source cache. The exact RED produced the `.pyc`; executor 18/18 and the complete verifier now pass twice with a clean source tree. |
 | 11 | Review clean | The independent challenger reviewed exact ACA `090f64ccf61a4f34bcb82d1ef007fb2c75e44e29` and global `7aa20e93b9f5e07d16df3a6faa65426e2f7d1fd9` after every repair. | `REVIEW-CLEAN`: ACA 173/173, strict OpenSpec 4/4, the complete global verifier including executor 18/18 and both no-cache assertions, clean/mergeable/all-green PR heads, zero unresolved threads, zero open ACA code-scanning alerts, and clean pushed worktrees. The negative cache-sentinel test failed on both intended roots. |
+| 12 | Changes required | Exact-tip review found that prior decision replay bypassed current kill-switch/health/busy gates; builder shell/path enforcement occurred after some effects and unsafe discovery substitution remained; learning accepted incomplete envelope and unbound receipt evidence; unsupported scores could become measured; maturity prose overstated threshold authority; and several durable records/tests were stale. | ACA `c5f0b96` now orders current safety gates before replay, rejects shell substitution/control forms, installs a fail-closed PreToolUse guard plus a per-run least-privilege Codex permission profile, validates complete cross-schema envelopes and exact receipt bytes, requires complete adoption evidence for scores, clarifies promotion proof, and closes the documentation/test gaps. Global `037d1fe` passes the exact receipt path into ACA learning. The deterministic suite discovers 181 tests (180 pass, one opt-in live test skipped); the opt-in real Codex containment probe, strict OpenSpec 4/4, global reconciliation 5/5, and the complete global verifier pass. Fresh exact-tip review remains mandatory. |
 
 The round-2 reviewer returned the exact finding and reproduction but its final prose was blocked by the platform safety classifier. The finding was still treated as real, repaired, regression-covered, and re-audited; the blocked prose was never counted as a clean verdict.
 
@@ -48,7 +53,7 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 **Inferred**
 
-- The exact release candidate is independently review-clean and ready for merge, but not yet deployed.
+- The repaired release candidate is locally green, but its final exact tips are not independently review-clean yet and are not ready to merge.
 
 **Unclear or intentionally unproved**
 
@@ -59,6 +64,6 @@ The round-2 reviewer returned the exact finding and reproduction but its final p
 
 ## Dispositions
 
-Every actionable finding through round 10 is fixed and regression-covered, and round 11 returned `REVIEW-CLEAN` with no P0–P3 finding. No finding was declined. The remaining landing, deployment, observation-adapter, and residual threat-boundary gates are explicit, not represented as completed live proof.
+Every actionable finding through round 12 is fixed and regression-covered. Round 11's clean verdict is superseded for release purposes by round 12's later findings; a fresh exact-tip verdict is required. No actionable finding was declined. Landing, deployment, observation-adapter, and residual threat-boundary gates remain explicit and are not represented as completed live proof.
 
-Provenance: executor=codex:gpt-5.5:high; audit=L4-review-clean; scripts=ACA-unittest,partner-focused-suites,OpenSpec,global-verify,negative-cache-sentinel,GitHub-CodeQL,GitHub-PR-review; escalations=0; routing=strong; notes=round-11 exact-tip review-clean
+Provenance: executor=codex:gpt-5.5:high; audit=L4-changes-required-repaired; scripts=ACA-unittest,live-builder-containment,partner-focused-suites,OpenSpec,global-verify,GitHub-PR-review; escalations=0; routing=strong; notes=round-12 repaired pending fresh exact-tip review

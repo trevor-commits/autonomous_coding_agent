@@ -7,7 +7,7 @@ The existing repository was kept and repositioned. Its tested supervisor is now 
 ## Evidence
 
 - 22/22 OpenSpec tasks complete on a clean-history release branch.
-- 181 ACA tests pass (one opt-in live Codex test is skipped in the deterministic run); the opt-in real Codex containment probe also passes, along with strict OpenSpec validation and whitespace checks.
+- The deterministic ACA suite discovers 181 tests: 180 pass and one opt-in live Codex test is skipped; the separately enabled real Codex containment probe also passes, along with strict OpenSpec validation and whitespace checks.
 - One real `gpt-5.5`/high retained-worktree pilot completed with two successful 159-test runs.
 - Independent and PR review through round 12 found and repaired approval, pre-effect command/filesystem containment, current safety-gate replay, receipt/evidence binding, benefit-measurement, diff, provenance, schema, concurrency, idempotency, CLI, archive, and learning-boundary defects. A fresh exact-tip verdict remains required before landing.
 - `referencing` is now an explicit direct dependency so cross-schema executor-envelope validation uses a real registry instead of silently accepting incomplete nested documents; it was already present transitively through `jsonschema`.

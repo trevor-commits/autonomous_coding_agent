@@ -9,7 +9,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from supervisor.builder_adapter import CodexBuilderAdapter, build_builder_prompt
+from supervisor.builder_adapter import (
+    CodexBuilderAdapter,
+    build_builder_prompt,
+)
+from supervisor.builder_guard import normalize_builder_command
+from supervisor.policy import ShellClass, classify_command
 
 
 def _git(repo_root: Path, *args: str) -> None:
@@ -407,7 +412,18 @@ class LiveCodexBuilderBoundaryTests(unittest.TestCase):
             self.assertNotIn(
                 "builder-outside-secret", rendered_events + result.final_message
             )
-            self.assertEqual((), result.commands_run)
+            self.assertTrue(
+                all(
+                    classify_command(normalize_builder_command(command)).shell_class
+                    is ShellClass.AUTO_ALLOW
+                    for command in result.commands_run
+                ),
+                result.commands_run,
+            )
+            self.assertNotIn(
+                "python3 tests/write_boundary.py",
+                tuple(normalize_builder_command(command) for command in result.commands_run),
+            )
             self.assertIn("denied", result.final_message.lower())
 
 

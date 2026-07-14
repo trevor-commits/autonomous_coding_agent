@@ -16,6 +16,15 @@ class PartnerWorkspaceContractTests(unittest.TestCase):
         self.assertIsNotNone(contract.commands.app_up)
         self.assertIsNotNone(contract.commands.app_health)
 
+    def test_repo_development_server_is_loopback_only(self) -> None:
+        root = Path(__file__).resolve().parent.parent
+        contract = load_repo_contract(root)
+
+        self.assertEqual(
+            "python3 -m http.server --bind 127.0.0.1 8765",
+            contract.commands.app_up,
+        )
+
     def test_archived_partner_change_has_complete_canonical_discovery(self) -> None:
         root = Path(__file__).resolve().parent.parent
         active_change = "openspec/changes/autonomous-partner-reposition/"

@@ -8,7 +8,7 @@
 
 ## Repo Principles
 
-Load `CONTINUITY.md` and `COHERENCE.md` before any task. Their principles, plus the Linear-at-the-core rule in `LINEAR.md`, govern every rule below.
+Load `AGENTS.md`, `PROJECT_MEMORY.md`, `CONTINUITY.md`, and `COHERENCE.md` before any task. The project-memory write contract is `.project-memory.schema.yaml`; its policy is `/Users/gillettes/.codex/policies/PROJECT_MEMORY.md`. The repo principles, plus the Linear-at-the-core rule in `LINEAR.md`, govern every rule below.
 
 ## Roles
 

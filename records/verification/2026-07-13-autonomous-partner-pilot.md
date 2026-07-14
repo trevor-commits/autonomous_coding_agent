@@ -122,15 +122,18 @@ Each defect first reproduced red, then received a focused regression and bounded
 
 ## Current release verification
 
-The user-requested round-8 review of ACA `33e9462` and global `0b180c1` completed historically and led to later repair rounds. The latest containment challenge found additional model-authority, failed-outcome progression, sensitive-residue, host-privacy, exact-report-binding, and verifier-integrity gaps. Those findings are repaired at ACA implementation `87f5378` and global implementation `65a00fd`.
+The user-requested round-8 review of ACA `33e9462` and global `0b180c1` completed historically and led to later repair rounds. The latest challenge found command-indirection, model-context, descendant-timeout, storage-link, actual-clock, production-override, and publication-order gaps. Those findings plus post-repair timing failures are repaired at ACA implementation `7b69f03` and global implementation `3d27a32`.
 
-- ACA: 199/199 with the real Codex containment probe enabled.
+- ACA: 211 tests pass with one intentional live skip; 211/211 pass with the real Codex containment probe enabled.
+- ACA timing stress: the early-app-exit regression passed 30 consecutive runs; all three descendant-timeout boundary tests passed in four simultaneous suites and now assert the child PID is gone.
 - Canonical OpenSpec: 4/4 strict.
-- Global executor: 18/18; reconciliation: 6/6.
+- Global candidate/bridge/executor/snapshot/reconciliation: 8/15/19/4/6.
+- Real global candidate: production-shape `gpt-5.5/high` call succeeded with a schema-valid evidence-citing proposal, 0600 state, no model runtime residue, and no residual process.
 - Complete global verifier: pass with no new source bytecode residue.
+- Global timing stress: three simultaneous 19-check platform-probe suites pass after replacing the immediate child-PID assertion with a bounded exit check.
 - Recurring execute: still off.
 - Approved observation feed: intentionally empty, so proactive usefulness and measured benefit remain unproved.
 
-The remaining gates are a fresh independent `REVIEW-CLEAN` for the final record-bearing exact tips, origin/main landing, SHA-pinned observe-only deployment, and live health proof.
+The remaining Stage 0 gates are a fresh independent `REVIEW-CLEAN` for the final pre-audit record-bearing exact tips, origin/main landing, SHA-pinned observe-only deployment, and live health proof. Post-release work belongs to coordinator Codex `019f5f11-5758-7790-b1b6-6f36cb50868f`: connect a bounded approved observation adapter and design graduated agency so reversible private/local work becomes broadly available without weakening hard gates for destructive, irreversible, credentialed, financial, privacy-expanding, security-sensitive, or outward-facing effects.
 
 Provenance: executor=codex:gpt-5.5:high; audit=L4-pending; scripts=ACA-unittest,live-builder-containment,OpenSpec,autonomous-partner-executor.test.sh,autonomous-partner-reconcile.test.sh,global-verify; escalations=0; routing=T3; notes=pilot retained and latest containment repairs green; exact-tip review pending

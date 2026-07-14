@@ -6,7 +6,8 @@ This root file intentionally stays thin so repo-local policy does not drift from
 1. `/Users/gillettes/.codex/AGENTS.md`
 2. `/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.project.md`
 3. `/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md`
-4. `/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md`
+4. `/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_MEMORY.md` — shared cross-AI project memory; schema: `.project-memory.schema.yaml`; write policy: `/Users/gillettes/.codex/policies/PROJECT_MEMORY.md`
+5. `/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md`
 
 ## Local Authority
 - `AGENTS.project.md` is the authoritative repo-local overlay for this repository.

@@ -89,6 +89,11 @@ class PolicyTests(unittest.TestCase):
             "git fetch origin",
             "git rev-parse HEAD",
             "git diff -- .env",
+            "find .\ntouch owned",
+            "find $HOME -name '*.pem'",
+            "find ~ -maxdepth 1",
+            "find `touch owned`",
+            "find $(touch owned)",
         )
         for command in commands:
             with self.subTest(command=command):

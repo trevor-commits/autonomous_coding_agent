@@ -137,7 +137,7 @@ loop: until all owned checks are green
 max_iterations: 6
 verify: python3 -m compileall -q supervisor tests && python3 -m unittest discover -s tests -v
 
-- [ ] **Step 20: Run a live bounded partner pilot**
+- [x] **Step 20: Run a live bounded partner pilot**
 action: Use isolated runtime state to prove observe, self-proposal, denied pre-approval dispatch, explicit approval, one queued sandbox packet, executor outcome reconciliation, learning, and kill-switch behavior with durable receipts.
 loop: until the live pilot evidence is internally consistent
 max_iterations: 4

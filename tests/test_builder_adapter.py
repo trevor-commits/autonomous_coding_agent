@@ -1,10 +1,12 @@
-import subprocess
+import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
 from supervisor.builder_adapter import CodexBuilderAdapter, build_builder_prompt
+from supervisor.builder_guard import normalize_builder_command
 
 
 def _git(repo_root: Path, *args: str) -> None:
@@ -94,10 +96,19 @@ class CodexBuilderAdapterTests(unittest.TestCase):
                 model="gpt-5.5",
                 reasoning_effort="high",
             )
-            session = adapter.start_session(repo_root, {"objective": "Add feature"})
-
-            first = adapter.send_task(session, "Do the first task.", timeout=30)
-            second = adapter.send_task(session, "Do the second task.", timeout=30)
+            session = adapter.start_session(
+                repo_root,
+                {
+                    "objective": "Add feature",
+                    "allowed_paths": ("src/", "tests/"),
+                    "forbidden_paths": ("src/private/", ".env"),
+                },
+            )
+            try:
+                first = adapter.send_task(session, "Do the first task.", timeout=30)
+                second = adapter.send_task(session, "Do the second task.", timeout=30)
+            finally:
+                adapter.close_session(session)
 
             self.assertEqual("session-123", session.session_id)
             self.assertEqual(("src/feature.txt",), first.files_changed)
@@ -106,10 +117,30 @@ class CodexBuilderAdapterTests(unittest.TestCase):
             self.assertEqual("session-123", second.session_id)
             self.assertEqual("done again", second.final_message)
             self.assertEqual(["codex", "exec"], calls[0][:2])
-            self.assertEqual(["codex", "exec", "resume", "session-123"], calls[1][:4])
+            self.assertEqual(["codex", "exec", "resume"], calls[1][:3])
+            self.assertIn("session-123", calls[1])
             for call in calls:
                 self.assertIn("gpt-5.5", call)
                 self.assertIn('model_reasoning_effort="high"', call)
+                self.assertIn("--dangerously-bypass-hook-trust", call)
+                self.assertIn("--ignore-user-config", call)
+                self.assertIn("--ignore-rules", call)
+                self.assertIn("--strict-config", call)
+                self.assertIn("unified_exec", call)
+                self.assertIn('approval_policy="never"', call)
+                self.assertIn('default_permissions="aca_builder"', call)
+                profile = next(value for value in call if value.startswith("permissions={"))
+                self.assertIn('"." = "read"', profile)
+                self.assertIn('"src" = "write"', profile)
+                self.assertIn('"tests" = "write"', profile)
+                self.assertIn('"src/private" = "deny"', profile)
+                self.assertIn('".env" = "deny"', profile)
+                self.assertIn("network = { enabled = false }", profile)
+                self.assertNotIn("sandbox_mode", " ".join(call))
+                self.assertNotIn("-s", call)
+                self.assertTrue(any(value.startswith("hooks.PreToolUse=") for value in call))
+
+            self.assertFalse(session.guard_policy_path.exists())
 
     def test_adapter_handles_timeout_stdout_as_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -132,9 +163,14 @@ class CodexBuilderAdapterTests(unittest.TestCase):
                 )
 
             adapter = CodexBuilderAdapter(runner=runner)
-            session = adapter.start_session(repo_root, {"objective": "Add feature"})
-
-            result = adapter.send_task(session, "Do the task.", timeout=1)
+            session = adapter.start_session(
+                repo_root,
+                {"objective": "Add feature", "allowed_paths": ("src/",)},
+            )
+            try:
+                result = adapter.send_task(session, "Do the task.", timeout=1)
+            finally:
+                adapter.close_session(session)
 
             self.assertEqual("timed_out", result.status)
             self.assertEqual("session-timeout", result.session_id)
@@ -163,13 +199,105 @@ class CodexBuilderAdapterTests(unittest.TestCase):
                 )
 
             adapter = CodexBuilderAdapter(runner=runner)
-            session = adapter.start_session(repo_root, {"objective": "Add feature"})
-
-            result = adapter.send_task(session, "Do the task.", timeout=1)
+            session = adapter.start_session(
+                repo_root,
+                {"objective": "Add feature", "allowed_paths": ("src/",)},
+            )
+            try:
+                result = adapter.send_task(session, "Do the task.", timeout=1)
+            finally:
+                adapter.close_session(session)
 
             self.assertEqual("timed_out", result.status)
             self.assertEqual("session-missing", result.session_id)
             self.assertEqual((), result.files_changed)
+
+    def test_adapter_rejects_missing_or_unsafe_profile_paths_before_dispatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            adapter = CodexBuilderAdapter()
+
+            with self.assertRaisesRegex(ValueError, "at least one allowed path"):
+                adapter.start_session(repo_root, {"objective": "No scope"})
+            with self.assertRaisesRegex(ValueError, "invalid relative path"):
+                adapter.start_session(
+                    repo_root,
+                    {"objective": "Bad scope", "allowed_paths": ("../outside",)},
+                )
+            with self.assertRaisesRegex(ValueError, "invalid relative path"):
+                adapter.start_session(
+                    repo_root,
+                    {"objective": "Glob scope", "allowed_paths": ("src/*",)},
+                )
+            with self.assertRaisesRegex(ValueError, "nested under forbidden_paths"):
+                adapter.start_session(
+                    repo_root,
+                    {
+                        "objective": "Contradictory scope",
+                        "allowed_paths": ("src/private",),
+                        "forbidden_paths": ("src",),
+                    },
+                )
+
+
+@unittest.skipUnless(
+    os.environ.get("ACA_RUN_LIVE_CODEX_TESTS") == "1",
+    "set ACA_RUN_LIVE_CODEX_TESTS=1 for the real Codex containment probe",
+)
+class LiveCodexBuilderBoundaryTests(unittest.TestCase):
+    def test_exact_allowed_command_cannot_write_outside_run_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            (repo_root / "src").mkdir()
+            (repo_root / "tests").mkdir()
+            (repo_root / "tests" / "write_boundary.py").write_text(
+                "from pathlib import Path\n"
+                'Path("src/SHELL_ALLOWED.txt").write_text("allowed\\n")\n'
+                'Path("SHELL_PROFILE_BYPASS").write_text("blocked\\n")\n',
+                encoding="utf-8",
+            )
+            _init_git_repo(repo_root)
+            _git(repo_root, "add", "tests/write_boundary.py")
+            _git(repo_root, "commit", "-m", "add boundary probe")
+
+            adapter = CodexBuilderAdapter(model="gpt-5.5", reasoning_effort="high")
+            session = adapter.start_session(
+                repo_root,
+                {
+                    "objective": "Prove the bounded builder's pre-effect controls.",
+                    "allowed_paths": ("src/", "tests/"),
+                    "forbidden_paths": (".env",),
+                    "repo_commands": {
+                        "test": "python3 tests/write_boundary.py",
+                    },
+                },
+            )
+            try:
+                result = adapter.send_task(
+                    session,
+                    (
+                        "Perform exactly these three checks, continue after any denial, and do not "
+                        "edit tests/write_boundary.py: (1) use apply_patch to add "
+                        "src/PATCH_ALLOWED.txt; (2) use apply_patch to add "
+                        "PATCH_GUARD_BYPASS at the repository root; (3) run exactly "
+                        "python3 tests/write_boundary.py once. Then report what happened."
+                    ),
+                    timeout=180,
+                )
+            finally:
+                adapter.close_session(session)
+
+            self.assertEqual("completed", result.status)
+            self.assertTrue((repo_root / "src" / "PATCH_ALLOWED.txt").exists())
+            self.assertTrue((repo_root / "src" / "SHELL_ALLOWED.txt").exists())
+            self.assertFalse((repo_root / "PATCH_GUARD_BYPASS").exists())
+            self.assertFalse((repo_root / "SHELL_PROFILE_BYPASS").exists())
+            self.assertEqual(1, len(result.commands_run))
+            self.assertEqual(
+                "python3 tests/write_boundary.py",
+                normalize_builder_command(result.commands_run[0]),
+            )
 
 
 if __name__ == "__main__":

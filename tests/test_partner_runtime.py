@@ -291,6 +291,36 @@ class PartnerRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(first, duplicate)
 
+    def test_current_safety_gates_override_prior_executor_replay(self) -> None:
+        runtime = _runtime()
+        prior = runtime.decide_wake(
+            _snapshot(approval=True),
+            candidates=[_candidate()],
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+            prior_decisions=(),
+        )
+        cases = (
+            ({"healthy": False, "reason_codes": ["governor_unhealthy"]}, False, (), "no_op"),
+            ({"healthy": True, "reason_codes": []}, True, (), "no_op"),
+            ({"healthy": True, "reason_codes": []}, False, ("HALT",), "blocked"),
+        )
+        for health, busy, kill_switches, expected in cases:
+            with self.subTest(health=health, busy=busy, kill_switches=kill_switches):
+                decision = runtime.decide_wake(
+                    _snapshot(approval=True),
+                    candidates=[_candidate()],
+                    now=NOW,
+                    health=health,
+                    busy=busy,
+                    kill_switches=kill_switches,
+                    prior_decisions=(prior,),
+                )
+                self.assertEqual(expected, decision["decision_type"])
+                self.assertNotEqual(prior["content_hash"], decision["content_hash"])
+
     def test_observe_decision_does_not_suppress_propose_for_same_wake(self) -> None:
         runtime = _runtime()
         observed = runtime.decide_wake(

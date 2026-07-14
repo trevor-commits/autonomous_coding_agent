@@ -127,14 +127,16 @@ class ContractParsingTests(unittest.TestCase):
     def test_run_id_must_be_bounded_and_filesystem_safe(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             contract_path = Path(tmpdir) / "run-contract.json"
-            payload = _valid_run_contract("/tmp/repo")
-            payload["run_id"] = "../../outside"
-            contract_path.write_text(json.dumps(payload))
+            for run_id in ("../../outside", "r" * 121):
+                with self.subTest(run_id=run_id):
+                    payload = _valid_run_contract("/tmp/repo")
+                    payload["run_id"] = run_id
+                    contract_path.write_text(json.dumps(payload))
 
-            with self.assertRaises(ContractValidationError) as ctx:
-                load_run_contract(contract_path)
+                    with self.assertRaises(ContractValidationError) as ctx:
+                        load_run_contract(contract_path)
 
-            self.assertEqual(RunState.UNSUPPORTED, ctx.exception.run_state)
+                    self.assertEqual(RunState.UNSUPPORTED, ctx.exception.run_state)
 
     def test_scope_enforcement_blocks_forbidden_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

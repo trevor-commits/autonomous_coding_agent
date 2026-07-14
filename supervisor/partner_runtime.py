@@ -41,10 +41,6 @@ def decide_wake(
     if mode not in {"observe", "propose", "execute"}:
         raise PartnerRuntimeError("mode must be observe, propose, or execute.")
 
-    existing = _prior_decision(validated_snapshot, prior_decisions, mode=mode)
-    if existing is not None:
-        return existing
-
     if not health_state["healthy"]:
         return _build_decision(
             validated_snapshot,
@@ -66,6 +62,12 @@ def decide_wake(
             (),
             {"active_kill_switches": list(active_switches)},
         )
+
+    # Replay is idempotent only after current safety state is proven healthy.
+    # A historical envelope must never bypass a newly active stop condition.
+    existing = _prior_decision(validated_snapshot, prior_decisions, mode=mode)
+    if existing is not None:
+        return existing
     if mode == "observe":
         return _build_decision(validated_snapshot, mode, "no_op", ("observe_only",), (), {})
 

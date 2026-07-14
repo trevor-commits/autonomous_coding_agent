@@ -93,6 +93,7 @@ def _build_parser() -> JsonArgumentParser:
     reconcile_parser.add_argument("--outcome", required=True)
     reconcile_parser.add_argument("--envelope", required=True)
     reconcile_parser.add_argument("--proposal", required=True)
+    reconcile_parser.add_argument("--receipt", required=True)
     reconcile_parser.add_argument("--now", default=None)
 
     subparsers.add_parser("status")
@@ -190,6 +191,8 @@ def _dispatch(args: argparse.Namespace) -> dict[str, Any]:
             load_json_document(args.outcome),
             envelope=load_json_document(args.envelope),
             proposal=load_json_document(args.proposal),
+            receipt_bytes=Path(args.receipt).read_bytes(),
+            receipt_ref=str(Path(args.receipt)),
             now=args.now or _now(),
         )
     if args.command == "status":

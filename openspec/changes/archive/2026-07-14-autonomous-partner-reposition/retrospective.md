@@ -7,10 +7,10 @@ The existing repository was kept and repositioned. Its tested supervisor is now 
 ## Evidence
 
 - 22/22 OpenSpec tasks complete on a clean-history release branch.
-- 170 ACA tests pass; strict OpenSpec validation and whitespace checks pass.
+- 181 ACA tests pass (one opt-in live Codex test is skipped in the deterministic run); the opt-in real Codex containment probe also passes, along with strict OpenSpec validation and whitespace checks.
 - One real `gpt-5.5`/high retained-worktree pilot completed with two successful 159-test runs.
-- Six fresh review passes found and repaired approval, filesystem, diff, provenance, schema, concurrency, idempotency, CLI, archive, and learning-boundary defects. A seventh exact-tip verdict remains required before landing.
-- No dependency was added.
+- Independent and PR review through round 12 found and repaired approval, pre-effect command/filesystem containment, current safety-gate replay, receipt/evidence binding, benefit-measurement, diff, provenance, schema, concurrency, idempotency, CLI, archive, and learning-boundary defects. A fresh exact-tip verdict remains required before landing.
+- `referencing` is now an explicit direct dependency so cross-schema executor-envelope validation uses a real registry instead of silently accepting incomplete nested documents; it was already present transitively through `jsonschema`.
 
 ## What worked
 
@@ -27,6 +27,7 @@ The existing repository was kept and repositioned. Its tested supervisor is now 
 - Candidate generation initially allowed overlapping model calls to overwrite active state, and wake-only idempotency let observe suppress proposal mode.
 - Archive discovery and canonical purposes were initially left stale, while one CLI/error boundary was not structured consistently.
 - The real builder used several harmless command shapes outside the finite grammar, so the pilot needed bounded grammar repairs rather than a permissive fallback.
+- Post-effect diff checks were not sufficient for an untrusted builder: a PreToolUse guard and per-run Codex permission profile now reject unknown commands and constrain shell writes to the exact allowed paths before effects.
 
 Each miss became a regression, a durable audit entry, and a narrower invariant. No failed pilot or review was relabeled as success.
 

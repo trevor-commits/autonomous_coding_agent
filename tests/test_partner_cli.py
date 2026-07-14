@@ -7,7 +7,13 @@ import unittest
 from pathlib import Path
 
 from test_partner_contracts import _identity
-from test_partner_learning import NOW as LEARNING_NOW, _envelope, _outcome, _proposal
+from test_partner_learning import (
+    NOW as LEARNING_NOW,
+    _envelope,
+    _outcome,
+    _proposal,
+    _receipt_bytes,
+)
 from test_partner_runtime import NOW, _candidate, _snapshot
 
 
@@ -107,9 +113,13 @@ class PartnerCliTests(unittest.TestCase):
     def test_reconcile_emits_candidates_and_never_promotes_identity(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            outcome_path = _write(root / "outcome.json", _outcome())
             envelope_path = _write(root / "envelope.json", _envelope())
             proposal_path = _write(root / "proposal.json", _proposal())
+            receipt_path = root / "receipt.json"
+            receipt_path.write_bytes(_receipt_bytes())
+            outcome = _outcome()
+            outcome["receipt_ref"] = str(receipt_path)
+            outcome_path = _write(root / "outcome.json", outcome)
 
             rc, result, _ = _invoke(
                 [
@@ -120,6 +130,8 @@ class PartnerCliTests(unittest.TestCase):
                     str(envelope_path),
                     "--proposal",
                     str(proposal_path),
+                    "--receipt",
+                    str(receipt_path),
                     "--now",
                     LEARNING_NOW,
                 ]

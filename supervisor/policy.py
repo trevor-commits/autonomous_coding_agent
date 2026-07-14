@@ -89,9 +89,15 @@ _READ_ONLY_METADATA_COMMANDS = {
 }
 
 
-def classify_command(command: str, repo_contract: RepoContract | None = None) -> CommandDecision:
+def classify_command(
+    command: str,
+    repo_contract: RepoContract | None = None,
+    *,
+    allowed_commands: tuple[str, ...] = (),
+) -> CommandDecision:
     normalized = command.strip()
-    if repo_contract and normalized in repo_contract.commands.auto_allow_commands():
+    contract_commands = repo_contract.commands.auto_allow_commands() if repo_contract else ()
+    if normalized in {*contract_commands, *allowed_commands}:
         return CommandDecision(
             shell_class=ShellClass.AUTO_ALLOW,
             reason="repo contract command",
@@ -119,6 +125,11 @@ def classify_command(command: str, repo_contract: RepoContract | None = None) ->
 
 def _is_bounded_read_only_discovery(command: str) -> bool:
     if len(command) > 4000:
+        return False
+    # Fail closed before shell parsing. These bytes can create a second command,
+    # expand data outside the repository, or execute command substitution even
+    # when the tokenized shape later resembles a read-only discovery command.
+    if any(character in command for character in ("\n", "\r", "$", "`")):
         return False
     try:
         lexer = shlex.shlex(command, posix=True, punctuation_chars="|&;<>")
@@ -190,6 +201,8 @@ def _is_bounded_find_tokens(tokens: list[str]) -> bool:
             continue
         if token.startswith("-") or expression_started:
             return False
+        if token == "~" or token.startswith("~/"):
+            return False
         root = PurePosixPath(token)
         if root.is_absolute() or ".." in root.parts:
             return False
@@ -212,6 +225,8 @@ def _is_bounded_rg_files_tokens(tokens: list[str]) -> bool:
             index += 1
             continue
         if token.startswith("-"):
+            return False
+        if token == "~" or token.startswith("~/"):
             return False
         root = PurePosixPath(token)
         if len(token) > 300 or root.is_absolute() or ".." in root.parts:

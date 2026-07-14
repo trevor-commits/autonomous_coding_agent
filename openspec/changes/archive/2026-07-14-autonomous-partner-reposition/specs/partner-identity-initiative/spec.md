@@ -41,11 +41,15 @@ The policy MUST rank eligible proposals deterministically by benefit, harm preve
 - **THEN** it produces the same selected proposal and decision hash
 
 ### Requirement: Empirical maturity gate
-Self-originated projects MUST remain approval-gated until at least 10 real proposals have at least 80 percent operator acceptance; graduation MUST apply only to low-risk sandbox starts and a severe authority or privacy failure MUST demote the system to proposal-only.
+Self-originated projects MUST remain approval-gated until at least 10 real proposals have at least 80 percent operator acceptance. Those numerical thresholds are necessary but never sufficient for graduation: a low-risk sandbox start may omit its exact proposal approval only when a separate, current, exact operator-approved promotion proof passes its own schema and validator. Until that proof contract exists, every effectful proposal MUST retain a current exact proposal-bound approval. A severe authority or privacy failure MUST demote the system to proposal-only.
 
 #### Scenario: Threshold is not met
 - **WHEN** acceptance history is below either threshold
 - **THEN** a self-originated proposal cannot become an executor envelope without explicit approval
+
+#### Scenario: Threshold is met without exact promotion proof
+- **WHEN** numerical maturity thresholds pass but no current schema-valid operator-promotion proof exists
+- **THEN** the proposal remains approval-gated and cannot become an executor envelope without its own exact approval
 
 ### Requirement: One typed decision per wake-mode intent
 The policy MUST emit exactly one schema-valid `no_op`, `proposal`, `executor_envelope`, `lesson_candidate`, or `blocked` decision for each wake-and-mode idempotency key and MUST NOT schedule work or persist long-lived global truth. An observe decision MUST NOT suppress a later explicit propose or execute intent for the same wake.

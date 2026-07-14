@@ -4,11 +4,13 @@ import copy
 import hashlib
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import yaml
 from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 
 SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schemas"
@@ -270,7 +272,7 @@ def _validate_schema(payload: dict[str, Any], schema_name: str) -> None:
     except (OSError, json.JSONDecodeError) as exc:
         raise PartnerContractError(f"Could not load schema `{schema_name}`: {exc}.") from exc
     errors = sorted(
-        Draft202012Validator(schema).iter_errors(payload),
+        Draft202012Validator(schema, registry=_schema_registry()).iter_errors(payload),
         key=lambda error: tuple(str(part) for part in error.absolute_path),
     )
     if errors:
@@ -290,6 +292,17 @@ def _validate_schema(payload: dict[str, Any], schema_name: str) -> None:
                 validator = "schema"
             messages.append(f"{location}: violates `{validator}` constraint")
         raise PartnerContractError("; ".join(messages))
+
+
+@lru_cache(maxsize=1)
+def _schema_registry() -> Registry:
+    registry = Registry()
+    for path in sorted(SCHEMA_DIR.glob("*.json")):
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        identifier = schema.get("$id")
+        if isinstance(identifier, str) and identifier:
+            registry = registry.with_resource(identifier, Resource.from_contents(schema))
+    return registry
 
 
 def _copy_mapping(payload: Mapping[str, Any], label: str) -> dict[str, Any]:

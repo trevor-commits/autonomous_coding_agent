@@ -4,11 +4,12 @@ import json
 import os
 import shlex
 import subprocess
+import sys
 import tempfile
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Sequence
 
 
@@ -22,6 +23,7 @@ class BuilderSession:
     session_id: str | None = None
     turn_count: int = 0
     cumulative_changed_files: tuple[str, ...] = ()
+    guard_policy_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -111,6 +113,8 @@ def build_builder_prompt(
 
 
 class CodexBuilderAdapter(BuilderAdapter):
+    _PERMISSION_PROFILE = "aca_builder"
+
     def __init__(
         self,
         *,
@@ -119,7 +123,6 @@ class CodexBuilderAdapter(BuilderAdapter):
         git_runner: Runner | None = None,
         model: str | None = None,
         reasoning_effort: str | None = None,
-        sandbox: str = "workspace-write",
     ) -> None:
         self.codex_bin = codex_bin
         self.runner = runner or subprocess.run
@@ -128,98 +131,192 @@ class CodexBuilderAdapter(BuilderAdapter):
         if reasoning_effort not in {None, "low", "medium", "high", "xhigh"}:
             raise ValueError("reasoning_effort must be low, medium, high, or xhigh")
         self.reasoning_effort = reasoning_effort
-        self.sandbox = sandbox
 
     def start_session(self, worktree_path: Path, run_context: dict[str, Any]) -> BuilderSession:
-        return BuilderSession(
-            worktree_path=Path(worktree_path),
+        resolved_worktree = Path(worktree_path).resolve()
+        session = BuilderSession(
+            worktree_path=resolved_worktree,
             run_context=run_context,
         )
+        self._permission_profile_config(session)
+        policy = {
+            "repo_root": str(resolved_worktree),
+            "allowed_paths": list(run_context.get("allowed_paths", ())),
+            "forbidden_paths": list(run_context.get("forbidden_paths", ())),
+            "allowed_commands": [
+                command
+                for command in run_context.get("repo_commands", {}).values()
+                if isinstance(command, str) and command
+            ],
+        }
+        handle = tempfile.NamedTemporaryFile(
+            mode="w",
+            prefix="codex-builder-policy-",
+            suffix=".json",
+            delete=False,
+            encoding="utf-8",
+        )
+        try:
+            json.dump(policy, handle, sort_keys=True)
+            handle.write("\n")
+        finally:
+            handle.close()
+        policy_path = Path(handle.name)
+        policy_path.chmod(0o600)
+        session.guard_policy_path = policy_path
+        return session
 
     def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
         started = time.monotonic()
         output_last_path = self._temp_output_path()
-        args = self._build_args(session, prompt, output_last_path)
-
         try:
-            completed = self.runner(
-                args,
-                cwd=session.worktree_path,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=False,
+            args = self._build_args(session, prompt, output_last_path)
+            try:
+                completed = self.runner(
+                    args,
+                    cwd=session.worktree_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    check=False,
+                )
+                status = "completed" if completed.returncode == 0 else "failed"
+                stdout = completed.stdout
+            except subprocess.TimeoutExpired as exc:
+                stdout = _coerce_subprocess_output(exc.stdout)
+                status = "timed_out"
+
+            duration = round(time.monotonic() - started, 3)
+            raw_events = tuple(_parse_json_lines(stdout))
+            session_id = _extract_session_id(raw_events) or session.session_id
+            final_message = _extract_final_message(raw_events)
+            if not final_message and output_last_path.exists():
+                final_message = output_last_path.read_text(encoding="utf-8").strip()
+            commands_run = tuple(_extract_command_runs(raw_events))
+            files_changed = self._current_changed_files(session.worktree_path)
+
+            session.session_id = session_id
+            session.turn_count += 1
+            session.cumulative_changed_files = tuple(
+                sorted({*session.cumulative_changed_files, *files_changed})
             )
-            status = "completed" if completed.returncode == 0 else "failed"
-            stdout = completed.stdout
-        except subprocess.TimeoutExpired as exc:
-            stdout = _coerce_subprocess_output(exc.stdout)
-            status = "timed_out"
 
-        duration = round(time.monotonic() - started, 3)
-        raw_events = tuple(_parse_json_lines(stdout))
-        session_id = _extract_session_id(raw_events) or session.session_id
-        final_message = _extract_final_message(raw_events)
-        if not final_message and output_last_path.exists():
-            final_message = output_last_path.read_text(encoding="utf-8").strip()
-        commands_run = tuple(_extract_command_runs(raw_events))
-        files_changed = self._current_changed_files(session.worktree_path)
-
-        session.session_id = session_id
-        session.turn_count += 1
-        session.cumulative_changed_files = tuple(
-            sorted({*session.cumulative_changed_files, *files_changed})
-        )
-        output_last_path.unlink(missing_ok=True)
-
-        return BuilderResult(
-            session_id=session_id,
-            status=status,
-            final_message=final_message,
-            files_changed=files_changed,
-            commands_run=commands_run,
-            duration_seconds=duration,
-            raw_events=raw_events,
-        )
+            return BuilderResult(
+                session_id=session_id,
+                status=status,
+                final_message=final_message,
+                files_changed=files_changed,
+                commands_run=commands_run,
+                duration_seconds=duration,
+                raw_events=raw_events,
+            )
+        finally:
+            output_last_path.unlink(missing_ok=True)
 
     def close_session(self, session: BuilderSession) -> None:
-        return None
+        if session.guard_policy_path is not None:
+            session.guard_policy_path.unlink(missing_ok=True)
 
     def _build_args(self, session: BuilderSession, prompt: str, output_last_path: Path) -> list[str]:
+        common = self._guarded_exec_args(session)
         if session.session_id:
             args = [
                 self.codex_bin,
                 "exec",
                 "resume",
-                session.session_id,
-                prompt,
+                *common,
                 "--json",
                 "-o",
                 str(output_last_path),
+                session.session_id,
+                prompt,
             ]
-            if self.model:
-                args.extend(["-m", self.model])
-            if self.reasoning_effort:
-                args.extend(["-c", f'model_reasoning_effort="{self.reasoning_effort}"'])
             return args
 
         args = [
             self.codex_bin,
             "exec",
+            *common,
             "--json",
             "-o",
             str(output_last_path),
             "-C",
             str(session.worktree_path),
-            "-s",
-            self.sandbox,
+        ]
+        args.append(prompt)
+        return args
+
+    def _guarded_exec_args(self, session: BuilderSession) -> list[str]:
+        if session.guard_policy_path is None:
+            raise ValueError("Builder session lacks a pre-effect guard policy.")
+        guard_script = Path(__file__).with_name("builder_guard.py").resolve()
+        hook_command = shlex.join(
+            [sys.executable, str(guard_script), "--policy", str(session.guard_policy_path)]
+        )
+        hook_value = (
+            '[{ matcher = "^(Bash|apply_patch|Edit|Write)$", hooks = '
+            f'[{{ type = "command", command = {json.dumps(hook_command)}, timeout = 10 }}] }}]'
+        )
+        args = [
+            "--dangerously-bypass-hook-trust",
+            "--ignore-user-config",
+            "--ignore-rules",
+            "--strict-config",
+            "--disable",
+            "unified_exec",
+            "--disable",
+            "multi_agent",
+            "--disable",
+            "apps",
+            "-c",
+            'features.hooks=true',
+            "-c",
+            'approval_policy="never"',
+            "-c",
+            f'default_permissions="{self._PERMISSION_PROFILE}"',
+            "-c",
+            self._permission_profile_config(session),
+            "-c",
+            'web_search="disabled"',
+            "-c",
+            'tools.web_search=false',
+            "-c",
+            f"hooks.PreToolUse={hook_value}",
         ]
         if self.model:
             args.extend(["-m", self.model])
         if self.reasoning_effort:
             args.extend(["-c", f'model_reasoning_effort="{self.reasoning_effort}"'])
-        args.append(prompt)
         return args
+
+    def _permission_profile_config(self, session: BuilderSession) -> str:
+        allowed_paths = _normalized_profile_paths(
+            session.run_context.get("allowed_paths", ()),
+            field="allowed_paths",
+        )
+        forbidden_paths = _normalized_profile_paths(
+            session.run_context.get("forbidden_paths", ()),
+            field="forbidden_paths",
+            require_nonempty=False,
+        )
+        for allowed in allowed_paths:
+            if any(_profile_path_has_prefix(allowed, forbidden) for forbidden in forbidden_paths):
+                raise ValueError("Builder allowed_paths cannot be nested under forbidden_paths.")
+        path_rules = {".": "read"}
+        path_rules.update({path: "write" for path in allowed_paths})
+        path_rules.update({path: "deny" for path in forbidden_paths})
+        rules = ", ".join(
+            f'{json.dumps(path)} = "{access}"'
+            for path, access in sorted(path_rules.items())
+        )
+        return (
+            "permissions={ "
+            f"{self._PERMISSION_PROFILE} = {{ "
+            'extends = ":read-only", '
+            f'filesystem = {{ ":workspace_roots" = {{ {rules} }} }}, '
+            "network = { enabled = false } "
+            "} }"
+        )
 
     def _current_changed_files(self, worktree_path: Path) -> tuple[str, ...]:
         if not worktree_path.exists():
@@ -270,6 +367,44 @@ def _coerce_subprocess_output(value: str | bytes | None) -> str:
     if isinstance(value, bytes):
         return value.decode("utf-8", errors="replace")
     return value
+
+
+def _normalized_profile_paths(
+    values: object,
+    *,
+    field: str,
+    require_nonempty: bool = True,
+) -> tuple[str, ...]:
+    if not isinstance(values, (list, tuple)) or any(
+        not isinstance(value, str) for value in values
+    ):
+        raise ValueError(f"Builder {field} must be a list or tuple of relative paths.")
+    normalized_values: list[str] = []
+    for value in values:
+        pure_path = PurePosixPath(value.replace("\\", "/"))
+        normalized = pure_path.as_posix()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
+        normalized = normalized.rstrip("/")
+        normalized_values.append(normalized)
+    normalized = tuple(dict.fromkeys(normalized_values))
+    if require_nonempty and not normalized:
+        raise ValueError("Builder sessions require at least one allowed path.")
+    for path in normalized:
+        pure_path = PurePosixPath(path)
+        if (
+            not path
+            or pure_path.is_absolute()
+            or "." in pure_path.parts
+            or ".." in pure_path.parts
+            or any(character in path for character in "*?[]")
+        ):
+            raise ValueError(f"Builder {field} contains an invalid relative path.")
+    return normalized
+
+
+def _profile_path_has_prefix(relative_path: str, prefix: str) -> bool:
+    return relative_path == prefix or relative_path.startswith(prefix + "/")
 
 
 def _extract_session_id(events: Sequence[dict[str, Any]]) -> str | None:

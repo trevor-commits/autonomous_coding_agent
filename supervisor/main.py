@@ -4,7 +4,6 @@ import argparse
 import hashlib
 import json
 import os
-import shlex
 import subprocess
 import time
 from dataclasses import dataclass
@@ -15,6 +14,7 @@ from typing import Protocol
 from supervisor.actions import Action
 from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuilderAdapter, build_builder_prompt
+from supervisor.builder_guard import normalize_builder_command
 from supervisor.contracts import (
     ContractValidationError,
     RepoContract,
@@ -804,7 +804,7 @@ def _enforce_builder_policies(
     builder_result: BuilderResult,
 ) -> tuple[str, ...]:
     for command in builder_result.commands_run:
-        normalized = _normalize_builder_command(command)
+        normalized = normalize_builder_command(command)
         decision = classify_command(normalized, repo_contract)
         if decision.shell_class is not ShellClass.AUTO_ALLOW:
             raise PolicyViolationError(
@@ -862,13 +862,6 @@ def _actual_changed_files(repo_root: Path) -> tuple[str, ...]:
         else:
             index += 1
     return tuple(sorted(set(changed)))
-
-
-def _normalize_builder_command(command: str) -> str:
-    tokens = shlex.split(command)
-    if len(tokens) >= 3 and tokens[1] == "-lc":
-        return " ".join(tokens[2:])
-    return command
 
 
 def main() -> int:

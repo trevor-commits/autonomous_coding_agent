@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
-import re
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping
 
@@ -10,6 +10,8 @@ from supervisor.partner_contracts import (
     PartnerContractError,
     canonical_hash,
     validate_document,
+    validate_executor_envelope,
+    validate_safe_payload,
 )
 
 
@@ -30,11 +32,14 @@ def derive_learning_candidates(
     *,
     envelope: Mapping[str, Any],
     proposal: Mapping[str, Any],
+    receipt_bytes: bytes,
+    receipt_ref: str,
     now: str | datetime,
 ) -> dict[str, Any]:
-    validated_envelope = _validate_hash_bound_document(
-        envelope, "partner-executor-envelope.schema.json", "envelope"
-    )
+    try:
+        validated_envelope = validate_executor_envelope(envelope)
+    except PartnerContractError as exc:
+        raise PartnerLearningError(f"Envelope contract is invalid: {exc}") from exc
     try:
         validated_outcome = validate_document(outcome, "partner-outcome.schema.json")
     except PartnerContractError as exc:
@@ -46,12 +51,18 @@ def derive_learning_candidates(
         raise PartnerLearningError("Outcome envelope_id does not match the supplied envelope.")
     if validated_outcome["envelope_hash"] != validated_envelope["content_hash"]:
         raise PartnerLearningError("Outcome envelope_hash does not match the supplied envelope.")
+    if validated_outcome["run_id"] != validated_envelope["run_contract"]["run_id"]:
+        raise PartnerLearningError("Outcome run_id does not match the executor run contract.")
     if validated_envelope["proposal_id"] != validated_proposal["id"]:
         raise PartnerLearningError("Envelope proposal_id does not match the supplied proposal.")
     if validated_envelope["proposal_hash"] != canonical_hash(validated_proposal):
         raise PartnerLearningError("Envelope proposal_hash does not match the supplied proposal.")
-    if not re.fullmatch(r"[0-9a-f]{64}", validated_outcome["receipt_hash"]):
-        raise PartnerLearningError("Outcome receipt_hash must be SHA-256 hex.")
+    _validate_receipt_binding(
+        receipt_bytes,
+        receipt_ref=receipt_ref,
+        outcome=validated_outcome,
+        envelope=validated_envelope,
+    )
 
     measures = _validate_measures(validated_outcome["measures"], validated_proposal)
     successful = (
@@ -109,16 +120,51 @@ def derive_learning_candidates(
     }
 
 
-def _validate_hash_bound_document(
-    payload: Mapping[str, Any], schema_name: str, label: str
+def _validate_receipt_binding(
+    receipt_bytes: bytes,
+    *,
+    receipt_ref: str,
+    outcome: Mapping[str, Any],
+    envelope: Mapping[str, Any],
 ) -> dict[str, Any]:
+    if not isinstance(receipt_bytes, bytes) or not receipt_bytes or len(receipt_bytes) > 1_000_000:
+        raise PartnerLearningError("Receipt evidence must be bounded non-empty bytes.")
+    if not isinstance(receipt_ref, str) or not receipt_ref:
+        raise PartnerLearningError("Receipt reference must be non-empty text.")
+    if outcome["receipt_ref"] != receipt_ref:
+        raise PartnerLearningError("Outcome receipt_ref does not match the supplied receipt.")
+    if outcome["receipt_hash"] != hashlib.sha256(receipt_bytes).hexdigest():
+        raise PartnerLearningError("Outcome receipt_hash does not match the supplied receipt bytes.")
     try:
-        validated = validate_document(payload, schema_name)
+        raw_receipt = json.loads(receipt_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise PartnerLearningError("Receipt evidence must be one JSON object.") from exc
+    if not isinstance(raw_receipt, Mapping):
+        raise PartnerLearningError("Receipt evidence must be one JSON object.")
+    try:
+        receipt = validate_safe_payload(raw_receipt, "dispatch receipt")
     except PartnerContractError as exc:
-        raise PartnerLearningError(f"{label.title()} contract is invalid: {exc}") from exc
-    if validated.get("content_hash") != canonical_hash(validated):
-        raise PartnerLearningError(f"{label.title()} content_hash does not match its content.")
-    return validated
+        raise PartnerLearningError(f"Receipt evidence is invalid: {exc}") from exc
+    result = receipt.get("partner_executor_result")
+    if not isinstance(result, Mapping):
+        raise PartnerLearningError("Receipt lacks a bounded partner executor result.")
+    expected_top = {"status": "ok", "action": "dispatch_execute", "runner_rc": 0}
+    if any(receipt.get(field) != expected for field, expected in expected_top.items()):
+        raise PartnerLearningError("Receipt does not describe a completed executor dispatch.")
+    expected_result = {
+        "ok": True,
+        "executed": True,
+        "envelope_id": envelope["envelope_id"],
+        "envelope_hash": envelope["content_hash"],
+        "run_id": outcome["run_id"],
+        "run_state": outcome["run_state"],
+        "readiness_verdict": outcome["readiness_verdict"],
+    }
+    if any(result.get(field) != expected for field, expected in expected_result.items()):
+        raise PartnerLearningError("Receipt executor result does not match the outcome and envelope.")
+    if receipt.get("ts") != outcome["completed_at"]:
+        raise PartnerLearningError("Receipt timestamp does not match outcome completion time.")
+    return receipt
 
 
 def _validate_proposal(proposal: Mapping[str, Any]) -> dict[str, Any]:
@@ -174,6 +220,17 @@ def _validate_measures(measures: Any, proposal: dict[str, Any]) -> dict[str, Any
     feedback = measures["operator_feedback"]
     if feedback is not None and (not isinstance(feedback, str) or len(feedback) > 1000):
         raise PartnerLearningError("Outcome operator_feedback must be bounded text or null.")
+    if measures["benefit_score"] is not None and not (
+        measures["produced_artifact"] is True
+        and measures["adopted_use"] is True
+        and measures["time_saved_minutes"] is not None
+        and measures["quality_change"] is not None
+        and isinstance(feedback, str)
+        and bool(feedback.strip())
+    ):
+        raise PartnerLearningError(
+            "Measured scores require artifact, adoption, time, quality, and operator evidence."
+        )
     progress = measures["goal_progress"]
     if not isinstance(progress, dict) or not set(progress).issubset(set(proposal["goal_ids"])):
         raise PartnerLearningError("Outcome goal progress must reference only proposal goals.")

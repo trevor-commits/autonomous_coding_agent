@@ -163,7 +163,7 @@ That requires:
 - benchmark or eval comparisons when changing queue behavior, prompts, or autonomy boundaries
 - explicit risk and approval gates for high-impact actions
 
-### 3.10 Boring First
+### 3.11 Boring First
 
 The initial system should be narrow and reliable:
 

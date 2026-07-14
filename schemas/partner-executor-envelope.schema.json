@@ -32,12 +32,16 @@
     "proposal_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "approval_id": {"type": "string", "minLength": 1, "maxLength": 160},
     "approval_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "approval_binding": {"type": "object"},
+    "approval_binding": {
+      "$ref": "https://autonomous-coding-agent.local/schemas/partner-approval.schema.json"
+    },
     "executor_id": {"const": "autonomous-coding-agent"},
     "strategy": {"enum": ["simple", "claude"]},
     "builder_model": {"const": "gpt-5.5"},
     "builder_reasoning_effort": {"const": "high"},
-    "run_contract": {"type": "object"},
+    "run_contract": {
+      "$ref": "https://autonomous-coding-agent.local/schemas/run-contract.schema.json"
+    },
     "run_contract_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "capability_classes": {
       "type": "array",

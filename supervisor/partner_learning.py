@@ -13,6 +13,7 @@ from supervisor.partner_contracts import (
     validate_executor_envelope,
     validate_safe_payload,
 )
+from supervisor.reports import ReportValidationError, validate_readiness_report
 
 
 PROMOTION_TARGETS = {
@@ -212,6 +213,28 @@ def _validate_receipt_binding(
     if result.get("report_sha256") != hashlib.sha256(report_bytes).hexdigest():
         raise PartnerLearningError(
             "Receipt report_sha256 does not match the supplied report bytes."
+        )
+    try:
+        raw_report = json.loads(report_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise PartnerLearningError("Report evidence must be one JSON object.") from exc
+    if not isinstance(raw_report, Mapping):
+        raise PartnerLearningError("Report evidence must be one JSON object.")
+    try:
+        report = validate_safe_payload(raw_report, "readiness report")
+        validate_readiness_report(report)
+    except (PartnerContractError, ReportValidationError) as exc:
+        raise PartnerLearningError(f"Report evidence is invalid: {exc}") from exc
+    expected_report = {
+        "run_id": outcome["run_id"],
+        "run_state": outcome["run_state"],
+        "readiness_verdict": outcome["readiness_verdict"],
+    }
+    if any(
+        report.get(field) != expected for field, expected in expected_report.items()
+    ):
+        raise PartnerLearningError(
+            "Report content does not match the outcome terminal evidence."
         )
     if receipt.get("ts") != outcome["completed_at"]:
         raise PartnerLearningError(

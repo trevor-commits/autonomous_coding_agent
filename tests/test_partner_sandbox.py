@@ -12,8 +12,28 @@ from pathlib import Path
 from supervisor.partner_sandbox import PartnerCommandSandbox
 
 
-@unittest.skipUnless(platform.system() == "Darwin", "macOS Seatbelt boundary test")
-class PartnerCommandSandboxTests(unittest.TestCase):
+class PartnerCommandSandboxValidationTests(unittest.TestCase):
+    def test_runtime_ancestry_cannot_escape_through_symlink(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as repo_tmp,
+            tempfile.TemporaryDirectory() as outside_tmp,
+        ):
+            repo_root = Path(repo_tmp)
+            outside_root = Path(outside_tmp)
+            (repo_root / "src").mkdir()
+            (repo_root / ".autoclaw").symlink_to(
+                outside_root, target_is_directory=True
+            )
+
+            with self.assertRaisesRegex(ValueError, "cannot traverse symlink"):
+                PartnerCommandSandbox(
+                    repo_root=repo_root,
+                    allowed_paths=("src",),
+                    runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
+                )
+
+            self.assertEqual([], list(outside_root.iterdir()))
+
     def test_allowed_scope_cannot_escape_through_symlink(self) -> None:
         with (
             tempfile.TemporaryDirectory() as repo_tmp,
@@ -29,6 +49,10 @@ class PartnerCommandSandboxTests(unittest.TestCase):
                     runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
                 )
 
+
+@unittest.skipUnless(platform.system() == "Darwin", "macOS Seatbelt boundary test")
+class PartnerCommandSandboxTests(unittest.TestCase):
+
     def test_scrubs_host_env_denies_outside_reads_writes_network_and_control_residue(
         self,
     ) -> None:
@@ -41,6 +65,10 @@ class PartnerCommandSandboxTests(unittest.TestCase):
             (repo_root / "src").mkdir()
             (repo_root / "src" / "nested").mkdir()
             (repo_root / "tests").mkdir()
+            (repo_root / ".autoclaw").mkdir()
+            (repo_root / ".autoclaw" / "operator-secret.txt").write_text(
+                "partner-control-secret\n"
+            )
             sentinel = outside_root / "sentinel.txt"
             sentinel.write_text("outside-secret-marker\n")
             script = repo_root / "tests" / "sandbox_probe.py"
@@ -57,6 +85,8 @@ class PartnerCommandSandboxTests(unittest.TestCase):
                         "    ('WRITE', lambda: Path('OUTSIDE.txt').write_text('no')),",
                         "    ('ENV', lambda: Path('src/.env').write_text('no')),",
                         "    ('GIT', lambda: Path('src/nested/.git').mkdir()),",
+                        "    ('AUTOCLAW_READ', lambda: Path('.autoclaw/operator-secret.txt').read_text()),",
+                        "    ('AUTOCLAW_WRITE', lambda: Path('src/nested/.autoclaw').mkdir()),",
                         "):",
                         "    try:",
                         "        value = action()",
@@ -115,17 +145,24 @@ class PartnerCommandSandboxTests(unittest.TestCase):
             self.assertNotIn(
                 "outside-secret-marker", completed.stdout + completed.stderr
             )
+            self.assertNotIn(
+                "partner-control-secret", completed.stdout + completed.stderr
+            )
             self.assertIn("READ=PermissionError", completed.stdout)
             self.assertIn("WRITE=PermissionError", completed.stdout)
             self.assertIn("ENV=PermissionError", completed.stdout)
             self.assertIn("GIT=", completed.stdout)
             self.assertNotIn("GIT=UNEXPECTED", completed.stdout)
+            self.assertIn("AUTOCLAW_READ=PermissionError", completed.stdout)
+            self.assertIn("AUTOCLAW_WRITE=", completed.stdout)
+            self.assertNotIn("AUTOCLAW_WRITE=UNEXPECTED", completed.stdout)
             self.assertNotIn("NETWORK=UNEXPECTED", completed.stdout)
             self.assertNotIn(".keychain", completed.stdout.lower())
             self.assertTrue((repo_root / "src" / "allowed.txt").is_file())
             self.assertFalse((repo_root / "OUTSIDE.txt").exists())
             self.assertFalse((repo_root / "src" / ".env").exists())
             self.assertFalse((repo_root / "src" / "nested" / ".git").exists())
+            self.assertFalse((repo_root / "src" / "nested" / ".autoclaw").exists())
 
     def test_timeout_stops_descendants_before_they_can_write(self) -> None:
         with tempfile.TemporaryDirectory() as repo_tmp:

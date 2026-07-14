@@ -21,7 +21,7 @@ class SensitiveResidueEntry:
 
 SensitiveResidueSnapshot = dict[str, SensitiveResidueEntry]
 
-_CONTROL_COMPONENTS = {".git", ".agent"}
+_CONTROL_COMPONENTS = {".git", ".agent", ".autoclaw"}
 _ROOT_SCAN_EXCLUSIONS = {".git", ".autoclaw"}
 
 
@@ -81,7 +81,7 @@ def _is_sensitive_name(name: str) -> bool:
 
 
 def _fingerprint(path: Path, metadata: os.stat_result) -> SensitiveResidueEntry:
-    mode = stat.S_IFMT(metadata.st_mode)
+    mode = metadata.st_mode
     if stat.S_ISREG(metadata.st_mode):
         digest = _file_digest(path)
         kind = "file"

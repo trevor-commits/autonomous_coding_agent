@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path, PurePosixPath
 from typing import Callable, Mapping, Sequence
 
+from supervisor.path_safety import PathSafetyError, ensure_safe_directory
 from supervisor.process_runner import run_process_group
 
 
@@ -50,16 +51,35 @@ class PartnerCommandSandbox:
         runtime_dir: Path | str,
         runner: Runner | None = None,
     ) -> None:
+        source_repo_root = Path(repo_root).absolute()
         self.repo_root = Path(repo_root).resolve()
         self.allowed_roots = self._resolve_allowed_paths(allowed_paths)
-        self.runtime_dir = Path(runtime_dir).resolve()
+        runtime_path = Path(runtime_dir)
+        if any(part in {".", ".."} for part in runtime_path.parts):
+            raise ValueError(
+                "Partner sandbox runtime must not contain traversal components."
+            )
+        if not runtime_path.is_absolute():
+            runtime_path = source_repo_root / runtime_path
+        runtime_root = source_repo_root / ".autoclaw"
+        try:
+            runtime_relative = runtime_path.relative_to(runtime_root)
+        except ValueError as exc:
+            raise ValueError(
+                "Partner sandbox runtime must stay under repo-local .autoclaw."
+            ) from exc
+        runtime_path = self.repo_root / ".autoclaw" / runtime_relative
+        try:
+            ensure_safe_directory(runtime_path, boundary=self.repo_root)
+        except PathSafetyError as exc:
+            raise ValueError(str(exc)) from exc
+        self.runtime_dir = runtime_path
         self.home_dir = self.runtime_dir / "home"
         self.temp_dir = self.runtime_dir / "tmp"
         self.cache_dir = self.home_dir / "cache"
         self.profile_path = self.runtime_dir / "partner-command.sb"
         self.runner = runner or run_process_group
 
-        self.runtime_dir.mkdir(parents=True, exist_ok=True)
         self.home_dir.mkdir(parents=True, exist_ok=True)
         self.temp_dir.mkdir(parents=True, exist_ok=True)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -192,7 +212,7 @@ class PartnerCommandSandbox:
             include_device_files=True,
         )
         sensitive_pattern = re.escape(str(self.repo_root)) + (
-            r"/(.*/)?(\.env.*|\.git(/.*)?|\.agent(/.*)?)$"
+            r"/(.*/)?(\.env.*|\.git(/.*)?|\.agent(/.*)?|\.autoclaw(/.*)?)$"
         )
         sensitive_pattern = sensitive_pattern.replace('"', r"\"")
         return "\n".join(
@@ -209,6 +229,7 @@ class PartnerCommandSandbox:
                 '(global-name "com.apple.pboard") '
                 '(global-name "com.apple.coreservices.launchservicesd"))',
                 f"(deny file-read* file-test-existence (require-all {read_exclusions}))",
+                f'(deny file-read* file-test-existence (regex #"{sensitive_pattern}"))',
                 f"(deny file-write* (require-all {write_exclusions}))",
                 f'(deny file-write* (regex #"{sensitive_pattern}"))',
                 "",

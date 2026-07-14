@@ -137,7 +137,12 @@ class BuilderGuardTests(unittest.TestCase):
             root.mkdir()
             policy = self._policy(root)
 
-            for path in ("src/.env", "src/nested/.git/config", "src/.agent/state.json"):
+            for path in (
+                "src/.env",
+                "src/nested/.git/config",
+                "src/.agent/state.json",
+                "src/nested/.autoclaw/state.json",
+            ):
                 with self.subTest(path=path):
                     denied = evaluate_hook_payload(
                         {

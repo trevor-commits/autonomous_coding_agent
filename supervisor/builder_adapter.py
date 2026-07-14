@@ -359,12 +359,23 @@ class CodexBuilderAdapter(BuilderAdapter):
                 raise ValueError(
                     "Builder allowed_paths cannot be nested under forbidden_paths."
                 )
-        path_rules = {".": "read"}
+        path_rules = {
+            ".": "read",
+            ".git": "deny",
+            ".agent": "deny",
+            ".autoclaw": "deny",
+        }
         path_rules.update({path: "write" for path in allowed_paths})
         path_rules.update({path: "deny" for path in forbidden_paths})
         path_rules.update(
             {path: "deny" for path in _existing_sensitive_paths(session.worktree_path)}
         )
+        if session.runtime_dir is None:
+            raise ValueError("Builder session lacks a runtime directory.")
+        runtime_relative = session.runtime_dir.relative_to(
+            session.worktree_path
+        ).as_posix()
+        path_rules[runtime_relative] = "write"
         rules = ", ".join(
             f'{json.dumps(path)} = "{access}"'
             for path, access in sorted(path_rules.items())

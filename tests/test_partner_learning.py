@@ -13,7 +13,37 @@ from supervisor.partner_contracts import PartnerContractError, canonical_hash
 NOW = "2026-07-13T21:00:00Z"
 RECEIPT_REF = "receipt:run-001"
 REPORT_REF = "/tmp/partner-sandbox/report.json"
-REPORT_BYTES = b'{"run_id":"run-001","run_state":"COMPLETE"}\n'
+
+
+def _report_bytes(
+    *,
+    run_id: str = "run-001",
+    run_state: str = "COMPLETE",
+    readiness_verdict: str = "READY",
+) -> bytes:
+    report = {
+        "run_id": run_id,
+        "claim_id": "envelope-001",
+        "run_trace_id": "wake-001",
+        "strategy_name": "simple",
+        "run_state": run_state,
+        "readiness_verdict": readiness_verdict,
+        "builder_turns": 1,
+        "run_duration_seconds": 1.0,
+        "total_cost_dollars": 0.0,
+        "phases_completed": ["FINAL_GATE"],
+        "commands_run": [],
+        "failures": [],
+        "changed_files": [],
+        "artifact_manifest": [],
+        "unresolved_blockers": [],
+        "queue_entry_reason": None,
+        "queue_exit_reason": "final gate",
+    }
+    return (json.dumps(report, sort_keys=True) + "\n").encode("utf-8")
+
+
+REPORT_BYTES = _report_bytes()
 
 
 def _learning():
@@ -243,6 +273,55 @@ class PartnerLearningTests(unittest.TestCase):
                         now=NOW,
                     )
 
+    def test_learning_rejects_hash_consistent_report_content_contradictions(self) -> None:
+        learning = _learning()
+        cases = (
+            _report_bytes(run_id="run-other"),
+            _report_bytes(run_state="BLOCKED", readiness_verdict="NOT_READY"),
+            _report_bytes(readiness_verdict="NEEDS_MORE_EVIDENCE"),
+        )
+        for report_bytes in cases:
+            with self.subTest(report_bytes=report_bytes):
+                receipt_bytes = _receipt_bytes(report_bytes=report_bytes)
+                outcome = _outcome()
+                outcome["receipt_hash"] = hashlib.sha256(receipt_bytes).hexdigest()
+                with self.assertRaisesRegex(
+                    learning.PartnerLearningError,
+                    "Report content does not match",
+                ):
+                    learning.derive_learning_candidates(
+                        outcome,
+                        envelope=_envelope(),
+                        proposal=_proposal(),
+                        report_bytes=report_bytes,
+                        report_ref=REPORT_REF,
+                        receipt_bytes=receipt_bytes,
+                        receipt_ref=RECEIPT_REF,
+                        now=NOW,
+                    )
+
+    def test_learning_rejects_hash_consistent_invalid_report_schema(self) -> None:
+        learning = _learning()
+        report_bytes = b'{"run_id":"run-001","run_state":"COMPLETE"}\n'
+        receipt_bytes = _receipt_bytes(report_bytes=report_bytes)
+        outcome = _outcome()
+        outcome["receipt_hash"] = hashlib.sha256(receipt_bytes).hexdigest()
+
+        with self.assertRaisesRegex(
+            learning.PartnerLearningError,
+            "Report evidence is invalid",
+        ):
+            learning.derive_learning_candidates(
+                outcome,
+                envelope=_envelope(),
+                proposal=_proposal(),
+                report_bytes=report_bytes,
+                report_ref=REPORT_REF,
+                receipt_bytes=receipt_bytes,
+                receipt_ref=RECEIPT_REF,
+                now=NOW,
+            )
+
     def test_proposal_binding_mismatch_is_rejected(self) -> None:
         learning = _learning()
         for proposal in (
@@ -268,14 +347,21 @@ class PartnerLearningTests(unittest.TestCase):
         outcome["run_state"] = "BLOCKED"
         outcome["readiness_verdict"] = "NOT_READY"
         blocked_receipt = _receipt_bytes(
-            run_state="BLOCKED", readiness_verdict="NOT_READY"
+            run_state="BLOCKED",
+            readiness_verdict="NOT_READY",
+            report_bytes=_report_bytes(
+                run_state="BLOCKED", readiness_verdict="NOT_READY"
+            ),
         )
         outcome["receipt_hash"] = hashlib.sha256(blocked_receipt).hexdigest()
+        blocked_report = _report_bytes(
+            run_state="BLOCKED", readiness_verdict="NOT_READY"
+        )
         result = learning.derive_learning_candidates(
             outcome,
             envelope=_envelope(),
             proposal=_proposal(),
-            report_bytes=REPORT_BYTES,
+            report_bytes=blocked_report,
             report_ref=REPORT_REF,
             receipt_bytes=blocked_receipt,
             receipt_ref=RECEIPT_REF,

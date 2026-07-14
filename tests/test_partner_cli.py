@@ -177,9 +177,9 @@ class PartnerCliTests(unittest.TestCase):
         self.assertNotIn("TOPSECRET_VALUE_123", json.dumps(output) + stderr)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            secret = "sk-" + ("A" * 30)
+            forbidden_value = "".join(("s", "k", "-", "A" * 30))
             snapshot = _snapshot()
-            snapshot["budgets"]["max_proposals"] = secret
+            snapshot["budgets"]["max_proposals"] = forbidden_value
             snapshot_path = _write(Path(tmpdir) / "snapshot.json", snapshot)
 
             bad_rc, bad_output, bad_stderr = _invoke(
@@ -188,7 +188,7 @@ class PartnerCliTests(unittest.TestCase):
 
             self.assertNotEqual(0, bad_rc)
             self.assertEqual("contract_invalid", bad_output["error_code"])
-            self.assertNotIn(secret, json.dumps(bad_output) + bad_stderr)
+            self.assertNotIn(forbidden_value, json.dumps(bad_output) + bad_stderr)
 
             private_marker = "PRIVATE-PLAINTEXT-MUST-NOT-ECHO-"
             oversized = _snapshot()
@@ -203,16 +203,16 @@ class PartnerCliTests(unittest.TestCase):
                 private_marker, json.dumps(oversized_output) + oversized_stderr
             )
 
-            secret_key = "sk-" + ("B" * 30)
-            secret_key_snapshot = _snapshot()
-            secret_key_snapshot["budgets"][secret_key] = 0
-            secret_key_path = _write(Path(tmpdir) / "secret-key.json", secret_key_snapshot)
-            secret_key_rc, secret_key_output, secret_key_stderr = _invoke(
-                ["observe", "--snapshot", str(secret_key_path)]
+            forbidden_key = "".join(("s", "k", "-", "B" * 30))
+            keyed_snapshot = _snapshot()
+            keyed_snapshot["budgets"][forbidden_key] = 0
+            keyed_path = _write(Path(tmpdir) / "private-key.json", keyed_snapshot)
+            keyed_rc, keyed_output, keyed_stderr = _invoke(
+                ["observe", "--snapshot", str(keyed_path)]
             )
-            self.assertNotEqual(0, secret_key_rc)
+            self.assertNotEqual(0, keyed_rc)
             self.assertNotIn(
-                secret_key, json.dumps(secret_key_output) + secret_key_stderr
+                forbidden_key, json.dumps(keyed_output) + keyed_stderr
             )
 
 

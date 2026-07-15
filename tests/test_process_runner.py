@@ -132,6 +132,31 @@ class ProcessRunnerTests(unittest.TestCase):
         self.assertEqual({}, owned)
         kill_group.assert_not_called()
 
+    def test_supplemental_sandbox_profile_keeps_containment_rules_last(self) -> None:
+        tag = process_runner._SandboxContainmentTag(
+            Path("/tmp/test-containment-tag"),
+            Path("/tmp/test-containment-tag/denied"),
+            Path("/tmp/test-containment-tag/allowed"),
+        )
+
+        profile = process_runner._compose_sandbox_profile(
+            tag,
+            "(version 1)\n(allow default)\n(deny network*)\n",
+        )
+
+        self.assertEqual(1, profile.count("(version 1)"))
+        self.assertLess(profile.index("(deny network*)"), profile.index(tag.rules))
+
+    def test_supplemental_sandbox_profile_rejects_missing_version(self) -> None:
+        tag = process_runner._SandboxContainmentTag(
+            Path("/tmp/test-containment-tag"),
+            Path("/tmp/test-containment-tag/denied"),
+            Path("/tmp/test-containment-tag/allowed"),
+        )
+
+        with self.assertRaises(process_runner.ProcessContainmentError):
+            process_runner._compose_sandbox_profile(tag, "(allow default)\n")
+
     @unittest.skipUnless(
         sys.platform == "darwin",
         "sandbox scanner is a macOS containment surface",

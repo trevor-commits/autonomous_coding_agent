@@ -8,6 +8,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from supervisor.partner_sandbox import PartnerCommandSandbox
 
@@ -52,6 +53,38 @@ class PartnerCommandSandboxValidationTests(unittest.TestCase):
 
 @unittest.skipUnless(platform.system() == "Darwin", "macOS Seatbelt boundary test")
 class PartnerCommandSandboxTests(unittest.TestCase):
+
+    def test_injected_runner_receives_one_explicit_sandbox_wrapper(self) -> None:
+        captured: dict[str, object] = {}
+
+        def runner(args, **kwargs):
+            captured["args"] = args
+            captured["kwargs"] = kwargs
+            return subprocess.CompletedProcess(args, 0, "", "")
+
+        with tempfile.TemporaryDirectory() as repo_tmp:
+            repo_root = Path(repo_tmp)
+            (repo_root / "src").mkdir()
+            sandbox = PartnerCommandSandbox(
+                repo_root=repo_root,
+                allowed_paths=("src",),
+                runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
+                runner=runner,
+            )
+
+            completed = sandbox.run(
+                "printf ok",
+                environment={"AUTOCLAW_RUN_ID": "injected-runner"},
+                timeout=3,
+            )
+
+        self.assertEqual(0, completed.returncode)
+        args = captured["args"]
+        self.assertEqual("/usr/bin/sandbox-exec", args[0])
+        self.assertEqual("-f", args[1])
+        self.assertEqual(str(sandbox.profile_path), args[2])
+        self.assertNotIn("/usr/bin/sandbox-exec", args[3:])
+        self.assertNotIn("sandbox_profile_builder", captured["kwargs"])
 
     def test_scrubs_host_env_denies_outside_reads_writes_network_and_control_residue(
         self,
@@ -231,12 +264,24 @@ class PartnerCommandSandboxTests(unittest.TestCase):
                 runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
             )
 
-            completed = sandbox.run(
-                "python3 src/success_worker.py >/dev/null 2>&1 & "
-                "while [ ! -f src/success-child-started.txt ]; do sleep .01; done",
-                environment={"AUTOCLAW_RUN_ID": "sandbox-success-test"},
-                timeout=3,
-            )
+            with (
+                patch(
+                    "supervisor.process_runner._process_tree",
+                    side_effect=lambda root_pid, seeds=None: (
+                        set(seeds) if seeds is not None else {root_pid}
+                    ),
+                ),
+                patch(
+                    "supervisor.process_runner._tagged_lease_processes",
+                    return_value={},
+                ),
+            ):
+                completed = sandbox.run(
+                    "python3 src/success_worker.py >/dev/null 2>&1 & "
+                    "while [ ! -f src/success-child-started.txt ]; do sleep .01; done",
+                    environment={"AUTOCLAW_RUN_ID": "sandbox-success-test"},
+                    timeout=3,
+                )
 
             self.assertEqual(0, completed.returncode, completed.stderr)
             self.assertTrue(started.exists())

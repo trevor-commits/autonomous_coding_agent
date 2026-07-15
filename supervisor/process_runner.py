@@ -13,7 +13,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Mapping, Sequence
+from typing import Callable, Literal, Mapping, Sequence
 
 
 _TERMINATION_GRACE_SECONDS = 0.25
@@ -44,17 +44,19 @@ class _SandboxContainmentTag:
     allowed_path: Path
 
     @property
-    def profile(self) -> str:
+    def rules(self) -> str:
         root = json.dumps(str(self.root))
         denied = json.dumps(str(self.denied_path))
-        return " ".join(
+        return "\n".join(
             (
-                "(version 1)",
-                "(allow default)",
                 f"(deny file-read* (literal {denied}))",
                 f"(deny file-write* (literal {root}) (subpath {root}))",
             )
         )
+
+    @property
+    def profile(self) -> str:
+        return "\n".join(("(version 1)", "(allow default)", self.rules, ""))
 
     def remove(self) -> None:
         for path in (self.denied_path, self.allowed_path):
@@ -103,6 +105,36 @@ def _create_sandbox_containment_tag(
         root.rmdir()
         raise
     return _SandboxContainmentTag(root, denied_path, allowed_path)
+
+
+SandboxProfileBuilder = Callable[[Path], str]
+
+
+def _compose_sandbox_profile(
+    tag: _SandboxContainmentTag,
+    supplemental_profile: str | None,
+) -> str:
+    """Compose one Seatbelt profile without allowing later rules to erase the tag."""
+
+    if supplemental_profile is None:
+        return tag.profile
+    lines = supplemental_profile.splitlines()
+    first_rule = next(
+        (index for index, line in enumerate(lines) if line.strip()),
+        None,
+    )
+    if first_rule is None or lines[first_rule].strip() != "(version 1)":
+        raise ProcessContainmentError(
+            "supplemental sandbox profile must begin with `(version 1)`"
+        )
+    if any(
+        line.strip().startswith("(version ")
+        for line in lines[first_rule + 1 :]
+    ):
+        raise ProcessContainmentError(
+            "supplemental sandbox profile must contain exactly one version rule"
+        )
+    return "\n".join((*lines, tag.rules, ""))
 
 
 class _BoundedCapture:
@@ -585,6 +617,8 @@ class _ProcessTreeLease:
 
 def _spawn_with_process_tree_lease(
     args: Sequence[str],
+    *,
+    sandbox_profile_builder: SandboxProfileBuilder | None = None,
     **popen_kwargs: object,
 ) -> tuple[subprocess.Popen[str], _ProcessTreeLease]:
     """Gate command execution until continuous descendant tracking is active."""
@@ -602,12 +636,21 @@ def _spawn_with_process_tree_lease(
         sandbox_tag = _create_sandbox_containment_tag(token=token, env=launch_env)
         launch_args = list(args)
         if sandbox_tag is not None:
+            supplemental_profile = (
+                sandbox_profile_builder(sandbox_tag.root)
+                if sandbox_profile_builder is not None
+                else None
+            )
             launch_args = [
                 str(_SANDBOX_EXEC),
                 "-p",
-                sandbox_tag.profile,
+                _compose_sandbox_profile(sandbox_tag, supplemental_profile),
                 *launch_args,
             ]
+        elif sandbox_profile_builder is not None:
+            raise ProcessContainmentError(
+                "supplemental sandbox profile requires macOS Seatbelt containment"
+            )
         process = subprocess.Popen(
             [sys.executable, "-c", _LAUNCH_GATE, str(gate_read), *launch_args],
             pass_fds=(gate_read,),
@@ -656,6 +699,7 @@ def run_process_group(
     timeout: int | float | None = None,
     check: bool = False,
     env: Mapping[str, str] | None = None,
+    sandbox_profile_builder: SandboxProfileBuilder | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run one command with bounded capture and freeze-before-kill cleanup."""
     stdout_capture = _BoundedCapture(_MAX_ERROR_OUTPUT) if capture_output else None
@@ -673,6 +717,7 @@ def run_process_group(
         try:
             process, lease = _spawn_with_process_tree_lease(
                 args,
+                sandbox_profile_builder=sandbox_profile_builder,
                 cwd=cwd,
                 stdin=stdin,
                 stdout=stdout_capture.write_fd if stdout_capture else None,

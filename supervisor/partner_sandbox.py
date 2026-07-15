@@ -78,6 +78,7 @@ class PartnerCommandSandbox:
         self.temp_dir = self.runtime_dir / "tmp"
         self.cache_dir = self.home_dir / "cache"
         self.profile_path = self.runtime_dir / "partner-command.sb"
+        self._uses_managed_containment = runner is None or runner is run_process_group
         self.runner = runner or run_process_group
 
         self.home_dir.mkdir(parents=True, exist_ok=True)
@@ -94,15 +95,28 @@ class PartnerCommandSandbox:
         timeout: int | float | None = None,
     ) -> subprocess.CompletedProcess[str]:
         self._require_supported_host()
+        command_args = self.command_args(command, environment=environment)
+        run_options = {
+            "cwd": self.repo_root,
+            "stdin": subprocess.DEVNULL,
+            "capture_output": True,
+            "text": True,
+            "timeout": timeout,
+            "check": False,
+            "env": self.launch_environment(environment),
+        }
+        if self._uses_managed_containment:
+            run_options["sandbox_profile_builder"] = self._profile_for_containment
+        else:
+            command_args = [
+                str(self._SANDBOX_EXEC),
+                "-f",
+                str(self.profile_path),
+                *command_args,
+            ]
         return self.runner(
-            self.command_args(command, environment=environment),
-            cwd=self.repo_root,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-            env=self.launch_environment(environment),
+            command_args,
+            **run_options,
         )
 
     def command_args(
@@ -115,9 +129,6 @@ class PartnerCommandSandbox:
             "/usr/bin/env",
             "-i",
             *assignments,
-            str(self._SANDBOX_EXEC),
-            "-f",
-            str(self.profile_path),
             "/bin/zsh",
             "-c",
             command,
@@ -199,8 +210,13 @@ class PartnerCommandSandbox:
                 "Partner execution requires the macOS sandbox-exec confinement boundary."
             )
 
-    def _build_profile(self) -> str:
+    def _profile_for_containment(self, tag_root: Path) -> str:
+        return self._build_profile(containment_tag_root=tag_root)
+
+    def _build_profile(self, *, containment_tag_root: Path | None = None) -> str:
         read_roots = [self.repo_root, self.home_dir, self.temp_dir]
+        if containment_tag_root is not None:
+            read_roots.append(containment_tag_root)
         git_dir = self._git_directory()
         if git_dir is not None:
             read_roots.append(git_dir)
@@ -215,6 +231,14 @@ class PartnerCommandSandbox:
             r"/(.*/)?(\.env.*|\.git(/.*)?|\.agent(/.*)?|\.autoclaw(/.*)?)$"
         )
         sensitive_pattern = sensitive_pattern.replace('"', r"\"")
+        sensitive_read_filter = f'(regex #"{sensitive_pattern}")'
+        if containment_tag_root is not None:
+            tag_literal = json.dumps(str(containment_tag_root))
+            sensitive_read_filter = (
+                f"(require-all {sensitive_read_filter} "
+                f"(require-not (literal {tag_literal})) "
+                f"(require-not (subpath {tag_literal})))"
+            )
         return "\n".join(
             (
                 "(version 1)",
@@ -229,7 +253,7 @@ class PartnerCommandSandbox:
                 '(global-name "com.apple.pboard") '
                 '(global-name "com.apple.coreservices.launchservicesd"))',
                 f"(deny file-read* file-test-existence (require-all {read_exclusions}))",
-                f'(deny file-read* file-test-existence (regex #"{sensitive_pattern}"))',
+                f"(deny file-read* file-test-existence {sensitive_read_filter})",
                 f"(deny file-write* (require-all {write_exclusions}))",
                 f'(deny file-write* (regex #"{sensitive_pattern}"))',
                 "",

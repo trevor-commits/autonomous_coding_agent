@@ -119,7 +119,7 @@ class Verifier:
                 repo_root=self.repo_root,
                 allowed_paths=self.run_contract.scope.allowed_paths,
                 runtime_dir=self.run_store.root / "partner-command-sandbox",
-                runner=self.runner,
+                runner=runner,
             )
             if partner_sandbox
             else None

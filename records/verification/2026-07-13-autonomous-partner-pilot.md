@@ -6,7 +6,7 @@
 - ACA branch: `codex/autonomous-partner-reposition-20260713`
 - Global branch: `codex/er141-autonomous-partner-reposition-20260713`
 - Isolated runtime root: `/Users/gillettes/.cross-agent/autonomous-partner/pilots/2026-07-13-er141-222735`
-- Result: **PASS** for the original bounded L1 observe/propose/approve/execute/reconcile path and repaired effect-time approval integration. Later release reviews correctly reopened additional defects instead of invalidating the preserved pilot evidence. Repairs at ACA `84694c6` and global `b9124a3` pass ACA 170/170 plus the full global verifier; fresh exact-tip review, landing, and observe-only deployment remain release gates.
+- Result: **STAGE 0 PASS AND DEPLOYED.** The preserved pilot remains valid evidence; every later accepted release finding is repaired. Exact ACA tip `561d771a4904ec0d911604dd98bba207f170c5a9` passed deterministic/live 238, 100/100 containment stress, OpenSpec 4/4, memory/static, remote CI/security, direct cross-repo containment, and zero-residue gates. Fresh reviewer `/root/containment_review` returned literal `REVIEW-CLEAN`; PR #7 merged as `7d29eb910b80238e0ab3f89dad277b186a0f945c`; stale PR #6 closed unmerged. The detached ACA runtime at `/Users/gillettes/Coding Projects/aca-runtime/autonomous-partner/7d29eb9` is paired with global runtime `ef6802e` in observe-only mode.
 
 ## Authority and scope
 
@@ -168,6 +168,18 @@ Full ACA record-tip gates, exact remote checks, and a fresh literal `REVIEW-CLEA
 
 Round-19 containment repair supersedes exact pushed `5a053ab`: a fresh reviewer proved a normal-success detached descendant could write after return. The first ancestry-only repair failed immediate-detach stress and was strengthened with a gated-spawn process-tree lease plus inherited per-run lease discovery. Focused ACA process/sandbox tests pass 13/13; direct paired reproductions show no late write or live child; sequential stress passes ACA 30/global 100 and concurrent stress passes 50/50 per repo. Exact implementation `ada9d2acd3cfb2b3540db163b85198a411cc0269` passes deterministic 222 with one intentional live skip and live-enabled 222/222. Record-bearing exact repetition, remote CI, and fresh review remain gates.
 
-The remaining Stage 0 gates are final record-tip static validation, exact remote CI/review-thread proof, a fresh independent `REVIEW-CLEAN`, origin/main landing, SHA-pinned observe-only deployment, and live health proof. Post-release work belongs to coordinator Codex `019f5f11-5758-7790-b1b6-6f36cb50868f`: connect a bounded approved observation adapter and design graduated agency so reversible private/local work becomes broadly available without weakening hard gates for destructive, irreversible, credentialed, financial, privacy-expanding, security-sensitive, or outward-facing effects.
+At this historical pre-landing snapshot, the remaining gates were final static/remote/review proof, main landing, immutable deployment, and live health. The final section below closes those Stage 0 gates. Post-release work belongs to coordinator Codex `019f5f11-5758-7790-b1b6-6f36cb50868f`: connect a bounded approved observation adapter and design graduated agency so reversible private/local work becomes broadly available without weakening hard gates for destructive, irreversible, credentialed, financial, privacy-expanding, security-sensitive, or outward-facing effects.
 
-Provenance: executor=codex:gpt-5.6-sol:high; audit=L4-pending; scripts=ACA-unittest,live-builder-containment,containment-stress,OpenSpec,project-memory,global-verify,cross-repo-canary; escalations=0; routing=T3; notes=round-23 scanner-fixture alias repaired at 71a92ff; final record-tip repetition, remote checks, and fresh review pending
+## Final Stage 0 landing and deployment closeout
+
+- Exact reviewed ACA tip: `561d771a4904ec0d911604dd98bba207f170c5a9`.
+- ACA PR #7: merged 2026-07-15 UTC as `7d29eb910b80238e0ab3f89dad277b186a0f945c`; reviewed tip is an ancestor of `origin/main`.
+- Superseded ACA PR #6: closed unmerged at stale tip `bd5fa34f0cfefd193f1f168d4b6f2f938a5fbb27` with a pointer to #7.
+- Paired global tip and merge: `0926a150b975aef40b5a820c1eced69ea1b6ea49` merged by PR #23 as `ef6802e22d5cf70c9e139c469a480f81a21a8a34`; exact tip is contained by global `origin/main`.
+- Immutable runtimes: ACA `/Users/gillettes/Coding Projects/aca-runtime/autonomous-partner/7d29eb9`; global `/Users/gillettes/Coding Projects/gi-runtime/autonomous-loop/ef6802e`; both detached, clean, and exact-SHA pinned.
+- Direct proof: loop returned `status=ok`, `action=observe_only`; health returned `healthy`.
+- Managed proof: launchd loaded the exact global script and ACA root; `RunAtLoad` completed with exit `0`, a typed partner `no_op`, zero candidates, zero ready packets, and zero inflight packets. The managed health check completed with exit `0` and no unacknowledged failed dispatch.
+- Natural interval proof: at `2026-07-15T07:05:39Z` the loop advanced from run 1 to run 2 without a kickstart, exited `0`, and emitted another observe-only typed `no_op` with zero candidates, ready packets, or inflight packets. The health job independently advanced to run 2, exited `0`, and wrote `status=healthy` at `2026-07-15T07:05:57Z`; neither stderr log changed.
+- Safety boundary: both loop and bridge remain `observe`; recurring execute is off; the committed observation feed is empty; adoption and measured benefit remain unproved.
+
+Provenance: executor=codex:gpt-5.6-sol:high; audit=L4-review-clean; scripts=ACA-unittest,live-builder-containment,containment-stress,OpenSpec,project-memory,global-verify,cross-repo-canary,launchd-direct-managed-natural; escalations=0; routing=T3; notes=Stage 0 landed and SHA-pinned observe-only deployment healthy

@@ -25,6 +25,7 @@ ACA now has one backward-compatible, stateless consumer boundary for the frozen 
 - Validator-only v2 coverage did not lock the runtime no-effect promise.
 - Comparing an ordinary list before and after observe mode proved non-mutation, not non-consumption; a sentinel iterator was required.
 - The first branch-ledger entry omitted two mandatory lifecycle labels even though their disposition was implicit elsewhere.
+- Archiving moved the frozen contract and exposed two closeout assumptions: the byte-parity test still referenced the active-change path, and the generated canonical Purpose format initially violated the repo's discovery test. Stable archive-path wiring plus the existing full suite caught and repaired both before landing.
 
 Each accepted finding became a regression or durable governance correction before the clean verdict.
 
@@ -32,7 +33,7 @@ Each accepted finding became a regression or durable governance correction befor
 
 - No dependency was added for canonicalization or time handling.
 - Packet A does not add a collector, model call, persistent state, scheduler, effect, or new authority.
-- The OpenSpec change remains unarchived until merge and the post-merge Ripple Check.
+- The OpenSpec change was archived only after PR #9 merged and exact `origin/main` containment was proved; the same closeout reconciles the canonical capability spec, completed index, branch history, project memory, audit, and test evidence.
 
 ## Reusable lesson candidates
 

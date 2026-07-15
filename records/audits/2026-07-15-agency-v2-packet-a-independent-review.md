@@ -48,4 +48,13 @@ Remote CI, PR review, merged-commit containment, deployed dual-SHA compatibility
 
 CodeRabbit reviewed implementation commit `bfa4b315768b7cf8a3c60de4183496e7a34e781e` on PR #9 and posted three comments. The stale workflow/PR-state and Work Record `led to:` comments were accepted and repaired with exact run, artifact, commit, and PR references. The request to add timestamp regexes to the runtime JSON Schema was declined: Packet A is contractually bound to byte-identical ACA change/runtime and frozen global schema copies at SHA-256 `924dcf74ce336e5011af89fa9428fdac9d6254a6e3fddc0f5d00efe244790877`; changing only ACA would create cross-repo drift, while changing the frozen global contract would reopen the completed design gate. The semantic validator already requires `YYYY-MM-DDTHH:MM:SSZ`, and regressions reject both fractional seconds and offsets before a wake is returned.
 
+## Landing and archive addendum
+
+- All required Python 3.11/3.12, CodeQL, GitGuardian, Cursor Bugbot, and CodeRabbit checks passed at exact final PR tip `b9cc080df2778c6f527fda75ba27150e72f30205`; all three review threads are resolved.
+- PR #9 merged as `cb0cd1368af85f47789cd3be7f071f26257b186c`. Exact `origin/main` contains both the reviewed tip and implementation commit, so no code or schema was substituted during landing.
+- The original local and remote `codex/agency-v2-packet-a` refs were deleted only after containment proof.
+- The post-merge archive moves the complete change packet under `openspec/changes/archive/2026-07-15-agency-v2-observation-contract/`, publishes the canonical capability spec under `openspec/specs/partner-observation-contract/`, and updates the schema byte-parity regression to the stable archive path. It changes no production code or frozen schema bytes.
+- The first post-archive full run failed only the canonical Purpose discovery format. After removing the generated blank line, the 34-test workspace/contract/runtime slice and full deterministic 250-test suite passed with the two intentional live/stress skips; strict OpenSpec remained 5/5.
+- Packet B still owns global producer activation, exact dual-SHA deployment compatibility, natural observe recurrence, and rollback proof; this addendum does not widen the Packet A verdict.
+
 Provenance: executor=codex:gpt-5.6-sol:high; audit=L4-review-clean; scripts=focused-unittest,full-unittest,OpenSpec,project-memory,schema-parity,in-memory-compile,governance,diff; escalations=0; routing=T3; notes=single-writer implementation with one read-only reviewer

@@ -321,7 +321,7 @@ class PartnerObservationV2ContractTests(unittest.TestCase):
             (root / "schemas/partner-observation-v2.schema.json").read_bytes(),
             (
                 root
-                / "openspec/changes/agency-v2-observation-contract/contracts/partner-observation-v2.schema.json"
+                / "openspec/changes/archive/2026-07-15-agency-v2-observation-contract/contracts/partner-observation-v2.schema.json"
             ).read_bytes(),
         )
 

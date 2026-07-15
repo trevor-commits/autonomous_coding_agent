@@ -285,6 +285,55 @@ class ProcessRunnerTests(unittest.TestCase):
 
         self.assertFalse(lease.removed)
 
+    def test_cleanup_requires_two_actual_post_kill_clean_scans(self) -> None:
+        class Process:
+            pid = 123
+
+            def communicate(self, timeout=None):
+                return "", ""
+
+            def wait(self, timeout=None):
+                return 0
+
+        class Lease:
+            root_identity = "root-identity"
+            removed = False
+            tagged_scan_count = 0
+
+            def snapshot(self):
+                return {123: self.root_identity}
+
+            def stop(self):
+                return None
+
+            def tagged_processes(self):
+                self.tagged_scan_count += 1
+                return {}
+
+            def remove_sandbox_tag(self):
+                self.removed = True
+
+        lease = Lease()
+        with (
+            patch(
+                "supervisor.process_runner._freeze_process_tree",
+                return_value={123: "root-identity"},
+            ),
+            patch("supervisor.process_runner._signal_process_group"),
+            patch("supervisor.process_runner._signal_processes"),
+            patch("supervisor.process_runner.threading.Event.wait"),
+            patch(
+                "supervisor.process_runner.time.monotonic",
+                side_effect=[0.0, 0.0, 4.0],
+            ),
+            self.assertRaises(process_runner.ProcessContainmentError) as raised,
+        ):
+            process_runner._stop_process_group(Process(), lease)
+
+        self.assertEqual(3, lease.tagged_scan_count)
+        self.assertFalse(lease.removed)
+        self.assertIn("two consecutive empty scans", str(raised.exception))
+
     def test_interruption_stops_and_reaps_the_process_group(self) -> None:
         class InterruptedProcess:
             pid = 123
@@ -470,7 +519,7 @@ class ProcessRunnerTests(unittest.TestCase):
                 ),
                 patch(
                     "supervisor.process_runner._tagged_lease_processes",
-                    return_value={},
+                    side_effect=lambda token: {},
                 ),
             ):
                 completed = run_process_group(
@@ -528,7 +577,7 @@ class ProcessRunnerTests(unittest.TestCase):
                 ),
                 patch(
                     "supervisor.process_runner._tagged_lease_processes",
-                    return_value={},
+                    side_effect=lambda token: {},
                 ),
                 self.assertRaises(subprocess.TimeoutExpired),
             ):

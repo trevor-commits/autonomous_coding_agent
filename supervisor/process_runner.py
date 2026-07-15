@@ -17,6 +17,10 @@ from typing import Callable, Literal, Mapping, Sequence
 
 
 _TERMINATION_GRACE_SECONDS = 0.25
+# A macOS ownership scan inventories every same-user process twice (environment
+# plus Seatbelt policy). Keep this separate from the child wait grace so two
+# real post-kill empty scans remain possible on a loaded host.
+_CLEANUP_CONFIRMATION_SECONDS = 3.0
 _MAX_ERROR_OUTPUT = 1_000_000
 _TRUNCATION_MARKER = b"\n...[subprocess output truncated]...\n"
 _PROCESS_TREE_POLL_SECONDS = 0.005
@@ -887,7 +891,7 @@ def _stop_process_group_inner(
     clean_scans = 0
     last_discovery_error: ProcessContainmentError | None = None
     remaining: dict[int, str] = {}
-    confirmation_deadline = time.monotonic() + _TERMINATION_GRACE_SECONDS
+    confirmation_deadline = time.monotonic() + _CLEANUP_CONFIRMATION_SECONDS
     while clean_scans < 2 and time.monotonic() < confirmation_deadline:
         try:
             remaining = lease.tagged_processes()
@@ -907,8 +911,6 @@ def _stop_process_group_inner(
                 break
         threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
     remaining = _live_process_identities(remaining)
-    if not remaining and last_discovery_error is None:
-        clean_scans = max(clean_scans, 2)
     if clean_scans < 2:
         tag = getattr(lease, "sandbox_tag", None)
         tag_root = f"; retained tag `{tag.root}`" if tag is not None else ""
@@ -917,8 +919,14 @@ def _stop_process_group_inner(
                 f"could not prove descendant cleanup: {last_discovery_error}"
                 f"{tag_root}"
             ) from last_discovery_error
+        if remaining:
+            raise ProcessContainmentError(
+                "tagged descendants survived cleanup: "
+                f"{sorted(remaining)}{tag_root}"
+            )
         raise ProcessContainmentError(
-            f"tagged descendants survived cleanup: {sorted(remaining)}{tag_root}"
+            "could not prove descendant cleanup with two consecutive empty "
+            f"scans before deadline{tag_root}"
         )
 
 

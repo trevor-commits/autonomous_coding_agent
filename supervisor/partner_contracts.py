@@ -128,6 +128,14 @@ def validate_wake_snapshot(payload: Mapping[str, Any]) -> dict[str, Any]:
     if snapshot["schema_version"] == "2":
         _validate_observations_v2(snapshot)
     snapshot["identity"] = validate_identity(snapshot["identity"])
+    if snapshot["schema_version"] == "2":
+        expected_identity_artifact_hash = "sha256:" + hashlib.sha256(
+            _canonical_json_bytes(snapshot["identity"])
+        ).hexdigest()
+        if snapshot["identity_artifact_hash"] != expected_identity_artifact_hash:
+            raise PartnerContractError(
+                "Wake identity_artifact_hash does not match the canonical validated identity."
+            )
     snapshot["approvals"] = [
         validate_document(approval, "partner-approval.schema.json")
         for approval in snapshot["approvals"]

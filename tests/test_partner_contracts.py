@@ -168,6 +168,9 @@ def _snapshot_v2(*observations: dict[str, Any]) -> dict[str, Any]:
     snapshot = _snapshot()
     snapshot["schema_version"] = "2"
     snapshot["observations"] = list(observations or (_v2_observation(),))
+    snapshot["identity_artifact_hash"] = (
+        "sha256:" + hashlib.sha256(_canonical_bytes(snapshot["identity"])).hexdigest()
+    )
     return snapshot
 
 
@@ -338,6 +341,26 @@ class PartnerObservationV2ContractTests(unittest.TestCase):
             "partner-observation/v2",
             validated_v2["observations"][0]["contract_version"],
         )
+        self.assertRegex(
+            validated_v2["identity_artifact_hash"], r"^sha256:[a-f0-9]{64}$"
+        )
+
+    def test_wake_v2_requires_exact_identity_artifact_binding_only_in_v2(self) -> None:
+        contracts = _contracts()
+        v1_with_binding = _snapshot()
+        v1_with_binding["identity_artifact_hash"] = "sha256:" + ("0" * 64)
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(v1_with_binding)
+
+        missing = _snapshot_v2()
+        missing.pop("identity_artifact_hash")
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(missing)
+
+        mismatched = _snapshot_v2()
+        mismatched["identity_artifact_hash"] = "sha256:" + ("0" * 64)
+        with self.assertRaises(contracts.PartnerContractError):
+            contracts.validate_wake_snapshot(mismatched)
 
     def test_wake_v2_rejects_unknown_fields_and_opportunity_scores(self) -> None:
         contracts = _contracts()

@@ -158,6 +158,65 @@ class WorktreeManagerTests(unittest.TestCase):
             )
             self.assertNotIn(str(worktree_path), worktrees.stdout)
 
+    def test_failed_creation_preserves_preexisting_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            manager = WorktreeManager(repo_root)
+            run_id = "run-existing-branch"
+            branch_name = "run/preserve-existing/run-existing-branch"
+            _git(repo_root, "branch", branch_name)
+
+            with self.assertRaises(WorktreeError):
+                manager.create_builder_worktree(
+                    run_id=run_id,
+                    task_slug="Preserve existing",
+                )
+
+            branches = subprocess.run(
+                ["git", "branch", "--list", branch_name],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(branch_name, branches.stdout.strip())
+            self.assertFalse((manager.leases_root / f"{run_id}.json").exists())
+
+    def test_partial_add_failure_removes_newly_created_branch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            manager = WorktreeManager(repo_root)
+            real_git = manager._git
+            run_id = "run-partial-add"
+            branch_name = "run/partial-add/run-partial-add"
+
+            def partial_add(*args: str) -> str:
+                if args[:3] == ("worktree", "add", "-b"):
+                    _git(repo_root, "branch", branch_name)
+                    raise WorktreeError("simulated failure after branch creation")
+                return real_git(*args)
+
+            with (
+                patch.object(manager, "_git", side_effect=partial_add),
+                self.assertRaisesRegex(WorktreeError, "simulated failure"),
+            ):
+                manager.create_builder_worktree(
+                    run_id=run_id,
+                    task_slug="Partial add",
+                )
+
+            branches = subprocess.run(
+                ["git", "branch", "--list", branch_name],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual("", branches.stdout.strip())
+            self.assertFalse((manager.leases_root / f"{run_id}.json").exists())
+
     def test_creation_rejects_symlinked_worktree_and_lease_roots(self) -> None:
         with (
             tempfile.TemporaryDirectory() as tmpdir,

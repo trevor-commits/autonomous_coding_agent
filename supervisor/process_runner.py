@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import ctypes
+import json
 import os
 import secrets
 import select
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
+import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Mapping, Sequence
 
@@ -25,6 +30,79 @@ _LAUNCH_GATE = (
 )
 _LEASE_ENV_KEY = "CODEX_PROCESS_TREE_LEASE"
 _LEASE_SCAN_ATTEMPTS = 8
+_SANDBOX_EXEC = Path("/usr/bin/sandbox-exec")
+
+
+class ProcessContainmentError(RuntimeError):
+    """Raised when owned descendant cleanup cannot be proven complete."""
+
+
+@dataclass(frozen=True)
+class _SandboxContainmentTag:
+    root: Path
+    denied_path: Path
+    allowed_path: Path
+
+    @property
+    def profile(self) -> str:
+        root = json.dumps(str(self.root))
+        denied = json.dumps(str(self.denied_path))
+        return " ".join(
+            (
+                "(version 1)",
+                "(allow default)",
+                f"(deny file-read* (literal {denied}))",
+                f"(deny file-write* (literal {root}) (subpath {root}))",
+            )
+        )
+
+    def remove(self) -> None:
+        for path in (self.denied_path, self.allowed_path):
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+        try:
+            self.root.rmdir()
+        except FileNotFoundError:
+            pass
+
+
+def _create_sandbox_containment_tag(
+    *, token: str, env: Mapping[str, str] | None
+) -> _SandboxContainmentTag | None:
+    """Create an immutable kernel-policy tag inherited across fork/exec on macOS."""
+
+    if sys.platform != "darwin":
+        return None
+    if not _SANDBOX_EXEC.is_file():
+        raise ProcessContainmentError(
+            "macOS immutable process containment requires `/usr/bin/sandbox-exec`"
+        )
+    temp_root = Path((env or {}).get("TMPDIR", tempfile.gettempdir())).resolve()
+    if not temp_root.is_dir():
+        temp_root = Path(tempfile.gettempdir()).resolve()
+    root = Path(tempfile.mkdtemp(prefix=f".aca-process-tree-{token}-", dir=temp_root))
+    root.chmod(0o700)
+    denied_path = root / "denied.tag"
+    allowed_path = root / "allowed.tag"
+    try:
+        for path in (denied_path, allowed_path):
+            descriptor = os.open(
+                path,
+                os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
+                0o400,
+            )
+            os.close(descriptor)
+    except BaseException:
+        for path in (denied_path, allowed_path):
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+        root.rmdir()
+        raise
+    return _SandboxContainmentTag(root, denied_path, allowed_path)
 
 
 class _BoundedCapture:
@@ -34,9 +112,8 @@ class _BoundedCapture:
         if limit <= len(_TRUNCATION_MARKER):
             raise ValueError("Capture limit must exceed the truncation marker.")
         self.limit = limit
-        retained = limit - len(_TRUNCATION_MARKER)
-        self._head_limit = retained // 2
-        self._tail_limit = retained - self._head_limit
+        self._head_limit = limit // 2
+        self._tail_limit = limit - self._head_limit
         self._head = bytearray()
         self._tail = bytearray()
         self._total_bytes = 0
@@ -99,7 +176,14 @@ class _BoundedCapture:
             if self._total_bytes <= self.limit:
                 payload = bytes(self._head + self._tail)
             else:
-                payload = bytes(self._head + _TRUNCATION_MARKER + self._tail)
+                retained = self.limit - len(_TRUNCATION_MARKER)
+                head_limit = retained // 2
+                tail_limit = retained - head_limit
+                payload = bytes(
+                    self._head[:head_limit]
+                    + _TRUNCATION_MARKER
+                    + self._tail[-tail_limit:]
+                )
         return payload.decode("utf-8", errors="replace")
 
     def _drain(self) -> None:
@@ -161,7 +245,7 @@ def _process_tree(root_pid: int, seeds: set[int] | None = None) -> set[int]:
         except ValueError:
             continue
         children.setdefault(parent, set()).add(pid)
-    owned = set(seeds or {root_pid})
+    owned = set(seeds) if seeds is not None else {root_pid}
     frontier = list(owned)
     while frontier:
         for child in children.get(frontier.pop(), set()):
@@ -171,15 +255,203 @@ def _process_tree(root_pid: int, seeds: set[int] | None = None) -> set[int]:
     return owned
 
 
-def _signal_processes(process_ids: set[int], sig: signal.Signals) -> None:
-    for pid in sorted(process_ids, reverse=True):
+def _darwin_process_start_identity(pid: int) -> str | None:
+    """Return the microsecond-resolution start identity for a Darwin process."""
+
+    class _ProcBSDInfo(ctypes.Structure):
+        _fields_ = [
+            ("pbi_flags", ctypes.c_uint32),
+            ("pbi_status", ctypes.c_uint32),
+            ("pbi_xstatus", ctypes.c_uint32),
+            ("pbi_pid", ctypes.c_uint32),
+            ("pbi_ppid", ctypes.c_uint32),
+            ("pbi_uid", ctypes.c_uint32),
+            ("pbi_gid", ctypes.c_uint32),
+            ("pbi_ruid", ctypes.c_uint32),
+            ("pbi_rgid", ctypes.c_uint32),
+            ("pbi_svuid", ctypes.c_uint32),
+            ("pbi_svgid", ctypes.c_uint32),
+            ("rfu_1", ctypes.c_uint32),
+            ("pbi_comm", ctypes.c_char * 16),
+            ("pbi_name", ctypes.c_char * 32),
+            ("pbi_nfiles", ctypes.c_uint32),
+            ("pbi_pgid", ctypes.c_uint32),
+            ("pbi_pjobc", ctypes.c_uint32),
+            ("e_tdev", ctypes.c_uint32),
+            ("e_tpgid", ctypes.c_uint32),
+            ("pbi_nice", ctypes.c_int32),
+            ("pbi_start_tvsec", ctypes.c_uint64),
+            ("pbi_start_tvusec", ctypes.c_uint64),
+        ]
+
+    try:
+        libproc = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True)
+        info = _ProcBSDInfo()
+        result = libproc.proc_pidinfo(
+            pid, 3, 0, ctypes.byref(info), ctypes.sizeof(info)
+        )
+    except OSError:
+        return None
+    if result != ctypes.sizeof(info) or info.pbi_pid != pid:
+        return None
+    return f"darwin:{info.pbi_start_tvsec}:{info.pbi_start_tvusec}"
+
+
+def _process_start_identity(pid: int) -> str | None:
+    """Return a PID-reuse-resistant process start identity."""
+
+    if sys.platform.startswith("linux"):
+        try:
+            payload = Path(f"/proc/{pid}/stat").read_text()
+        except (FileNotFoundError, PermissionError, ProcessLookupError, OSError):
+            return None
+        close_paren = payload.rfind(")")
+        fields = payload[close_paren + 2 :].split() if close_paren >= 0 else []
+        if len(fields) <= 19:
+            return None
+        return f"linux:{fields[19]}"
+    if sys.platform == "darwin":
+        return _darwin_process_start_identity(pid)
+    try:
+        listed = subprocess.run(
+            ["/bin/ps", "-p", str(pid), "-o", "lstart="],
+            capture_output=True,
+            text=True,
+            timeout=0.5,
+            check=False,
+            env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"},
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    started = " ".join(listed.stdout.split())
+    return f"ps:{started}" if listed.returncode == 0 and started else None
+
+
+def _live_process_identities(
+    identities: Mapping[int, str],
+) -> dict[int, str]:
+    return {
+        pid: identity
+        for pid, identity in identities.items()
+        if _process_start_identity(pid) == identity
+    }
+
+
+def _capture_process_identities(process_ids: set[int]) -> dict[int, str]:
+    captured: dict[int, str] = {}
+    for pid in process_ids:
+        identity = _process_start_identity(pid)
+        if identity is not None:
+            captured[pid] = identity
+    return captured
+
+
+def _capture_required_process_identities(
+    process_ids: set[int], *, source: str
+) -> dict[int, str]:
+    captured = _capture_process_identities(process_ids)
+    missing = process_ids - set(captured)
+    if missing:
+        raise ProcessContainmentError(
+            f"{source} found processes without stable identities: "
+            f"{sorted(missing)}"
+        )
+    return captured
+
+
+def _sandbox_tagged_processes(
+    tag: _SandboxContainmentTag | None,
+) -> dict[int, str]:
+    """Find same-user processes carrying the immutable per-run macOS policy tag."""
+
+    if tag is None or sys.platform != "darwin":
+        return {}
+    try:
+        listed = subprocess.run(
+            ["/bin/ps", "-axo", "pid=,uid=,state="],
+            capture_output=True,
+            text=True,
+            timeout=0.5,
+            check=False,
+            env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"},
+        )
+        sandbox = ctypes.CDLL(
+            "/usr/lib/system/libsystem_sandbox.dylib", use_errno=True
+        )
+        sandbox.sandbox_check.argtypes = [
+            ctypes.c_int,
+            ctypes.c_char_p,
+            ctypes.c_int,
+        ]
+        sandbox.sandbox_check.restype = ctypes.c_int
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ProcessContainmentError(
+            f"sandbox containment discovery unavailable for `{tag.root}`: {exc}"
+        ) from exc
+    if listed.returncode != 0:
+        raise ProcessContainmentError(
+            f"sandbox containment process inventory failed for `{tag.root}`"
+        )
+
+    denied_path = ctypes.c_char_p(str(tag.denied_path).encode())
+    allowed_path = ctypes.c_char_p(str(tag.allowed_path).encode())
+    found: dict[int, str] = {}
+    for line in listed.stdout.splitlines():
+        fields = line.split()
+        if len(fields) != 3:
+            continue
+        try:
+            pid, uid = (int(value) for value in fields[:2])
+        except ValueError:
+            continue
+        if fields[2].startswith("Z"):
+            continue
+        if uid != os.getuid() or pid == os.getpid():
+            continue
+        identity = _process_start_identity(pid)
+        if identity is None:
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                continue
+            except PermissionError as exc:
+                raise ProcessContainmentError(
+                    f"could not verify sandbox-tagged pid {pid} identity"
+                ) from exc
+            raise ProcessContainmentError(
+                f"could not capture sandbox-tagged live pid {pid} identity"
+            )
+        denied = sandbox.sandbox_check(
+            pid, b"file-read-data", 1, denied_path
+        )
+        allowed = sandbox.sandbox_check(
+            pid, b"file-read-data", 1, allowed_path
+        )
+        if denied < 0 or allowed < 0:
+            if _process_start_identity(pid) == identity:
+                raise ProcessContainmentError(
+                    f"sandbox containment check failed for live pid {pid} "
+                    f"under `{tag.root}`"
+                )
+            continue
+        if denied == 1 and allowed == 0:
+            found[pid] = identity
+    return found
+
+
+def _signal_processes(
+    process_identities: Mapping[int, str], sig: signal.Signals
+) -> None:
+    for pid, identity in sorted(process_identities.items(), reverse=True):
+        if _process_start_identity(pid) != identity:
+            continue
         try:
             os.kill(pid, sig)
         except (PermissionError, ProcessLookupError):
             pass
 
 
-def _tagged_lease_processes(token: str) -> set[int]:
+def _tagged_lease_processes(token: str) -> dict[int, str]:
     """Find same-user descendants that retained the per-run inherited lease tag."""
 
     marker = f"{_LEASE_ENV_KEY}={token}".encode()
@@ -194,15 +466,15 @@ def _tagged_lease_processes(token: str) -> set[int]:
                 continue
             if marker in environ.split(b"\0"):
                 found.add(int(entry.name))
-        return found
+        return _capture_required_process_identities(
+            found, source="environment containment discovery"
+        )
     if sys.platform != "darwin":
-        return set()
+        return {}
 
     # macOS has no /proc. KERN_PROCARGS2 exposes argv/environment for same-user,
     # non-platform processes; the ancestry tracker remains the complementary path
     # for protected system executables and descendants observed before reparenting.
-    import ctypes
-
     try:
         listed = subprocess.run(
             ["/bin/ps", "-axo", "pid="],
@@ -212,8 +484,14 @@ def _tagged_lease_processes(token: str) -> set[int]:
             check=False,
             env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"},
         )
-    except (OSError, subprocess.TimeoutExpired):
-        return set()
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ProcessContainmentError(
+            f"environment containment discovery unavailable: {exc}"
+        ) from exc
+    if listed.returncode != 0:
+        raise ProcessContainmentError(
+            "environment containment process inventory failed"
+        )
     libc = ctypes.CDLL(None, use_errno=True)
     found = set()
     for value in listed.stdout.split():
@@ -232,16 +510,28 @@ def _tagged_lease_processes(token: str) -> set[int]:
             continue
         if marker in payload.raw[: size.value].split(b"\0"):
             found.add(pid)
-    return found
+    return _capture_required_process_identities(
+        found, source="environment containment discovery"
+    )
 
 
 class _ProcessTreeLease:
     """Continuously retain descendant identities even after they reparent."""
 
-    def __init__(self, root_pid: int, token: str) -> None:
+    def __init__(
+        self,
+        root_pid: int,
+        token: str,
+        sandbox_tag: _SandboxContainmentTag | None = None,
+    ) -> None:
         self.root_pid = root_pid
         self.token = token
-        self._owned = {root_pid}
+        self.sandbox_tag = sandbox_tag
+        root_identity = _process_start_identity(root_pid)
+        if root_identity is None:
+            raise RuntimeError("could not capture process-tree root identity")
+        self.root_identity = root_identity
+        self._owned = {root_pid: root_identity}
         self._lock = threading.Lock()
         self._ready = threading.Event()
         self._stop = threading.Event()
@@ -253,23 +543,40 @@ class _ProcessTreeLease:
             self._stop.set()
             raise RuntimeError("process-tree lease failed to start")
 
-    def snapshot(self) -> set[int]:
+    def snapshot(self) -> dict[int, str]:
         with self._lock:
-            return set(self._owned)
+            return dict(self._owned)
 
     def stop(self) -> None:
         self._stop.set()
         self._thread.join(timeout=1.0)
 
-    def tagged_processes(self) -> set[int]:
-        return _tagged_lease_processes(self.token)
+    def tagged_processes(self) -> dict[int, str]:
+        sandbox_tagged = _sandbox_tagged_processes(self.sandbox_tag)
+        try:
+            tagged = _tagged_lease_processes(self.token)
+        except ProcessContainmentError:
+            if self.sandbox_tag is None:
+                raise
+            tagged = {}
+        tagged.update(sandbox_tagged)
+        return tagged
+
+    def remove_sandbox_tag(self) -> None:
+        if self.sandbox_tag is not None:
+            self.sandbox_tag.remove()
 
     def _track(self) -> None:
         try:
             while not self._stop.is_set():
-                observed = _process_tree(self.root_pid, self.snapshot())
+                current = self.snapshot()
+                live = _live_process_identities(current)
+                observed = _capture_process_identities(
+                    _process_tree(self.root_pid, set(live))
+                )
                 with self._lock:
-                    self._owned.update(observed)
+                    for pid, identity in observed.items():
+                        self._owned[pid] = identity
                 self._ready.set()
                 self._stop.wait(_PROCESS_TREE_POLL_SECONDS)
         finally:
@@ -285,38 +592,57 @@ def _spawn_with_process_tree_lease(
     gate_read, gate_write = os.pipe()
     process: subprocess.Popen[str] | None = None
     lease: _ProcessTreeLease | None = None
+    sandbox_tag: _SandboxContainmentTag | None = None
     try:
         token = secrets.token_hex(16)
         supplied_env = popen_kwargs.get("env")
         launch_env = dict(os.environ if supplied_env is None else supplied_env)
         launch_env[_LEASE_ENV_KEY] = token
         popen_kwargs["env"] = launch_env
+        sandbox_tag = _create_sandbox_containment_tag(token=token, env=launch_env)
+        launch_args = list(args)
+        if sandbox_tag is not None:
+            launch_args = [
+                str(_SANDBOX_EXEC),
+                "-p",
+                sandbox_tag.profile,
+                *launch_args,
+            ]
         process = subprocess.Popen(
-            [sys.executable, "-c", _LAUNCH_GATE, str(gate_read), *args],
+            [sys.executable, "-c", _LAUNCH_GATE, str(gate_read), *launch_args],
             pass_fds=(gate_read,),
             **popen_kwargs,
         )
         os.close(gate_read)
         gate_read = -1
-        lease = _ProcessTreeLease(process.pid, token)
+        lease = _ProcessTreeLease(process.pid, token, sandbox_tag)
         lease.start()
         os.write(gate_write, b"1")
         os.close(gate_write)
         gate_write = -1
         return process, lease
-    except BaseException:
+    except BaseException as exc:
         if gate_write >= 0:
             os.close(gate_write)
         if gate_read >= 0:
             os.close(gate_read)
-        if lease is not None:
-            lease.stop()
-        if process is not None:
-            _signal_process_group(process.pid, signal.SIGKILL)
+        if lease is not None and process is not None:
+            try:
+                _stop_process_group(process, lease)
+            except BaseException as cleanup_exc:
+                raise ProcessContainmentError(
+                    f"launch failed and containment cleanup was incomplete: "
+                    f"{cleanup_exc}"
+                ) from exc
+        elif process is not None:
+            if process.poll() is None:
+                process.kill()
             try:
                 process.wait(timeout=_TERMINATION_GRACE_SECONDS)
             except (subprocess.TimeoutExpired, ChildProcessError):
                 pass
+        if sandbox_tag is not None and lease is None:
+            sandbox_tag.remove()
         raise
 
 
@@ -403,12 +729,29 @@ def _stop_process_group(
     process: subprocess.Popen[str],
     lease: _ProcessTreeLease,
 ) -> None:
+    _stop_process_group_inner(process, lease)
+    lease.remove_sandbox_tag()
+
+
+def _stop_process_group_inner(
+    process: subprocess.Popen[str],
+    lease: _ProcessTreeLease,
+) -> None:
     owned = _freeze_process_tree(process.pid, lease.snapshot())
     lease.stop()
     stable_scans = 0
     for _ in range(_LEASE_SCAN_ATTEMPTS):
-        tagged = lease.tagged_processes()
-        new = tagged - owned
+        try:
+            tagged = lease.tagged_processes()
+        except ProcessContainmentError:
+            stable_scans = 0
+            threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
+            continue
+        new = {
+            pid: identity
+            for pid, identity in tagged.items()
+            if owned.get(pid) != identity
+        }
         owned.update(tagged)
         if tagged:
             _signal_processes(tagged, signal.SIGSTOP)
@@ -418,34 +761,81 @@ def _stop_process_group(
         threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
     # The tracker may have observed one last detached child while the known tree
     # was being frozen. Fold that final inventory into a second stable freeze.
-    owned = _freeze_process_tree(process.pid, owned | lease.snapshot())
+    final_inventory = lease.snapshot()
+    final_inventory.update(owned)
+    owned = _freeze_process_tree(process.pid, final_inventory)
     # TERM is delivered only after the tree is frozen. Do not resume it: a TERM
     # handler could otherwise fork, detach, and become reparented before KILL.
-    _signal_process_group(process.pid, signal.SIGTERM)
+    _signal_process_group(
+        process.pid, signal.SIGTERM, expected_identity=lease.root_identity
+    )
     _signal_processes(owned, signal.SIGTERM)
-    _signal_process_group(process.pid, signal.SIGKILL)
+    _signal_process_group(
+        process.pid, signal.SIGKILL, expected_identity=lease.root_identity
+    )
     _signal_processes(owned, signal.SIGKILL)
-    for _ in range(_LEASE_SCAN_ATTEMPTS):
-        remaining = lease.tagged_processes()
-        if not remaining:
-            break
-        _signal_processes(remaining, signal.SIGKILL)
-        threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
     try:
         process.communicate(timeout=_TERMINATION_GRACE_SECONDS)
     except subprocess.TimeoutExpired:
         process.wait(timeout=_TERMINATION_GRACE_SECONDS)
+    clean_scans = 0
+    last_discovery_error: ProcessContainmentError | None = None
+    remaining: dict[int, str] = {}
+    confirmation_deadline = time.monotonic() + _TERMINATION_GRACE_SECONDS
+    while clean_scans < 2 and time.monotonic() < confirmation_deadline:
+        try:
+            remaining = lease.tagged_processes()
+        except ProcessContainmentError as exc:
+            last_discovery_error = exc
+            clean_scans = 0
+            threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
+            continue
+        last_discovery_error = None
+        if remaining:
+            clean_scans = 0
+            _signal_processes(remaining, signal.SIGSTOP)
+            _signal_processes(remaining, signal.SIGKILL)
+        else:
+            clean_scans += 1
+            if clean_scans >= 2:
+                break
+        threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
+    remaining = _live_process_identities(remaining)
+    if not remaining and last_discovery_error is None:
+        clean_scans = max(clean_scans, 2)
+    if clean_scans < 2:
+        tag = getattr(lease, "sandbox_tag", None)
+        tag_root = f"; retained tag `{tag.root}`" if tag is not None else ""
+        if last_discovery_error is not None:
+            raise ProcessContainmentError(
+                f"could not prove descendant cleanup: {last_discovery_error}"
+                f"{tag_root}"
+            ) from last_discovery_error
+        raise ProcessContainmentError(
+            f"tagged descendants survived cleanup: {sorted(remaining)}{tag_root}"
+        )
 
 
-def _freeze_process_tree(root_pid: int, seeds: set[int] | None = None) -> set[int]:
+def _freeze_process_tree(
+    root_pid: int, seeds: Mapping[int, str] | None = None
+) -> dict[int, str]:
     """Stop the group, then expand and stop descendants until the set is stable."""
 
-    owned = set(seeds or {root_pid})
-    _signal_process_group(root_pid, signal.SIGSTOP)
+    owned = _live_process_identities(seeds or {})
+    if seeds is None:
+        owned = _capture_process_identities({root_pid})
+    root_identity = seeds.get(root_pid) if seeds is not None else owned.get(root_pid)
+    _signal_process_group(
+        root_pid, signal.SIGSTOP, expected_identity=root_identity
+    )
     for _ in range(32):
-        observed = _process_tree(root_pid, owned)
+        observed = _capture_process_identities(
+            _process_tree(root_pid, set(_live_process_identities(owned)))
+        )
         _signal_processes(observed, signal.SIGSTOP)
-        confirmed = _process_tree(root_pid, observed)
+        confirmed = _capture_process_identities(
+            _process_tree(root_pid, set(_live_process_identities(observed)))
+        )
         if confirmed == observed:
             return confirmed
         owned = confirmed
@@ -453,7 +843,17 @@ def _freeze_process_tree(root_pid: int, seeds: set[int] | None = None) -> set[in
     return owned
 
 
-def _signal_process_group(pid: int, sig: signal.Signals) -> None:
+def _signal_process_group(
+    pid: int,
+    sig: signal.Signals,
+    *,
+    expected_identity: str | None = None,
+) -> None:
+    if (
+        expected_identity is not None
+        and _process_start_identity(pid) != expected_identity
+    ):
+        return
     try:
         os.killpg(pid, sig)
     except (PermissionError, ProcessLookupError):

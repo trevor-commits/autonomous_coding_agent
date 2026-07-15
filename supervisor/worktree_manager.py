@@ -51,6 +51,7 @@ class WorktreeManager:
             require_missing_path(worktree_path, boundary=self.repo_root)
         except PathSafetyError as exc:
             raise WorktreeError(str(exc)) from exc
+        branch_preexisting = self._local_branch_exists(branch_name)
         lease_path = self.acquire_lease(run_id, worktree_path, branch_name)
         try:
             self._git(
@@ -59,7 +60,11 @@ class WorktreeManager:
             require_safe_directory(worktree_path, boundary=self.repo_root)
         except PathSafetyError as exc:
             try:
-                self._rollback_creation(worktree_path, branch_name)
+                self._rollback_creation(
+                    worktree_path,
+                    branch_name,
+                    delete_branch=not branch_preexisting,
+                )
             except Exception as cleanup_exc:
                 raise WorktreeError(
                     f"{exc}; rollback failed and lease was retained: {cleanup_exc}"
@@ -68,7 +73,11 @@ class WorktreeManager:
             raise WorktreeError(str(exc)) from exc
         except Exception as exc:
             try:
-                self._rollback_creation(worktree_path, branch_name)
+                self._rollback_creation(
+                    worktree_path,
+                    branch_name,
+                    delete_branch=not branch_preexisting,
+                )
             except Exception as cleanup_exc:
                 raise WorktreeError(
                     f"{exc}; rollback failed and lease was retained: {cleanup_exc}"
@@ -152,7 +161,13 @@ class WorktreeManager:
         else:
             lease_path.unlink()
 
-    def _rollback_creation(self, worktree_path: Path, branch_name: str) -> None:
+    def _rollback_creation(
+        self,
+        worktree_path: Path,
+        branch_name: str,
+        *,
+        delete_branch: bool,
+    ) -> None:
         listed = subprocess.run(
             ["git", "worktree", "list", "--porcelain"],
             cwd=self.repo_root,
@@ -167,6 +182,8 @@ class WorktreeManager:
         if registered or worktree_path.exists():
             self._git("worktree", "remove", "--force", str(worktree_path))
 
+        if not delete_branch:
+            return
         branch = subprocess.run(
             [
                 "git",
@@ -181,6 +198,21 @@ class WorktreeManager:
             self._git("branch", "-D", branch_name)
         elif branch.returncode != 1:
             raise WorktreeError("Could not inspect rollback branch state.")
+
+    def _local_branch_exists(self, branch_name: str) -> bool:
+        branch = subprocess.run(
+            [
+                "git",
+                "show-ref",
+                "--verify",
+                "--quiet",
+                f"refs/heads/{branch_name}",
+            ],
+            cwd=self.repo_root,
+        )
+        if branch.returncode not in (0, 1):
+            raise WorktreeError("Could not inspect branch state before creation.")
+        return branch.returncode == 0
 
     def _git(self, *args: str) -> None:
         result = subprocess.run(

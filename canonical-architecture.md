@@ -147,13 +147,23 @@ Periodic reconciliation sweeps remain valid as a safety net for missed events, b
 
 Autonomy should expand only when the system can explain what happened and measure whether it improved.
 
+### 3.10 Persistent Partner, Stateless Executor Policy
+
+The repository is the bounded policy and episode-execution layer beneath the existing global autonomous governor. The global governor remains the sole owner of recurrence, durable identity, goals, approved observations, maturity, approvals, outcome promotion, benefit accounting, and the ready queue. This repository does not add a daemon, scheduler, partner database, or transcript memory.
+
+Each partner wake is a bounded snapshot. `supervisor.partner_runtime` emits exactly one hash-bound `no_op`, `proposal`, `executor_envelope`, or `blocked` decision. Personality and interests may rank evidence-backed utility, repair, research, care, and creative opportunities; they never enlarge authority. Low/medium-risk sandbox envelopes require a complete exact proposal approval that remains current and active at effect time. Empirical maturity thresholds alone do not remove that requirement; L3 also requires a separately reviewed exact operator-promotion proof. Outward communication, publishing, payment, credentials, destructive work, identity/value changes, policy/security changes, merge, deploy, and force-push remain operator-gated.
+
+An executable envelope embeds the complete run contract and the full exact proposal approval, and binds their hashes, wake, proposal, executor, strategy, capability classes, and risk. The global bridge may queue at most one such envelope through the existing autonomous loop. ACA cross-validates the approval; the global adapter also requires the identical approval in the current store and checks revocation/expiry immediately before effects. The episode executor retains the verified worktree by default and reports success only when the supervisor returns `COMPLETE` + `READY` with an existing report whose SHA-256 matches. Outcome and lesson objects are candidates for global promotion, never silent long-lived memory or identity mutation here.
+
+The accepted strategic design, maturity ladder, privacy model, and cross-repo proof contract live in `docs/designs/autonomous-partner.md`. That design is an active architecture companion, not design history.
+
 That requires:
 
 - traceable run execution with correlated logs, spans, and artifacts
 - benchmark or eval comparisons when changing queue behavior, prompts, or autonomy boundaries
 - explicit risk and approval gates for high-impact actions
 
-### 3.10 Boring First
+### 3.11 Boring First
 
 The initial system should be narrow and reliable:
 
@@ -691,6 +701,7 @@ Companion docs should reference this section rather than redefining the vocabula
 
 - ask strategy layer what builder should do next within scope
 - dispatch milestone-scoped build work
+- keep the builder edit-only: scoped patches and bounded filename discovery, never repo-code execution
 - collect builder outputs
 
 ### `LOCAL_VERIFY`
@@ -953,7 +964,9 @@ Rollback-oriented checkpoint recovery is intentionally deferred out of the small
 
 ### Builder
 
-- read-write on one worktree only
+- read one worktree and write only run-contract allowed paths
+- no repo-code or repo-contract command execution; deterministic checks stay supervisor-owned
+- scrubbed tool environment and no network
 
 ### UI verifier
 
@@ -974,8 +987,8 @@ Use three classes:
 
 ### Auto-allow
 
-- repo contract commands
-- safe repo-local reads
+- supervisor-owned repo contract commands executed only by the deterministic verifier
+- bounded builder filename discovery
 - safe file operations inside allowed paths
 
 ### Auto-deny
@@ -1021,12 +1034,12 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 
 ### Builder
 
-- localhost access
-- limited network only when explicitly required for supported setup windows
+- no network
 
 ### UI verifier
 
 - localhost plus explicitly approved hosts only
+- unreachable for partner envelopes, which require empty UI acceptance
 
 ### Reviewer
 

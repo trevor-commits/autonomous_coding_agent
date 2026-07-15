@@ -1,5 +1,6 @@
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,11 +9,16 @@ import yaml
 
 from supervisor.app_supervisor import AppLaunchSummary, AppSession
 from supervisor.builder_adapter import BuilderAdapter, BuilderResult, BuilderSession
-from supervisor.main import execute_run
+from supervisor.main import _actual_changed_files, _exit_code_for_run_state, execute_run
+from supervisor.policy import PolicyViolationError
 from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.ui_verifier import UIVerificationSummary
 from supervisor.strategy_simple import SimpleStrategy
-from supervisor.verifier import CommandExecutionResult
+from supervisor.verifier import (
+    CommandExecutionResult,
+    VerificationMode,
+    VerificationSummary,
+)
 
 
 def _git(repo_root: Path, *args: str) -> None:
@@ -45,8 +51,13 @@ def _init_target_repo(repo_root: Path, *, with_ui: bool = False) -> Path:
     }
     if with_ui:
         contract_payload["commands"]["ui_smoke"] = "python3 scripts/ui_smoke.py"
-        contract_payload["ui"] = {"base_url": "http://127.0.0.1:3000", "breakpoints": ["390x844"]}
-        (repo_root / "scripts" / "ui_smoke.py").write_text("print('ui smoke placeholder')\n")
+        contract_payload["ui"] = {
+            "base_url": "http://127.0.0.1:3000",
+            "breakpoints": ["390x844"],
+        }
+        (repo_root / "scripts" / "ui_smoke.py").write_text(
+            "print('ui smoke placeholder')\n"
+        )
     (repo_root / ".agent" / "contract.yml").write_text(yaml.safe_dump(contract_payload))
     (repo_root / "scripts" / "setup.py").write_text("print('setup ok')\n")
     (repo_root / "scripts" / "test.py").write_text(
@@ -100,15 +111,25 @@ def _init_target_repo(repo_root: Path, *, with_ui: bool = False) -> Path:
 
 
 class FakeBuilderAdapter(BuilderAdapter):
-    def __init__(self, writes: list[str], commands_per_turn: list[tuple[str, ...]] | None = None) -> None:
+    def __init__(
+        self, writes: list[str], commands_per_turn: list[tuple[str, ...]] | None = None
+    ) -> None:
         self.writes = writes
         self.commands_per_turn = commands_per_turn or [tuple() for _ in writes]
         self.prompts: list[str] = []
+        self.started_sessions = 0
 
     def start_session(self, worktree_path: Path, run_context: dict) -> BuilderSession:
-        return BuilderSession(worktree_path=Path(worktree_path), run_context=run_context, session_id="fake")
+        self.started_sessions += 1
+        return BuilderSession(
+            worktree_path=Path(worktree_path),
+            run_context=run_context,
+            session_id="fake",
+        )
 
-    def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
+    def send_task(
+        self, session: BuilderSession, prompt: str, timeout: int
+    ) -> BuilderResult:
         turn = session.turn_count
         session.turn_count += 1
         self.prompts.append(prompt)
@@ -129,6 +150,32 @@ class FakeBuilderAdapter(BuilderAdapter):
         return None
 
 
+class UnreportedScopeDriftBuilderAdapter(FakeBuilderAdapter):
+    def send_task(
+        self, session: BuilderSession, prompt: str, timeout: int
+    ) -> BuilderResult:
+        result = super().send_task(session, prompt, timeout)
+        (session.worktree_path / "README.md").write_text("unreported scope drift\n")
+        return result
+
+
+class MissingArtifactStrategy(SimpleStrategy):
+    def __init__(self, repo_root: Path, run_id: str) -> None:
+        self.artifact_path = (
+            repo_root
+            / ".autoclaw"
+            / "runs"
+            / run_id
+            / "artifacts"
+            / "logs"
+            / "test.stdout.log"
+        )
+
+    def candidate_review_action(self, *args, **kwargs):
+        self.artifact_path.unlink()
+        return super().candidate_review_action(*args, **kwargs)
+
+
 class MultiFileBuilderAdapter(BuilderAdapter):
     def __init__(
         self,
@@ -140,9 +187,15 @@ class MultiFileBuilderAdapter(BuilderAdapter):
         self.prompts: list[str] = []
 
     def start_session(self, worktree_path: Path, run_context: dict) -> BuilderSession:
-        return BuilderSession(worktree_path=Path(worktree_path), run_context=run_context, session_id="multi")
+        return BuilderSession(
+            worktree_path=Path(worktree_path),
+            run_context=run_context,
+            session_id="multi",
+        )
 
-    def send_task(self, session: BuilderSession, prompt: str, timeout: int) -> BuilderResult:
+    def send_task(
+        self, session: BuilderSession, prompt: str, timeout: int
+    ) -> BuilderResult:
         turn = session.turn_count
         session.turn_count += 1
         self.prompts.append(prompt)
@@ -166,12 +219,19 @@ class MultiFileBuilderAdapter(BuilderAdapter):
 
 
 class FakeAppSupervisor:
-    def __init__(self, launches: list[AppLaunchSummary]) -> None:
+    def __init__(
+        self, launches: list[AppLaunchSummary], *, repo_root: Path | None = None
+    ) -> None:
         self.launches = launches
+        self.artifact_root = (
+            repo_root / ".autoclaw" / "runs" / "benchmark-001" if repo_root else None
+        )
         self.stopped_sessions: list[AppSession] = []
 
     def launch(self) -> AppLaunchSummary:
-        return self.launches.pop(0)
+        summary = self.launches.pop(0)
+        _materialize_fake_artifacts(self.artifact_root, summary.artifact_manifest)
+        return summary
 
     def stop(self, session: AppSession | None) -> None:
         if session is not None:
@@ -179,11 +239,64 @@ class FakeAppSupervisor:
 
 
 class FakeUIVerifier:
-    def __init__(self, summaries: list[UIVerificationSummary]) -> None:
+    def __init__(
+        self, summaries: list[UIVerificationSummary], *, repo_root: Path | None = None
+    ) -> None:
         self.summaries = summaries
+        self.artifact_root = (
+            repo_root / ".autoclaw" / "runs" / "benchmark-001" if repo_root else None
+        )
 
     def run(self, *, changed_files: tuple[str, ...]) -> UIVerificationSummary:
-        return self.summaries.pop(0)
+        summary = self.summaries.pop(0)
+        _materialize_fake_artifacts(self.artifact_root, summary.artifact_manifest)
+        return summary
+
+
+class PassingVerifier:
+    def __init__(
+        self,
+        *,
+        repo_root: Path,
+        write_sensitive_residue: bool = False,
+        mutate_builder_file: bool = False,
+    ) -> None:
+        self.repo_root = repo_root
+        self.write_sensitive_residue = write_sensitive_residue
+        self.mutate_builder_file = mutate_builder_file
+        self.calls = 0
+
+    def run(
+        self,
+        *,
+        mode: VerificationMode = VerificationMode.FULL,
+        changed_files: tuple[str, ...] = (),
+    ) -> VerificationSummary:
+        self.calls += 1
+        if self.write_sensitive_residue and self.calls == 1:
+            target = self.repo_root / "src" / "nested" / ".git" / "config"
+            target.parent.mkdir(parents=True)
+            target.write_text("hidden control residue\n")
+        if self.mutate_builder_file and self.calls == 1:
+            (self.repo_root / "src" / "task.txt").write_text(
+                "verification silently replaced builder output\n"
+            )
+        return VerificationSummary(
+            run_id="benchmark-001",
+            run_trace_id="trace-123",
+            mode=mode,
+            commands=(),
+            changed_files=tuple(changed_files),
+        )
+
+
+def _materialize_fake_artifacts(root: Path | None, manifest: tuple[str, ...]) -> None:
+    if root is None:
+        return
+    for relative_path in manifest:
+        target = root / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("fake test evidence\n")
 
 
 def _healthy_launch() -> AppLaunchSummary:
@@ -218,7 +331,10 @@ def _healthy_launch() -> AppLaunchSummary:
                 run_trace_id="trace-123",
             ),
         ),
-        artifact_manifest=("artifacts/logs/app_up.stdout.log", "artifacts/logs/app_up.stderr.log"),
+        artifact_manifest=(
+            "artifacts/logs/app_up.stdout.log",
+            "artifacts/logs/app_up.stderr.log",
+        ),
     )
 
 
@@ -250,7 +366,10 @@ def _failed_launch() -> AppLaunchSummary:
                 failure_fingerprint="app-launch-app-health-timeout",
             ),
         ),
-        artifact_manifest=("artifacts/logs/app_up.stdout.log", "artifacts/logs/app_up.stderr.log"),
+        artifact_manifest=(
+            "artifacts/logs/app_up.stdout.log",
+            "artifacts/logs/app_up.stderr.log",
+        ),
         failure_fingerprint="app-launch-app-health-timeout",
         failure_reason="timeout waiting for health",
     )
@@ -298,7 +417,11 @@ def _ui_failure() -> UIVerificationSummary:
                 "severity": "P1",
                 "type": "ui-functional",
                 "summary": "Save button disabled after valid input",
-                "repro_steps": ["Open /settings", "Fill valid data", "Observe save button"],
+                "repro_steps": [
+                    "Open /settings",
+                    "Fill valid data",
+                    "Observe save button",
+                ],
                 "expected": "Save button enabled",
                 "observed": "Button remained disabled",
                 "evidence": {"console_log": "artifacts/logs/ui_smoke.stderr.log"},
@@ -313,7 +436,201 @@ def _ui_failure() -> UIVerificationSummary:
     )
 
 
+class SupervisorCliExitCodeTests(unittest.TestCase):
+    def test_noncomplete_run_states_fail_the_process(self) -> None:
+        self.assertEqual(0, _exit_code_for_run_state("COMPLETE"))
+        for run_state in ("BLOCKED", "UNSUPPORTED", "IN_PROGRESS"):
+            with self.subTest(run_state=run_state):
+                self.assertNotEqual(0, _exit_code_for_run_state(run_state))
+
+    def test_preworkspace_authority_rejection_is_structured_blocked_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            payload = json.loads(run_contract_path.read_text())
+            payload["risk_level"] = "High"
+            run_contract_path.write_text(json.dumps(payload))
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "supervisor.main",
+                    "--repo-path",
+                    str(repo_root),
+                    "--run-contract",
+                    str(run_contract_path),
+                ],
+                cwd=Path(__file__).resolve().parent.parent,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(2, completed.returncode)
+            self.assertNotIn("Traceback", completed.stderr)
+            result = json.loads(completed.stdout)
+            self.assertEqual("benchmark-001", result["run_id"])
+            self.assertEqual("BLOCKED", result["run_state"])
+            self.assertEqual("NOT_READY", result["readiness_verdict"])
+            self.assertIsNone(result["worktree_path"])
+            self.assertIn("high risk", result["reason"])
+
+
 class SupervisorMainTests(unittest.TestCase):
+    def test_repo_contract_cannot_authorize_an_absolute_denied_command(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            contract_path = repo_root / ".agent" / "contract.yml"
+            contract = yaml.safe_load(contract_path.read_text())
+            contract["commands"]["test"] = "printf ok && git push origin main"
+            contract_path.write_text(yaml.safe_dump(contract))
+            _git(repo_root, "add", ".agent/contract.yml")
+            _git(repo_root, "commit", "-m", "unsafe command fixture")
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            self.assertEqual(0, adapter.started_sessions)
+            self.assertIn(
+                "absolute shell policy",
+                "\n".join(outcome.report.unresolved_blockers),
+            )
+
+    def test_partner_envelope_rejects_ui_acceptance_before_workspace_setup(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            payload = json.loads(run_contract_path.read_text())
+            payload["acceptance"]["ui_checks"] = ["render settings"]
+            run_contract_path.write_text(json.dumps(payload))
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            with self.assertRaisesRegex(
+                PolicyViolationError, "cannot request UI checks"
+            ):
+                execute_run(
+                    repo_root=repo_root,
+                    run_contract_path=run_contract_path,
+                    builder_adapter=adapter,
+                    strategy=SimpleStrategy(),
+                    partner_envelope=True,
+                )
+
+            self.assertEqual(0, adapter.started_sessions)
+            self.assertFalse((repo_root / "worktrees" / "benchmark-001").exists())
+
+    def test_partner_envelope_never_launches_repo_ui_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root, with_ui=True)
+            adapter = FakeBuilderAdapter(["fixed"])
+            app_supervisor = FakeAppSupervisor([], repo_root=repo_root)
+            ui_verifier = FakeUIVerifier([], repo_root=repo_root)
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                app_supervisor=app_supervisor,
+                ui_verifier=ui_verifier,
+                verifier=PassingVerifier(
+                    repo_root=repo_root / "worktrees" / "benchmark-001" / "builder"
+                ),
+                partner_envelope=True,
+            )
+
+            self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertEqual([], app_supervisor.launches)
+            self.assertEqual([], ui_verifier.summaries)
+            self.assertNotIn("APP_LAUNCH", outcome.report.phases_completed)
+            self.assertNotIn("UI_VERIFY", outcome.report.phases_completed)
+
+    def test_verifier_created_nested_git_residue_blocks_even_when_git_hides_it(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            workspace = repo_root / "worktrees" / "benchmark-001" / "builder"
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=FakeBuilderAdapter(["fixed"]),
+                strategy=SimpleStrategy(),
+                verifier=PassingVerifier(
+                    repo_root=workspace, write_sensitive_residue=True
+                ),
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            self.assertIn(
+                "src/nested/.git",
+                "\n".join(outcome.report.unresolved_blockers),
+            )
+
+    def test_verifier_cannot_mutate_an_already_changed_builder_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            workspace = repo_root / "worktrees" / "benchmark-001" / "builder"
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=FakeBuilderAdapter(["fixed"]),
+                strategy=SimpleStrategy(),
+                verifier=PassingVerifier(repo_root=workspace, mutate_builder_file=True),
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            self.assertIn(
+                "verification mutated the builder worktree",
+                "\n".join(outcome.report.unresolved_blockers),
+            )
+
+    def test_execute_run_rejects_high_risk_or_approval_required_before_workspace_setup(
+        self,
+    ) -> None:
+        unsafe_queue_metadata = (
+            ("risk_level", "High", "risk"),
+            ("approval_required", True, "approval"),
+        )
+        for field, value, message_fragment in unsafe_queue_metadata:
+            with self.subTest(field=field):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    repo_root = Path(tmpdir)
+                    run_contract_path = _init_target_repo(repo_root)
+                    payload = json.loads(run_contract_path.read_text())
+                    payload[field] = value
+                    run_contract_path.write_text(json.dumps(payload))
+                    adapter = FakeBuilderAdapter(["fixed"])
+
+                    with self.assertRaisesRegex(PolicyViolationError, message_fragment):
+                        execute_run(
+                            repo_root=repo_root,
+                            run_contract_path=run_contract_path,
+                            builder_adapter=adapter,
+                            strategy=SimpleStrategy(),
+                            cleanup_worktree=False,
+                        )
+
+                    self.assertEqual(0, adapter.started_sessions)
+                    self.assertFalse(
+                        (repo_root / "worktrees" / "benchmark-001").exists()
+                    )
+
     def test_execute_run_blocks_when_iteration_budget_is_exceeded(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -333,7 +650,10 @@ class SupervisorMainTests(unittest.TestCase):
 
             self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
             self.assertEqual(1, len(adapter.prompts))
-            self.assertIn("Iteration budget exceeded", "\n".join(outcome.report.unresolved_blockers))
+            self.assertIn(
+                "Iteration budget exceeded",
+                "\n".join(outcome.report.unresolved_blockers),
+            )
 
     def test_execute_run_blocks_when_repo_root_mismatches_run_contract(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -354,9 +674,14 @@ class SupervisorMainTests(unittest.TestCase):
 
             self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
             self.assertEqual(0, len(adapter.prompts))
-            self.assertIn("does not match run contract repo_path", "\n".join(outcome.report.unresolved_blockers))
+            self.assertIn(
+                "does not match run contract repo_path",
+                "\n".join(outcome.report.unresolved_blockers),
+            )
 
-    def test_execute_run_marks_missing_repo_contract_unsupported_before_builder_starts(self) -> None:
+    def test_execute_run_marks_missing_repo_contract_unsupported_before_builder_starts(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             _git(repo_root, "init")
@@ -405,8 +730,12 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual("UNSUPPORTED", outcome.snapshot.run_state.value)
             self.assertEqual(0, outcome.builder_turns)
             self.assertEqual(0, len(adapter.prompts))
-            self.assertIn("Missing repo contract", "\n".join(outcome.report.unresolved_blockers))
-            self.assertEqual("unsupported by repo contract", outcome.report.queue_exit_reason)
+            self.assertIn(
+                "Missing repo contract", "\n".join(outcome.report.unresolved_blockers)
+            )
+            self.assertEqual(
+                "unsupported by repo contract", outcome.report.queue_exit_reason
+            )
             self.assertTrue(outcome.report_path.exists())
 
     def test_execute_run_completes_after_single_builder_turn(self) -> None:
@@ -430,6 +759,73 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual(1, outcome.report.builder_turns)
             self.assertGreaterEqual(outcome.report.run_duration_seconds, 0.0)
             self.assertEqual(1, len(adapter.prompts))
+
+    def test_execute_run_does_not_complete_when_manifest_artifact_is_missing(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=MissingArtifactStrategy(repo_root, "benchmark-001"),
+                cleanup_worktree=False,
+            )
+
+            self.assertNotEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertNotEqual(
+                "READY", getattr(outcome.snapshot.readiness_verdict, "value", None)
+            )
+
+    def test_execute_run_does_not_complete_when_authoritative_final_rerun_fails(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            (repo_root / "scripts" / "test.py").write_text(
+                "\n".join(
+                    [
+                        "from pathlib import Path",
+                        "counter = Path('.autoclaw/final-rerun-count')",
+                        "counter.parent.mkdir(parents=True, exist_ok=True)",
+                        "attempt = int(counter.read_text()) + 1 if counter.exists() else 1",
+                        "counter.write_text(str(attempt))",
+                        "task = Path('src/task.txt')",
+                        "if attempt == 1 and task.exists() and task.read_text().strip() == 'fixed':",
+                        "    print('initial verification passed')",
+                        "else:",
+                        "    print('authoritative final rerun failed')",
+                        "    raise SystemExit(1)",
+                    ]
+                )
+            )
+            _git(repo_root, "add", "scripts/test.py")
+            _git(repo_root, "commit", "-m", "make final rerun fail")
+            adapter = FakeBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            rerun_count = int(
+                (
+                    outcome.workspace.worktree_path / ".autoclaw" / "final-rerun-count"
+                ).read_text()
+            )
+            self.assertGreaterEqual(rerun_count, 2)
+            self.assertNotEqual("COMPLETE", outcome.snapshot.run_state.value)
+            self.assertNotEqual(
+                "READY", getattr(outcome.snapshot.readiness_verdict, "value", None)
+            )
 
     def test_execute_run_retries_with_failure_fingerprint_context(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -518,7 +914,9 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("Prompt Pack: candidate_review", prompts[1])
             self.assertIn("Prompt Pack: final_audit", prompts[2])
 
-    def test_execute_run_candidate_review_can_request_another_builder_turn(self) -> None:
+    def test_execute_run_candidate_review_can_request_another_builder_turn(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root)
@@ -656,7 +1054,10 @@ class SupervisorMainTests(unittest.TestCase):
             )
 
             self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
-            self.assertIn("final audit found an unresolved correctness risk", outcome.report.unresolved_blockers)
+            self.assertIn(
+                "final audit found an unresolved correctness risk",
+                outcome.report.unresolved_blockers,
+            )
 
     def test_execute_run_blocks_on_high_risk_builder_command(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -696,6 +1097,43 @@ class SupervisorMainTests(unittest.TestCase):
             blockers = "\n".join(outcome.report.unresolved_blockers)
             self.assertIn("README.md", blockers)
             self.assertIn("violates run scope", blockers)
+
+    def test_execute_run_blocks_unreported_worktree_diff_outside_run_scope(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_contract_path = _init_target_repo(repo_root)
+            adapter = UnreportedScopeDriftBuilderAdapter(["fixed"])
+
+            outcome = execute_run(
+                repo_root=repo_root,
+                run_contract_path=run_contract_path,
+                builder_adapter=adapter,
+                strategy=SimpleStrategy(),
+                cleanup_worktree=False,
+            )
+
+            self.assertEqual("BLOCKED", outcome.snapshot.run_state.value)
+            blockers = "\n".join(outcome.report.unresolved_blockers)
+            self.assertIn("README.md", blockers)
+            self.assertIn("violates run scope", blockers)
+
+    def test_actual_changed_files_includes_both_rename_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_target_repo(repo_root)
+            (repo_root / "infra").mkdir()
+            (repo_root / "infra" / "config.yml").write_text("enabled: true\n")
+            _git(repo_root, "add", "infra/config.yml")
+            _git(repo_root, "commit", "-m", "add protected config")
+
+            _git(repo_root, "mv", "infra/config.yml", "src/config.yml")
+
+            self.assertEqual(
+                ("infra/config.yml", "run-contract.json", "src/config.yml"),
+                _actual_changed_files(repo_root),
+            )
 
     def test_execute_run_blocks_forbidden_builder_command_categories(self) -> None:
         forbidden_commands = (
@@ -752,8 +1190,10 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_failed_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_failed_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier([_ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -771,13 +1211,17 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("APP_LAUNCH", outcome.report.phases_completed)
             self.assertIn("UI_VERIFY", outcome.report.phases_completed)
 
-    def test_execute_run_allows_app_launch_repair_after_local_verify_retry(self) -> None:
+    def test_execute_run_allows_app_launch_repair_after_local_verify_retry(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["broken", "fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_failed_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_failed_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier([_ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -798,8 +1242,12 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_healthy_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier(
+                [_ui_failure(), _ui_pass()], repo_root=repo_root
+            )
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -817,12 +1265,16 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertIn("src/components/SettingsForm.tsx", adapter.prompts[1])
             self.assertIn("ui-verify-ui-smoke-save-disabled", adapter.prompts[1])
 
-    def test_execute_run_preserves_all_ui_failure_fingerprints_for_retries_and_reporting(self) -> None:
+    def test_execute_run_preserves_all_ui_failure_fingerprints_for_retries_and_reporting(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
+            app_supervisor = FakeAppSupervisor(
+                [_healthy_launch(), _healthy_launch()], repo_root=repo_root
+            )
             ui_failure = UIVerificationSummary(
                 passed=False,
                 command_results=(
@@ -847,7 +1299,9 @@ class SupervisorMainTests(unittest.TestCase):
                         "repro_steps": ["step one"],
                         "expected": "check one",
                         "observed": "first failure",
-                        "evidence": {"console_log": "artifacts/logs/ui_smoke.stderr.log"},
+                        "evidence": {
+                            "console_log": "artifacts/logs/ui_smoke.stderr.log"
+                        },
                         "suspected_scope": ["src/components/SettingsForm.tsx"],
                         "failure_fingerprint": "ui-verify-ui-smoke-first-failure",
                     },
@@ -859,14 +1313,16 @@ class SupervisorMainTests(unittest.TestCase):
                         "repro_steps": ["step two"],
                         "expected": "check two",
                         "observed": "second failure",
-                        "evidence": {"console_log": "artifacts/logs/ui_smoke.stderr.log"},
+                        "evidence": {
+                            "console_log": "artifacts/logs/ui_smoke.stderr.log"
+                        },
                         "suspected_scope": ["src/components/SettingsForm.tsx"],
                         "failure_fingerprint": "ui-verify-ui-smoke-second-failure",
                     },
                 ),
                 artifact_manifest=("artifacts/logs/ui_smoke.stderr.log",),
             )
-            ui_verifier = FakeUIVerifier([ui_failure, _ui_pass()])
+            ui_verifier = FakeUIVerifier([ui_failure, _ui_pass()], repo_root=repo_root)
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -894,8 +1350,12 @@ class SupervisorMainTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root, with_ui=True)
             adapter = FakeBuilderAdapter(["broken", "fixed", "fixed"])
-            app_supervisor = FakeAppSupervisor([_healthy_launch(), _healthy_launch()])
-            ui_verifier = FakeUIVerifier([_ui_failure(), _ui_pass()])
+            app_supervisor = FakeAppSupervisor(
+                [_healthy_launch(), _healthy_launch()], repo_root=repo_root
+            )
+            ui_verifier = FakeUIVerifier(
+                [_ui_failure(), _ui_pass()], repo_root=repo_root
+            )
 
             outcome = execute_run(
                 repo_root=repo_root,
@@ -911,7 +1371,9 @@ class SupervisorMainTests(unittest.TestCase):
             self.assertEqual(3, len(adapter.prompts))
             self.assertIn("Save button disabled after valid input", adapter.prompts[2])
 
-    def test_execute_run_reports_cumulative_changed_files_across_builder_turns(self) -> None:
+    def test_execute_run_reports_cumulative_changed_files_across_builder_turns(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             run_contract_path = _init_target_repo(repo_root)
@@ -947,7 +1409,9 @@ class SupervisorMainTests(unittest.TestCase):
             )
 
             self.assertEqual("COMPLETE", outcome.snapshot.run_state.value)
-            self.assertEqual(("src/a.txt", "src/b.txt", "src/task.txt"), outcome.report.changed_files)
+            self.assertEqual(
+                ("src/a.txt", "src/b.txt", "src/task.txt"), outcome.report.changed_files
+            )
 
 
 if __name__ == "__main__":

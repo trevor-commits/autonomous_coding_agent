@@ -5,7 +5,6 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 from urllib.parse import urlparse, urlunparse
 from urllib.request import urlopen
 
@@ -70,9 +69,10 @@ class AppSupervisor:
         stderr_log_path = self.run_store.logs_dir / "app_up.stderr.log"
         stdout_log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with stdout_log_path.open("w", encoding="utf-8") as stdout_handle, stderr_log_path.open(
-            "w", encoding="utf-8"
-        ) as stderr_handle:
+        with (
+            stdout_log_path.open("w", encoding="utf-8") as stdout_handle,
+            stderr_log_path.open("w", encoding="utf-8") as stderr_handle,
+        ):
             process = subprocess.Popen(
                 self.repo_contract.commands.app_up,
                 cwd=self.repo_root,
@@ -97,7 +97,9 @@ class AppSupervisor:
                 last_error = f"app process exited before health check with code {process.returncode}"
                 break
             try:
-                with urlopen(health_url, timeout=max(1.0, self.poll_interval_seconds)) as response:
+                with urlopen(
+                    health_url, timeout=max(1.0, self.poll_interval_seconds)
+                ) as response:
                     body = response.read().decode("utf-8", errors="replace")
                     if response.status == 200:
                         app_up_result = self._build_app_up_result(
@@ -117,7 +119,9 @@ class AppSupervisor:
                                     exit_code=0,
                                     stdout=body,
                                     stderr="",
-                                    duration_seconds=round(time.monotonic() - started, 3),
+                                    duration_seconds=round(
+                                        time.monotonic() - started, 3
+                                    ),
                                     scope="full",
                                     run_trace_id=self.run_trace_id,
                                 ),
@@ -130,6 +134,10 @@ class AppSupervisor:
             time.sleep(self.poll_interval_seconds)
 
         process_exit_code = process.poll()
+        if process_exit_code is not None:
+            last_error = (
+                f"app process exited before health check with code {process_exit_code}"
+            )
         self.stop(session)
         failure_signature = last_error or "health check timed out"
         fingerprint = self.fingerprint_store.record(
@@ -232,7 +240,10 @@ class AppSupervisor:
 
     def _assert_local_url(self, value: str) -> None:
         parsed = urlparse(value)
-        if parsed.scheme not in {"http", "https"} or parsed.hostname not in LOCALHOST_HOSTS:
+        if (
+            parsed.scheme not in {"http", "https"}
+            or parsed.hostname not in LOCALHOST_HOSTS
+        ):
             raise ValueError(f"App lifecycle URLs must stay on localhost: `{value}`.")
 
     def _artifact_manifest(self) -> tuple[str, ...]:

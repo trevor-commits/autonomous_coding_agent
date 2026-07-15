@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
-import shlex
+import subprocess
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -12,7 +13,13 @@ from typing import Protocol
 
 from supervisor.actions import Action
 from supervisor.app_supervisor import AppLaunchSummary, AppSupervisor
-from supervisor.builder_adapter import BuilderAdapter, BuilderResult, CodexBuilderAdapter, build_builder_prompt
+from supervisor.builder_adapter import (
+    BuilderAdapter,
+    BuilderResult,
+    CodexBuilderAdapter,
+    build_builder_prompt,
+)
+from supervisor.builder_guard import normalize_builder_command
 from supervisor.contracts import (
     ContractValidationError,
     RepoContract,
@@ -31,14 +38,33 @@ from supervisor.policy import (
     enforce_budget,
     enforce_scope,
 )
-from supervisor.reports import ReadinessReport, build_readiness_report, write_readiness_reports
+from supervisor.reports import (
+    ReadinessReport,
+    build_readiness_report,
+    write_readiness_reports,
+)
 from supervisor.run_store import RunStore
+from supervisor.sensitive_residue import (
+    SensitiveResidueError,
+    SensitiveResidueSnapshot,
+    changed_sensitive_residue,
+    snapshot_sensitive_residue,
+)
 from supervisor.strategy_claude import ClaudeStrategy
 from supervisor.state_machine import StateMachine
 from supervisor.strategy_simple import SimpleStrategy
 from supervisor.ui_verifier import UIVerificationSummary, UIVerifier
-from supervisor.verifier import VerificationMode, VerificationSummary, Verifier
+from supervisor.verifier import (
+    CommandExecutionResult,
+    VerificationMode,
+    VerificationSummary,
+    Verifier,
+)
 from supervisor.worktree_manager import BuilderWorkspace, WorktreeManager
+
+
+class _Digest(Protocol):
+    def update(self, value: bytes) -> object: ...
 
 
 @dataclass(frozen=True)
@@ -49,6 +75,10 @@ class RunExecutionOutcome:
     summary_path: Path
     workspace: BuilderWorkspace
     builder_turns: int
+
+
+class PreflightAuthorityError(PolicyViolationError):
+    """Raised before workspace creation when unattended authority is absent."""
 
 
 class RuntimeStrategy(Protocol):
@@ -115,14 +145,24 @@ def execute_run(
     strategy: RuntimeStrategy,
     app_supervisor: AppSupervisor | None = None,
     ui_verifier: UIVerifier | None = None,
+    verifier: Verifier | None = None,
     cleanup_worktree: bool = False,
     builder_timeout_seconds: int = 300,
+    partner_envelope: bool = False,
 ) -> RunExecutionOutcome:
     repo_root = Path(repo_root).resolve()
     run_contract = load_run_contract(run_contract_path)
+    _validate_unattended_authority(run_contract)
+    if partner_envelope:
+        _validate_partner_execution_surface(run_contract)
     machine = StateMachine(run_contract.run_id)
-    machine.transition_to(Phase.PREPARE_WORKSPACE, "Run contract loaded; preparing workspace.")
+    machine.transition_to(
+        Phase.PREPARE_WORKSPACE, "Run contract loaded; preparing workspace."
+    )
     wall_clock_started = time.monotonic()
+    deadline_monotonic = (
+        wall_clock_started + run_contract.constraints.hard_timeout_seconds
+    )
     run_store = RunStore(repo_root, run_contract.run_id)
     worktree_manager = WorktreeManager(repo_root)
     workspace = worktree_manager.create_builder_worktree(
@@ -131,6 +171,7 @@ def execute_run(
     )
     try:
         repo_contract = load_repo_contract(workspace.worktree_path)
+        _validate_repo_command_authority(repo_contract)
     except ContractValidationError as exc:
         return _initial_contract_failure_outcome(
             machine=machine,
@@ -149,18 +190,22 @@ def execute_run(
         initial_state=machine.snapshot,
     )
 
+    sensitive_residue_baseline = snapshot_sensitive_residue(workspace.worktree_path)
+
     session = builder_adapter.start_session(
         workspace.worktree_path,
         _build_run_context(run_contract, repo_contract),
     )
     fingerprint_store = FailureFingerprintStore(run_store)
-    verifier = Verifier(
+    verifier = verifier or Verifier(
         repo_root=workspace.worktree_path,
         repo_contract=repo_contract,
         run_contract=run_contract,
         run_store=run_store,
         run_trace_id=run_contract.queue.run_trace_id or run_contract.run_id,
         fingerprint_store=fingerprint_store,
+        partner_sandbox=partner_envelope,
+        deadline_monotonic=deadline_monotonic,
     )
     app_supervisor = app_supervisor or AppSupervisor(
         repo_root=workspace.worktree_path,
@@ -186,7 +231,7 @@ def execute_run(
     last_summary: VerificationSummary | None = None
     last_changed_files: tuple[str, ...] = ()
     cumulative_changed_files: set[str] = set()
-    command_history = []
+    command_history: list[CommandExecutionResult] = []
     artifact_manifest: set[str] = set()
     unresolved_blockers: tuple[str, ...] = ()
     queue_exit_reason: str | None = None
@@ -224,37 +269,63 @@ def execute_run(
                 build_description,
                 prior_failure_fingerprints=prior_failures,
             )
-            builder_result = builder_adapter.send_task(session, prompt, timeout=builder_timeout_seconds)
-            last_changed_files = builder_result.files_changed
-            cumulative_changed_files.update(builder_result.files_changed)
+            builder_result = builder_adapter.send_task(
+                session,
+                prompt,
+                timeout=max(
+                    1,
+                    min(
+                        builder_timeout_seconds,
+                        int(max(1, deadline_monotonic - time.monotonic())),
+                    ),
+                ),
+            )
 
             if builder_result.status != "completed":
                 raise PolicyViolationError(
                     f"Builder session ended with status `{builder_result.status}`."
                 )
-            _enforce_builder_policies(
+            enforce_budget(
+                run_contract,
+                iterations_used=session.turn_count,
+                cost_spent=total_cost_spent,
+                started_at=run_started_at,
+            )
+            actual_changed_files = _enforce_builder_policies(
                 workspace.worktree_path,
                 run_contract,
-                repo_contract,
                 builder_result,
             )
+            _assert_sensitive_residue_unchanged(
+                workspace.worktree_path,
+                sensitive_residue_baseline,
+            )
+            last_changed_files = actual_changed_files
+            cumulative_changed_files.update(actual_changed_files)
 
             machine.transition_to(
                 Phase.LOCAL_VERIFY,
                 "Builder turn completed; running deterministic verification.",
             )
             run_store.write_state(machine.snapshot)
-            last_summary = verifier.run(
-                mode=_verification_mode_for(builder_result),
-                changed_files=builder_result.files_changed,
+            last_summary = _run_verifier_with_immutable_worktree(
+                verifier,
+                repo_root=workspace.worktree_path,
+                mode=_verification_mode_for(actual_changed_files),
+                changed_files=actual_changed_files,
+            )
+            _assert_sensitive_residue_unchanged(
+                workspace.worktree_path,
+                sensitive_residue_baseline,
             )
             all_failure_fingerprints.update(last_summary.failures)
             command_history.extend(last_summary.commands)
             artifact_manifest.update(_verification_artifact_manifest(last_summary))
-            artifact_manifest.add("reports/failure-fingerprints.json")
+            if fingerprint_store.path.exists():
+                artifact_manifest.add("reports/failure-fingerprints.json")
 
             if last_summary.all_passed:
-                if repo_contract.commands.ui_smoke:
+                if repo_contract.commands.ui_smoke and not partner_envelope:
                     launch = _launch_app_for_ui_phase(
                         machine=machine,
                         run_store=run_store,
@@ -270,16 +341,22 @@ def execute_run(
                             if fingerprint
                         )
                         all_failure_fingerprints.update(launch_failures)
-                        if app_launch_attempt >= run_contract.constraints.max_repair_loops:
+                        if (
+                            app_launch_attempt
+                            >= run_contract.constraints.max_repair_loops
+                        ):
                             reason = launch.failure_reason or "app launch failed"
-                            machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+                            machine.block(
+                                reason, readiness_verdict=ReadinessVerdict.NOT_READY
+                            )
                             queue_exit_reason = "blocked by app launch failure"
                             unresolved_blockers = (reason,)
                             break
                         prior_failures = launch_failures
                         pending_build_description = strategy.app_launch_repair_action(
                             run_contract,
-                            failure_reason=launch.failure_reason or "App health failed.",
+                            failure_reason=launch.failure_reason
+                            or "App health failed.",
                             failure_fingerprint=launch.failure_fingerprint,
                         ).payload["description"]
                         total_cost_spent += strategy.consume_pending_cost()
@@ -291,9 +368,15 @@ def execute_run(
                         continue
 
                     active_app_session = launch.session
-                    machine.transition_to(Phase.UI_VERIFY, "App is healthy; running UI smoke suite.")
+                    machine.transition_to(
+                        Phase.UI_VERIFY, "App is healthy; running UI smoke suite."
+                    )
                     run_store.write_state(machine.snapshot)
-                    ui_summary = ui_verifier.run(changed_files=builder_result.files_changed)
+                    ui_summary = ui_verifier.run(changed_files=actual_changed_files)
+                    _assert_sensitive_residue_unchanged(
+                        workspace.worktree_path,
+                        sensitive_residue_baseline,
+                    )
                     command_history.extend(ui_summary.command_results)
                     artifact_manifest.update(ui_summary.artifact_manifest)
                     ui_failure_fingerprints = _ui_failure_fingerprints(ui_summary)
@@ -309,15 +392,24 @@ def execute_run(
                             strategy=strategy,
                             run_contract=run_contract,
                             repo_contract=repo_contract,
-                            changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
-                            artifact_manifest=tuple(sorted(artifact_manifest)),
-                            command_history=tuple(command_history),
-                            failure_fingerprints=(),
+                            changed_files=tuple(
+                                sorted(
+                                    cumulative_changed_files or set(last_changed_files)
+                                )
+                            ),
+                            artifact_manifest=artifact_manifest,
+                            command_history=command_history,
+                            all_failure_fingerprints=all_failure_fingerprints,
+                            verifier=verifier,
+                            repo_root=workspace.worktree_path,
+                            sensitive_residue_baseline=sensitive_residue_baseline,
                             success_reason="UI verification passed.",
                         )
                         total_cost_spent += strategy.consume_pending_cost()
                         if review_outcome.pending_build_description:
-                            pending_build_description = review_outcome.pending_build_description
+                            pending_build_description = (
+                                review_outcome.pending_build_description
+                            )
                             queue_exit_reason = None
                             unresolved_blockers = ()
                             continue
@@ -333,7 +425,9 @@ def execute_run(
                     ui_verify_attempt += 1
                     if ui_verify_attempt >= run_contract.constraints.max_repair_loops:
                         reason = _ui_failure_reason(ui_summary)
-                        machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+                        machine.block(
+                            reason, readiness_verdict=ReadinessVerdict.NOT_READY
+                        )
                         queue_exit_reason = "blocked by ui verification failure"
                         unresolved_blockers = tuple(
                             defect["summary"] for defect in ui_summary.defect_packets
@@ -359,10 +453,15 @@ def execute_run(
                     strategy=strategy,
                     run_contract=run_contract,
                     repo_contract=repo_contract,
-                    changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
-                    artifact_manifest=tuple(sorted(artifact_manifest)),
-                    command_history=tuple(command_history),
-                    failure_fingerprints=(),
+                    changed_files=tuple(
+                        sorted(cumulative_changed_files or set(last_changed_files))
+                    ),
+                    artifact_manifest=artifact_manifest,
+                    command_history=command_history,
+                    all_failure_fingerprints=all_failure_fingerprints,
+                    verifier=verifier,
+                    repo_root=workspace.worktree_path,
+                    sensitive_residue_baseline=sensitive_residue_baseline,
                     success_reason="Deterministic verification passed.",
                 )
                 total_cost_spent += strategy.consume_pending_cost()
@@ -409,7 +508,9 @@ def execute_run(
                 break
 
             prior_failures = last_summary.failures
-            machine.transition_to(Phase.BUILD, "Verification failed; routing back to builder.")
+            machine.transition_to(
+                Phase.BUILD, "Verification failed; routing back to builder."
+            )
             run_store.write_state(machine.snapshot)
 
     except PolicyViolationError as exc:
@@ -420,7 +521,9 @@ def execute_run(
         if active_app_session is not None:
             app_supervisor.stop(active_app_session)
         run_store.write_state(machine.snapshot)
-        artifact_manifest.update({"reports/final-report.json", "reports/final-summary.md"})
+        artifact_manifest.update(
+            {"reports/final-report.json", "reports/final-summary.md"}
+        )
         report = build_readiness_report(
             snapshot=machine.snapshot,
             run_contract=run_contract,
@@ -429,7 +532,9 @@ def execute_run(
             builder_turns=session.turn_count,
             run_duration_seconds=round(time.monotonic() - wall_clock_started, 3),
             total_cost_dollars=round(total_cost_spent, 6),
-            changed_files=tuple(sorted(cumulative_changed_files or set(last_changed_files))),
+            changed_files=tuple(
+                sorted(cumulative_changed_files or set(last_changed_files))
+            ),
             artifact_manifest=tuple(sorted(artifact_manifest)),
             unresolved_blockers=unresolved_blockers,
             queue_exit_reason=queue_exit_reason,
@@ -507,7 +612,9 @@ def _initial_contract_failure_outcome(
     )
 
 
-def _build_run_context(run_contract: RunContract, repo_contract: RepoContract) -> dict[str, object]:
+def _build_run_context(
+    run_contract: RunContract, repo_contract: RepoContract
+) -> dict[str, object]:
     commands = {
         name: getattr(repo_contract.commands, name)
         for name in ("setup", "format", "lint", "typecheck", "test")
@@ -529,8 +636,8 @@ def _strategy_name(strategy: RuntimeStrategy) -> str:
     return type(strategy).__name__.replace("Strategy", "").lower() or "unknown"
 
 
-def _verification_mode_for(builder_result: BuilderResult) -> VerificationMode:
-    if builder_result.files_changed:
+def _verification_mode_for(changed_files: tuple[str, ...]) -> VerificationMode:
+    if changed_files:
         return VerificationMode.TARGETED
     return VerificationMode.FULL
 
@@ -558,12 +665,44 @@ def _ui_failure_fingerprints(summary: UIVerificationSummary) -> tuple[str, ...]:
     return tuple(dict.fromkeys(fingerprints))
 
 
-def _validate_repo_root_matches_contract(repo_root: Path, run_contract: RunContract) -> None:
+def _validate_repo_root_matches_contract(
+    repo_root: Path, run_contract: RunContract
+) -> None:
     contract_repo_root = Path(run_contract.repo_path).resolve()
     if contract_repo_root != repo_root:
         raise PolicyViolationError(
             "Resolved repo root "
             f"`{repo_root}` does not match run contract repo_path `{contract_repo_root}`."
+        )
+
+
+def _validate_unattended_authority(run_contract: RunContract) -> None:
+    risk_level = (run_contract.queue.risk_level or "").strip().lower()
+    if risk_level == "high":
+        raise PreflightAuthorityError(
+            "high risk work is outside unattended executor authority."
+        )
+    if run_contract.queue.approval_required is True:
+        raise PreflightAuthorityError(
+            "approval is required before this run may create a workspace or dispatch a builder."
+        )
+
+
+def _validate_repo_command_authority(repo_contract: RepoContract) -> None:
+    for command in repo_contract.commands.auto_allow_commands():
+        decision = classify_command(command, allowed_commands=(command,))
+        if decision.shell_class is not ShellClass.AUTO_ALLOW:
+            raise ContractValidationError(
+                f"Repo contract command `{command}` violates absolute shell policy: "
+                f"{decision.reason}.",
+                run_state=RunState.BLOCKED,
+            )
+
+
+def _validate_partner_execution_surface(run_contract: RunContract) -> None:
+    if run_contract.acceptance.ui_checks:
+        raise PreflightAuthorityError(
+            "partner envelopes cannot request UI checks or browser/network-capable app execution."
         )
 
 
@@ -573,14 +712,19 @@ def _launch_app_for_ui_phase(
     run_store: RunStore,
     app_supervisor: AppSupervisor,
 ) -> AppLaunchSummary:
-    machine.transition_to(Phase.APP_LAUNCH, "Deterministic verification passed; launching app.")
+    machine.transition_to(
+        Phase.APP_LAUNCH, "Deterministic verification passed; launching app."
+    )
     run_store.write_state(machine.snapshot)
     return app_supervisor.launch()
 
 
 def _ui_failure_reason(summary: UIVerificationSummary) -> str:
     if summary.defect_packets:
-        return "; ".join(str(defect.get("summary", "UI smoke suite failed")) for defect in summary.defect_packets)
+        return "; ".join(
+            str(defect.get("summary", "UI smoke suite failed"))
+            for defect in summary.defect_packets
+        )
     result = summary.command_results[-1]
     return result.stderr.strip() or result.stdout.strip() or "UI smoke suite failed."
 
@@ -601,9 +745,12 @@ def _run_review_and_final_gate(
     run_contract: RunContract,
     repo_contract: RepoContract,
     changed_files: tuple[str, ...],
-    artifact_manifest: tuple[str, ...],
-    command_history: tuple[CommandExecutionResult, ...],
-    failure_fingerprints: tuple[str, ...],
+    artifact_manifest: set[str],
+    command_history: list[CommandExecutionResult],
+    all_failure_fingerprints: set[str],
+    verifier: Verifier,
+    repo_root: Path,
+    sensitive_residue_baseline: SensitiveResidueSnapshot,
     success_reason: str,
 ) -> ReviewOutcome:
     machine.transition_to(Phase.AUDIT_READY, "Green candidate ready for review.")
@@ -612,8 +759,8 @@ def _run_review_and_final_gate(
         run_contract,
         repo_contract,
         changed_files=changed_files,
-        artifact_manifest=artifact_manifest,
-        command_results=command_history,
+        artifact_manifest=tuple(sorted(artifact_manifest)),
+        command_results=tuple(command_history),
     )
     review_outcome = _apply_review_action(machine, candidate_action)
     if review_outcome.pending_build_description or review_outcome.terminal:
@@ -621,27 +768,101 @@ def _run_review_and_final_gate(
             run_store.write_state(machine.snapshot)
         return review_outcome
 
-    machine.transition_to(Phase.FINAL_GATE, "Candidate review accepted the green candidate.")
-    run_store.write_state(machine.snapshot)
-    machine.record_final_gate_evidence(
-        required_artifacts_present=True,
-        authoritative_checks_passed=True,
-        unresolved_high_severity_findings=bool(failure_fingerprints),
+    machine.transition_to(
+        Phase.FINAL_GATE, "Candidate review accepted the green candidate."
     )
+    run_store.write_state(machine.snapshot)
+
+    missing_artifacts = _missing_artifacts(run_store, artifact_manifest)
+    if missing_artifacts:
+        reason = (
+            "Required final-gate artifacts are missing: "
+            + ", ".join(missing_artifacts)
+            + "."
+        )
+        machine.record_final_gate_evidence(
+            required_artifacts_present=False,
+            authoritative_checks_passed=False,
+            unresolved_high_severity_findings=False,
+        )
+        machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+        return ReviewOutcome(
+            terminal=True,
+            queue_exit_reason="blocked by missing final-gate artifacts",
+            unresolved_blockers=(reason,),
+        )
+
+    final_summary = _run_verifier_with_immutable_worktree(
+        verifier,
+        repo_root=repo_root,
+        mode=VerificationMode.FULL,
+        changed_files=changed_files,
+    )
+    _assert_sensitive_residue_unchanged(repo_root, sensitive_residue_baseline)
+    command_history.extend(final_summary.commands)
+    artifact_manifest.update(_verification_artifact_manifest(final_summary))
+    all_failure_fingerprints.update(final_summary.failures)
+    fingerprint_report = run_store.reports_dir / "failure-fingerprints.json"
+    if fingerprint_report.exists():
+        artifact_manifest.add("reports/failure-fingerprints.json")
+    missing_artifacts = _missing_artifacts(run_store, artifact_manifest)
+    unresolved_final_failures = final_summary.failures
+    machine.record_final_gate_evidence(
+        required_artifacts_present=not missing_artifacts,
+        authoritative_checks_passed=final_summary.all_passed,
+        unresolved_high_severity_findings=bool(unresolved_final_failures),
+    )
+    if missing_artifacts or not final_summary.all_passed:
+        reasons: list[str] = []
+        if missing_artifacts:
+            reasons.append("missing artifacts: " + ", ".join(missing_artifacts))
+        if not final_summary.all_passed:
+            failed_commands = [
+                result.name for result in final_summary.commands if not result.succeeded
+            ]
+            reasons.append(
+                "authoritative final checks failed: " + ", ".join(failed_commands)
+            )
+        reason = "; ".join(reasons) + "."
+        machine.block(reason, readiness_verdict=ReadinessVerdict.NOT_READY)
+        return ReviewOutcome(
+            terminal=True,
+            queue_exit_reason="blocked by authoritative final gate",
+            unresolved_blockers=(reason,),
+        )
+
     final_action = strategy.final_audit_action(
         run_contract,
         repo_contract,
         changed_files=changed_files,
-        artifact_manifest=artifact_manifest,
-        command_results=command_history,
-        failure_fingerprints=failure_fingerprints,
+        artifact_manifest=tuple(sorted(artifact_manifest)),
+        command_results=tuple(command_history),
+        failure_fingerprints=unresolved_final_failures,
     )
-    return _apply_final_gate_action(machine, final_action, default_success_reason=success_reason)
+    return _apply_final_gate_action(
+        machine, final_action, default_success_reason=success_reason
+    )
+
+
+def _missing_artifacts(
+    run_store: RunStore, artifact_manifest: set[str]
+) -> tuple[str, ...]:
+    missing: list[str] = []
+    for relative_path in sorted(artifact_manifest):
+        candidate = Path(relative_path)
+        if candidate.is_absolute() or ".." in candidate.parts:
+            missing.append(relative_path)
+            continue
+        if not (run_store.root / candidate).is_file():
+            missing.append(relative_path)
+    return tuple(missing)
 
 
 def _apply_review_action(machine: StateMachine, action: Action) -> ReviewOutcome:
     if action.action_type is ActionType.REQUEST_BUILDER_TASK:
-        machine.transition_to(Phase.BUILD, "Candidate review requested another builder turn.")
+        machine.transition_to(
+            Phase.BUILD, "Candidate review requested another builder turn."
+        )
         return ReviewOutcome(
             terminal=False,
             pending_build_description=action.payload["description"],
@@ -671,7 +892,9 @@ def _apply_final_gate_action(
         proposed_state = RunState(str(payload["run_state"]))
         if proposed_state is RunState.COMPLETE:
             machine.apply_final_gate_outcome(
-                ReadinessVerdict(str(payload.get("readiness_verdict", ReadinessVerdict.READY.value))),
+                ReadinessVerdict(
+                    str(payload.get("readiness_verdict", ReadinessVerdict.READY.value))
+                ),
                 str(payload.get("reason", default_success_reason)),
             )
             return ReviewOutcome(
@@ -689,14 +912,18 @@ def _apply_final_gate_action(
     )
 
 
-def _terminal_outcome_from_action(machine: StateMachine, action: Action) -> ReviewOutcome:
+def _terminal_outcome_from_action(
+    machine: StateMachine, action: Action
+) -> ReviewOutcome:
     payload = action.payload
     proposed_state = RunState(str(payload["run_state"]))
     reason = str(payload.get("reason", "Strategy proposed a terminal state."))
     if proposed_state is RunState.BLOCKED:
         machine.block(
             reason,
-            readiness_verdict=_optional_readiness_verdict(payload.get("readiness_verdict")),
+            readiness_verdict=_optional_readiness_verdict(
+                payload.get("readiness_verdict")
+            ),
         )
         return ReviewOutcome(
             terminal=True,
@@ -710,7 +937,9 @@ def _terminal_outcome_from_action(machine: StateMachine, action: Action) -> Revi
             queue_exit_reason="unsupported by strategy review",
             unresolved_blockers=(reason,),
         )
-    raise PolicyViolationError(f"Unexpected non-terminal strategy proposal `{proposed_state.value}`.")
+    raise PolicyViolationError(
+        f"Unexpected non-terminal strategy proposal `{proposed_state.value}`."
+    )
 
 
 def _optional_readiness_verdict(value: object) -> ReadinessVerdict | None:
@@ -722,17 +951,21 @@ def _optional_readiness_verdict(value: object) -> ReadinessVerdict | None:
 def _enforce_builder_policies(
     repo_root: Path,
     run_contract: RunContract,
-    repo_contract: RepoContract,
     builder_result: BuilderResult,
-) -> None:
+) -> tuple[str, ...]:
     for command in builder_result.commands_run:
-        normalized = _normalize_builder_command(command)
-        decision = classify_command(normalized, repo_contract)
+        normalized = normalize_builder_command(command)
+        decision = classify_command(normalized)
         if decision.shell_class is not ShellClass.AUTO_ALLOW:
             raise PolicyViolationError(
                 f"Builder command `{normalized}` is not allowed in Phase 2: {decision.reason}."
             )
-    for relative_path in builder_result.files_changed:
+    changed_files = tuple(
+        sorted(
+            set(builder_result.files_changed) | set(_actual_changed_files(repo_root))
+        )
+    )
+    for relative_path in changed_files:
         try:
             enforce_scope(repo_root, run_contract, repo_root / relative_path)
         except ContractValidationError as exc:
@@ -742,24 +975,167 @@ def _enforce_builder_policies(
             raise PolicyViolationError(
                 f"Builder path `{relative_path}` is not allowed in Phase 2: {decision.reason}."
             )
+    return changed_files
 
 
-def _normalize_builder_command(command: str) -> str:
-    tokens = shlex.split(command)
-    if len(tokens) >= 3 and tokens[1] == "-lc":
-        return " ".join(tokens[2:])
-    return command
+def _actual_changed_files(repo_root: Path) -> tuple[str, ...]:
+    completed = subprocess.run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        detail = (
+            completed.stderr or completed.stdout
+        ).strip() or "unknown git status failure"
+        raise PolicyViolationError(
+            f"Could not reconcile the authoritative worktree diff: {detail}."
+        )
+
+    entries = completed.stdout.split("\0")
+    changed: list[str] = []
+    index = 0
+    while index < len(entries):
+        entry = entries[index]
+        if not entry:
+            index += 1
+            continue
+        if len(entry) < 4:
+            raise PolicyViolationError(
+                f"Could not parse authoritative worktree diff entry `{entry}`."
+            )
+        status = entry[:2]
+        current_path = entry[3:]
+        if not _is_supervisor_runtime_path(current_path):
+            changed.append(current_path)
+        if "R" in status or "C" in status:
+            if index + 1 >= len(entries) or not entries[index + 1]:
+                raise PolicyViolationError(
+                    f"Could not parse authoritative worktree rename/copy entry `{entry}`."
+                )
+            previous_path = entries[index + 1]
+            if not _is_supervisor_runtime_path(previous_path):
+                changed.append(previous_path)
+            index += 2
+        else:
+            index += 1
+    return tuple(sorted(set(changed)))
+
+
+def _run_verifier_with_immutable_worktree(
+    verifier: Verifier,
+    *,
+    repo_root: Path,
+    mode: VerificationMode,
+    changed_files: tuple[str, ...],
+) -> VerificationSummary:
+    before = _worktree_change_fingerprint(repo_root)
+    summary = verifier.run(mode=mode, changed_files=changed_files)
+    after = _worktree_change_fingerprint(repo_root)
+    if after != before:
+        raise PolicyViolationError(
+            "Deterministic verification mutated the builder worktree; verification "
+            "is evidence-only and cannot act as a second writer."
+        )
+    return summary
+
+
+def _worktree_change_fingerprint(repo_root: Path) -> str:
+    digest = hashlib.sha256()
+    for relative_path in _actual_changed_files(repo_root):
+        digest.update(relative_path.encode("utf-8", errors="surrogateescape"))
+        digest.update(b"\0")
+        candidate = repo_root / relative_path
+        try:
+            metadata = candidate.lstat()
+        except FileNotFoundError:
+            digest.update(b"missing\0")
+            continue
+        digest.update(str(metadata.st_mode).encode("ascii"))
+        digest.update(b"\0")
+        if candidate.is_symlink():
+            digest.update(
+                os.readlink(candidate).encode("utf-8", errors="surrogateescape")
+            )
+        elif candidate.is_file():
+            with candidate.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    digest.update(chunk)
+        elif candidate.is_dir():
+            _update_directory_fingerprint(digest, candidate, relative_path)
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _update_directory_fingerprint(
+    digest: _Digest,
+    directory: Path,
+    relative_root: str,
+) -> None:
+    for root, directories, files in os.walk(directory, followlinks=False):
+        directories[:] = sorted(
+            name for name in directories if name not in {".git", ".autoclaw"}
+        )
+        root_path = Path(root)
+        for name in [*directories, *sorted(files)]:
+            candidate = root_path / name
+            relative = Path(relative_root) / candidate.relative_to(directory)
+            metadata = candidate.lstat()
+            digest.update(relative.as_posix().encode("utf-8", errors="surrogateescape"))
+            digest.update(b"\0")
+            digest.update(str(metadata.st_mode).encode("ascii"))
+            digest.update(b"\0")
+            if candidate.is_symlink():
+                digest.update(
+                    os.readlink(candidate).encode("utf-8", errors="surrogateescape")
+                )
+            elif candidate.is_file():
+                with candidate.open("rb") as handle:
+                    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                        digest.update(chunk)
+            digest.update(b"\0")
+
+
+def _is_supervisor_runtime_path(relative_path: str) -> bool:
+    return relative_path == ".autoclaw" or relative_path.startswith(".autoclaw/")
+
+
+def _assert_sensitive_residue_unchanged(
+    repo_root: Path,
+    baseline: SensitiveResidueSnapshot,
+) -> None:
+    try:
+        current = snapshot_sensitive_residue(repo_root)
+    except SensitiveResidueError as exc:
+        raise PolicyViolationError(str(exc)) from exc
+    changed = changed_sensitive_residue(baseline, current)
+    if changed:
+        raise PolicyViolationError(
+            "Sensitive secret/control residue changed outside Git reconciliation: "
+            + ", ".join(changed)
+            + "."
+        )
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the supervisor loop or manual queue drain.")
+    parser = argparse.ArgumentParser(
+        description="Run the supervisor loop or manual queue drain."
+    )
     parser.add_argument("--repo-path", required=True)
     parser.add_argument("--run-contract")
+    parser.add_argument("--partner-envelope", action="store_true")
     parser.add_argument("--queue-drain", action="store_true")
     parser.add_argument("--team-key")
     parser.add_argument("--linear-token-env", default="LINEAR_API_TOKEN")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--strategy", default="simple", choices=("simple", "claude"))
+    parser.add_argument("--builder-model")
+    parser.add_argument(
+        "--builder-reasoning-effort",
+        choices=("low", "medium", "high", "xhigh"),
+    )
     parser.add_argument("--cleanup-worktree", action="store_true")
     args = parser.parse_args()
     strategy = _build_strategy(args.strategy)
@@ -775,7 +1151,10 @@ def main() -> int:
         summary = ManualQueueRunner(
             repo_root=Path(args.repo_path),
             linear_client=LinearGraphQLClient(token=token),
-            builder_adapter=CodexBuilderAdapter(),
+            builder_adapter=CodexBuilderAdapter(
+                model=args.builder_model,
+                reasoning_effort=args.builder_reasoning_effort,
+            ),
             strategy=strategy,
             team_key=args.team_key,
             cleanup_success_worktree=args.cleanup_worktree,
@@ -794,23 +1173,63 @@ def main() -> int:
     if not args.run_contract:
         raise SystemExit("`--run-contract` is required unless `--queue-drain` is set.")
 
-    outcome = execute_run(
-        repo_root=Path(args.repo_path),
-        run_contract_path=Path(args.run_contract),
-        builder_adapter=CodexBuilderAdapter(),
-        strategy=strategy,
-        cleanup_worktree=args.cleanup_worktree,
-    )
+    try:
+        outcome = execute_run(
+            repo_root=Path(args.repo_path),
+            run_contract_path=Path(args.run_contract),
+            builder_adapter=CodexBuilderAdapter(
+                model=args.builder_model,
+                reasoning_effort=args.builder_reasoning_effort,
+            ),
+            strategy=strategy,
+            cleanup_worktree=args.cleanup_worktree,
+            partner_envelope=args.partner_envelope,
+        )
+    except PreflightAuthorityError as exc:
+        run_contract = load_run_contract(Path(args.run_contract))
+        print(
+            json.dumps(
+                {
+                    "run_id": run_contract.run_id,
+                    "run_state": RunState.BLOCKED.value,
+                    "readiness_verdict": ReadinessVerdict.NOT_READY.value,
+                    "report_path": None,
+                    "report_sha256": None,
+                    "summary_path": None,
+                    "worktree_path": None,
+                    "reason": str(exc),
+                }
+            )
+        )
+        return _exit_code_for_run_state(RunState.BLOCKED.value)
     print(
         json.dumps(
             {
                 "run_id": outcome.report.run_id,
                 "run_state": outcome.snapshot.run_state.value,
+                "readiness_verdict": (
+                    outcome.snapshot.readiness_verdict.value
+                    if outcome.snapshot.readiness_verdict is not None
+                    else None
+                ),
                 "report_path": str(outcome.report_path),
+                "report_sha256": _file_sha256(outcome.report_path),
                 "summary_path": str(outcome.summary_path),
+                "worktree_path": str(outcome.workspace.worktree_path),
             }
         )
     )
+    return _exit_code_for_run_state(outcome.snapshot.run_state.value)
+
+
+def _exit_code_for_run_state(run_state: str) -> int:
+    return 0 if run_state == RunState.COMPLETE.value else 2
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def _build_strategy(name: str) -> RuntimeStrategy:
     if name == "claude":
         return ClaudeStrategy()

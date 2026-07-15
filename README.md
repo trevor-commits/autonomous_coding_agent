@@ -137,14 +137,10 @@ normal optional defaults, and no secrets belong in this repository.
 
 ## Current Direction
 
-The settled architecture is a deterministic supervisor with a bounded AI strategy layer, Codex as sole writer, Playwright as sole browser owner, contract-driven automation, structured evidence for readiness decisions, and supervisor-mediated unattended queue execution that treats Linear as routing metadata rather than a command surface. The current queue direction is webhook-first intake, pre-queue normalization, explicit risk and approval gates, and trace-linked observability plus eval evidence before autonomy expands.
+The settled architecture keeps this tested deterministic supervisor and adds a stateless autonomous-partner policy above it. The existing global governor owns durable identity, goals, approved observations, approvals, learning promotion, heartbeat, and queue state. ACA ranks evidence-backed useful/repair/research/care/creative candidates, emits one typed decision per wake-mode intent, and executes only immutable authorized run contracts. Codex remains the sole writer, Playwright the sole browser owner, and deterministic evidence the only path to `COMPLETE` + `READY`.
+
+For partner envelopes, the Codex builder is edit-only: it may apply scoped patches and use bounded filename discovery, but it cannot execute repo code or repo-contract checks. The supervisor runs deterministic checks afterward with a scrubbed environment, no inherited stdin, denied network, read access limited to the worktree/system runtimes, and writes limited to the approved run paths plus supervisor-owned temp state. Partner envelopes reject UI acceptance and never enter app/browser phases. Nested `.env*`, `.git`, and `.agent` residue is denied before effects and reconciled independently of Git after every builder or verifier phase.
 
 ## Next Build Focus
 
-The next implementation work should follow the phased plan in `canonical-architecture.md`, starting with:
-
-1. deterministic supervisor foundation
-2. single-writer builder loop
-3. app supervisor and UI verification
-4. bounded strategy-layer integration
-5. contract-driven CI integration in the first implementation repo after the local flow is proven
+The active design is [docs/designs/autonomous-partner.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/designs/autonomous-partner.md), and the completed build record is [openspec/changes/archive/2026-07-14-autonomous-partner-reposition/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/openspec/changes/archive/2026-07-14-autonomous-partner-reposition). The full suites, isolated pilot, approval-binding repair, concurrency/idempotency repairs, and canonical spec sync are release-gated together. Remaining release work is governed landing plus immutable observe-only deployment proof; recurring partner execution remains disabled.

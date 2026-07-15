@@ -1,0 +1,31 @@
+# Cross-AI project memory schema (ER-036) — constrained YAML subset.
+# Parsed by /Users/gillettes/.codex/scripts/validate-project-memory.sh (awk, no yq).
+# Policy: /Users/gillettes/.codex/policies/PROJECT_MEMORY.md
+
+version: "1"
+
+sections:
+  - name: Active goal
+    max_items: 1
+    permanent: false
+    format: "- <goal and provenance>"
+
+  - name: Durable decisions
+    max_items: 10
+    permanent: true
+    format: "- <decision and reason>"
+
+  - name: Current implementation state
+    max_items: 10
+    permanent: false
+    format: "- <verified state and evidence path>"
+
+  - name: Gotchas
+    max_items: 20
+    permanent: true
+    format: "- <constraint or invariant>"
+
+compression:
+  trigger_chars: 8000
+  keep_recent_decisions: 5
+  keep_recent_completed: 3

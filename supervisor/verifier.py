@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import shlex
 import subprocess
 import time
 from dataclasses import dataclass
@@ -13,6 +12,11 @@ from typing import Callable, Sequence
 from supervisor.contracts import RepoContract, RunContract
 from supervisor.fingerprints import FailureFingerprintStore
 from supervisor.models import Phase
+from supervisor.partner_sandbox import (
+    PartnerCommandSandbox,
+    PartnerSandboxUnavailableError,
+)
+from supervisor.policy import ShellClass, classify_command
 from supervisor.run_store import RunStore
 
 
@@ -91,6 +95,8 @@ class Verifier:
         fingerprint_store: FailureFingerprintStore | None = None,
         runner: Runner | None = None,
         stop_on_failure: bool = True,
+        partner_sandbox: bool = False,
+        deadline_monotonic: float | None = None,
     ) -> None:
         self.repo_root = Path(repo_root).resolve()
         self.repo_contract = repo_contract
@@ -100,6 +106,24 @@ class Verifier:
         self.fingerprint_store = fingerprint_store or FailureFingerprintStore(run_store)
         self.runner = runner or subprocess.run
         self.stop_on_failure = stop_on_failure
+        self.partner_sandbox = partner_sandbox
+        self.deadline_monotonic = deadline_monotonic
+        for command in self.repo_contract.commands.auto_allow_commands():
+            decision = classify_command(command, allowed_commands=(command,))
+            if decision.shell_class is not ShellClass.AUTO_ALLOW:
+                raise ValueError(
+                    f"Repo command violates absolute shell policy: {decision.reason}."
+                )
+        self.command_sandbox = (
+            PartnerCommandSandbox(
+                repo_root=self.repo_root,
+                allowed_paths=self.run_contract.scope.allowed_paths,
+                runtime_dir=self.run_store.root / "partner-command-sandbox",
+                runner=runner,
+            )
+            if partner_sandbox
+            else None
+        )
 
     def run(
         self,
@@ -113,7 +137,9 @@ class Verifier:
             command = getattr(self.repo_contract.commands, name)
             if not command:
                 continue
-            result = self._run_command(name=name, command=command, mode=mode, changed_files=changed)
+            result = self._run_command(
+                name=name, command=command, mode=mode, changed_files=changed
+            )
             results.append(result)
             if self.stop_on_failure and not result.succeeded:
                 break
@@ -139,15 +165,39 @@ class Verifier:
         changed_files: Sequence[str],
     ) -> CommandExecutionResult:
         started = time.monotonic()
-        completed = self.runner(
-            command,
-            cwd=self.repo_root,
-            shell=True,
-            text=True,
-            capture_output=True,
-            env=self._build_env(name=name, mode=mode, changed_files=changed_files),
-            check=False,
-        )
+        command_env = self._build_env(name=name, mode=mode, changed_files=changed_files)
+        try:
+            if self.command_sandbox is not None:
+                completed = self.command_sandbox.run(
+                    command,
+                    environment=command_env,
+                    timeout=self._command_timeout_seconds(),
+                )
+            else:
+                completed = self.runner(
+                    command,
+                    cwd=self.repo_root,
+                    shell=True,
+                    text=True,
+                    capture_output=True,
+                    env={**os.environ.copy(), **command_env},
+                    check=False,
+                )
+        except subprocess.TimeoutExpired as exc:
+            completed = subprocess.CompletedProcess(
+                args=exc.cmd,
+                returncode=124,
+                stdout=_coerce_output(exc.stdout),
+                stderr=_coerce_output(exc.stderr)
+                or "partner verification command timed out",
+            )
+        except PartnerSandboxUnavailableError as exc:
+            completed = subprocess.CompletedProcess(
+                args=command,
+                returncode=126,
+                stdout="",
+                stderr=str(exc),
+            )
         duration = round(time.monotonic() - started, 3)
         stdout = completed.stdout or ""
         stderr = completed.stderr or ""
@@ -156,7 +206,9 @@ class Verifier:
             fingerprint = self.fingerprint_store.record(
                 phase=Phase.LOCAL_VERIFY.value,
                 command=name,
-                error_signature=self._error_signature(completed.returncode, stdout, stderr),
+                error_signature=self._error_signature(
+                    completed.returncode, stdout, stderr
+                ),
                 relevant_paths=changed_files,
                 evidence_refs=self._command_log_refs(name),
             )
@@ -196,17 +248,24 @@ class Verifier:
         mode: VerificationMode,
         changed_files: Sequence[str],
     ) -> dict[str, str]:
-        env = os.environ.copy()
-        env.update(
-            {
-                "AUTOCLAW_RUN_ID": self.run_contract.run_id,
-                "AUTOCLAW_RUN_TRACE_ID": self.run_trace_id,
-                "AUTOCLAW_VERIFICATION_COMMAND": name,
-                "AUTOCLAW_VERIFICATION_MODE": mode.value,
-                "AUTOCLAW_TARGETED_PATHS_JSON": json.dumps(list(changed_files)),
-            }
-        )
-        return env
+        return {
+            "AUTOCLAW_RUN_ID": self.run_contract.run_id,
+            "AUTOCLAW_RUN_TRACE_ID": self.run_trace_id,
+            "AUTOCLAW_VERIFICATION_COMMAND": name,
+            "AUTOCLAW_VERIFICATION_MODE": mode.value,
+            "AUTOCLAW_TARGETED_PATHS_JSON": json.dumps(list(changed_files)),
+        }
+
+    def _command_timeout_seconds(self) -> float:
+        configured = float(self.run_contract.constraints.hard_timeout_seconds)
+        if self.deadline_monotonic is None:
+            return configured
+        remaining = self.deadline_monotonic - time.monotonic()
+        if remaining <= 0:
+            raise PartnerSandboxUnavailableError(
+                "Partner verification deadline expired before command execution."
+            )
+        return min(configured, remaining)
 
     def _write_command_logs(self, *, name: str, stdout: str, stderr: str) -> None:
         stdout_path = self.run_store.logs_dir / f"{name}.stdout.log"
@@ -228,3 +287,11 @@ class Verifier:
 
 def name_for_signature(exit_code: int) -> str:
     return f"exit-{exit_code}"
+
+
+def _coerce_output(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value

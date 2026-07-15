@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-coding-agent.local/schemas/partner-outcome.schema.json",
+  "title": "Partner Executor Outcome",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome_id",
+    "envelope_id",
+    "envelope_hash",
+    "run_id",
+    "run_state",
+    "readiness_verdict",
+    "receipt_ref",
+    "receipt_hash",
+    "measures",
+    "completed_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "outcome_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "envelope_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "envelope_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "run_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "run_state": {"enum": ["COMPLETE", "BLOCKED", "UNSUPPORTED"]},
+    "readiness_verdict": {"enum": ["READY", "NOT_READY", "NEEDS_MORE_EVIDENCE", null]},
+    "receipt_ref": {"type": "string", "minLength": 1, "maxLength": 500},
+    "receipt_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "measures": {"type": "object", "maxProperties": 50},
+    "completed_at": {"type": "string", "minLength": 20, "maxLength": 40}
+  }
+}

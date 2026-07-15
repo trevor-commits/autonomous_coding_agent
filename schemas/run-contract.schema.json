@@ -16,7 +16,8 @@
   "properties": {
     "run_id": {
       "type": "string",
-      "description": "Stable identifier for a specific run."
+      "description": "Stable filesystem-safe identifier for a specific run.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$"
     },
     "repo_path": {
       "type": "string",

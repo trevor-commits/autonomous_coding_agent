@@ -10,7 +10,7 @@ The boundary is fixed. The target repo owns only its `.agent/` contract surface,
 ## 2. Control-Plane Repo Contents
 
 - `schemas/` holds the canonical machine-crossing schemas that define stable shapes for contracts, decisions, defects, and reports.
-- `supervisor/` will hold the deterministic runtime code that enforces legality, phase ordering, ownership boundaries, and artifact production once implementation starts.
+- `supervisor/` holds the deterministic runtime plus stateless partner policy. `partner_contracts.py`, `partner_initiative.py`, `partner_authority.py`, `partner_runtime.py`, `partner_learning.py`, and `partner_cli.py` validate and decide one bounded wake; they do not own persistent partner state.
 - `fixtures/` will hold control-plane-owned benchmark inputs and other reusable validation fixtures.
 - `tests/` will hold automated tests for supervisor behavior, contracts, policies, and other control-plane code.
 - `prompts/` holds version-controlled prompt templates if the prompt system is extracted into its own folder.
@@ -19,6 +19,8 @@ The boundary is fixed. The target repo owns only its `.agent/` contract surface,
 - Root doc files hold the current onboarding, navigation, architecture, rules, planning, and governance records that explain the repo as it exists now.
 - `CONTINUITY.md` lives at the repo root because continuity is a load-bearing rule for every bounded task and its durable record.
 - `COHERENCE.md` lives at the repo root because coherence is a load-bearing rule for every commit and the append-only Dependency Map belongs with the live governance surface.
+- `docs/designs/autonomous-partner.md` is the active cross-repo split/maturity/privacy design. `openspec/changes/archive/2026-07-14-autonomous-partner-reposition/` is its archived implementation, verification, and retrospective record.
+- `.agent/contract.yml` lets approved partner projects use retained ACA worktrees while the generated run contract limits each project to its own `partner-projects/<proposal-id>/` path.
 
 ## 3. Target-Repo Surface
 
@@ -27,6 +29,8 @@ The target repo exposes one automation surface: `.agent/`. In v1, the only canon
 ## 4. Runtime State
 
 Runtime state is supervisor-owned and lives under `.autoclaw/` only while the system is running or preserving post-run evidence. The canonical per-run anchor is `.autoclaw/runs/<run-id>/state.json`, with sibling runtime artifacts already named by the architecture: `contract.json`, `plan.json`, `execution.log`, `defects/`, `artifacts/` with `screenshots/`, `videos/`, `logs/`, and `traces/`, plus `reports/` for final outputs. Cross-run operational memory, when enabled later, lives alongside runs under `.autoclaw/memory/` as supervisor-managed runtime data rather than repo truth, but the smallest v1 does not require that directory to exist. `.autoclaw/` is gitignored in both this repo and any target repo; it is runtime storage, not committed structure.
+
+Partner wake state is deliberately not stored here. The global governor owns replaceable snapshots and append-only decisions/envelopes under `~/.cross-agent/autonomous-partner/`, plus the existing autonomous-loop queue/receipts. ACA consumes those files through typed CLI calls. A successful episode retains its run worktree by default so verified output is not destroyed; any commit, landing, merge, publish, or deployment is a separate governed action.
 
 ## 5. Where Does X Go?
 

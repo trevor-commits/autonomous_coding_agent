@@ -7,8 +7,9 @@
 ## Structural validation
 
 - `openspec validate --all --strict --no-interactive`: 5/5 pass.
-- OpenSpec tasks: 10/11 complete; only final commit, push, PR, and remote-tip proof remain.
+- OpenSpec tasks: 11/11 complete.
 - Exact implementation base: `origin/main@282eb5118cfcd95263ffc9e409edce1ba831d623`.
+- Implementation commit `bfa4b315768b7cf8a3c60de4183496e7a34e781e` is pushed on `codex/agency-v2-packet-a`; ready PR #9 is open and GitHub reported its head OID and remote branch tip at that exact commit before this record-only closeout.
 - Runtime, change-packet, and frozen global observation schemas are byte-identical at SHA-256 `924dcf74ce336e5011af89fa9428fdac9d6254a6e3fddc0f5d00efe244790877`.
 - `git diff --check`: pass.
 
@@ -34,7 +35,7 @@ The wake/observation schemas, semantic loader, regression tests, schema index, O
 
 ## Deferred or unproved
 
-- Remote CI, PR review, merge containment, and branch cleanup remain final Packet A landing gates.
+- Remote CI, PR review, merge containment, and branch cleanup remain post-PR Packet A landing gates.
 - Packet B owns global producers, exact dual-SHA compatibility, no-effect deployment proof, and activation/rollback receipts.
 - Deliberation, recurring model calls, candidate reuse, effects, broader authority, natural usefulness, adoption, and measured benefit belong to later packets and are not claimed here.
 

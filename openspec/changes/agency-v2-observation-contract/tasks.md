@@ -16,4 +16,4 @@
 - [x] 3.1 Run focused and full tests, schema parsing, compilation, OpenSpec, memory, and diff gates.
 - [x] 3.2 Reconcile schema navigation, project memory, todo records, Ripple Check, and evidence.
 - [x] 3.3 Obtain a fresh independent review-clean verdict and record findings/disposition.
-- [ ] 3.4 Re-verify, commit, push, open the PR, and prove remote-tip equality.
+- [x] 3.4 Re-verify, commit, push, open the PR, and prove remote-tip equality.

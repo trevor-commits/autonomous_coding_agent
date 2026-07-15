@@ -17,6 +17,7 @@
 - Frozen global design commit: `4292f4efd4ce9c5a3586f51c63188c413e92025e`
 - Frozen observation-schema SHA-256: `924dcf74ce336e5011af89fa9428fdac9d6254a6e3fddc0f5d00efe244790877`
 - Review boundary: the complete uncommitted Packet A implementation diff plus its OpenSpec and durable records. The reviewer had a read-only mandate and reported identical pre/post Git state after every round.
+- Landing reference: the reviewed implementation was committed without code/schema/test changes as `bfa4b315768b7cf8a3c60de4183496e7a34e781e`, pushed with exact remote-tip equality, and opened as ready PR #9.
 
 ## Finding-to-fix lineage
 

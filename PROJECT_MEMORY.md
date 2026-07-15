@@ -4,7 +4,7 @@
 
 ## Active goal
 
-- Advance Agency v2 Packet B: bind the global observation producers to the exact landed ACA/global SHAs while preserving observe-only, no-effect deployment and rollback. Source: Trevor autonomous-partner goal; coordinator `019f5f11-5758-7790-b1b6-6f36cb50868f`; predecessor `019f5c92-0af9-7fe1-97e4-b860aab357e2`.
+- Advance Agency v2 Packet B: land the exact wake-v2 identity-artifact binding required by the repaired global runtime, then complete independent review, semantic promotion, proposal-only pilot, paired deployment, natural recurrence, rollback, and closeout without changing Stage 0 meanwhile. Source: Trevor autonomous-partner goal; coordinator `019f5f11-5758-7790-b1b6-6f36cb50868f`; predecessor `019f5c92-0af9-7fe1-97e4-b860aab357e2`.
 
 ## Durable decisions
 
@@ -25,6 +25,7 @@
 - OpenSpec verification/retrospective are complete and the change is archived at `openspec/changes/archive/2026-07-14-autonomous-partner-reposition/`; its four capability specs are synchronized under `openspec/specs/`.
 - The Stage 0 release gate is complete. The paired global runtime is detached at merge `ef6802e22d5cf70c9e139c469a480f81a21a8a34`, points to this ACA runtime, and is installed with both loop and bridge modes fixed to `observe`. Direct and managed launchd runs emit a typed `no_op` with zero candidates, ready packets, or inflight packets; recurring execute remains off. The empty approved-observation feed means proactive usefulness and measured benefit remain intentionally unproved. Agency v2 now owns the bounded observation adapter and graduated-agency design: broadly allow reversible private/local work while reserving hard gates for destructive, irreversible, credentialed, financial, privacy-expanding, security-sensitive, and outward-facing effects.
 - Packet A was implemented test-first from `origin/main@282eb5118cfcd95263ffc9e409edce1ba831d623`: wake v1 remains unchanged; wake v2 uses the byte-identical reviewed observation schema plus canonical hash, namespace, duplicate, skew/staleness, and TTL validation. Focused RED failed 6 valid-v2 paths; focused contract/runtime GREEN passes 31/31; full deterministic ACA passes 250 tests with 2 intentional opt-in skips; independent reviewer `/root/aca_packet_a_review` closed one P2 and three P3 regression/governance gaps and returned literal `REVIEW-CLEAN`. All required remote checks passed at exact reviewed PR tip `b9cc080df2778c6f527fda75ba27150e72f30205`; PR #9 merged as `cb0cd1368af85f47789cd3be7f071f26257b186c`, both the reviewed tip and implementation commit `bfa4b315768b7cf8a3c60de4183496e7a34e781e` are contained by `origin/main`, and the original local/remote branch refs are deleted. The post-merge closeout archives the OpenSpec change and synchronizes the canonical capability spec and durable Ripple surfaces; Packet B remains inactive until its separate gates pass.
+- Packet B exact-tip review found that a promotion receipt could bind an identity artifact hash without ACA proving that the current wake carried those exact canonical identity bytes. The paired repair on `codex/agency-v2-identity-binding` makes `identity_artifact_hash` required and recomputed for wake v2, forbids it in unchanged wake v1, and keeps all authority/effect/runtime modes unchanged. The focused partner-contract suite passes 21/21; the complete deterministic suite passes 249 with two intentional opt-in skips; compileall and diff checks pass. Independent exact-tip review, commit/push/PR/merge containment, and paired global activation remain open.
 
 ## Gotchas
 
@@ -35,3 +36,4 @@
 - Completed proposal state must be retired by exact hash after outcome reconciliation or a later wake can requeue an already-complete run ID.
 - Immutable detached-process ownership is macOS-specific in this release; the non-macOS environment/ancestry fallback is not claimed as equivalent. Deploy Stage 0 only on the verified SHA-pinned macOS runtime.
 - Accepting wake v2 in ACA is not activation proof. The deployed Stage 0 pair stays pinned to wake v1 until Packet B passes dual-SHA compatibility, no-effect, resource-admission, and independent-review gates.
+- `identity_artifact_hash` is a wake-v2-only SHA-256 binding over canonical validated identity JSON, including the identity object's own content hash. Wake v1 must continue rejecting this field so rollback compatibility remains exact.

@@ -1,11 +1,11 @@
 # partner-observation-contract Specification
 
 ## Purpose
-Define ACA's backward-compatible, fail-closed boundary for accepting the frozen Agency v2 observation contract without activating producers, models, dispatch, effects, recurrence, or new authority.
+Define ACA's backward-compatible, fail-closed boundary for accepting the frozen Agency v2 observation contract and exact canonical identity-artifact binding without activating producers, models, dispatch, effects, recurrence, or new authority.
 
 ## Requirements
 ### Requirement: Wake v2 is backward compatible at the observation boundary
-ACA SHALL continue accepting the unchanged Stage 0 wake `schema_version="1"`. It SHALL also accept wake `schema_version="2"`, where only the observation item contract changes and every other wake field retains its version-1 meaning and bounds. Unknown wake versions MUST be rejected.
+ACA SHALL continue accepting the unchanged Stage 0 wake `schema_version="1"`. It SHALL also accept wake `schema_version="2"`, where the observation item contract changes and one required `identity_artifact_hash` binds the canonical validated identity bytes; every other wake field retains its version-1 meaning and bounds. Unknown wake versions MUST be rejected.
 
 #### Scenario: Old global calls new ACA
 - **WHEN** the Stage 0 global runtime sends a valid unchanged wake v1 to the companion ACA
@@ -14,6 +14,14 @@ ACA SHALL continue accepting the unchanged Stage 0 wake `schema_version="1"`. It
 #### Scenario: Unknown wake version arrives
 - **WHEN** a wake uses a schema version other than 1 or 2
 - **THEN** ACA rejects it before ranking or authority policy
+
+#### Scenario: Identity artifact binding drifts
+- **WHEN** a wake-v2 identity artifact hash is missing, malformed, or differs from the canonical validated identity object
+- **THEN** ACA rejects the complete wake before model admission or route selection
+
+#### Scenario: Wake v1 includes a v2-only binding
+- **WHEN** an unchanged Stage 0 wake-v1 payload includes `identity_artifact_hash`
+- **THEN** ACA rejects it so the version-1 contract remains exact
 
 ### Requirement: Version-2 observations use one exact closed schema
 Every wake-v2 observation SHALL validate against ACA's `schemas/partner-observation-v2.schema.json`, which MUST remain byte-identical to the archived contract at `openspec/changes/archive/2026-07-15-agency-v2-observation-contract/contracts/partner-observation-v2.schema.json`. Unknown fields, missing fields, invalid collector names, invalid namespaces, observation-level opportunity scores, or non-low sensitivity MUST reject the complete wake.

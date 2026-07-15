@@ -1,6 +1,6 @@
 # Schemas
 
-The `partner-*` schemas define the stateless autonomous-partner boundary: configured identity, bounded wake snapshot, exact approval, one typed decision, immutable executor envelope, executor outcome, and expiring lesson candidate. The executor envelope embeds the complete run contract and independently binds its canonical hash, executor, strategy, proposal, approval, risk, and capability classes. Schema validation is necessary but not sufficient; `supervisor.partner_contracts.validate_executor_envelope` enforces cross-field hashes and authority bindings.
+The `partner-*` schemas define the stateless autonomous-partner boundary: configured identity, bounded wake snapshot, exact approval, one typed decision, immutable executor envelope, executor outcome, and expiring lesson candidate. The wake snapshot accepts the unchanged Stage 0 version 1 plus version 2, whose only changed boundary is the exact `partner-observation-v2.schema.json` item contract. Schema validation is necessary but not sufficient: `supervisor.partner_contracts.validate_wake_snapshot` recomputes version-2 observation hashes and enforces canonical text, logical uniqueness, timestamp/skew, and collector TTL rules before policy; `validate_executor_envelope` enforces cross-field hashes and authority bindings.
 
 This directory holds the canonical JSON Schemas for machine-crossing boundaries in the autonomous coding system: repo contracts, run contracts, strategy decisions, failure fingerprints, defect packets, and final readiness reports.
 

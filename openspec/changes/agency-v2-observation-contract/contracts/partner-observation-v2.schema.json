@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autonomous-partner.local/contracts/partner-observation-v2.schema.json",
+  "title": "Agency v2 Partner Observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "id",
+    "dedupe_key",
+    "source_revision",
+    "collector_id",
+    "source_ref",
+    "summary",
+    "sensitivity",
+    "observed_at",
+    "expires_at",
+    "interest_ids"
+  ],
+  "properties": {
+    "contract_version": {"const": "partner-observation/v2"},
+    "id": {
+      "type": "string",
+      "pattern": "^obs-v2-[a-f0-9]{64}$"
+    },
+    "dedupe_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "source_revision": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "collector_id": {
+      "enum": [
+        "todo-marker/v1",
+        "resource-governor/v1",
+        "autonomous-loop-health/v1"
+      ]
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "sensitivity": {"const": "low"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "interest_ids": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,79}$"
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "collector_id": {"const": "todo-marker/v1"},
+        "dedupe_key": {
+          "pattern": "^todo:[a-z0-9][a-z0-9._-]{0,79}$"
+        },
+        "source_ref": {
+          "pattern": "^todo.md#[a-z0-9][a-z0-9._-]{0,79}$"
+        }
+      }
+    },
+    {
+      "properties": {
+        "collector_id": {"const": "resource-governor/v1"},
+        "dedupe_key": {"const": "resource:new-admission"},
+        "source_ref": {"const": "resource-governor#new-admission"}
+      }
+    },
+    {
+      "properties": {
+        "collector_id": {"const": "autonomous-loop-health/v1"},
+        "dedupe_key": {"const": "autonomous-loop:health"},
+        "source_ref": {"const": "autonomous-loop#health"}
+      }
+    }
+  ]
+}

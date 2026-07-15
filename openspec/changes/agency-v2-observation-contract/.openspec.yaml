@@ -1,0 +1,3 @@
+schema: superpowers-bridge
+created: 2026-07-15
+goal: Add the backward-compatible ACA consumer and semantic validator for the frozen Agency v2 observation contract without activating any producer or effect path.

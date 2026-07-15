@@ -4,6 +4,8 @@ import copy
 import hashlib
 import json
 import re
+import unicodedata
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -42,6 +44,21 @@ _RAW_PRIVATE_KEYS = frozenset(
 _EXECUTOR_SANDBOX_CAPABILITIES = frozenset(
     {"local_read", "sandbox_write", "deterministic_test", "local_artifact"}
 )
+_OBSERVATION_V2_SEMANTIC_FIELDS = (
+    "collector_id",
+    "contract_version",
+    "dedupe_key",
+    "interest_ids",
+    "sensitivity",
+    "source_ref",
+    "summary",
+)
+_OBSERVATION_V2_TTL = {
+    "todo-marker/v1": timedelta(hours=24),
+    "resource-governor/v1": timedelta(minutes=5),
+    "autonomous-loop-health/v1": timedelta(minutes=30),
+}
+_UTC_SECONDS_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 class PartnerContractError(ValueError):
@@ -108,6 +125,8 @@ def validate_wake_snapshot(payload: Mapping[str, Any]) -> dict[str, Any]:
     _reject_raw_private_keys(snapshot)
     _reject_secret_like_values(snapshot)
     _validate_schema(snapshot, "partner-wake-snapshot.schema.json")
+    if snapshot["schema_version"] == "2":
+        _validate_observations_v2(snapshot)
     snapshot["identity"] = validate_identity(snapshot["identity"])
     snapshot["approvals"] = [
         validate_document(approval, "partner-approval.schema.json")
@@ -125,6 +144,130 @@ def validate_wake_snapshot(payload: Mapping[str, Any]) -> dict[str, Any]:
         ("goals", "observations", "approvals", "executor_outcomes", "inferred_preferences"),
     )
     return snapshot
+
+
+def _validate_observations_v2(snapshot: Mapping[str, Any]) -> None:
+    created_at = _parse_wake_created_at(snapshot["created_at"])
+    seen_logical_keys: set[tuple[str, str]] = set()
+    seen_ids: set[str] = set()
+
+    for observation in snapshot["observations"]:
+        _require_canonical_observation_strings(observation)
+        interest_ids = observation["interest_ids"]
+        if interest_ids != sorted(interest_ids) or len(interest_ids) != len(set(interest_ids)):
+            raise PartnerContractError(
+                "Version-2 observation interest_ids must be sorted and duplicate-free."
+            )
+
+        semantic_projection = {
+            field: copy.deepcopy(observation[field])
+            for field in _OBSERVATION_V2_SEMANTIC_FIELDS
+        }
+        expected_revision = "sha256:" + hashlib.sha256(
+            _canonical_json_bytes(semantic_projection)
+        ).hexdigest()
+        if observation["source_revision"] != expected_revision:
+            raise PartnerContractError(
+                "Version-2 observation source_revision does not match its canonical content."
+            )
+
+        identity_projection = {
+            "contract_version": observation["contract_version"],
+            "collector_id": observation["collector_id"],
+            "dedupe_key": observation["dedupe_key"],
+            "source_revision": observation["source_revision"],
+        }
+        expected_id = "obs-v2-" + hashlib.sha256(
+            _canonical_json_bytes(identity_projection)
+        ).hexdigest()
+        if observation["id"] != expected_id:
+            raise PartnerContractError(
+                "Version-2 observation id does not match its canonical identity."
+            )
+
+        logical_key = (observation["collector_id"], observation["dedupe_key"])
+        if logical_key in seen_logical_keys:
+            raise PartnerContractError(
+                "Version-2 wake contains a duplicate collector and dedupe-key tuple."
+            )
+        if observation["id"] in seen_ids:
+            raise PartnerContractError("Version-2 wake contains a duplicate observation id.")
+        seen_logical_keys.add(logical_key)
+        seen_ids.add(observation["id"])
+
+        observed_at = _parse_exact_utc_seconds(observation["observed_at"], "observed_at")
+        expires_at = _parse_exact_utc_seconds(observation["expires_at"], "expires_at")
+        if observed_at > created_at + timedelta(seconds=5):
+            raise PartnerContractError(
+                "Version-2 observation observed_at exceeds the wake skew ceiling."
+            )
+        if observed_at >= expires_at:
+            raise PartnerContractError(
+                "Version-2 observation observed_at must be earlier than expires_at."
+            )
+        if expires_at <= created_at:
+            raise PartnerContractError("Version-2 observation is stale at wake creation.")
+        maximum_ttl = _OBSERVATION_V2_TTL[observation["collector_id"]]
+        if expires_at - observed_at > maximum_ttl:
+            raise PartnerContractError(
+                "Version-2 observation exceeds its collector-specific TTL ceiling."
+            )
+
+
+def _canonical_json_bytes(payload: Mapping[str, Any]) -> bytes:
+    try:
+        return json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise PartnerContractError(
+            "Version-2 observation is not canonical JSON."
+        ) from exc
+
+
+def _require_canonical_observation_strings(observation: Mapping[str, Any]) -> None:
+    for field, value in observation.items():
+        values = value if field == "interest_ids" else (value,)
+        for item in values:
+            if not isinstance(item, str):
+                continue
+            if (
+                item != item.strip()
+                or unicodedata.normalize("NFC", item) != item
+                or any(ord(character) < 32 or ord(character) == 127 for character in item)
+            ):
+                raise PartnerContractError(
+                    f"Version-2 observation field `{field}` is not canonical text."
+                )
+
+
+def _parse_exact_utc_seconds(value: str, field: str) -> datetime:
+    if not isinstance(value, str) or not _UTC_SECONDS_PATTERN.fullmatch(value):
+        raise PartnerContractError(
+            f"Version-2 observation `{field}` must be UTC RFC 3339 whole seconds."
+        )
+    try:
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except ValueError as exc:
+        raise PartnerContractError(
+            f"Version-2 observation `{field}` is not a valid timestamp."
+        ) from exc
+
+
+def _parse_wake_created_at(value: Any) -> datetime:
+    if not isinstance(value, str):
+        raise PartnerContractError("Wake created_at must be a timestamp string.")
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
+    except ValueError as exc:
+        raise PartnerContractError("Wake created_at is not a valid timestamp.") from exc
+    if parsed.tzinfo is None:
+        raise PartnerContractError("Wake created_at must include a UTC offset.")
+    return parsed.astimezone(timezone.utc)
 
 
 def apply_identity_amendments(

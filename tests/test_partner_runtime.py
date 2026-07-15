@@ -350,6 +350,41 @@ class PartnerRuntimeTests(unittest.TestCase):
         self.assertEqual("propose", proposed["decision_mode"])
         self.assertNotEqual(observed["idempotency_key"], proposed["idempotency_key"])
 
+    def test_wake_v2_observations_are_inert_in_observe_mode(self) -> None:
+        from tests.test_partner_contracts import _snapshot_v2
+
+        snapshot = _snapshot_v2()
+        candidate = _candidate()
+        candidate_consumed = False
+
+        def candidates() -> Iterator[dict[str, Any]]:
+            nonlocal candidate_consumed
+            candidate_consumed = True
+            yield candidate
+
+        original_snapshot = copy.deepcopy(snapshot)
+        original_candidate = copy.deepcopy(candidate)
+
+        decision = _runtime().decide_wake(
+            snapshot,
+            candidates=candidates(),
+            now=NOW,
+            health={"healthy": True, "reason_codes": []},
+            busy=False,
+            kill_switches=(),
+            prior_decisions=(),
+            mode="observe",
+        )
+
+        self.assertEqual("no_op", decision["decision_type"])
+        self.assertEqual("observe", decision["decision_mode"])
+        self.assertEqual(["observe_only"], decision["reason_codes"])
+        self.assertEqual([], decision["evidence_ids"])
+        self.assertEqual({}, decision["payload"])
+        self.assertFalse(candidate_consumed)
+        self.assertEqual(original_snapshot, snapshot)
+        self.assertEqual(original_candidate, candidate)
+
     def test_runtime_is_pure_and_does_not_mutate_supplied_global_truth(self) -> None:
         runtime = _runtime()
         snapshot = _snapshot(approval=True)

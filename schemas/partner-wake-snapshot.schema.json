@@ -18,7 +18,7 @@
     "budgets"
   ],
   "properties": {
-    "schema_version": {"const": "1"},
+    "schema_version": {"enum": ["1", "2"]},
     "wake_id": {"type": "string", "minLength": 1, "maxLength": 160},
     "created_at": {"type": "string", "minLength": 20, "maxLength": 40},
     "identity": {"type": "object"},
@@ -29,8 +29,7 @@
     },
     "observations": {
       "type": "array",
-      "maxItems": 100,
-      "items": {"$ref": "#/$defs/observation"}
+      "maxItems": 100
     },
     "approvals": {
       "type": "array",
@@ -58,6 +57,36 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "observations": {
+            "items": {"$ref": "#/$defs/observation"}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "2"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "observations": {
+            "items": {
+              "$ref": "https://autonomous-partner.local/contracts/partner-observation-v2.schema.json"
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "goal": {
       "type": "object",

@@ -202,6 +202,50 @@ class PartnerCommandSandboxTests(unittest.TestCase):
             with self.assertRaises(ProcessLookupError):
                 os.kill(descendant_pid, 0)
 
+    def test_success_stops_detached_descendant_before_late_write(self) -> None:
+        with tempfile.TemporaryDirectory() as repo_tmp:
+            repo_root = Path(repo_tmp)
+            (repo_root / "src").mkdir()
+            started = repo_root / "src" / "success-child-started.txt"
+            sentinel = repo_root / "src" / "escaped-after-success.txt"
+            worker = repo_root / "src" / "success_worker.py"
+            worker.write_text(
+                "\n".join(
+                    (
+                        "import os, signal, time",
+                        "from pathlib import Path",
+                        "os.setsid()",
+                        "signal.signal(signal.SIGTERM, signal.SIG_IGN)",
+                        "Path('src/success-child.pid').write_text(str(os.getpid()))",
+                        "Path('src/success-child-started.txt').write_text('started\\n')",
+                        "time.sleep(1)",
+                        "Path('src/escaped-after-success.txt').write_text('escaped\\n')",
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            sandbox = PartnerCommandSandbox(
+                repo_root=repo_root,
+                allowed_paths=("src",),
+                runtime_dir=repo_root / ".autoclaw" / "sandbox-test",
+            )
+
+            completed = sandbox.run(
+                "python3 src/success_worker.py >/dev/null 2>&1 & "
+                "while [ ! -f src/success-child-started.txt ]; do sleep .01; done",
+                environment={"AUTOCLAW_RUN_ID": "sandbox-success-test"},
+                timeout=3,
+            )
+
+            self.assertEqual(0, completed.returncode, completed.stderr)
+            self.assertTrue(started.exists())
+            time.sleep(1.2)
+            self.assertFalse(sentinel.exists())
+            descendant_pid = int((repo_root / "src" / "success-child.pid").read_text())
+            with self.assertRaises(ProcessLookupError):
+                os.kill(descendant_pid, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

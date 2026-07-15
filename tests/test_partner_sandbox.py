@@ -273,7 +273,7 @@ class PartnerCommandSandboxTests(unittest.TestCase):
                 ),
                 patch(
                     "supervisor.process_runner._tagged_lease_processes",
-                    return_value={},
+                    side_effect=lambda token: {},
                 ),
             ):
                 completed = sandbox.run(

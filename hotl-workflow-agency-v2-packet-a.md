@@ -20,13 +20,15 @@ dirty_worktree: allow
 
 ## Steps
 
-- [ ] **Step 1: Freeze the ACA Packet A OpenSpec delta**
+Completed HOTL run: `agency-v2-packet-a-20260715T085056Z` (7/7 verified). Ready PR #9 is open; merge containment, post-merge OpenSpec archive/Ripple Check, and branch cleanup are external landing gates rather than unfinished workflow steps.
+
+- [x] **Step 1: Freeze the ACA Packet A OpenSpec delta**
 action: Create the ACA `agency-v2-observation-contract` OpenSpec brainstorm, proposal, design, spec delta, tasks, and plan from the frozen global Packet A contract; explicitly preserve v1 compatibility and exclude producer activation, deliberation, and effects.
 loop: until strict OpenSpec validation passes
 max_iterations: 3
 verify: openspec validate agency-v2-observation-contract --strict --no-interactive
 
-- [ ] **Step 2: Write observation v2 contract tests first**
+- [x] **Step 2: Write observation v2 contract tests first**
 action: Add focused failing tests for v2 schema acceptance, v1 unchanged behavior, exact collector and namespace rules, canonical NFC hash derivation, duplicate rejection, timestamp skew/order, collector TTL ceilings, unknown fields, and rejection of observation-level opportunity scores.
 loop: false
 verify:
@@ -36,25 +38,25 @@ verify:
     kind: contains
     value: "FAILED (errors=6)"
 
-- [ ] **Step 3: Implement the minimal v1 plus v2 contract**
+- [x] **Step 3: Implement the minimal v1 plus v2 contract**
 action: Add the observation v2 schema, extend the wake schema only at the observation boundary, and implement dependency-free semantic validation that makes every Step 2 regression pass while preserving all v1 identity, goal, approval, maturity, and outcome behavior.
 loop: until focused partner-contract tests pass
 max_iterations: 5
 verify: python3 -m unittest tests.test_partner_contracts -v
 
-- [ ] **Step 4: Reconcile contract documentation and durable state**
+- [x] **Step 4: Reconcile contract documentation and durable state**
 action: Update schema navigation, ACA OpenSpec tasks, project memory, todo active packet, Work Record, branch ledger, Feedback Decision, Ripple Check, and test-evidence surfaces with exact scope and honest non-activation claims.
 loop: until repo governance validators pass
 max_iterations: 3
 verify: /Users/gillettes/.codex/scripts/validate-project-memory.sh .
 
-- [ ] **Step 5: Run the complete ACA verification stack**
+- [x] **Step 5: Run the complete ACA verification stack**
 action: Run schema parsing, focused tests, the full unit suite, no-bytecode in-memory compilation, strict OpenSpec validation, diff checks, and any repo verifier that applies; repair only owned Packet A failures.
 loop: until all owned checks are green
 max_iterations: 5
 verify: python3 -m unittest discover -s tests -v
 
-- [ ] **Step 6: Run a fresh independent read-only audit**
+- [x] **Step 6: Run a fresh independent read-only audit**
 action: Have a fresh non-writing reviewer compare the exact branch diff to the frozen global Packet A contract, with special attention to compatibility, canonicalization, hash projections, TTL/time boundaries, privacy, duplicate handling, and accidental scope expansion; record findings and disposition.
 loop: until the independent verdict is review-clean
 max_iterations: 4
@@ -65,7 +67,7 @@ verify:
     kind: matches-glob
     value: "*agency-v2-packet-a*.md"
 
-- [ ] **Step 7: Re-verify, commit, push, and open the Packet A PR**
+- [x] **Step 7: Re-verify, commit, push, and open the Packet A PR**
 action: Fix accepted audit findings with regressions, rerun immutable verification, complete OpenSpec verify and retrospective artifacts without archiving before merge, update exact durable evidence, commit only owned files, push the branch, open a reviewable PR, and prove remote-tip equality.
 loop: until no actionable finding or uncommitted owned file remains
 max_iterations: 4

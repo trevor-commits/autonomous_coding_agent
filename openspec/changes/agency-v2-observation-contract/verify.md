@@ -35,7 +35,7 @@ The wake/observation schemas, semantic loader, regression tests, schema index, O
 
 ## Deferred or unproved
 
-- Remote CI, PR review, merge containment, and branch cleanup remain post-PR Packet A landing gates.
+- PR #9 review raised two durability updates, accepted in the branch records, and one suggestion to add timestamp regexes to the JSON Schema. The regex suggestion is declined for Packet A because all three schema copies are intentionally byte-frozen and the semantic validator plus regressions already reject fractional seconds and offsets. Final remote checks, merge containment, and branch cleanup remain post-PR landing gates.
 - Packet B owns global producers, exact dual-SHA compatibility, no-effect deployment proof, and activation/rollback receipts.
 - Deliberation, recurring model calls, candidate reuse, effects, broader authority, natural usefulness, adoption, and measured benefit belong to later packets and are not claimed here.
 

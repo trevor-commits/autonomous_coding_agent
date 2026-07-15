@@ -44,4 +44,8 @@
 
 Remote CI, PR review, merged-commit containment, deployed dual-SHA compatibility, global wake-v2 activation, natural recurrence, model deliberation, dispatch, and effects were not part of this local review. They remain explicit later gates rather than implied proof.
 
+## PR review addendum
+
+CodeRabbit reviewed implementation commit `bfa4b315768b7cf8a3c60de4183496e7a34e781e` on PR #9 and posted three comments. The stale workflow/PR-state and Work Record `led to:` comments were accepted and repaired with exact run, artifact, commit, and PR references. The request to add timestamp regexes to the runtime JSON Schema was declined: Packet A is contractually bound to byte-identical ACA change/runtime and frozen global schema copies at SHA-256 `924dcf74ce336e5011af89fa9428fdac9d6254a6e3fddc0f5d00efe244790877`; changing only ACA would create cross-repo drift, while changing the frozen global contract would reopen the completed design gate. The semantic validator already requires `YYYY-MM-DDTHH:MM:SSZ`, and regressions reject both fractional seconds and offsets before a wake is returned.
+
 Provenance: executor=codex:gpt-5.6-sol:high; audit=L4-review-clean; scripts=focused-unittest,full-unittest,OpenSpec,project-memory,schema-parity,in-memory-compile,governance,diff; escalations=0; routing=T3; notes=single-writer implementation with one read-only reviewer

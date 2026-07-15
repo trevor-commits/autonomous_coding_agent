@@ -710,7 +710,11 @@ def run_process_group(
     env: Mapping[str, str] | None = None,
     sandbox_profile_builder: SandboxProfileBuilder | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one command with immutable ownership and freeze-before-kill cleanup."""
+    """Run one leaf command with immutable ownership and freeze-before-kill cleanup.
+
+    Hosts that must install their own child sandbox are not leaf commands and
+    must use ``run_child_sandbox_process_group`` instead of nesting Seatbelt.
+    """
 
     return _run_process_group(
         args,
@@ -737,7 +741,7 @@ def run_child_sandbox_process_group(
     check: bool = False,
     env: Mapping[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run a trusted child-sandbox host without nesting macOS Seatbelt profiles."""
+    """Run an exact trusted child-sandbox host as the tree's containment owner."""
 
     return _run_process_group(
         args,

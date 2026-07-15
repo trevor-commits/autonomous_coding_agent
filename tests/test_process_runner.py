@@ -7,9 +7,11 @@ import sys
 import tempfile
 import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import call, patch
 
+from supervisor import process_runner
 from supervisor.process_runner import run_process_group
 
 
@@ -27,6 +29,52 @@ class ProcessRunnerTests(unittest.TestCase):
         self.assertEqual(0, completed.returncode)
         self.assertLessEqual(len(completed.stdout), 1_000_000)
         self.assertIn("subprocess output truncated", completed.stdout)
+
+    def test_success_capture_storage_is_bounded_while_child_is_writing(self) -> None:
+        captures: list[process_runner._BoundedCapture] = []
+        capture_type = process_runner._BoundedCapture
+
+        class TrackingCapture(capture_type):
+            def __init__(self, limit: int) -> None:
+                super().__init__(limit)
+                captures.append(self)
+
+        command = (
+            "import sys, time; "
+            "[(sys.stdout.buffer.write(b'x' * 65536), "
+            "sys.stdout.buffer.flush(), time.sleep(0.002)) for _ in range(192)]"
+        )
+        observed_over_limit_total = False
+        with (
+            patch("supervisor.process_runner._BoundedCapture", TrackingCapture),
+            ThreadPoolExecutor(max_workers=1) as executor,
+        ):
+            future = executor.submit(
+                run_process_group,
+                [sys.executable, "-c", command],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            while not future.done():
+                for capture in captures:
+                    self.assertLessEqual(
+                        capture.stored_bytes, process_runner._MAX_ERROR_OUTPUT
+                    )
+                    observed_over_limit_total = (
+                        observed_over_limit_total
+                        or capture.total_bytes > process_runner._MAX_ERROR_OUTPUT
+                    )
+                time.sleep(0.005)
+            completed = future.result()
+
+        self.assertEqual(0, completed.returncode)
+        self.assertTrue(observed_over_limit_total)
+        self.assertTrue(captures)
+        for capture in captures:
+            self.assertLessEqual(
+                capture.peak_stored_bytes, process_runner._MAX_ERROR_OUTPUT
+            )
 
     def test_timeout_output_is_bounded(self) -> None:
         command = (
@@ -71,23 +119,21 @@ class ProcessRunnerTests(unittest.TestCase):
 
         self.assertEqual(
             [
+                call(123, signal.SIGSTOP),
                 call(123, signal.SIGTERM),
-                call(123, signal.SIGSTOP),
-                call(123, signal.SIGSTOP),
                 call(123, signal.SIGKILL),
             ],
             signal_group.call_args_list,
         )
         self.assertEqual(
             [
+                call({123}, signal.SIGSTOP),
                 call({123}, signal.SIGTERM),
-                call({123}, signal.SIGSTOP),
-                call({123}, signal.SIGSTOP),
                 call({123}, signal.SIGKILL),
             ],
             signal_processes.call_args_list,
         )
-        self.assertEqual(3, process.calls)
+        self.assertEqual(2, process.calls)
 
     def test_timeout_kills_descendant_that_escapes_the_process_group(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -124,6 +170,70 @@ class ProcessRunnerTests(unittest.TestCase):
             child_pid = int(pid_file.read_text())
             with self.assertRaises(ProcessLookupError):
                 os.kill(child_pid, 0)
+
+    def test_timeout_freezes_tree_before_term_handler_can_fork_and_detach(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            started = root / "started"
+            escaped_pid = root / "escaped.pid"
+            residue = root / "residue"
+            child = (
+                "import os, signal, time; "
+                f"started={str(started)!r}; escaped={str(escaped_pid)!r}; "
+                f"residue={str(residue)!r}; "
+                "\n"
+                "def on_term(signum, frame):\n"
+                "    pid = os.fork()\n"
+                "    if pid == 0:\n"
+                "        os.setsid()\n"
+                "        open(escaped, 'w').write(str(os.getpid()))\n"
+                "        time.sleep(0.8)\n"
+                "        open(residue, 'w').write('late')\n"
+                "        os._exit(0)\n"
+                "    os._exit(0)\n"
+                "signal.signal(signal.SIGTERM, on_term)\n"
+                "open(started, 'w').write('started')\n"
+                "time.sleep(30)\n"
+            )
+            parent = (
+                "import subprocess, sys, time; "
+                f"subprocess.Popen([sys.executable, '-c', {child!r}]); "
+                "time.sleep(30)"
+            )
+
+            real_signal_group = process_runner._signal_process_group
+            saw_stop = False
+
+            def synchronized_signal_group(
+                pid: int, requested_signal: signal.Signals
+            ) -> None:
+                nonlocal saw_stop
+                real_signal_group(pid, requested_signal)
+                if requested_signal == signal.SIGSTOP:
+                    saw_stop = True
+                if requested_signal == signal.SIGTERM and not saw_stop:
+                    deadline = time.monotonic() + 0.5
+                    while time.monotonic() < deadline and not escaped_pid.exists():
+                        time.sleep(0.005)
+
+            with (
+                patch(
+                    "supervisor.process_runner._signal_process_group",
+                    side_effect=synchronized_signal_group,
+                ),
+                self.assertRaises(subprocess.TimeoutExpired),
+            ):
+                run_process_group(
+                    [sys.executable, "-c", parent],
+                    capture_output=True,
+                    text=True,
+                    timeout=1.0,
+                )
+
+            time.sleep(1)
+            self.assertTrue(started.exists())
+            self.assertFalse(escaped_pid.exists())
+            self.assertFalse(residue.exists())
 
 
 if __name__ == "__main__":

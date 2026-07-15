@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import stat
-import tempfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any, TextIO
@@ -80,27 +80,63 @@ class RunStore:
         return path
 
     def write_json(self, path: Path, payload: Any) -> None:
+        directory_fd: int | None = None
+        descriptor: int | None = None
+        temp_name: str | None = None
         try:
             ensure_safe_directory(path.parent, boundary=self.repo_root)
             require_single_link_regular_file(path, boundary=self.repo_root)
             serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-            descriptor, temp_name = tempfile.mkstemp(
-                dir=path.parent,
-                prefix=f".{path.name}.",
-                suffix=".tmp",
+            directory_fd = os.open(
+                path.parent,
+                os.O_RDONLY
+                | getattr(os, "O_DIRECTORY", 0)
+                | getattr(os, "O_NOFOLLOW", 0)
+                | getattr(os, "O_CLOEXEC", 0),
             )
-            os.close(descriptor)
-            temp_path = Path(temp_name)
-            try:
-                temp_path.write_text(serialized, encoding="utf-8")
-                with temp_path.open("rb+") as handle:
-                    handle.flush()
-                    os.fsync(handle.fileno())
-                os.replace(temp_path, path)
-            finally:
-                temp_path.unlink(missing_ok=True)
+            for _ in range(100):
+                temp_name = f".{path.name}.{secrets.token_hex(8)}.tmp"
+                try:
+                    descriptor = os.open(
+                        temp_name,
+                        os.O_WRONLY
+                        | os.O_CREAT
+                        | os.O_EXCL
+                        | getattr(os, "O_NOFOLLOW", 0)
+                        | getattr(os, "O_CLOEXEC", 0),
+                        0o600,
+                        dir_fd=directory_fd,
+                    )
+                except FileExistsError:
+                    continue
+                break
+            else:  # pragma: no cover - cryptographic names should not collide.
+                raise RunStoreError("Could not allocate a unique state temp file.")
+
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                descriptor = None
+                handle.write(serialized)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(
+                temp_name,
+                path.name,
+                src_dir_fd=directory_fd,
+                dst_dir_fd=directory_fd,
+            )
+            os.fsync(directory_fd)
         except PathSafetyError as exc:
             raise RunStoreError(str(exc)) from exc
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+            if temp_name is not None and directory_fd is not None:
+                try:
+                    os.unlink(temp_name, dir_fd=directory_fd)
+                except FileNotFoundError:
+                    pass
+            if directory_fd is not None:
+                os.close(directory_fd)
 
     def _open_text_file(self, path: Path, flags: int) -> TextIO:
         descriptor: int | None = None

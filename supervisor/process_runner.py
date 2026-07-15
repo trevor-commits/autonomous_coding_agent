@@ -1,15 +1,129 @@
 from __future__ import annotations
 
 import os
+import select
 import signal
 import subprocess
-import tempfile
+import threading
 from pathlib import Path
-from typing import BinaryIO, Literal, Mapping, Sequence
+from typing import Literal, Mapping, Sequence
 
 
 _TERMINATION_GRACE_SECONDS = 0.25
 _MAX_ERROR_OUTPUT = 1_000_000
+_TRUNCATION_MARKER = b"\n...[subprocess output truncated]...\n"
+
+
+class _BoundedCapture:
+    """Drain a child pipe continuously while retaining only bounded head/tail bytes."""
+
+    def __init__(self, limit: int) -> None:
+        if limit <= len(_TRUNCATION_MARKER):
+            raise ValueError("Capture limit must exceed the truncation marker.")
+        self.limit = limit
+        retained = limit - len(_TRUNCATION_MARKER)
+        self._head_limit = retained // 2
+        self._tail_limit = retained - self._head_limit
+        self._head = bytearray()
+        self._tail = bytearray()
+        self._total_bytes = 0
+        self._peak_stored_bytes = 0
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._read_fd, self._write_fd = os.pipe()
+        self._thread = threading.Thread(target=self._drain, daemon=True)
+
+    @property
+    def write_fd(self) -> int:
+        return self._write_fd
+
+    @property
+    def stored_bytes(self) -> int:
+        with self._lock:
+            return len(self._head) + len(self._tail)
+
+    @property
+    def peak_stored_bytes(self) -> int:
+        with self._lock:
+            return self._peak_stored_bytes
+
+    @property
+    def total_bytes(self) -> int:
+        with self._lock:
+            return self._total_bytes
+
+    def start(self) -> None:
+        self._thread.start()
+
+    def close_parent_writer(self) -> None:
+        if self._write_fd < 0:
+            return
+        try:
+            os.close(self._write_fd)
+        except OSError:
+            pass
+        self._write_fd = -1
+
+    def finish(self) -> None:
+        self.close_parent_writer()
+        self._stop.set()
+        self._thread.join(timeout=1.0)
+        if self._thread.is_alive():
+            try:
+                os.close(self._read_fd)
+            except OSError:
+                pass
+            self._thread.join(timeout=1.0)
+        else:
+            try:
+                os.close(self._read_fd)
+            except OSError:
+                pass
+        self._read_fd = -1
+
+    def text(self) -> str:
+        with self._lock:
+            if self._total_bytes <= self.limit:
+                payload = bytes(self._head + self._tail)
+            else:
+                payload = bytes(self._head + _TRUNCATION_MARKER + self._tail)
+        return payload.decode("utf-8", errors="replace")
+
+    def _drain(self) -> None:
+        descriptor = self._read_fd
+        while True:
+            try:
+                readable, _, _ = select.select(
+                    [descriptor], [], [], 0 if self._stop.is_set() else 0.05
+                )
+            except (OSError, ValueError):
+                return
+            if not readable:
+                if self._stop.is_set():
+                    return
+                continue
+            try:
+                chunk = os.read(descriptor, 64 * 1024)
+            except OSError:
+                return
+            if not chunk:
+                return
+            self._retain(chunk)
+
+    def _retain(self, chunk: bytes) -> None:
+        with self._lock:
+            self._total_bytes += len(chunk)
+            head_remaining = self._head_limit - len(self._head)
+            if head_remaining > 0:
+                self._head.extend(chunk[:head_remaining])
+                chunk = chunk[head_remaining:]
+            if chunk:
+                self._tail.extend(chunk)
+                if len(self._tail) > self._tail_limit:
+                    del self._tail[: len(self._tail) - self._tail_limit]
+            self._peak_stored_bytes = max(
+                self._peak_stored_bytes, len(self._head) + len(self._tail)
+            )
 
 
 def _process_tree(root_pid: int, seeds: set[int] | None = None) -> set[int]:
@@ -63,49 +177,60 @@ def run_process_group(
     check: bool = False,
     env: Mapping[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one command with bounded capture and observed process-tree cleanup."""
-    stdout_file = tempfile.TemporaryFile(mode="w+b") if capture_output else None
-    stderr_file = tempfile.TemporaryFile(mode="w+b") if capture_output else None
+    """Run one command with bounded capture and freeze-before-kill cleanup."""
+    stdout_capture = _BoundedCapture(_MAX_ERROR_OUTPUT) if capture_output else None
+    stderr_capture = _BoundedCapture(_MAX_ERROR_OUTPUT) if capture_output else None
+    captures = tuple(
+        capture
+        for capture in (stdout_capture, stderr_capture)
+        if capture is not None
+    )
+    for capture in captures:
+        capture.start()
     stdout: str | None
     stderr: str | None
     try:
-        process = subprocess.Popen(
-            args,
-            cwd=cwd,
-            stdin=stdin,
-            stdout=stdout_file,
-            stderr=stderr_file,
-            text=text,
-            env=env,
-            start_new_session=True,
-        )
+        try:
+            process = subprocess.Popen(
+                args,
+                cwd=cwd,
+                stdin=stdin,
+                stdout=stdout_capture.write_fd if stdout_capture else None,
+                stderr=stderr_capture.write_fd if stderr_capture else None,
+                text=text,
+                env=env,
+                start_new_session=True,
+            )
+        finally:
+            for capture in captures:
+                capture.close_parent_writer()
+
+        timeout_failure: subprocess.TimeoutExpired | None = None
         try:
             process.communicate(timeout=timeout)
         except subprocess.TimeoutExpired as exc:
             _stop_process_group(process)
-            if (
-                timeout is None
-            ):  # pragma: no cover - TimeoutExpired cannot arise without a timeout.
-                raise RuntimeError("subprocess timeout omitted its deadline") from exc
-            stdout = _read_bounded(stdout_file)
-            stderr = _read_bounded(stderr_file)
-            raise subprocess.TimeoutExpired(
-                cmd=args,
-                timeout=float(timeout),
-                output=stdout,
-                stderr=stderr,
-            ) from None
+            timeout_failure = exc
         except BaseException:
             _stop_process_group(process)
             raise
-
-        stdout = _read_bounded(stdout_file)
-        stderr = _read_bounded(stderr_file)
     finally:
-        if stdout_file is not None:
-            stdout_file.close()
-        if stderr_file is not None:
-            stderr_file.close()
+        for capture in captures:
+            capture.finish()
+
+    stdout = stdout_capture.text() if stdout_capture else None
+    stderr = stderr_capture.text() if stderr_capture else None
+    if timeout_failure is not None:
+        if timeout is None:  # pragma: no cover - impossible without a deadline.
+            raise RuntimeError(
+                "subprocess timeout omitted its deadline"
+            ) from timeout_failure
+        raise subprocess.TimeoutExpired(
+            cmd=args,
+            timeout=float(timeout),
+            output=stdout,
+            stderr=stderr,
+        ) from None
 
     completed = subprocess.CompletedProcess(
         args=args,
@@ -121,21 +246,11 @@ def run_process_group(
 def _stop_process_group(
     process: subprocess.Popen[str],
 ) -> None:
-    owned = _process_tree(process.pid)
+    owned = _freeze_process_tree(process.pid)
+    # TERM is delivered only after the tree is frozen. Do not resume it: a TERM
+    # handler could otherwise fork, detach, and become reparented before KILL.
     _signal_process_group(process.pid, signal.SIGTERM)
     _signal_processes(owned, signal.SIGTERM)
-    _signal_process_group(process.pid, signal.SIGSTOP)
-    _signal_processes(owned, signal.SIGSTOP)
-    try:
-        process.communicate(timeout=_TERMINATION_GRACE_SECONDS)
-    except subprocess.TimeoutExpired:
-        pass
-    # The direct parent may exit while a setsid() descendant remains stopped.
-    # Re-scan and kill the observed tree even when communicate() already returned.
-    owned = _process_tree(process.pid, owned)
-    _signal_process_group(process.pid, signal.SIGSTOP)
-    _signal_processes(owned, signal.SIGSTOP)
-    owned = _process_tree(process.pid, owned)
     _signal_process_group(process.pid, signal.SIGKILL)
     _signal_processes(owned, signal.SIGKILL)
     try:
@@ -144,25 +259,24 @@ def _stop_process_group(
         process.wait(timeout=_TERMINATION_GRACE_SECONDS)
 
 
+def _freeze_process_tree(root_pid: int) -> set[int]:
+    """Stop the group, then expand and stop descendants until the set is stable."""
+
+    owned = {root_pid}
+    _signal_process_group(root_pid, signal.SIGSTOP)
+    for _ in range(32):
+        observed = _process_tree(root_pid, owned)
+        _signal_processes(observed, signal.SIGSTOP)
+        confirmed = _process_tree(root_pid, observed)
+        if confirmed == observed:
+            return confirmed
+        owned = confirmed
+    _signal_processes(owned, signal.SIGSTOP)
+    return owned
+
+
 def _signal_process_group(pid: int, sig: signal.Signals) -> None:
     try:
         os.killpg(pid, sig)
     except (PermissionError, ProcessLookupError):
         pass
-
-
-def _read_bounded(handle: BinaryIO | None) -> str | None:
-    if handle is None:
-        return None
-    handle.flush()
-    size = handle.tell()
-    handle.seek(0)
-    if size <= _MAX_ERROR_OUTPUT:
-        return handle.read().decode("utf-8", errors="replace")
-    marker = b"\n...[subprocess output truncated]...\n"
-    remaining = _MAX_ERROR_OUTPUT - len(marker)
-    head_size = remaining // 2
-    head = handle.read(head_size)
-    handle.seek(size - (remaining - head_size))
-    tail = handle.read(remaining - head_size)
-    return (head + marker + tail).decode("utf-8", errors="replace")

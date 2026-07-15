@@ -3,7 +3,9 @@ import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from unittest.mock import patch
 
+from supervisor.path_safety import PathSafetyError
 from supervisor.worktree_manager import WorktreeError, WorktreeManager
 
 
@@ -114,6 +116,47 @@ class WorktreeManagerTests(unittest.TestCase):
             self.assertIn("Single-writer lease already exists", str(failures[0]))
 
             manager.remove_builder_worktree(successes[0])
+
+    def test_failed_postcondition_rolls_back_before_releasing_lease(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _init_git_repo(repo_root)
+            manager = WorktreeManager(repo_root)
+            run_id = "run-postcondition"
+            branch_name = "run/rollback-postcondition/run-postcondition"
+            worktree_path = manager.worktrees_root / run_id / "builder"
+            lease_path = manager.leases_root / f"{run_id}.json"
+
+            with (
+                patch(
+                    "supervisor.worktree_manager.require_safe_directory",
+                    side_effect=PathSafetyError("simulated postcondition failure"),
+                ),
+                self.assertRaisesRegex(WorktreeError, "postcondition failure"),
+            ):
+                manager.create_builder_worktree(
+                    run_id=run_id,
+                    task_slug="Rollback postcondition",
+                )
+
+            self.assertFalse(worktree_path.exists())
+            self.assertFalse(lease_path.exists())
+            branches = subprocess.run(
+                ["git", "branch", "--list", branch_name],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual("", branches.stdout.strip())
+            worktrees = subprocess.run(
+                ["git", "worktree", "list", "--porcelain"],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotIn(str(worktree_path), worktrees.stdout)
 
     def test_creation_rejects_symlinked_worktree_and_lease_roots(self) -> None:
         with (

@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -59,12 +58,22 @@ class WorktreeManager:
             )
             require_safe_directory(worktree_path, boundary=self.repo_root)
         except PathSafetyError as exc:
+            try:
+                self._rollback_creation(worktree_path, branch_name)
+            except Exception as cleanup_exc:
+                raise WorktreeError(
+                    f"{exc}; rollback failed and lease was retained: {cleanup_exc}"
+                ) from cleanup_exc
             self.release_lease(run_id)
             raise WorktreeError(str(exc)) from exc
-        except Exception:
+        except Exception as exc:
+            try:
+                self._rollback_creation(worktree_path, branch_name)
+            except Exception as cleanup_exc:
+                raise WorktreeError(
+                    f"{exc}; rollback failed and lease was retained: {cleanup_exc}"
+                ) from cleanup_exc
             self.release_lease(run_id)
-            if worktree_path.exists():
-                shutil.rmtree(worktree_path, ignore_errors=True)
             raise
         return BuilderWorkspace(
             run_id=run_id,
@@ -142,6 +151,36 @@ class WorktreeManager:
             raise WorktreeError(str(exc)) from exc
         else:
             lease_path.unlink()
+
+    def _rollback_creation(self, worktree_path: Path, branch_name: str) -> None:
+        listed = subprocess.run(
+            ["git", "worktree", "list", "--porcelain"],
+            cwd=self.repo_root,
+            capture_output=True,
+            text=True,
+        )
+        if listed.returncode != 0:
+            raise WorktreeError(
+                "Could not inspect worktree registration during rollback."
+            )
+        registered = f"worktree {worktree_path}\n" in listed.stdout
+        if registered or worktree_path.exists():
+            self._git("worktree", "remove", "--force", str(worktree_path))
+
+        branch = subprocess.run(
+            [
+                "git",
+                "show-ref",
+                "--verify",
+                "--quiet",
+                f"refs/heads/{branch_name}",
+            ],
+            cwd=self.repo_root,
+        )
+        if branch.returncode == 0:
+            self._git("branch", "-D", branch_name)
+        elif branch.returncode != 1:
+            raise WorktreeError("Could not inspect rollback branch state.")
 
     def _git(self, *args: str) -> None:
         result = subprocess.run(

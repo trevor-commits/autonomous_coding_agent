@@ -1,4 +1,6 @@
 import json
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
@@ -59,22 +61,60 @@ class RunStoreTests(unittest.TestCase):
             target = store.state_path
             store.write_json(target, {"generation": 1})
             original_payload = target.read_text()
-            real_write_text = Path.write_text
+            real_fsync = os.fsync
 
-            def interrupted_write(path: Path, data: str, *args, **kwargs) -> int:
-                if path.parent == target.parent:
-                    real_write_text(path, data[:8], *args, **kwargs)
+            def interrupted_fsync(descriptor: int) -> None:
+                if stat.S_ISREG(os.fstat(descriptor).st_mode):
                     raise OSError("simulated interrupted write")
-                return real_write_text(path, data, *args, **kwargs)
+                real_fsync(descriptor)
 
-            with patch.object(
-                Path, "write_text", autospec=True, side_effect=interrupted_write
-            ):
+            with patch("supervisor.run_store.os.fsync", side_effect=interrupted_fsync):
                 with self.assertRaisesRegex(OSError, "simulated interrupted write"):
                     store.write_json(target, {"generation": 2})
 
             self.assertEqual(original_payload, target.read_text())
             self.assertEqual({"generation": 1}, json.loads(target.read_text()))
+
+    def test_write_json_uses_bound_descriptor_and_syncs_parent_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            store = RunStore(Path(tmpdir), "run-bound-write")
+            target = store.state_path
+            synced_kinds: list[str] = []
+            replace_dir_fds: list[tuple[int | None, int | None]] = []
+            real_fsync = os.fsync
+            real_replace = os.replace
+
+            def tracked_fsync(descriptor: int) -> None:
+                mode = os.fstat(descriptor).st_mode
+                synced_kinds.append(
+                    "directory" if stat.S_ISDIR(mode) else "regular-file"
+                )
+                real_fsync(descriptor)
+
+            def tracked_replace(src, dst, *args, **kwargs) -> None:
+                replace_dir_fds.append(
+                    (kwargs.get("src_dir_fd"), kwargs.get("dst_dir_fd"))
+                )
+                real_replace(src, dst, *args, **kwargs)
+
+            with (
+                patch.object(
+                    Path,
+                    "write_text",
+                    autospec=True,
+                    side_effect=AssertionError("must not reopen temp path by name"),
+                ),
+                patch("supervisor.run_store.os.fsync", side_effect=tracked_fsync),
+                patch("supervisor.run_store.os.replace", side_effect=tracked_replace),
+            ):
+                store.write_json(target, {"generation": 1})
+
+            self.assertEqual({"generation": 1}, json.loads(target.read_text()))
+            self.assertEqual(["regular-file", "directory"], synced_kinds)
+            self.assertEqual(1, len(replace_dir_fds))
+            source_fd, destination_fd = replace_dir_fds[0]
+            self.assertIsNotNone(source_fd)
+            self.assertEqual(source_fd, destination_fd)
 
     def test_initialize_rejects_symlinked_runtime_ancestry(self) -> None:
         with (

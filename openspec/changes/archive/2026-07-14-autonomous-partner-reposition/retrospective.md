@@ -45,3 +45,7 @@ Each miss became a regression, a durable audit entry, and a narrower invariant. 
 - A produced artifact is evidence of output, not evidence of adoption or benefit.
 
 These are candidates for later promotion through the normal reliability/rule-review process; this retrospective does not silently create new global policy.
+
+## Post-archive release-review addendum
+
+Round 17 showed that bounded final-output rendering is not enough when the intermediate capture grows without bound, and that TERM/KILL containment must freeze a stable process set before descendants can detach or reparent. It also reinforced two durability rules: atomic replacement must keep the original descriptor and fsync the parent directory, and failed worktree creation must retain its lease until Git registration and branch state are rolled back. ACA `e235850` converts each finding into a focused regression; the fresh exact-tip clean verdict remains a release gate.

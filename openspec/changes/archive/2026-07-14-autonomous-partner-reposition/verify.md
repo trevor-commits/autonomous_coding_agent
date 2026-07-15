@@ -42,3 +42,7 @@ The global governor remains the only persistent identity, goals, approvals, bene
 - Reconciliation ancestry is not descriptor-pinned across the full publication sequence; revisit if another principal or uncoordinated writer can mutate the runtime state tree.
 
 No incomplete OpenSpec task or unrecorded accepted finding remains. Exact-tip review, landing, and observe-only deployment remain explicit release gates.
+
+## Post-archive release-review addendum
+
+Fresh exact-tip review thread `019f631b-9b4b-73b2-881b-d6e02b6405e6` returned `CHANGES-REQUIRED` for pushed ACA `485f511` and global `1bf14ef`. ACA `e235850` closes the five production findings covering bounded output capture, stable timeout containment, descriptor-relative atomic publication with parent-directory fsync, and lease-retaining Git-aware rollback. Focused tests pass 19/19; deterministic ACA passes 219 with one intentional live skip; live-enabled ACA passes 219/219; strict OpenSpec remains 4/4; project-memory, in-memory compile/no-cache, and diff checks pass. The archived specification remains complete, but release status stays reopened until current-main reconciliation, final exact-tip repetition, remote checks, zero unresolved threads, and a fresh literal `REVIEW-CLEAN`.

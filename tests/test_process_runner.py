@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import call, patch
 
 from supervisor import process_runner
-from supervisor.process_runner import run_process_group
+from supervisor.process_runner import run_child_sandbox_process_group, run_process_group
 
 
 class ProcessRunnerTests(unittest.TestCase):
@@ -156,6 +156,25 @@ class ProcessRunnerTests(unittest.TestCase):
 
         with self.assertRaises(process_runner.ProcessContainmentError):
             process_runner._compose_sandbox_profile(tag, "(allow default)\n")
+
+    @unittest.skipUnless(
+        sys.platform == "darwin" and Path("/usr/bin/sandbox-exec").is_file(),
+        "nested-sandbox compatibility is a macOS boundary",
+    )
+    def test_explicit_tag_disable_allows_a_child_owned_sandbox(self) -> None:
+        completed = run_child_sandbox_process_group(
+            [
+                "/usr/bin/sandbox-exec",
+                "-p",
+                "(version 1)\n(allow default)\n",
+                "/usr/bin/true",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
 
     @unittest.skipUnless(
         sys.platform == "darwin",

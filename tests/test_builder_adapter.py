@@ -411,7 +411,10 @@ class LiveCodexBuilderBoundaryTests(unittest.TestCase):
                 adapter.close_session(session)
 
             self.assertEqual("completed", result.status, result.final_message)
-            self.assertTrue((repo_root / "src" / "PATCH_ALLOWED.txt").exists())
+            self.assertTrue(
+                (repo_root / "src" / "PATCH_ALLOWED.txt").exists(),
+                f"{result.final_message}\ncommands={result.commands_run}",
+            )
             self.assertFalse((repo_root / "src" / "SHELL_ALLOWED.txt").exists())
             self.assertFalse((repo_root / "PATCH_GUARD_BYPASS").exists())
             self.assertFalse((repo_root / "SHELL_PROFILE_BYPASS").exists())

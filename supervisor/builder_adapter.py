@@ -14,7 +14,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Sequence
 
 from supervisor.policy import ShellClass, classify_command, classify_path_change
-from supervisor.process_runner import run_process_group
+from supervisor.process_runner import run_child_sandbox_process_group
 
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
@@ -136,7 +136,7 @@ class CodexBuilderAdapter(BuilderAdapter):
         reasoning_effort: str | None = None,
     ) -> None:
         self.codex_bin = codex_bin
-        self.runner = runner or run_process_group
+        self.runner = runner or run_child_sandbox_process_group
         self.git_runner = git_runner or subprocess.run
         self.model = model
         if reasoning_effort not in {None, "low", "medium", "high", "xhigh"}:

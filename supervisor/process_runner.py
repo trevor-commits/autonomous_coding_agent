@@ -619,6 +619,7 @@ def _spawn_with_process_tree_lease(
     args: Sequence[str],
     *,
     sandbox_profile_builder: SandboxProfileBuilder | None = None,
+    immutable_sandbox_tag: bool = True,
     **popen_kwargs: object,
 ) -> tuple[subprocess.Popen[str], _ProcessTreeLease]:
     """Gate command execution until continuous descendant tracking is active."""
@@ -633,7 +634,11 @@ def _spawn_with_process_tree_lease(
         launch_env = dict(os.environ if supplied_env is None else supplied_env)
         launch_env[_LEASE_ENV_KEY] = token
         popen_kwargs["env"] = launch_env
-        sandbox_tag = _create_sandbox_containment_tag(token=token, env=launch_env)
+        sandbox_tag = (
+            _create_sandbox_containment_tag(token=token, env=launch_env)
+            if immutable_sandbox_tag
+            else None
+        )
         launch_args = list(args)
         if sandbox_tag is not None:
             supplemental_profile = (
@@ -701,7 +706,62 @@ def run_process_group(
     env: Mapping[str, str] | None = None,
     sandbox_profile_builder: SandboxProfileBuilder | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one command with bounded capture and freeze-before-kill cleanup."""
+    """Run one command with immutable ownership and freeze-before-kill cleanup."""
+
+    return _run_process_group(
+        args,
+        cwd=cwd,
+        stdin=stdin,
+        capture_output=capture_output,
+        text=text,
+        timeout=timeout,
+        check=check,
+        env=env,
+        sandbox_profile_builder=sandbox_profile_builder,
+        immutable_sandbox_tag=True,
+    )
+
+
+def run_child_sandbox_process_group(
+    args: Sequence[str],
+    *,
+    cwd: str | Path | None = None,
+    stdin: int | None = None,
+    capture_output: bool = False,
+    text: Literal[True] = True,
+    timeout: int | float | None = None,
+    check: bool = False,
+    env: Mapping[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Run a trusted child-sandbox host without nesting macOS Seatbelt profiles."""
+
+    return _run_process_group(
+        args,
+        cwd=cwd,
+        stdin=stdin,
+        capture_output=capture_output,
+        text=text,
+        timeout=timeout,
+        check=check,
+        env=env,
+        sandbox_profile_builder=None,
+        immutable_sandbox_tag=False,
+    )
+
+
+def _run_process_group(
+    args: Sequence[str],
+    *,
+    cwd: str | Path | None,
+    stdin: int | None,
+    capture_output: bool,
+    text: Literal[True],
+    timeout: int | float | None,
+    check: bool,
+    env: Mapping[str, str] | None,
+    sandbox_profile_builder: SandboxProfileBuilder | None,
+    immutable_sandbox_tag: bool,
+) -> subprocess.CompletedProcess[str]:
     stdout_capture = _BoundedCapture(_MAX_ERROR_OUTPUT) if capture_output else None
     stderr_capture = _BoundedCapture(_MAX_ERROR_OUTPUT) if capture_output else None
     captures = tuple(
@@ -718,6 +778,7 @@ def run_process_group(
             process, lease = _spawn_with_process_tree_lease(
                 args,
                 sandbox_profile_builder=sandbox_profile_builder,
+                immutable_sandbox_tag=immutable_sandbox_tag,
                 cwd=cwd,
                 stdin=stdin,
                 stdout=stdout_capture.write_fd if stdout_capture else None,

@@ -167,6 +167,47 @@ The next implementation work should align with the phased plan in `canonical-arc
 - Coherence gate: Ripple Check runs before commit or state move, and dependent docs drift together or not at all.
 - Linear-Core gate: actionable work is issue-backed or explicitly dispositioned, and the repo-side ledger stays current.
 
+## Claude Cowork Purpose (merged from CLAUDE.md)
+
+`CLAUDE.md` in this repo is project-level operating guidance for Claude (Cowork orchestrator), loaded into every conversation so the operating model stays in the loop without Trevor restating it. `canonical-architecture.md` remains the repo's source of truth; `CLAUDE.md` is operating guidance, not spec.
+
+## Roles (extended — merged from CLAUDE.md)
+
+- **Claude Cowork (Orchestrator)** — primary orchestrator. Plan, decompose, draft Codex prompts, manage Linear state, edit governance/organization docs directly, route work, and resolve sequencing. Auditing is not Cowork's primary job; Cowork may perform a lightweight spec-alignment pass but is not the primary auditor and does not sit on the default audit gate. Cowork enforces all three repo principles before state moves — Continuity Check (Work Record exists), Ripple Check (no drift), and Linear-coverage (no un-Linearized follow-ups, no live issue missing from `todo.md` `Linear Issue Ledger`, and no missing provenance).
+- **Claude Code** — **primary auditor** for this repo. Thoroughly reviews every line of code and every fix Codex (or anyone else) produces: diffs, schemas, tests, invariants, cross-doc consistency, and architectural adherence. Runs per task, per fix, and at phase exits. Claude Code may also write code when doing so is the cleanest way to land an audit-surfaced fix, to unblock Codex on a narrow targeted change, or to close a small mechanical gap uncovered during review. Self-audit is never the sole gate, so any code Claude Code authors still passes through either a Cowork spec check plus Trevor verify, or a second independent Code session.
+- **ChatGPT Pro** — strategic/governance auditor. Gates phase exits and quarterly reviews per ADR-0004. Scope is phase-intent alignment, scope creep, and governance drift; Pro does not replace Code's line-level review.
+- **Codex** — primary implementor. Self-audits, but self-audit is never the gate.
+
+### Default Audit Chain
+
+Cowork drafts prompt → Trevor approves → Codex implements (Claude Code may co-implement narrow fixes) → **Code audits line-by-line** (diff, tests, invariants, cross-doc) → Cowork performs a lightweight spec-alignment check → Trevor verifies. Phase exits add Pro between Code and Trevor. Repair loops cap at 3 rounds per Codex conversation. Disagreements go to Trevor. When Claude Code authors code as part of a fix, that change still passes through an independent audit — a second Code session or Cowork's spec check plus Trevor's verify.
+
+## Linear — Additional Detail (merged from CLAUDE.md)
+
+- State flow ownership: manual transitions are Cowork-owned, queue claim/exit transitions are supervisor-owned, and Codex never moves state: `Inbox → Ready for Build → Building` (prompt handed to Trevor) `→ AI Audit` (Codex reports done; Claude Code audits line-by-line) `→ Human Verify` (Code audit clean + Cowork spec-alignment check) `→ Done` (Trevor only).
+- Every `todo.md` `Active Next Steps` item also has a matching Linear issue, annotated inline as `(GIL-N)`. Adding an item without its Linear issue ID or leaving a live issue without a ledger entry violates the coverage invariant (see `LINEAR.md` § Coverage Invariant).
+- <!-- merged from CLAUDE.md --> Other `todo.md` sections are records, not task queues, but any entry that implies future work must still carry a resolved `linear:` disposition per `LINEAR.md` `## Linear-at-the-core` (this repo's Repo Principles section above states the disposition as `no-action:` / `self-contained:` — both phrasings describe the same coverage requirement; treat them as equivalent).
+- Queue mode is supervisor-owned. The Codex queue only consumes issues with `Execution lane: Codex` and `Execution mode: Queue` per `QUEUE-RUNS.md`. Claude-owned audit or deeper test issues must be filed separately with `Execution lane: Claude Code` and `Execution mode: Manual`; Codex and the queue runner skip them and continue.
+- For adding Linear to a new project, use `LINEAR-BOOTSTRAP.md`.
+
+## Codex Handoff — Additional Detail (merged from CLAUDE.md)
+
+- Prompts follow `PROMPTS.md`'s five-part header: `Goal`, `Discipline`, `Read-scope`, `Body`, `Durable record`.
+- The `Durable record` section names every log entry expected, every Linear issue created or refreshed, every `Linear Issue Ledger` or `Active Branch Ledger` update required, and the Ripple Check attestation the Self-audit must contain.
+- Fresh Codex conversation per bounded task per `ADR-0005`; if repair loops reach round 3, restart with the latest auditor findings as the new brief, and never reuse the same Codex conversation across a phase boundary.
+- Manual prompts are drafted in the scoping Linear issue's description under the `prompt-review` label, reviewed by Codex and Claude Code via Linear comments, and revised by Cowork before handoff.
+- Queue-mode prompts are rendered from the versioned template in `QUEUE-RUNS.md`.
+- See `LINEAR.md` `## Prompt Drafting Surface`.
+
+## Orchestrator Scope (merged from CLAUDE.md)
+
+- Claude Cowork may edit directly: `todo.md`, Linear state, `CLAUDE.md`, and light organization moves.
+- Substantive edits go to Codex via a prompt: `canonical-architecture.md`, schemas, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `PROMPTS.md`, `LINEAR.md`, `AGENTS.project.md`, ADRs, `IMPLEMENTATION-PLAN.md`.
+
+## Authoritative Docs — Addendum (merged from CLAUDE.md)
+
+The full authoritative-doc set per `CLAUDE.md` also names `QUEUE-RUNS.md`, `AGENTS.md` (bootstrap pointer), and `AGENTS.project.md` (repo-local overlay) alongside the set already listed above in `## Authoritative Documents`.
+
 ## Global Mandatory Markers
 - [MANDATORY_STACK_RUNTIME] stack/runtime profile, risk areas, release gates, boundaries, rollback/ops checks
 - [MANDATORY_OPERATING_PRINCIPLES] operating principles aligned to `OPERATING_PRINCIPLES.md`

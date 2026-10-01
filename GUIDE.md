@@ -5,7 +5,7 @@
 
 ## Quick Reference — Where to Find Things
 
-If you are an agent beginning a session, read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md) and [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md) first, then [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md) and its repo-local overlay [AGENTS.project.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.project.md). If you are orienting as a human, start with [README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/README.md) and then use this guide for reading order and lookup.
+If you are an agent beginning a session, read [CONTINUITY.md](CONTINUITY.md) and [COHERENCE.md](COHERENCE.md) first, then [AGENTS.md](AGENTS.md) and its repo-local overlay [AGENTS.project.md](AGENTS.project.md). Cursor Cloud Agents and similar parallel runs should also read [docs/coordinator-fleet.md](docs/coordinator-fleet.md). If you are orienting as a human, start with [README.md](README.md) and then use this guide for reading order and lookup.
 
 Use these files for current truth:
 
@@ -178,13 +178,17 @@ The Linear governance reference. Read this when configuring or using Linear so t
 
 The Linear setup runbook for new projects. Read this when configuring Linear from scratch so the screen-by-screen sequence and known pitfalls are followed without re-discovery.
 
-### [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md)
+### [AGENTS.md](AGENTS.md)
 
 Thin bootstrap file for agent sessions. Read this first so it can route you to the authoritative repo-local overlay.
 
-### [AGENTS.project.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.project.md)
+### [AGENTS.project.md](AGENTS.project.md)
 
 The authoritative repo-local agent overlay. Read this for repo-specific rules, role boundaries, completion authority, and mandatory markers.
+
+### [docs/coordinator-fleet.md](docs/coordinator-fleet.md)
+
+Branch and PR hygiene when multiple Cloud Agents or coordinator runs touch this checkout. Distinct from supervisor queue execution (`QUEUE-RUNS.md`).
 
 ### [README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/README.md)
 
@@ -252,6 +256,7 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Which launch-related pieces are already real vs. still future work? | `docs/launch-plan.md` |
 | How do I bootstrap Linear on a new project? | `LINEAR-BOOTSTRAP.md` |
 | What should an agent read first? | `AGENTS.md`, then `AGENTS.project.md` |
+| How do parallel Cloud Agents avoid branch collisions? | `docs/coordinator-fleet.md` |
 | How do I find the right file fast? | `GUIDE.md` section `Quick Reference — Where to Find Things` |
 | Where are audits, ideas, and feedback decisions recorded? | `todo.md` |
 | Where do all live Linear issues get mirrored with why/source? | `todo.md` section `Linear Issue Ledger` |

@@ -347,7 +347,7 @@ Give Codex the following prompt (adapted from the ChatGPT Pro prompt that all th
 ```
 Read the following files before starting:
 - canonical-architecture.md (Sections 5.1, 8, 9, 13, 15, 18, 19, 20)
-- AGENTS.md
+- AGENTS.md, then AGENTS.project.md (repo-local overlay)
 - .agent/contract.yml
 
 Build a Python supervisor for an autonomous multi-agent coding system.

@@ -14,3 +14,7 @@ Root `AGENTS.md` is a thin pointer for Claude and Codex; follow its Required Rea
 - Do not treat chat memory as durable project state.
 - Do not duplicate the repo contract here; repo-specific guidance lives in `AGENTS.project.md`.
 - When a principle doc changes, update the companion docs that depend on it in the same commit.
+
+## Coordinator fleet
+
+Cursor Cloud Agents and similar parallel runs: read `docs/coordinator-fleet.md` for branch/PR hygiene. Detailed roles, audit chain, and Linear workflow live in `AGENTS.project.md` (merged from the former long `CLAUDE.md` body).

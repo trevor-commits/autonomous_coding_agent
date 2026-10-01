@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Offline-friendly local verification aligned with .github/workflows/ci.yml.
+# Requires Python 3.11+ and installed package deps (jsonschema, PyYAML, referencing).
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/verify-local.sh [--governance-only]
+
+Runs the default local verification path for this repo:
+  1. Ensure runtime imports resolve (editable install only if missing)
+  2. unittest discover -s tests
+  3. compileall supervisor tests
+  4. governance smoke (required docs/sections)
+
+Options:
+  --governance-only   Skip tests and compileall; run governance smoke only.
+
+Optional environment (not part of default CI parity):
+  ACA_RUN_LIVE_CODEX_TESTS=1   Enable live Codex containment tests (network/tools).
+  macOS only: Seatbelt sandbox tests run automatically on Darwin.
+
+Benchmark fixtures that point at an external target repo skip path checks when
+that repo is absent (see fixtures/README.md).
+EOF
+}
+
+governance_only=0
+if [[ "${1:-}" == "--governance-only" ]]; then
+  governance_only=1
+elif [[ -n "${1:-}" ]]; then
+  usage >&2
+  exit 2
+fi
+
+if ! python3 -c "import jsonschema, referencing, yaml" >/dev/null 2>&1; then
+  echo "verify-local: installing editable package (needs network once)..." >&2
+  python3 -m pip install -e .
+fi
+
+run_governance_smoke() {
+  test -f AGENTS.md
+  test -f AGENTS.project.md
+  test -f CLAUDE.md
+  test -f CONTINUITY.md
+  test -f COHERENCE.md
+  test -f LINEAR.md
+  test -f PROJECT_INTENT.md
+  test -f todo.md
+  test -f pyproject.toml
+
+  grep -q '^## What To Read' CLAUDE.md
+  grep -q '^## Repo Principles' AGENTS.project.md
+  grep -q '^## Work Record Format' CONTINUITY.md
+  grep -q '^## Active Next Steps' todo.md
+  grep -q '^## Linear Issue Ledger' todo.md
+  grep -q '^## Work Record Log' todo.md
+  grep -q '^## Audit Record Log' todo.md
+  grep -q '^## Test Evidence Log' todo.md
+}
+
+if [[ "$governance_only" -eq 1 ]]; then
+  run_governance_smoke
+  echo "verify-local: governance smoke OK"
+  exit 0
+fi
+
+python3 -m unittest discover -s tests -v
+python3 -m compileall -q supervisor tests
+run_governance_smoke
+echo "verify-local: tests, compileall, and governance smoke OK"

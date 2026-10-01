@@ -8,7 +8,7 @@ cd "$ROOT"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/verify-local.sh [--governance-only]
+Usage: scripts/verify-local.sh [--governance-only | --help]
 
 Runs the default local verification path for this repo:
   1. Ensure runtime imports resolve (editable install only if missing)
@@ -18,6 +18,7 @@ Runs the default local verification path for this repo:
 
 Options:
   --governance-only   Skip tests and compileall; run governance smoke only.
+  --help              Print this message and exit 0.
 
 Optional environment (not part of default CI parity):
   ACA_RUN_LIVE_CODEX_TESTS=1   Enable live Codex containment tests (network/tools).
@@ -31,6 +32,9 @@ EOF
 governance_only=0
 if [[ "${1:-}" == "--governance-only" ]]; then
   governance_only=1
+elif [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
 elif [[ -n "${1:-}" ]]; then
   usage >&2
   exit 2
@@ -51,6 +55,10 @@ run_governance_smoke() {
   test -f PROJECT_INTENT.md
   test -f todo.md
   test -f pyproject.toml
+  test -f docs/local-verification.md
+  test -f scripts/verify-local.sh
+
+  grep -q 'scripts/verify-local.sh' README.md
 
   grep -q '^## What To Read' CLAUDE.md
   grep -q '^## Repo Principles' AGENTS.project.md

@@ -25,7 +25,7 @@ Before any phase begins, confirm the following:
 - [ ] Codex CLI is installed, authenticated, and functional (`codex --version` returns a version and the intended local auth path works)
 - [ ] Claude access is configured and functional through the intended integration path (for example API access)
 - [ ] Node.js and npm/pnpm are installed
-- [ ] Python 3.10+ is installed
+- [ ] Python 3.11+ is installed (matches `requires-python` in `pyproject.toml`)
 - [ ] Git is installed and configured with credentials
 - [ ] Playwright is installed or installable (`npx playwright install`)
 

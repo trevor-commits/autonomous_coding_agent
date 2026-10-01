@@ -1,4 +1,7 @@
-"""Governance and navigation portability checks mirrored from scripts/verify-local.sh."""
+"""Governance and navigation portability checks mirrored from scripts/verify-local.sh.
+
+Keep NAV_DOCS in sync with the portability loop in scripts/verify-local.sh run_governance_smoke().
+"""
 
 from __future__ import annotations
 
@@ -25,6 +28,11 @@ class GovernancePortabilityTests(unittest.TestCase):
             1,
             "AGENTS.project.md must expose exactly one ## Repo Principles heading",
         )
+
+    def test_operator_verify_docs_exist(self) -> None:
+        self.assertTrue((REPO_ROOT / "docs" / "local-verification.md").is_file())
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("scripts/verify-local.sh", readme)
 
     def test_live_nav_docs_avoid_absolute_aca_checkout_paths(self) -> None:
         offenders: list[str] = []

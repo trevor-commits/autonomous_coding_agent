@@ -57,8 +57,10 @@ run_governance_smoke() {
   test -f pyproject.toml
   test -f docs/local-verification.md
   test -f scripts/verify-local.sh
+  test -f .github/workflows/ci.yml
 
   grep -q 'scripts/verify-local.sh' README.md
+  grep -q 'bash scripts/verify-local.sh' .github/workflows/ci.yml
 
   grep -q '^## What To Read' CLAUDE.md
   grep -q '^## Repo Principles' AGENTS.project.md

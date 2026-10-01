@@ -33,6 +33,10 @@ class GovernancePortabilityTests(unittest.TestCase):
         self.assertTrue((REPO_ROOT / "docs" / "local-verification.md").is_file())
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("scripts/verify-local.sh", readme)
+        guide = (REPO_ROOT / "GUIDE.md").read_text(encoding="utf-8")
+        self.assertIn("scripts/verify-local.sh", guide)
+        ci = (REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn("bash scripts/verify-local.sh", ci)
 
     def test_live_nav_docs_avoid_absolute_aca_checkout_paths(self) -> None:
         offenders: list[str] = []

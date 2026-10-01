@@ -26,16 +26,32 @@ bash scripts/verify-local.sh --governance-only
 
 `bash scripts/verify-local.sh --help` prints the same usage text.
 
+### Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Success (`--governance-only` or full run) |
+| `2` | Unknown CLI flag (see `--help`) |
+| `1` | Test failure, missing governance file/section, or portability smoke failure |
+
+### GitHub Actions matrix
+
+The `python` job in `.github/workflows/ci.yml` runs `bash scripts/verify-local.sh` on **ubuntu-latest** for Python **3.11** and **3.12** only. Local parity is the same command on either version after `pip install -e .`.
+
 ## Expected unittest volume (offline clone)
 
 After `pip install -e .`, a full run should end with **OK** and a small, stable skip set (no network, no secrets):
 
 | Outcome | Typical count | Why skipped |
 | --- | --- | --- |
-| Tests run | **257** | Full `tests/` discover |
+| Tests run | **259** | Full `tests/` discover |
 | Skipped | **12** | Live Codex (`ACA_RUN_LIVE_CODEX_TESTS` unset), macOS Seatbelt sandbox, external benchmark target-repo paths |
 
-Re-baseline these numbers when adding or removing tests; `tests/test_verify_local_entrypoint.py` only checks the governance subprocess path.
+Re-baseline these numbers when adding or removing tests. Fast regression guards (no full discover):
+
+- `tests/test_verify_local_entrypoint.py` — subprocess `--governance-only`, `--help`, unknown-flag exit `2`
+- `tests/test_governance_portability.py` — mirrors shell portability loop and operator doc wiring
+- `tests/test_ci_workflow_parity.py` — CI must delegate to `scripts/verify-local.sh` (no duplicated unittest/compileall steps)
 
 ## Troubleshooting
 
@@ -57,7 +73,7 @@ Governance portability rules are enforced in both `scripts/verify-local.sh` and 
 | macOS Seatbelt sandbox tests | Run on Darwin; picked up automatically by unittest |
 | Benchmark fixtures against a real target repo | Checkout the external repo at the path expected by the fixture; see [fixtures/README.md](../fixtures/README.md) |
 
-## Open draft PR survey (2026-10-01, deeper pass)
+## Open draft PR survey (2026-10-01, deepest pass)
 
 Surveyed **open draft** pull requests on `trevor-commits/autonomous_coding_agent`. No merges, no Linear/todo landing, no live external writes, no secrets.
 
@@ -68,12 +84,14 @@ Surveyed **open draft** pull requests on `trevor-commits/autonomous_coding_agent
 
 **Recommendation:** Land usage-burn (#13) first for verify/CI truth, then rebase harness hygiene (#12) and run `bash scripts/verify-local.sh` plus `python3 -m unittest tests.test_agent_harness -v`.
 
-### Deeper pass additions (same branch)
+### Usage-burn pass additions on #13 (same branch)
 
-- Governance smoke requires `docs/local-verification.md`, executable `scripts/verify-local.sh`, and a README pointer to the script.
-- `tests/test_verify_local_entrypoint.py` — subprocess `--governance-only` and `--help` (fast regression guard).
+- Governance smoke requires `docs/local-verification.md`, executable `scripts/verify-local.sh`, README + CI workflow pointers to the script.
+- `tests/test_verify_local_entrypoint.py` — subprocess `--governance-only`, `--help`, unknown-flag exit `2`.
+- `tests/test_ci_workflow_parity.py` — blocks CI drift back to inline `unittest` / `compileall`.
+- `tests/test_governance_portability.py` — `GUIDE.md` quick-reference wiring and CI delegation checks.
 - `IMPLEMENTATION-PLAN.md` prerequisites aligned to Python **3.11+** (`pyproject.toml`).
-- This page: expected skip matrix, troubleshooting, NAV_DOCS sync note.
+- This page: exit codes, CI matrix, expected skip matrix, troubleshooting, NAV_DOCS sync note.
 
 ## Still tracked elsewhere
 

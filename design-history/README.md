@@ -4,11 +4,11 @@ This folder holds historical architecture drafts, reconciliation documents, audi
 
 These files are useful for context, but they are not the implementation authority. Current truth lives in:
 
-- [../PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
-- [../canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
-- [../RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
-- [../STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
-- [../GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
+- [../PROJECT_INTENT.md](PROJECT_INTENT.md)
+- [../canonical-architecture.md](canonical-architecture.md)
+- [../RULES.md](RULES.md)
+- [../STRUCTURE.md](STRUCTURE.md)
+- [../GUIDE.md](GUIDE.md), especially `Quick Reference — Where to Find Things`
 
 Some archived documents intentionally preserve superseded terminology, layout assumptions, or intermediate design states. That is expected. Treat them as historical evidence, not current operating instructions.
 

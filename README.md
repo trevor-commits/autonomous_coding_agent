@@ -4,103 +4,117 @@ This repository holds the active source-of-truth documentation, planning artifac
 
 ## Start Here
 
-Read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md) and [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md) first. They state the root-level assumptions that every other rule in this repo depends on. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md) section `Linear-at-the-core` is the third pillar.
+Read [CONTINUITY.md](CONTINUITY.md) and [COHERENCE.md](COHERENCE.md) first. They state the root-level assumptions that every other rule in this repo depends on. [LINEAR.md](LINEAR.md) section `Linear-at-the-core` is the third pillar.
 
-- Need reading order, document roles, and file lookup: [GUIDE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/GUIDE.md), especially `Quick Reference — Where to Find Things`
-- Agent session bootstrap: [AGENTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.md), then [AGENTS.project.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/AGENTS.project.md) for the authoritative repo-local overlay
+- Need reading order, document roles, and file lookup: [GUIDE.md](GUIDE.md), especially `Quick Reference — Where to Find Things`
+- Agent session bootstrap: [AGENTS.md](AGENTS.md), then [AGENTS.project.md](AGENTS.project.md) for the authoritative repo-local overlay
 
 ## Local Runtime
 
-The supervisor code targets Python 3.11 or newer. Runtime dependencies are declared in [pyproject.toml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/pyproject.toml): `jsonschema>=4.0.0` and `PyYAML>=6.0.0`.
+The supervisor code targets Python 3.11 or newer. Runtime dependencies are declared in [pyproject.toml](pyproject.toml) (`jsonschema`, `referencing`, `PyYAML`).
 
-Common local checks:
+Fresh clone (Linux, macOS, or cloud agent):
+
+```bash
+python3 -m pip install -e .
+bash scripts/verify-local.sh
+```
+
+`scripts/verify-local.sh` runs the same checks as the Python jobs in [.github/workflows/ci.yml](.github/workflows/ci.yml): unit tests, `compileall`, and a governance smoke over required docs/sections. It skips `pip install` when imports already resolve, so repeat runs are offline-friendly.
+
+Individual commands (equivalent slices):
 
 - `python3 -m unittest discover -s tests -v`
 - `python3 -m compileall -q supervisor tests`
+- `bash scripts/verify-local.sh --governance-only`
+
+Optional (not required for CI parity): set `ACA_RUN_LIVE_CODEX_TESTS=1` for live Codex probes; macOS-only Seatbelt tests run automatically on Darwin. Benchmark fixtures may skip external target-repo path checks when that repo is not on disk (see [fixtures/README.md](fixtures/README.md)).
+
+Operator notes, open-draft PR survey, and optional gates: [docs/local-verification.md](docs/local-verification.md).
 
 ## Active Docs
 
 Read these when working on the current system:
 
-1. [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CONTINUITY.md)
+1. [CONTINUITY.md](CONTINUITY.md)
    Root-level continuity principle: what must be written, signed, and pointed to before work survives the conversation that produced it.
 
-2. [COHERENCE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/COHERENCE.md)
+2. [COHERENCE.md](COHERENCE.md)
    Root-level coherence principle: Ripple Check, Dependency Map, and same-commit propagation for live-doc changes.
 
-3. [PROJECT_INTENT.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROJECT_INTENT.md)
+3. [PROJECT_INTENT.md](PROJECT_INTENT.md)
    What the repo is for, who it serves, what is out of scope, and how success is judged.
 
-4. [canonical-architecture.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/canonical-architecture.md)
+4. [canonical-architecture.md](canonical-architecture.md)
    Source of truth. Build from this.
 
-5. [LOGIC.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LOGIC.md)
+5. [LOGIC.md](LOGIC.md)
    Conceptual explanation of how the system behaves.
 
-6. [RULES.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/RULES.md)
+6. [RULES.md](RULES.md)
    Enforceable constraints and stop conditions.
 
-7. [STRUCTURE.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/STRUCTURE.md)
+7. [STRUCTURE.md](STRUCTURE.md)
    File placement, repo boundary, runtime-state placement, and archive boundary.
 
-8. [PROMPTS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/PROMPTS.md)
+8. [PROMPTS.md](PROMPTS.md)
    Prompt-system source of truth.
 
-9. [IMPLEMENTATION-PLAN.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/IMPLEMENTATION-PLAN.md)
+9. [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md)
    Build order, verification expectations, and phase exits.
 
-10. [docs/superpowers-playbook.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers-playbook.md)
+10. [docs/superpowers-playbook.md](docs/superpowers-playbook.md)
    Repo-specific guidance for when Superpowers skills help in this
    documentation-first architecture/governance repo and when they add overhead.
 
-11. [docs/codex-april-16-2026-impact.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-april-16-2026-impact.md)
+11. [docs/codex-april-16-2026-impact.md](docs/codex-april-16-2026-impact.md)
    Repo-local impact memo for the April 16, 2026 Codex update and the ongoing
    plugin decision ledger, including what to adopt now, what to defer for v1,
    and where future plugin use/not-use decisions should be updated.
 
-12. [docs/codex-plugin-operator-cheatsheet.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-plugin-operator-cheatsheet.md)
+12. [docs/codex-plugin-operator-cheatsheet.md](docs/codex-plugin-operator-cheatsheet.md)
    Operational split for `Autopilot`, `HOTL`, `Cavekit`, `CodeRabbit`,
    `Brooks Lint`, `Sentry`, and `plugin-eval`, plus the current shortlist of
    further plugin candidates worth spiking later.
 
-13. [docs/codex-workflow-plugin-setup.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-workflow-plugin-setup.md)
+13. [docs/codex-workflow-plugin-setup.md](docs/codex-workflow-plugin-setup.md)
    Exact install state, plugin ids, auth prerequisites, and settings posture
    for the installed operator plugins `Autopilot`, `HOTL`, `Cavekit`,
    `Brooks Lint`, and `Sentry`.
 
-14. [docs/codex-app-marketplace-evaluations.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/codex-app-marketplace-evaluations.md)
+14. [docs/codex-app-marketplace-evaluations.md](docs/codex-app-marketplace-evaluations.md)
    Durable marketplace-app evaluation memo covering the reviewed app surfaces,
    the top adds worth enabling later, the major redundancy traps, and the
    category-specific "only if this becomes real" calls.
 
-15. [docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md)
+15. [docs/coderabbit-review-settings.md](docs/coderabbit-review-settings.md)
    Exact CodeRabbit settings, UI caveats, path instructions, and the
    repo-specific rationale behind the current review-trial posture.
 
-16. [docs/launch-plan.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/launch-plan.md)
+16. [docs/launch-plan.md](docs/launch-plan.md)
    Reconciles which launch-related lanes are already present as process/spec and which are still future implementation work.
 
-17. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
+17. [docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md](docs/superpowers/specs/2026-04-16-local-single-run-harness-design.md)
    Approved design baseline for the first runnable local single-run supervisor
    slice, aligned to the supervisor foundation already landed in `supervisor/`.
 
-17. [LINEAR.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR.md)
+18. [LINEAR.md](LINEAR.md)
    Linear governance for this repo. The board is routing metadata only; repo docs remain authoritative.
 
-18. [QUEUE-RUNS.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/QUEUE-RUNS.md)
+19. [QUEUE-RUNS.md](QUEUE-RUNS.md)
    Exact operating contract for unattended supervisor-mediated queue execution of Linear issues.
 
-19. [LINEAR-BOOTSTRAP.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/LINEAR-BOOTSTRAP.md)
+20. [LINEAR-BOOTSTRAP.md](LINEAR-BOOTSTRAP.md)
    Linear setup runbook for new projects. Use when bootstrapping Linear from scratch.
 
-20. [todo.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/todo.md)
+21. [todo.md](todo.md)
    Active queue, suggestion backlog, audit trail, test evidence, and feedback decisions.
 
 ## Design History
 
-Archived drafts, reconciliation docs, old architecture summaries, and audit records now live under [design-history/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history). Start with [design-history/README.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/README.md) before opening historical documents.
+Archived drafts, reconciliation docs, old architecture summaries, and audit records now live under [design-history/](design-history). Start with [design-history/README.md](design-history/README.md) before opening historical documents.
 
-Latest queue-upgrade rationale and conversation-audit record: [design-history/queue-upgrade-research-2026-04-16.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/design-history/queue-upgrade-research-2026-04-16.md)
+Latest queue-upgrade rationale and conversation-audit record: [design-history/queue-upgrade-research-2026-04-16.md](design-history/queue-upgrade-research-2026-04-16.md)
 
 ## Feedback, Audits, And Idea Tracking
 
@@ -117,15 +131,15 @@ This repo keeps durable governance records instead of leaving them in chat:
 ## Review Tooling
 
 This repo's CodeRabbit PR-review config lives at
-[.coderabbit.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml).
+[.coderabbit.yaml](.coderabbit.yaml).
 Use it as the repo-local source for CodeRabbit review behavior. GitHub App
 installation and authorization remain a manual operator step outside the repo.
 The detailed settings rationale, UI caveats, and field-by-field review posture
 live in
-[docs/coderabbit-review-settings.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/coderabbit-review-settings.md).
+[docs/coderabbit-review-settings.md](docs/coderabbit-review-settings.md).
 
 This repo's Brooks Lint boundary config lives at
-[.brooks-lint.yaml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.brooks-lint.yaml).
+[.brooks-lint.yaml](.brooks-lint.yaml).
 It keeps archive and runtime-output directories out of default Brooks review
 scope without changing the plugin's risk model. The plugin's generated
 `.brooks-lint-history.json` is intentionally gitignored here.
@@ -143,4 +157,4 @@ For partner envelopes, the Codex builder is edit-only: it may apply scoped patch
 
 ## Next Build Focus
 
-The active design is [docs/designs/autonomous-partner.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/docs/designs/autonomous-partner.md), and the completed build record is [openspec/changes/archive/2026-07-14-autonomous-partner-reposition/](/Users/gillettes/Coding Projects/Autonomous Coding Agent/openspec/changes/archive/2026-07-14-autonomous-partner-reposition). The full suites, isolated pilot, approval-binding repair, concurrency/idempotency repairs, and canonical spec sync are release-gated together. Remaining release work is governed landing plus immutable observe-only deployment proof; recurring partner execution remains disabled.
+The active design is [docs/designs/autonomous-partner.md](docs/designs/autonomous-partner.md), and the completed build record is [openspec/changes/archive/2026-07-14-autonomous-partner-reposition/](openspec/changes/archive/2026-07-14-autonomous-partner-reposition). The full suites, isolated pilot, approval-binding repair, concurrency/idempotency repairs, and canonical spec sync are release-gated together. Remaining release work is governed landing plus immutable observe-only deployment proof; recurring partner execution remains disabled.

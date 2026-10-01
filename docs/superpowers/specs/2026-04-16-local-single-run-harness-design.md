@@ -139,7 +139,7 @@ Responsibilities:
 
 ### Required Naming Correction
 
-The current [`schemas/run-contract.schema.json`](/Users/gillettes/Coding Projects/Autonomous Coding Agent/schemas/run-contract.schema.json) file actually describes the repo contract shape, not the per-run task contract.
+The current [`schemas/run-contract.schema.json`](schemas/run-contract.schema.json) file actually describes the repo contract shape, not the per-run task contract.
 
 The next implementation slice should fix that mismatch explicitly:
 

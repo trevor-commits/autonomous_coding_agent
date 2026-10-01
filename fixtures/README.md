@@ -1,11 +1,15 @@
 # Benchmark Fixtures
 
-These run contracts target the first implementation repo:
+These run contracts target the first implementation repo used for benchmarks:
 
-- repo: `/Users/gillettes/Coding Projects/gillette-website`
-- rationale: it is the first currently available repo in Trevor's workspace that
-  already exposes a real frontend, backend, `/api/health`, and Playwright smoke
-  coverage.
+- default target repo path in fixtures: operator-local `gillette-website` checkout
+  (historically under macOS `~/Coding Projects/gillette-website`; override by editing
+  fixture `repo_path` if your layout differs)
+- rationale: real frontend, backend, `/api/health`, and Playwright smoke coverage
+
+CI and fresh clones without that repo still validate fixture shape and run-contract
+schema; `tests/test_benchmark_fixtures.py` skips external path-existence assertions
+when the target repo directory is absent.
 
 The suite is intentionally split into two groups:
 

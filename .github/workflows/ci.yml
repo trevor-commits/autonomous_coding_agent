@@ -35,30 +35,5 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
 
-      - name: Run tests
-        run: python -m unittest discover -s tests -v
-
-      - name: Compile Python sources
-        run: python -m compileall -q supervisor tests
-
-      - name: Governance smoke
-        run: |
-          set -euo pipefail
-
-          test -f AGENTS.md
-          test -f AGENTS.project.md
-          test -f CLAUDE.md
-          test -f CONTINUITY.md
-          test -f COHERENCE.md
-          test -f LINEAR.md
-          test -f PROJECT_INTENT.md
-          test -f todo.md
-          test -f pyproject.toml
-
-          grep -q '^## Repo Principles' CLAUDE.md
-          grep -q '^## Work Record Format' CONTINUITY.md
-          grep -q '^## Active Next Steps' todo.md
-          grep -q '^## Linear Issue Ledger' todo.md
-          grep -q '^## Work Record Log' todo.md
-          grep -q '^## Audit Record Log' todo.md
-          grep -q '^## Test Evidence Log' todo.md
+      - name: Verify (tests, compile, governance)
+        run: bash scripts/verify-local.sh

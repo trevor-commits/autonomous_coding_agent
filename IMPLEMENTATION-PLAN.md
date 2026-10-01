@@ -25,11 +25,22 @@ Before any phase begins, confirm the following:
 - [ ] Codex CLI is installed, authenticated, and functional (`codex --version` returns a version and the intended local auth path works)
 - [ ] Claude access is configured and functional through the intended integration path (for example API access)
 - [ ] Node.js and npm/pnpm are installed
-- [ ] Python 3.10+ is installed
+- [ ] Python 3.11+ is installed (matches `requires-python` in `pyproject.toml`)
 - [ ] Git is installed and configured with credentials
 - [ ] Playwright is installed or installable (`npx playwright install`)
 
 If any prerequisite fails, fix it before proceeding. The system cannot compensate for a broken local environment.
+
+### This repository (supervisor package and governance docs)
+
+When changing `supervisor/`, `tests/`, CI, or live navigation docs in this checkout:
+
+```bash
+python3 -m pip install -e .
+bash scripts/verify-local.sh
+```
+
+`scripts/verify-local.sh` is the offline-friendly parity path for [.github/workflows/ci.yml](.github/workflows/ci.yml) Python jobs. Use `bash scripts/verify-local.sh --governance-only` for a fast doc-section and portability smoke without running the full test suite. See [docs/local-verification.md](docs/local-verification.md) for optional gates and open-PR survey notes.
 
 ---
 

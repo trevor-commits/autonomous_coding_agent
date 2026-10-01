@@ -32,15 +32,17 @@ class VerifyLocalEntrypointTests(unittest.TestCase):
         self.assertIn("governance smoke OK", proc.stdout)
 
     def test_help_exits_zero(self) -> None:
-        proc = subprocess.run(
-            ["bash", str(VERIFY_SCRIPT), "--help"],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(proc.returncode, 0)
-        self.assertIn("verify-local.sh", proc.stdout)
+        for flag in ("--help", "-h"):
+            with self.subTest(flag=flag):
+                proc = subprocess.run(
+                    ["bash", str(VERIFY_SCRIPT), flag],
+                    cwd=REPO_ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(proc.returncode, 0)
+                self.assertIn("verify-local.sh", proc.stdout)
 
     def test_unknown_flag_exits_two(self) -> None:
         proc = subprocess.run(

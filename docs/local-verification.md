@@ -65,6 +65,31 @@ Re-baseline these numbers when adding or removing tests. Fast regression guards 
 
 Governance portability rules are enforced in both `scripts/verify-local.sh` and `tests/test_governance_portability.py`; keep `NAV_DOCS` in the Python test aligned with the shell loop.
 
+| Check | `verify-local.sh --governance-only` | Full run + `tests/test_governance_portability.py` |
+| --- | --- | --- |
+| Required governance files / todo sections | yes | yes (via unittest after discover) |
+| README / IMPLEMENTATION-PLAN / AGENTS.md → verify script | yes | yes |
+| `GUIDE.md` quick-ref wiring | no (shell) | yes |
+| `docs/local-verification.md` section contract | no (shell) | yes |
+| CI workflow parity (no inline unittest) | grep in shell | `tests/test_ci_workflow_parity.py` |
+| Nav doc portability (GIL-12 subset) | yes | yes |
+
+## Offline verify recipe (cloud agent / fresh VM)
+
+No Linear writes, no secrets, no merge. From repo root:
+
+```bash
+python3 -m pip install -e .
+bash scripts/verify-local.sh
+bash scripts/verify-local.sh --governance-only
+python3 -m unittest \
+  tests.test_verify_local_entrypoint \
+  tests.test_governance_portability \
+  tests.test_ci_workflow_parity -v
+```
+
+Expect full discover **259** tests, **12** skipped, exit **0**. Re-baseline counts in this doc when the suite size changes.
+
 ## Optional gates (not CI parity)
 
 | Gate | How |
@@ -73,7 +98,7 @@ Governance portability rules are enforced in both `scripts/verify-local.sh` and 
 | macOS Seatbelt sandbox tests | Run on Darwin; picked up automatically by unittest |
 | Benchmark fixtures against a real target repo | Checkout the external repo at the path expected by the fixture; see [fixtures/README.md](../fixtures/README.md) |
 
-## Open draft PR survey (2026-10-01, deepest pass)
+## Open draft PR survey (2026-10-01, deepest pass + reliability lock)
 
 Surveyed **open draft** pull requests on `trevor-commits/autonomous_coding_agent`. No merges, no Linear/todo landing, no live external writes, no secrets.
 
@@ -82,7 +107,19 @@ Surveyed **open draft** pull requests on `trevor-commits/autonomous_coding_agent
 | [#13](https://github.com/trevor-commits/autonomous_coding_agent/pull/13) | `cursor/usage-burn-reliability-b7b3` | `verify-local.sh`, CI parity, governance smoke, portability, operator docs | **Canonical draft** — all usage-burn commits land here |
 | [#12](https://github.com/trevor-commits/autonomous_coding_agent/pull/12) | `cursor/agents-harness-hygiene-7665` | Harness docs (`docs/coordinator-fleet.md`, CLAUDE/AGENTS), `tests/test_agent_harness.py`, `COHERENCE.md` / `todo.md` | Overlaps `AGENTS.md`, `GUIDE.md`, `IMPLEMENTATION-PLAN.md`, harness spec paths — rebase onto `main` after #13 |
 
-**Recommendation:** Land usage-burn (#13) first for verify/CI truth, then rebase harness hygiene (#12) and run `bash scripts/verify-local.sh` plus `python3 -m unittest tests.test_agent_harness -v`.
+### File-level overlap (#12 vs #13)
+
+| Path | #13 | #12 | Merge note |
+| --- | --- | --- | --- |
+| `AGENTS.md` | verify wiring | harness read order | Reconcile harness text after verify links land |
+| `GUIDE.md` | portable links + verify quick-ref | harness / fleet pointers | Prefer #13 nav portability; fold #12 fleet rows |
+| `IMPLEMENTATION-PLAN.md` | verify-local + Python 3.11+ | harness prerequisites | Keep #13 verify block; merge #12 harness deltas |
+| `README.md` | Local Runtime section | indexing | #13 owns verify truth |
+| `docs/coordinator-fleet.md` | — | new/expanded | Lands with #12 only |
+| `tests/test_agent_harness.py` | — | new | Run after rebase: `python3 -m unittest tests.test_agent_harness -v` |
+| `todo.md` / `COHERENCE.md` | — | ledger / ripple | Human closeout; not part of usage-burn |
+
+**Recommendation:** Land usage-burn (#13) first for verify/CI truth, then rebase harness hygiene (#12) and run the [offline verify recipe](#offline-verify-recipe-cloud-agent--fresh-vm) plus `python3 -m unittest tests.test_agent_harness -v`.
 
 ### Usage-burn pass additions on #13 (same branch)
 
@@ -92,6 +129,7 @@ Surveyed **open draft** pull requests on `trevor-commits/autonomous_coding_agent
 - `tests/test_governance_portability.py` — `GUIDE.md` quick-reference wiring and CI delegation checks.
 - `IMPLEMENTATION-PLAN.md` prerequisites aligned to Python **3.11+** (`pyproject.toml`).
 - This page: exit codes, CI matrix, expected skip matrix, troubleshooting, NAV_DOCS sync note.
+- **Reliability lock (this pass):** shell smoke also requires `IMPLEMENTATION-PLAN.md` + `AGENTS.md` verify wiring; Python contract test for operator doc sections and test/skip baselines; `-h` parity test; enforcement table + offline cloud recipe above.
 
 ## Still tracked elsewhere
 

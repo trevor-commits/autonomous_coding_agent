@@ -60,6 +60,9 @@ run_governance_smoke() {
   test -f .github/workflows/ci.yml
 
   grep -q 'scripts/verify-local.sh' README.md
+  grep -q 'scripts/verify-local.sh' IMPLEMENTATION-PLAN.md
+  grep -q 'docs/local-verification.md' IMPLEMENTATION-PLAN.md
+  grep -q 'scripts/verify-local.sh' AGENTS.md
   grep -q 'bash scripts/verify-local.sh' .github/workflows/ci.yml
 
   grep -q '^## What To Read' CLAUDE.md

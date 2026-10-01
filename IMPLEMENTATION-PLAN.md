@@ -31,6 +31,17 @@ Before any phase begins, confirm the following:
 
 If any prerequisite fails, fix it before proceeding. The system cannot compensate for a broken local environment.
 
+### This repository (supervisor package and governance docs)
+
+When changing `supervisor/`, `tests/`, CI, or live navigation docs in this checkout:
+
+```bash
+python3 -m pip install -e .
+bash scripts/verify-local.sh
+```
+
+`scripts/verify-local.sh` is the offline-friendly parity path for [.github/workflows/ci.yml](.github/workflows/ci.yml) Python jobs. Use `bash scripts/verify-local.sh --governance-only` for a fast doc-section and portability smoke without running the full test suite. See [docs/local-verification.md](docs/local-verification.md) for optional gates and open-PR survey notes.
+
 ---
 
 ## Phase 0: Repo Preparation and Manual Baseline

@@ -156,7 +156,7 @@ The next implementation work should align with the phased plan in `canonical-arc
 - If a task reaches round 3, restart with the latest auditor findings as the new brief.
 - Never let one conversation silently span two prompts that should be separate bounded tasks.
 
-## Repo Principles
+## Mandatory Principle Enforcement (merged from CLAUDE.md)
 [MANDATORY_CONTINUITY] load and enforce local `CONTINUITY.md`; bounded tasks must leave a durable Work Record, honest Self-audit, and explicit `did not verify X because Y` note, and the audit path must permit Claude Code to spot-check at least one claim
 [MANDATORY_COHERENCE] load and enforce local `COHERENCE.md`; governed changes require a Ripple Check, same-commit companion-doc updates, and an append-only Dependency Map
 [MANDATORY_LINEAR_CORE] load and enforce the local Linear-Core contract; actionable work must have a live Linear issue or an explicit `no-action:` / `self-contained:` disposition, and every live issue must keep a repo-side `Linear Issue Ledger` entry with `todo home:`, `why this exists:`, and `origin source:`

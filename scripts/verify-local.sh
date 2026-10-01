@@ -60,6 +60,18 @@ run_governance_smoke() {
   grep -q '^## Work Record Log' todo.md
   grep -q '^## Audit Record Log' todo.md
   grep -q '^## Test Evidence Log' todo.md
+
+  # One canonical ## Repo Principles in AGENTS.project.md (prose block at top).
+  test "$(grep -c '^## Repo Principles' AGENTS.project.md)" -eq 1
+
+  # Live navigation/onboarding docs stay portable (GIL-12 subset enforced in CI).
+  local nav_doc
+  for nav_doc in GUIDE.md README.md AGENTS.md design-history/README.md; do
+    if grep -q '/Users/gillettes/Coding Projects/Autonomous Coding Agent/' "$nav_doc"; then
+      echo "verify-local: portability smoke failed — absolute ACA checkout path in ${nav_doc}" >&2
+      exit 1
+    fi
+  done
 }
 
 if [[ "$governance_only" -eq 1 ]]; then

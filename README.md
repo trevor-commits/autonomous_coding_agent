@@ -30,6 +30,8 @@ Individual commands (equivalent slices):
 
 Optional (not required for CI parity): set `ACA_RUN_LIVE_CODEX_TESTS=1` for live Codex probes; macOS-only Seatbelt tests run automatically on Darwin. Benchmark fixtures may skip external target-repo path checks when that repo is not on disk (see [fixtures/README.md](fixtures/README.md)).
 
+Operator notes, open-draft PR survey, and optional gates: [docs/local-verification.md](docs/local-verification.md).
+
 ## Active Docs
 
 Read these when working on the current system:

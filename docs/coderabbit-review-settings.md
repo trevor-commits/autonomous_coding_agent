@@ -32,7 +32,7 @@ should stay documented here.
 ## Supported settings in repo config
 
 These are the settings currently encoded in
-[`.coderabbit.yaml`](/Users/gillettes/Coding Projects/Autonomous Coding Agent/.coderabbit.yaml).
+[`.coderabbit.yaml`](.coderabbit.yaml).
 They are listed in the same order used during the operator setup pass.
 
 | Setting | Value | Why |

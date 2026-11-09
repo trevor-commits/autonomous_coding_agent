@@ -19,7 +19,9 @@ from supervisor.queue_intake import (
     QueueIssueNormalizer,
     QueueIssueSelector,
     QueueLinearClient,
+    QueueRunIds,
 )
+from supervisor.run_store import RunStoreError
 from supervisor.strategy_simple import SimpleStrategy
 
 
@@ -205,6 +207,7 @@ class QueueSelectorTests(unittest.TestCase):
             replace(eligible, id="GIL-101", identifier="GIL-101", updated_at=_updated_at(hours_ago=1)),
             replace(eligible, id="GIL-102", identifier="GIL-102", description=_description(execution_mode="Manual")),
             replace(eligible, id="GIL-103", identifier="GIL-103", description=_description(execution_lane="Claude Code")),
+            replace(eligible, id="GIL-review", identifier="GIL-review", description=_description(execution_lane="Reviewer")),
             replace(eligible, id="GIL-104", identifier="GIL-104", description=_description(risk_level="High")),
             replace(eligible, id="GIL-105", identifier="GIL-105", description=_description(approval_required="Yes")),
             replace(eligible, id="GIL-106", identifier="GIL-106", labels=(BLOCKING_LABELS[0],)),
@@ -313,6 +316,91 @@ class QueueNormalizerTests(unittest.TestCase):
                 QueueIssueNormalizer(repo_root).normalize(issue)
 
             self.assertIn("ui_smoke", str(ctx.exception))
+
+
+class QueueArtifactPersistenceTests(unittest.TestCase):
+    def _artifact(self, repo_root: Path, kind: str):
+        repo_root = repo_root.resolve()
+        issue = LinearIssue(
+            id="GIL-200", identifier="GIL-200", title="Synthetic artifact",
+            description=_description(), status="Ready for Build", priority=2,
+            updated_at=_updated_at(hours_ago=1), labels=tuple(),
+        )
+        ids = QueueRunIds("GIL-200-artifact", "claim-artifact", "trace-artifact")
+        if kind == "contract":
+            path = repo_root / ".autoclaw" / "queue-contracts" / f"{ids.run_id}.json"
+            write = lambda: QueueIssueNormalizer(repo_root).normalize(issue, ids)
+        else:
+            runner = ManualQueueRunner(
+                repo_root=repo_root, linear_client=RecordingLinearClient([issue]),
+                builder_adapter=QueueAwareBuilderAdapter({}), strategy=SimpleStrategy(),
+                team_key="GIL",
+            )
+            path = repo_root / ".autoclaw" / "queue-blockers" / f"{ids.run_id}.json"
+            write = lambda: runner._write_pre_run_blocker(ids, issue, "Synthetic blocker")
+        return path, write
+
+    def test_interrupted_publication_preserves_last_valid_artifact(self) -> None:
+        for kind in ("contract", "blocker"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as tmpdir:
+                root = Path(tmpdir)
+                _init_queue_repo(root)
+                path, write = self._artifact(root, kind)
+                write()
+                previous = path.read_bytes()
+                with patch("supervisor.run_store.os.replace", side_effect=OSError("interrupted publish")):
+                    with self.assertRaisesRegex(OSError, "interrupted publish"):
+                        write()
+                self.assertEqual(previous, path.read_bytes())
+                self.assertEqual("GIL-200-artifact", json.loads(path.read_text())["run_id"])
+                self.assertEqual([], list(path.parent.glob(".*.tmp")))
+
+    def test_artifacts_reject_symlink_ancestry_without_outside_writes(self) -> None:
+        for kind in ("contract", "blocker"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as tmpdir:
+                root = Path(tmpdir) / "repo"
+                outside = Path(tmpdir) / "outside"
+                root.mkdir()
+                outside.mkdir()
+                _init_queue_repo(root)
+                path, write = self._artifact(root, kind)
+                path.parent.parent.mkdir()
+                path.parent.symlink_to(outside, target_is_directory=True)
+                with self.assertRaisesRegex(RunStoreError, "symlink"):
+                    write()
+                self.assertEqual([], list(outside.iterdir()))
+
+    def test_artifacts_reject_linked_leaves_without_overwriting_outside(self) -> None:
+        for kind in ("contract", "blocker"):
+            for link in ("symlink", "hardlink"):
+                with self.subTest(kind=kind, link=link), tempfile.TemporaryDirectory() as tmpdir:
+                    root = Path(tmpdir) / "repo"
+                    root.mkdir()
+                    _init_queue_repo(root)
+                    path, write = self._artifact(root, kind)
+                    path.parent.mkdir(parents=True)
+                    outside = Path(tmpdir) / "outside.json"
+                    previous = '{"outside":"preserve"}\n'
+                    outside.write_text(previous)
+                    if link == "symlink":
+                        path.symlink_to(outside)
+                    else:
+                        path.hardlink_to(outside)
+                    with self.assertRaises(RunStoreError):
+                        write()
+                    self.assertEqual(previous, outside.read_text())
+
+    def test_pre_run_blocker_round_trips_intake_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            _init_queue_repo(root)
+            path, write = self._artifact(root, "blocker")
+            self.assertEqual(path, write())
+            self.assertEqual({
+                "issue_id": "GIL-200", "run_id": "GIL-200-artifact",
+                "claim_id": "claim-artifact", "run_trace_id": "trace-artifact",
+                "reason": "Synthetic blocker",
+            }, json.loads(path.read_text()))
 
 
 class QueueDrainRunnerTests(unittest.TestCase):

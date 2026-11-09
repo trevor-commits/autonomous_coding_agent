@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import errno
 import json
 import os
 import secrets
@@ -291,44 +292,59 @@ def _process_tree(root_pid: int, seeds: set[int] | None = None) -> set[int]:
     return owned
 
 
-def _darwin_process_start_identity(pid: int) -> str | None:
-    """Return the microsecond-resolution start identity for a Darwin process."""
+class _DarwinProcBSDInfo(ctypes.Structure):
+    _fields_ = [
+        ("pbi_flags", ctypes.c_uint32),
+        ("pbi_status", ctypes.c_uint32),
+        ("pbi_xstatus", ctypes.c_uint32),
+        ("pbi_pid", ctypes.c_uint32),
+        ("pbi_ppid", ctypes.c_uint32),
+        ("pbi_uid", ctypes.c_uint32),
+        ("pbi_gid", ctypes.c_uint32),
+        ("pbi_ruid", ctypes.c_uint32),
+        ("pbi_rgid", ctypes.c_uint32),
+        ("pbi_svuid", ctypes.c_uint32),
+        ("pbi_svgid", ctypes.c_uint32),
+        ("rfu_1", ctypes.c_uint32),
+        ("pbi_comm", ctypes.c_char * 16),
+        ("pbi_name", ctypes.c_char * 32),
+        ("pbi_nfiles", ctypes.c_uint32),
+        ("pbi_pgid", ctypes.c_uint32),
+        ("pbi_pjobc", ctypes.c_uint32),
+        ("e_tdev", ctypes.c_uint32),
+        ("e_tpgid", ctypes.c_uint32),
+        ("pbi_nice", ctypes.c_int32),
+        ("pbi_start_tvsec", ctypes.c_uint64),
+        ("pbi_start_tvusec", ctypes.c_uint64),
+    ]
 
-    class _ProcBSDInfo(ctypes.Structure):
-        _fields_ = [
-            ("pbi_flags", ctypes.c_uint32),
-            ("pbi_status", ctypes.c_uint32),
-            ("pbi_xstatus", ctypes.c_uint32),
-            ("pbi_pid", ctypes.c_uint32),
-            ("pbi_ppid", ctypes.c_uint32),
-            ("pbi_uid", ctypes.c_uint32),
-            ("pbi_gid", ctypes.c_uint32),
-            ("pbi_ruid", ctypes.c_uint32),
-            ("pbi_rgid", ctypes.c_uint32),
-            ("pbi_svuid", ctypes.c_uint32),
-            ("pbi_svgid", ctypes.c_uint32),
-            ("rfu_1", ctypes.c_uint32),
-            ("pbi_comm", ctypes.c_char * 16),
-            ("pbi_name", ctypes.c_char * 32),
-            ("pbi_nfiles", ctypes.c_uint32),
-            ("pbi_pgid", ctypes.c_uint32),
-            ("pbi_pjobc", ctypes.c_uint32),
-            ("e_tdev", ctypes.c_uint32),
-            ("e_tpgid", ctypes.c_uint32),
-            ("pbi_nice", ctypes.c_int32),
-            ("pbi_start_tvsec", ctypes.c_uint64),
-            ("pbi_start_tvusec", ctypes.c_uint64),
-        ]
 
+def _darwin_process_info(pid: int) -> _DarwinProcBSDInfo | None:
     try:
         libproc = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True)
-        info = _ProcBSDInfo()
+        info = _DarwinProcBSDInfo()
+        ctypes.set_errno(0)
         result = libproc.proc_pidinfo(
             pid, 3, 0, ctypes.byref(info), ctypes.sizeof(info)
         )
     except OSError:
         return None
+    if result == 0 and ctypes.get_errno() == errno.ESRCH:
+        # Darwin also returns ESRCH for unreaped zombies; kill(pid, 0) does not.
+        raise ProcessLookupError(pid)
     if result != ctypes.sizeof(info) or info.pbi_pid != pid:
+        return None
+    return info
+
+
+def _darwin_process_start_identity(pid: int) -> str | None:
+    """Return the microsecond-resolution start identity for a Darwin process."""
+
+    try:
+        info = _darwin_process_info(pid)
+    except ProcessLookupError:
+        return None
+    if info is None:
         return None
     return f"darwin:{info.pbi_start_tvsec}:{info.pbi_start_tvusec}"
 
@@ -444,19 +460,15 @@ def _sandbox_tagged_processes(
             continue
         if uid != os.getuid() or pid == os.getpid():
             continue
-        identity = _process_start_identity(pid)
-        if identity is None:
-            try:
-                os.kill(pid, 0)
-            except ProcessLookupError:
-                continue
-            except PermissionError as exc:
-                raise ProcessContainmentError(
-                    f"could not verify sandbox-tagged pid {pid} identity"
-                ) from exc
+        try:
+            info = _darwin_process_info(pid)
+        except ProcessLookupError:
+            continue
+        if info is None:
             raise ProcessContainmentError(
                 f"could not capture sandbox-tagged live pid {pid} identity"
             )
+        identity = f"darwin:{info.pbi_start_tvsec}:{info.pbi_start_tvusec}"
         denied = sandbox.sandbox_check(
             pid, b"file-read-data", 1, denied_path
         )
@@ -587,8 +599,10 @@ class _ProcessTreeLease:
         self._stop.set()
         self._thread.join(timeout=1.0)
 
-    def tagged_processes(self) -> dict[int, str]:
+    def freeze_tagged_processes(self) -> dict[int, str]:
         sandbox_tagged = _sandbox_tagged_processes(self.sandbox_tag)
+        # Freeze verified immutable ownership before the slower environment scan.
+        _signal_processes(sandbox_tagged, signal.SIGSTOP)
         try:
             tagged = _tagged_lease_processes(self.token)
         except ProcessContainmentError:
@@ -603,6 +617,9 @@ class _ProcessTreeLease:
             self.sandbox_tag.remove()
 
     def _track(self) -> None:
+        # The identity-captured root is still blocked by the launch pipe. Start
+        # tracking before releasing it; scanning it first can only find itself.
+        self._ready.set()
         try:
             while not self._stop.is_set():
                 current = self.snapshot()
@@ -851,12 +868,17 @@ def _stop_process_group_inner(
     process: subprocess.Popen[str],
     lease: _ProcessTreeLease,
 ) -> None:
-    owned = _freeze_process_tree(process.pid, lease.snapshot())
-    lease.stop()
+    owned = lease.snapshot()
+    _signal_process_group(
+        process.pid, signal.SIGSTOP, expected_identity=lease.root_identity
+    )
+    _signal_processes(owned, signal.SIGSTOP)
+    # Discover and freeze detached children before waiting on ancestry scans.
+    # The tracker stays active until every tagged identity has been frozen.
     stable_scans = 0
     for _ in range(_LEASE_SCAN_ATTEMPTS):
         try:
-            tagged = lease.tagged_processes()
+            tagged = lease.freeze_tagged_processes()
         except ProcessContainmentError:
             stable_scans = 0
             threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
@@ -873,6 +895,7 @@ def _stop_process_group_inner(
         if stable_scans >= 2:
             break
         threading.Event().wait(_PROCESS_TREE_POLL_SECONDS)
+    lease.stop()
     # The tracker may have observed one last detached child while the known tree
     # was being frozen. Fold that final inventory into a second stable freeze.
     final_inventory = lease.snapshot()
@@ -898,7 +921,7 @@ def _stop_process_group_inner(
     confirmation_deadline = time.monotonic() + _CLEANUP_CONFIRMATION_SECONDS
     while clean_scans < 2 and time.monotonic() < confirmation_deadline:
         try:
-            remaining = lease.tagged_processes()
+            remaining = lease.freeze_tagged_processes()
         except ProcessContainmentError as exc:
             last_discovery_error = exc
             clean_scans = 0

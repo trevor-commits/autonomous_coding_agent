@@ -5,6 +5,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
@@ -16,6 +17,35 @@ from supervisor.process_runner import run_child_sandbox_process_group, run_proce
 
 
 class ProcessRunnerTests(unittest.TestCase):
+    def test_lease_starts_before_scanning_the_already_gated_root(self) -> None:
+        scanning = threading.Event()
+        release_scan = threading.Event()
+
+        def slow_scan(root_pid, seeds=None):
+            scanning.set()
+            release_scan.wait(2)
+            return set(seeds or {root_pid})
+
+        lease = process_runner._ProcessTreeLease(os.getpid(), "test-token")
+        with patch("supervisor.process_runner._process_tree", side_effect=slow_scan):
+            try:
+                lease.start()
+                self.assertTrue(scanning.wait(.5))
+                self.assertFalse(release_scan.is_set())
+                self.assertEqual(
+                    {os.getpid(): lease.root_identity}, lease.snapshot()
+                )
+            finally:
+                release_scan.set()
+                lease.stop()
+
+    def test_lease_refuses_a_root_without_a_stable_identity(self) -> None:
+        with patch(
+            "supervisor.process_runner._process_start_identity", return_value=None
+        ):
+            with self.assertRaisesRegex(RuntimeError, "root identity"):
+                process_runner._ProcessTreeLease(123, "test-token")
+
     def test_capture_preserves_exact_output_at_documented_cap(self) -> None:
         capture = process_runner._BoundedCapture(process_runner._MAX_ERROR_OUTPUT)
         capture.start()
@@ -195,6 +225,50 @@ class ProcessRunnerTests(unittest.TestCase):
         ):
             process_runner._sandbox_tagged_processes(tag)
 
+    @unittest.skipUnless(sys.platform == "darwin", "Darwin zombie race")
+    def test_sandbox_scanner_handles_a_process_that_exited_after_inventory(self) -> None:
+        tag = process_runner._SandboxContainmentTag(
+            Path("/tmp/test-containment-tag"),
+            Path("/tmp/test-containment-tag/denied"),
+            Path("/tmp/test-containment-tag/allowed"),
+        )
+        child = subprocess.Popen([sys.executable, "-c", "pass"])
+        try:
+            deadline = time.monotonic() + 3
+            while (
+                process_runner._process_start_identity(child.pid) is not None
+                and time.monotonic() < deadline
+            ):
+                time.sleep(.005)
+            self.assertIsNone(process_runner._process_start_identity(child.pid))
+            os.kill(child.pid, 0)  # An unreaped zombie still passes this check.
+            listed = subprocess.CompletedProcess(
+                [], 0, f"{child.pid} {os.getuid()} R\n", ""
+            )
+            with patch(
+                "supervisor.process_runner.subprocess.run", return_value=listed
+            ):
+                self.assertEqual({}, process_runner._sandbox_tagged_processes(tag))
+        finally:
+            child.wait(timeout=3)
+
+    @unittest.skipUnless(sys.platform == "darwin", "Darwin identity refusal")
+    def test_sandbox_scanner_refuses_an_unverifiable_live_identity(self) -> None:
+        tag = process_runner._SandboxContainmentTag(
+            Path("/tmp/test-containment-tag"),
+            Path("/tmp/test-containment-tag/denied"),
+            Path("/tmp/test-containment-tag/allowed"),
+        )
+        listed = subprocess.CompletedProcess([], 0, f"123 {os.getuid()} R\n", "")
+        with (
+            patch("supervisor.process_runner.subprocess.run", return_value=listed),
+            patch("supervisor.process_runner._darwin_process_info", return_value=None),
+            self.assertRaisesRegex(
+                process_runner.ProcessContainmentError, "live pid 123 identity"
+            ),
+        ):
+            process_runner._sandbox_tagged_processes(tag)
+
     def test_discovery_failure_kills_known_tree_and_retains_sandbox_tag(self) -> None:
         class Process:
             pid = 123
@@ -215,7 +289,7 @@ class ProcessRunnerTests(unittest.TestCase):
             def stop(self):
                 return None
 
-            def tagged_processes(self):
+            def freeze_tagged_processes(self):
                 raise process_runner.ProcessContainmentError(
                     "scanner unavailable"
                 )
@@ -261,7 +335,7 @@ class ProcessRunnerTests(unittest.TestCase):
             def stop(self):
                 return None
 
-            def tagged_processes(self):
+            def freeze_tagged_processes(self):
                 return {456: "survivor-identity"}
 
             def remove_sandbox_tag(self):
@@ -306,7 +380,7 @@ class ProcessRunnerTests(unittest.TestCase):
             def stop(self):
                 return None
 
-            def tagged_processes(self):
+            def freeze_tagged_processes(self):
                 self.tagged_scan_count += 1
                 return {}
 
@@ -368,7 +442,7 @@ class ProcessRunnerTests(unittest.TestCase):
             patch("supervisor.process_runner._signal_process_group") as signal_group,
             patch("supervisor.process_runner._signal_processes") as signal_processes,
             patch.object(lease, "stop"),
-            patch.object(lease, "tagged_processes", return_value={}),
+            patch.object(lease, "freeze_tagged_processes", return_value={}),
             self.assertRaises(KeyboardInterrupt),
         ):
             run_process_group(["ignored"], capture_output=True, text=True)
@@ -479,6 +553,31 @@ class ProcessRunnerTests(unittest.TestCase):
             self.assertFalse(residue.exists())
             with self.assertRaises(ProcessLookupError):
                 os.kill(child_pid, 0)
+
+    def test_tag_discovery_precedes_slow_ancestry_and_preserves_unrelated_process(
+        self,
+    ) -> None:
+        def slow_scan(root_pid, seeds=None):
+            time.sleep(.4)
+            return set(seeds or {root_pid})
+
+        unrelated = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+        identity = process_runner._process_start_identity(unrelated.pid)
+        self.assertIsNotNone(identity)
+        try:
+            with patch(
+                "supervisor.process_runner._process_tree", side_effect=slow_scan
+            ):
+                self.test_success_reaps_immediate_background_child_without_handshake()
+            self.assertIsNone(unrelated.poll())
+            self.assertEqual(
+                identity, process_runner._process_start_identity(unrelated.pid)
+            )
+        finally:
+            process_runner._signal_processes(
+                {unrelated.pid: identity}, signal.SIGKILL
+            )
+            unrelated.wait(timeout=3)
 
     @unittest.skipUnless(
         sys.platform == "darwin" and Path("/usr/bin/sandbox-exec").is_file(),

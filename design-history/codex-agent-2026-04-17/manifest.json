@@ -1,0 +1,30 @@
+{
+  "source_commit": "973b7d1c573d565ef201764b4d670bf8958cec7e",
+  "original_prefix": ".codex-agent/",
+  "disposition": "historical-read-only; not current instructions, approval or resumable state",
+  "files": {
+    "active-context.md": "a2435c0fe5bfcb105a433ab5b375f2b6631a9151ca8df8e7456f3bae446406b7",
+    "approval-snapshot.json": "3f7251cccf0d5eb4d372c95a1389d68eee25f642a146552d7e8f567581a76d1e",
+    "beginner-guide.md": "6901f49115d8f84891b38d297e2ff1fcefd9a4afa51f7095d398d02bb3f08f44",
+    "context-bundle.md": "537a3d11f7641a9bde4cf58e06f4b246ff2ec182b030f693854dac863eac0739",
+    "data-model.md": "859ac8f4127d506b7a1729d77f598e6be6f77e8f4b725171775ae2ae8b26104a",
+    "design-direction.md": "f843991f30380901f7f5540b6f844eafc3e807a99752f63a2aabeda87faf0da6",
+    "design-system.json": "52de63e446a8bfa870aacbd531d9e191831e503d5c33bdb370d744636933af61",
+    "discovery-questionnaire.md": "36375195f8ab41f17246bb30e25a9bbeb642c37d35c870dfa571eb9712231c34",
+    "env-secrets-checklist.md": "eb1c3084627fd68c07bc7c67c5643a1981174e4205599baa350465beaa3728c9",
+    "execution-log.md": "6c9e3c534863529c031c13a280b1675269496d6727bc4e544fccda9b05e91184",
+    "final-handoff.md": "281e83cff2d43d73f0ab4432e634f6b97613b7510e193b7b4219ae5015012269",
+    "implementation-plan.md": "4b4b419ec6f5ce1889efd75ef9c0e35f0d7b164e34cc2cba5878affee69ecdde",
+    "phase-card.md": "62255d3ea9235e8326a79bb287631a49c4ceaf4c2552569cf856b95adaab0705",
+    "plan-variants.md": "e0f429d1b476c38eedeeefd82108232b8d262de5666bf09014bc621426fdd848",
+    "product-context.md": "62309cf680de7f1e998a68be453080cecd95e1bb2060b73bf66cdd154d6642e9",
+    "product-intelligence.md": "23b6c720f41d35ebdda39ceca698eb2d54c808317fb6e7e33d847efc8b24f719",
+    "progress.md": "b04973d7e371a48e200b9a37bdc745aa287bf2733d5571b297a0e52355ee2698",
+    "project-brief.md": "5878a3f0aa951304e3654e0c35b2ef24fb05c833b8c0bb6b03c95e541c4c89c4",
+    "scorecard.md": "bde86ea96681943071d89442a13bbe2a05ccd26cbb9c8ab38b766a8c00447591",
+    "state.json": "3f86e6c71851040101c165567bb68c9bf1e80fffffe10b3bea61b3866474f33e",
+    "tech-context.md": "9e8574a3ae5d986ab5c738d58ac5e89e449213b67be6ffa63fa5b164c8764dc0",
+    "ultra-context.md": "137088e613f295df601bf15536889bf16f8ee5a40a2f39926c0ef3eeae237b26",
+    "verification-report.md": "b725a7b9f6dddf4d78568db3507fffc6927f50c6cbc9763400ad40f9ccbb0abb"
+  }
+}

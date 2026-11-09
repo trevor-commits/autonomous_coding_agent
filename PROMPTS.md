@@ -69,7 +69,7 @@ Origin: this convention emerged from the 2026-04-15 Codex self-audit on the LINE
 
 ### Self-audit attestation
 
-Self-audit is method, not claim. For every claimed check, the prompt requires the agent to say what method was used and what output was actually observed. Every Self-audit includes an explicit `did not verify X because Y` line for anything skipped, blocked, or intentionally deferred. Claude Code spot-checks at least one Self-audit claim during audit. False attestation is a ship-blocking failure.
+Self-audit is method, not claim. For every claimed check, the prompt requires the agent to say what method was used and what output was actually observed. Every Self-audit includes an explicit `did not verify X because Y` line for anything skipped, blocked, or intentionally deferred. Independent reviewer spot-checks at least one Self-audit claim during audit. False attestation is a ship-blocking failure.
 
 ### Ripple Check attestation
 
@@ -93,7 +93,7 @@ Unattended queue runs use the versioned Codex template in `QUEUE-RUNS.md`, not a
 - require the adjacent-blocker test before Codex repairs any unspecced discovery inside the same run
 - require Codex to stop when the claim snapshot or authoritative inputs drift materially
 - require Codex to stop when a high-risk or approval-bound action is discovered mid-run instead of improvising it
-- require separate Claude Code follow-up issues for later audit or deeper test work instead of folding them into the current issue
+- require separate Independent reviewer follow-up issues for later audit or deeper test work instead of folding them into the current issue
 
 ## 1. Core Position
 

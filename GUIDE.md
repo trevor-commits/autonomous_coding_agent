@@ -257,3 +257,5 @@ That split prevents chat-only memory and keeps the repo explainable to both peop
 | Where do all live Linear issues get mirrored with why/source? | `todo.md` section `Linear Issue Ledger` |
 | What changed recently in the repo? | `todo.md` section `Completed` (index) and `Work Record Log` (full record) |
 | Where is the old material? | `design-history/` |
+
+The former `.codex-agent/` continuation packet is [historical-read-only](design-history/codex-agent-2026-04-17/README.md); its original locked approval and provider roles do not govern current work. `.codex-agent/README.md` routes any fresh explicit use to current root authority.

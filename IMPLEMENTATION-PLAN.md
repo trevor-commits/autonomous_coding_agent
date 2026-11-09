@@ -8,7 +8,7 @@
 
 ## How to Use This Document
 
-Each phase has a checklist of deliverables. Do not advance to the next phase until every checklist item in the current phase is verified. Each deliverable specifies who is responsible (Trevor, Codex, or Claude), what the deliverable is, how to verify it works, and what to do if it doesn't.
+Each required phase has a checklist of deliverables. Phase 4 provider-adapter evaluation is optional; skipping an unavailable or unauthorized adapter never waives independent native review. Do not advance to the next phase until every checklist item in the current phase is verified. Each deliverable specifies who is responsible (Trevor, Codex, or the independent reviewer), what the deliverable is, how to verify it works, and what to do if it doesn't.
 
 Phases are sequential. Within a phase, items marked "parallel-safe" can be worked on simultaneously.
 
@@ -23,7 +23,7 @@ Before any phase begins, confirm the following:
 - [ ] You have a target repo to automate (a real project with frontend + backend, not a toy)
 - [ ] The target repo builds and runs locally on your machine today (manually)
 - [ ] Codex CLI is installed, authenticated, and functional (`codex --version` returns a version and the intended local auth path works)
-- [ ] Claude access is configured and functional through the intended integration path (for example API access)
+- [ ] A separate non-author native Codex reviewer can inspect the actual diff, tests, artifacts, and spec fit while preserving Trevor's selected model and reasoning effort. Same-model fresh-context review is acceptable; passing tests alone are insufficient.
 - [ ] Node.js and npm/pnpm are installed
 - [ ] Python 3.10+ is installed
 - [ ] Git is installed and configured with credentials
@@ -43,7 +43,7 @@ If any prerequisite fails, fix it before proceeding. The system cannot compensat
 
 ### 0A.5 Trim The First Implementation Surface
 
-**Owner:** Trevor + Codex + Claude Code (audit)
+**Owner:** Trevor + Codex + Independent reviewer (audit)
 **Deliverable:** A smaller v1 envelope recorded coherently across the architecture, implementation plan, and roadmap docs before implementation starts
 
 The smallest credible v1 is the narrow harness that proves deterministic orchestration on one real repo. It does not need every future reliability feature on day one.
@@ -273,16 +273,8 @@ codex "Read the file src/index.ts and describe what it does"
 # Expected: coherent response about the file
 ```
 
-**Claude API:**
-```bash
-# Verify Claude API works (via curl or SDK)
-curl https://api.anthropic.com/v1/messages \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
-  -H "content-type: application/json" \
-  -H "anthropic-version: 2023-06-01" \
-  -d '{"model":"claude-sonnet-4-20250514","max_tokens":100,"messages":[{"role":"user","content":"Say hello"}]}'
-# Expected: valid response
-```
+**Independent review:**
+Use the existing native Codex session/worker route with read-only access to the exact diff, relevant source, and verification artifacts. Record findings or review-clean with checked surfaces and residual risk. The reviewer must not have authored the patch. No Claude authentication, API call, credits, or extra subscription is a prerequisite.
 
 **Playwright:**
 ```bash
@@ -296,7 +288,7 @@ kill %1
 
 **Verification:**
 - [ ] Codex reads files and responds coherently
-- [ ] Claude API returns valid responses
+- [ ] Independent actual-diff review is available through the native subscription route
 - [ ] Playwright runs tests against the local app
 - [ ] No auth errors, no timeouts, no missing dependencies
 
@@ -319,7 +311,7 @@ Do not commit `.autoclaw/` in either repo. The supervisor creates `.autoclaw/run
 All of the following must be true:
 - [ ] Repo contract exists and every command works manually
 - [ ] 3-5 benchmark run contracts exist with testable acceptance criteria
-- [ ] Codex, Claude API, and Playwright all work independently
+- [ ] Codex, independent review, and Playwright (when UI is in scope) work independently
 - [ ] Runtime artifact storage is defined and kept outside committed repo structure
 - [ ] A clean checkout + contract commands produces green gates and a running app
 
@@ -333,11 +325,11 @@ All of the following must be true:
 
 **Duration estimate:** 1-2 weeks
 
-**Who builds it:** Codex (Claude Code may co-implement narrow, audit-surfaced fixes)
+**Who builds it:** Codex (Independent reviewer may co-implement narrow, audit-surfaced fixes)
 
-**What Claude Code does:** Primary auditor — line-by-line review of every module, tests, invariants, and schema/contract adherence after each major change.
+**What Independent reviewer does:** Primary auditor — line-by-line review of every module, tests, invariants, and schema/contract adherence after each major change.
 
-**What Claude Cowork does:** Lightweight spec-alignment check after Code's audit is clean, before Trevor verifies.
+**What Coordinator does:** Lightweight spec-alignment check after independent audit is clean, before Trevor verifies.
 
 ### 1.1 Supervisor Modules to Build
 
@@ -474,10 +466,10 @@ Log what you build in a CHANGELOG.md in this repo.
 
 ### 1.2 Audit the Supervisor
 
-**Owner:** Claude Code (primary auditor); Cowork performs a spec-alignment pass afterward
+**Owner:** Independent reviewer (primary auditor); Coordinator performs a spec-alignment pass afterward
 **Trigger:** After Codex delivers the supervisor modules
 
-Claude Code audits line-by-line for:
+Independent reviewer audits line-by-line for:
 - [ ] Phase machine correctly rejects illegal transitions
 - [ ] Policy engine correctly blocks denied commands
 - [ ] Path restrictions are enforced (builder cannot write to forbidden_paths)
@@ -522,7 +514,7 @@ Walk through: INTAKE → PREPARE_WORKSPACE → BUILD (you type `request_builder_
 - [ ] All tests pass
 - [ ] Manual integration test completes benchmark task 1 with you as the strategy layer
 - [ ] Supervisor correctly blocks illegal commands, paths, and phase transitions
-- [ ] Claude Code has audited the code line-by-line, no P0/P1 issues remain open, and Cowork's spec-alignment pass is clean
+- [ ] Independent reviewer has audited the code line-by-line, no P0/P1 issues remain open, and Coordinator's spec-alignment pass is clean
 - [ ] CHANGELOG.md is updated
 
 **Do not proceed to Phase 2 until all Phase 1 criteria are met.**
@@ -611,7 +603,7 @@ Log changes in CHANGELOG.md.
 
 ### 2.3 End-to-End Test: Automated Build Loop
 
-**Owner:** Trevor + Claude Code (primary audit) + Cowork (spec-alignment check)
+**Owner:** Trevor + Independent reviewer (primary audit) + Coordinator (spec-alignment check)
 **Deliverable:** Run benchmark tasks 1 and 4 (backend-only and fix task) fully autonomously
 
 ```bash
@@ -661,7 +653,7 @@ These baselines are what you compare against when adding the AI strategy layer i
 - [ ] Supervisor never lets Codex commit, push, or write to forbidden paths
 - [ ] Supervisor records claim IDs, trace IDs, and queue entry or exit reasons for every benchmark run
 - [ ] Baseline metrics recorded
-- [ ] Claude Code has audited the builder adapter and strategy line-by-line; Cowork's spec-alignment pass is clean
+- [ ] Independent reviewer has audited the builder adapter and strategy line-by-line; Coordinator's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
 
 **Do not proceed to Phase 3 until all Phase 2 criteria are met.**
@@ -754,7 +746,7 @@ Log changes in CHANGELOG.md.
 
 ### 3.3 End-to-End Test: Full Frontend Task
 
-**Owner:** Trevor + Claude Code (primary audit) + Cowork (spec-alignment check)
+**Owner:** Trevor + Independent reviewer (primary audit) + Coordinator (spec-alignment check)
 **Deliverable:** Run benchmark tasks 2 and 3 (frontend+backend and UI verification tasks)
 
 **Verification:**
@@ -775,25 +767,25 @@ Log changes in CHANGELOG.md.
 - [ ] UI failure → builder fix → re-verify loop works
 - [ ] Screenshots and traces are captured in artifacts
 - [ ] At least one frontend benchmark task completes with UI verification
-- [ ] Claude Code has audited the UI verifier and defect packet generation line-by-line; Cowork's spec-alignment pass is clean
+- [ ] Independent reviewer has audited the UI verifier and defect packet generation line-by-line; Coordinator's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
 
 **Do not proceed to Phase 4 until all Phase 3 criteria are met.**
 
 ---
 
-## Phase 4: AI Strategy Layer + Review
+## Phase 4: Optional Strategy Adapter Evaluation + Independent Review
 
-**Goal:** Replace the simple rule-based strategy with Claude as a bounded strategy layer. Add code review and stall diagnosis.
+**Goal:** Evaluate an optional bounded strategy adapter only when separately authorized and useful. The existing simple strategy and native independent review remain sufficient to continue without Claude. No paid API fallback is authorized by this plan.
 
 **Duration estimate:** 1-2 weeks
 
-**Who designs it:** Claude Cowork (orchestrator drafts prompts; Claude Code audits the prompts line-by-line before handoff)
-**Who integrates it:** Codex (Claude Code may co-implement narrow, audit-surfaced fixes)
+**Who designs it:** Coordinator (orchestrator drafts prompts; Independent reviewer audits the prompts line-by-line before handoff)
+**Who integrates it:** Codex (Independent reviewer may co-implement narrow, audit-surfaced fixes)
 
-### 4.1 Strategy Layer Design (Cowork's Responsibility, Code Audits)
+### 4.1 Strategy Layer Design (Coordinator's Responsibility, Independent Reviewer Audits)
 
-**Deliverables from Cowork (audited by Code):**
+**Deliverables from Coordinator (audited independently):**
 
 1. **Planner prompt** — Given a run contract and repo context, decompose the objective into milestones. Output: structured JSON with milestone ID, description, files to touch, tests to add, dependencies.
 
@@ -811,13 +803,15 @@ All prompts will be designed to produce structured output compatible with the ty
 
 Use `PROMPTS.md` as the canonical prompt-writing and review-cadence reference when producing these deliverables.
 
-### 4.2 Claude Strategy Integration
+### 4.2 Optional Claude Strategy Integration
+
+This subsection documents the existing opt-in compatibility adapter. Its API/auth/cost checks apply only when that adapter is explicitly authorized; they are not prerequisites for native implementation or independent review. Leave it unused when access or spending permission is absent.
 
 **Codex Prompt:**
 ```
 Read canonical-architecture.md Sections 5.2 and 7.
 Read supervisor/strategy_api.py and supervisor/actions.py.
-Read the strategy prompts provided by Cowork (in supervisor/prompts/ directory).
+Read the strategy prompts provided by Coordinator (in supervisor/prompts/ directory).
 
 Implement supervisor/strategy_claude.py:
 
@@ -842,7 +836,7 @@ Add tests: test_strategy_claude.py (mock API responses)
 Log changes in CHANGELOG.md.
 ```
 
-### 4.3 Comparative Testing
+### 4.3 Comparative Testing (optional adapter only)
 
 **Owner:** Trevor
 **Deliverable:** Run all 5 benchmark tasks with both strategies and compare
@@ -868,13 +862,13 @@ Comparative runs should retain trace-linked event logs and benchmark grades so p
 
 ### Phase 4 Exit Criteria
 
-- [ ] Claude strategy layer implements all 5 prompt types
+- [ ] If the optional adapter is authorized: its strategy implements all 5 prompt types; otherwise record the skip and retain native independent review
 - [ ] Strategy layer only produces typed domain actions (no raw shell)
 - [ ] Planner decomposes multi-file tasks into milestones
 - [ ] Stall diagnosis helps resolve at least one builder stall that simple strategy couldn't
 - [ ] Code review catches at least one real issue across the benchmark suite
 - [ ] Comparative metrics show measurable improvement on complex tasks
-- [ ] Claude Code has audited the integration line-by-line; Cowork's spec-alignment pass is clean
+- [ ] Independent reviewer has audited the integration line-by-line; Coordinator's spec-alignment pass is clean
 - [ ] CHANGELOG.md updated
 
 **Do not proceed to Phase 5 until all Phase 4 criteria are met.**
@@ -933,7 +927,7 @@ Add robustness to the supervisor:
 1. Graceful shutdown: if the process is killed, write current state and partial report
 2. Resume capability: if a run was interrupted, detect the last checkpoint and offer to resume
 3. Concurrent run prevention: lock file prevents two supervisor instances on the same repo
-4. Rate limit handling: if Claude API returns 429, exponential backoff
+4. Optional adapter rate limits: preserve bounded failure reporting and explicit spending authorization; do not activate an API fallback
 5. acpx/Codex session recovery: if session drops, start a new one with context summary
 6. Artifact cleanup: configurable retention (default: keep last 10 runs)
 7. Resume-from-checkpoint support for queue issue-runs with durable `claim_id` / `run_trace_id` continuity
@@ -991,7 +985,7 @@ The first success criterion is deterministic parity with the contract, not maxim
 | Repo not automation-ready | Phase 0 validates every contract command manually | 0 |
 | Adapter churn beyond direct Codex integration | Keep the first implementation path direct; defer alternate adapters until hardening proves they are needed | 5 |
 | Codex session drops | Session recovery with context summary | 5 |
-| Claude API rate limits | Exponential backoff | 5 |
+| Optional adapter unavailable or rate-limited | Retain evidence; continue native work without paid fallback | 5 |
 | False completion | Supervisor-enforced gates, `run_state = COMPLETE` requires `readiness_verdict = READY` and evidence | 1 |
 | Builder writes to forbidden paths | Policy engine blocks at execution time | 1 |
 | Flaky tests stall the loop | Flaky test detection and quarantine | 5 |
@@ -1003,13 +997,13 @@ The first success criterion is deterministic parity with the contract, not maxim
 
 ## Summary: Who Does What
 
-| Phase | Trevor | Codex | Claude Code (primary auditor; may co-implement narrow fixes) | Claude Cowork (orchestrator; spec-alignment check) |
+| Phase | Trevor | Codex | Independent reviewer (non-author native context) | Coordinator (orchestrator; spec-alignment check) |
 |-------|--------|-------|-------------------------------------------------------------|---------------------------------------------------|
 | 0 | Write repo contract, benchmark tasks, validate tools | (optional) Create directory structure | Audit contract and benchmark fixtures line-by-line | Draft Codex prompts, route work, manage Linear |
-| 1 | Manual integration test | Build all supervisor modules | Audit supervisor code line-by-line (invariants, tests, schemas) | Draft Codex prompts; spec-alignment check after Code's audit |
+| 1 | Manual integration test | Build all supervisor modules | Audit supervisor code line-by-line (invariants, tests, schemas) | Draft Codex prompts; spec-alignment check after independent audit |
 | 2 | Run benchmarks, record metrics | Build builder adapter + simple strategy | Audit builder adapter and strategy line-by-line | Draft Codex prompts; spec-alignment check |
 | 3 | Run frontend benchmarks | Build UI verifier, update strategy | Audit UI verifier and defect-packet generation line-by-line | Draft Codex prompts; spec-alignment check |
-| 4 | Comparative testing | Integrate Claude strategy layer | Audit all prompts and the integration line-by-line | Design all prompts + StrategyDecision schema (authored by Cowork, audited by Code) |
+| 4 | Comparative testing | Evaluate optional strategy adapter | Audit all prompts and the integration line-by-line | Design all prompts + StrategyDecision schema (authored by Coordinator, audited independently) |
 | 5 | Run post-v1 hardening benchmarks | Build memory, flaky test, hardening features | Audit everything line-by-line | Spec-alignment check; retrospective scope review |
 
 ---

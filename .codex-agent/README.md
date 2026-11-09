@@ -1,0 +1,7 @@
+# Autopilot packet disposition
+
+The former saved packet is historical-read-only at `design-history/codex-agent-2026-04-17/`, with byte provenance in its `manifest.json`. It is not current instructions, approval, or resumable state. No active `state.json`, `approval-snapshot.json`, phase card, or generated context bundle remains here.
+
+Use root `AGENTS.md` -> `AGENTS.project.md`, `PROJECT_INTENT.md`, `canonical-architecture.md`, `PROJECT_MEMORY.md`, and the current owning `todo.md` Work Record. Required independent review uses a separate non-author native Codex context preserving Trevor's selected model and reasoning effort; Claude/Cowork access is optional. Tests alone do not clear review or human/governor approval gates.
+
+The installed Autopilot continuation command reads `.codex-agent/state.json`; its orchestrator reads `phase-card.md` first. Removing the obsolete active packet prevents those routes from selecting old approved/provider-bound fields. Keeping this README-only directory also prevents the installed post-write guardrail from taking its directory-absent automatic-bootstrap branch; with no state it rejects without creating approval. This is a repository artifact disposition, not a plugin configuration change or proof of future plugin execution. A future explicit Autopilot task must initialize from current authority and obtain any genuinely required approval afresh, without copying the historical locked snapshot back here.

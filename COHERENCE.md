@@ -41,6 +41,8 @@ This map is append-only. Every future commit that adds a new inter-doc reference
 | `AGENTS.project.md` repository description and current-state pointers | `PROJECT_INTENT.md`; `canonical-architecture.md`; `PROJECT_MEMORY.md`; `README.md`; `STRUCTURE.md`; `GUIDE.md` | Entry guidance must describe the implemented bounded runtime and route release state to its current owner without reviving a completed implementation phase. |
 | `AGENTS.project.md` provider-independent roles | `canonical-architecture.md` §5.7/§13.3; `CONTINUITY.md`; `LINEAR.md`; `QUEUE-RUNS.md`; `RULES.md`; `PROMPTS.md`; `IMPLEMENTATION-PLAN.md`; `README.md`; `todo.md` Audit Watermarks | Non-author native review, queue lane separation, and human/runtime authority must remain coherent without mandatory vendor access. |
 
+| `.codex-agent/` saved-packet disposition | `AGENTS.project.md`; `GUIDE.md`; `PROJECT_MEMORY.md`; `todo.md` Testing Cadence/Work Record; `tests/test_provider_independent_review.py` | Current continuation readers must not select obsolete provider roles or inherit historical locked approval; archived payloads remain byte-preserved. |
+
 ## Staleness and Orphans
 
 Staleness is caught at commit time by the Ripple Check and periodically by explicit coherence audits. Orphans are live docs that are neither indexed from `GUIDE.md` nor referenced by another live doc. Orphans do not get to linger: they are either indexed or retired in the same commit they are discovered.

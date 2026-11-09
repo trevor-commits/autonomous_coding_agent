@@ -52,6 +52,8 @@ The existing global governor owns durable identity, goals, approvals, learning, 
 
 ## Current Priority
 
+The old `.codex-agent/` Autopilot packet is historical-read-only under `design-history/codex-agent-2026-04-17/`; its manifest preserves original payload bytes. Do not resume or restore its locked approval/provider fields. The current root authority and owning `todo.md` record govern any fresh explicit Autopilot task.
+
 Use `PROJECT_MEMORY.md` and the owning `todo.md` record for current implementation and release state, then follow the relevant contract in `canonical-architecture.md`. The supervisor, builder, verification, and partner-policy code already exist. Preserve active owners, current approval gates, and the deployed Stage 0 pair while separately accepted work passes its own review and release gates.
 
 ## Editing Guidance

@@ -29,7 +29,7 @@
 
 ## Gotchas
 
-- ER-975 current roles use separate non-author native Codex review with actual diff/test/artifact evidence and selected settings; Claude/Cowork access is optional. Runtime readiness does not clear review or human/effect gates. November8 provider-independent Work Record in `todo.md` owns source/check/publication limits.
+- ER-975 current roles use separate non-author native Codex review with actual diff/test/artifact evidence and selected settings; Claude/Cowork access is optional. Runtime readiness does not clear review or human/effect gates. November8 provider-independent Work Record in `todo.md` owns source/check/publication limits. The retired saved `.codex-agent/` continuation packet is byte-preserved under `design-history/codex-agent-2026-04-17/`; its locked approval is historical, while active README and current root docs govern new work.
 
 - Queue normalization and pre-run blocker artifacts use the existing `RunStore.write_json` boundary for atomic publication and linked-path refusal. The November 8 source packet and exact review/publication limits are recorded in `todo.md` under `2026-11-08 | Maintainability: queue artifacts and runtime entry`; this source change does not install or activate a new Stage 0 runtime.
 - ACA run `COMPLETE` means a verified retained worktree/report, not automatic merge or publish.

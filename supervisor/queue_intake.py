@@ -405,8 +405,7 @@ class QueueIssueNormalizer:
             "staleness_deadline": _staleness_deadline(issue.updated_at),
         }
         run_contract_path = self.repo_root / ".autoclaw" / "queue-contracts" / f"{ids.run_id}.json"
-        run_contract_path.parent.mkdir(parents=True, exist_ok=True)
-        run_contract_path.write_text(json.dumps(run_contract_payload, indent=2, sort_keys=True) + "\n")
+        RunStore(self.repo_root, ids.run_id).write_json(run_contract_path, run_contract_payload)
         run_contract = load_run_contract(run_contract_path)
         return NormalizedQueueIssue(
             issue=issue,
@@ -618,21 +617,16 @@ class ManualQueueRunner:
 
     def _write_pre_run_blocker(self, ids: QueueRunIds, issue: LinearIssue, reason: str) -> Path:
         blocker_root = self.repo_root / ".autoclaw" / "queue-blockers"
-        blocker_root.mkdir(parents=True, exist_ok=True)
         path = blocker_root / f"{ids.run_id}.json"
-        path.write_text(
-            json.dumps(
-                {
-                    "issue_id": issue.identifier,
-                    "run_id": ids.run_id,
-                    "claim_id": ids.claim_id,
-                    "run_trace_id": ids.run_trace_id,
-                    "reason": reason,
-                },
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n"
+        RunStore(self.repo_root, ids.run_id).write_json(
+            path,
+            {
+                "issue_id": issue.identifier,
+                "run_id": ids.run_id,
+                "claim_id": ids.claim_id,
+                "run_trace_id": ids.run_trace_id,
+                "reason": reason,
+            },
         )
         return path
 

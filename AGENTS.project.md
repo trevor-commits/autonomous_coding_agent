@@ -28,11 +28,11 @@ Older architecture documents now live under `design-history/` and are historical
 
 ## What This Repository Is
 
-This repository currently holds architecture, planning, and source-of-truth documentation for an autonomous coding system.
+This repository implements the bounded policy and per-episode execution layer described in `PROJECT_INTENT.md` and `canonical-architecture.md`. Runtime code lives in `supervisor/`, contracts in `schemas/`, and synthetic regression tests in `tests/` alongside the planning and governance documents.
 
 For quick file lookup and reading order, use `GUIDE.md`, especially the `Quick Reference — Where to Find Things` section.
 
-It is not yet the implementation repository for the supervisor/runtime itself unless and until code is added for that purpose.
+The existing global governor owns durable identity, goals, approvals, learning, recurrence, and queue state. ACA consumes typed snapshots and enforces deterministic per-episode legality and evidence; implementation here does not grant new authority or activate an undeployed runtime generation.
 
 ## Working Rules
 
@@ -43,7 +43,7 @@ It is not yet the implementation repository for the supervisor/runtime itself un
 3. Prefer updating `canonical-architecture.md` when the source-of-truth design changes.
 4. Prefer updating `design-history/canonical-architecture-synthesis.md` only when recording meaningful design-history evolution.
 5. If adding new docs, update `README.md` so future sessions can orient quickly.
-6. If implementation starts in this repo, keep the runtime architecture consistent with the canonical document:
+6. Keep the implemented runtime architecture consistent with the canonical document:
    - deterministic supervisor owns workflow correctness
    - bounded AI strategy layer owns planning/strategy only
    - Codex is sole writer
@@ -52,13 +52,7 @@ It is not yet the implementation repository for the supervisor/runtime itself un
 
 ## Current Priority
 
-The next implementation work should align with the phased plan in `canonical-architecture.md`, starting with:
-
-1. repo contract definition
-2. deterministic supervisor foundation
-3. single-writer builder loop
-4. app supervisor and UI verification
-5. bounded strategy API integration
+Use `PROJECT_MEMORY.md` and the owning `todo.md` record for current implementation and release state, then follow the relevant contract in `canonical-architecture.md`. The supervisor, builder, verification, and partner-policy code already exist. Preserve active owners, current approval gates, and the deployed Stage 0 pair while separately accepted work passes its own review and release gates.
 
 ## Editing Guidance
 

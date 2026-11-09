@@ -1,6 +1,6 @@
 # Autonomous Coding Agent
 
-This repository holds the active source-of-truth documentation, planning artifacts, schemas, and governance records for an autonomous coding system. Historical drafts and reconciliation material are archived under `design-history/` so the root stays focused on current guidance.
+This repository implements the bounded partner policy and deterministic per-episode supervisor in `supervisor/`, with contracts in `schemas/` and regression tests in `tests/`. The existing global governor owns durable identity, approvals, recurrence, and queue state; see `PROJECT_INTENT.md` for the ownership boundary. Historical drafts and reconciliation material are archived under `design-history/`.
 
 ## Start Here
 
@@ -11,7 +11,7 @@ Read [CONTINUITY.md](/Users/gillettes/Coding Projects/Autonomous Coding Agent/CO
 
 ## Local Runtime
 
-The supervisor code targets Python 3.11 or newer. Runtime dependencies are declared in [pyproject.toml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/pyproject.toml): `jsonschema>=4.0.0` and `PyYAML>=6.0.0`.
+The supervisor code targets Python 3.11 or newer. Runtime dependencies are declared in [pyproject.toml](/Users/gillettes/Coding Projects/Autonomous Coding Agent/pyproject.toml): `jsonschema>=4.18.0`, `referencing>=0.28.4`, and `PyYAML>=6.0.0`. Run the commands below in an environment with that supported interpreter and the declared dependencies installed.
 
 Common local checks:
 

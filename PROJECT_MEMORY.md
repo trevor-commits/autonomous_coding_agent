@@ -29,6 +29,7 @@
 
 ## Gotchas
 
+- Queue normalization and pre-run blocker artifacts use the existing `RunStore.write_json` boundary for atomic publication and linked-path refusal. The November 8 source packet and exact review/publication limits are recorded in `todo.md` under `2026-11-08 | Maintainability: queue artifacts and runtime entry`; this source change does not install or activate a new Stage 0 runtime.
 - ACA run `COMPLETE` means a verified retained worktree/report, not automatic merge or publish.
 - Empty observations/candidates are the safe default; the policy never invents evidence.
 - The global bridge and ACA envelope schemas are a cross-repo compatibility boundary and must be changed together.

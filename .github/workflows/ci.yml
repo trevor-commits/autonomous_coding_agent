@@ -55,7 +55,7 @@ jobs:
           test -f todo.md
           test -f pyproject.toml
 
-          grep -q '^## Repo Principles' CLAUDE.md
+          grep -q '^## Repo Principles' AGENTS.project.md
           grep -q '^## Work Record Format' CONTINUITY.md
           grep -q '^## Active Next Steps' todo.md
           grep -q '^## Linear Issue Ledger' todo.md

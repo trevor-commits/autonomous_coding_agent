@@ -10,7 +10,7 @@ Full build sequence with gates. Detail lives in `IMPLEMENTATION-PLAN.md`; bounde
 | **1** | Deterministic supervisor foundation | Benchmark driven manually through supervisor; illegal operations blocked | GIL-25, GIL-26, GIL-27 | Complete |
 | **2** | Single builder loop (Codex) | Backend + fix benchmarks complete autonomously ≥2/3; supervisor enforces gates independently | GIL-28 | Complete |
 | **3** | App + UI verification (Playwright) | ≥1 frontend benchmark completes with passing UI verification artifacts | GIL-29 | Complete |
-| **4** | Bounded Claude strategy + review | Claude measurably improves complex-task completion without regaining workflow control | GIL-30 | In progress |
+| **4** | Optional bounded strategy + independent native review | Any optional adapter must measurably improve results; non-author native review remains available without Claude | GIL-30 | In progress |
 | **5** | Operational memory hardening (v1.1) | Benchmark suite rerun shows clear reliability gains | GIL-31 | Not started |
 
 **Shortest valid path:** `bible-ai` Phase 0 proof landed → finish the remaining repo-local Phase 0 and lifecycle work → build Phases 1–4 → prove one end-to-end success on real tasks → only then spend time on Phase 5 hardening.
@@ -138,7 +138,7 @@ Every live Linear issue in team `GIL` appears here until it reaches a terminal s
 - Concrete repo changes are indexed in `Completed`.
 
 ## Audit Watermarks
-Each AI auditor records the most recent commit it has audited so the next session knows where to pick up. Watermarks update only when an audit is recorded in the Audit Record Log below.
+Each AI auditor records the most recent commit it has audited so the next session knows where to pick up. Watermarks update only when an audit is recorded in the Audit Record Log below. Existing provider rows below are historical evidence, not required current staffing. Current review uses a separate non-author native Codex reviewer under `AGENTS.project.md`; no new watermark is earned by this instruction change.
 
 | Auditor | Role | Last audited commit | Date | Verdict summary | Audit Record Log reference |
 |---|---|---|---|---|---|
@@ -252,6 +252,21 @@ Going forward, `Completed` is an index only: `YYYY-MM-DD | GIL-N: short title �
 - [x] 2026-04-17 | self-contained: add CodeRabbit discoverability notes to README and GUIDE — landing commit SHA recorded in immediate closeout; full record in Work Record Log 2026-04-17
 
 ## Work Record Log
+
+### 2026-11-08 | ER-975 provider-independent review roles | by: Codex
+
+- Problem: current entry, role, prompt, queue, Linear, and implementation-plan consumers required unavailable Claude Code/Cowork access for primary review and manual coordination.
+- Reasoning: accepted Trevor's explicit provider-dependency correction. Reuse a separate non-author native Codex reviewer preserving the selected model/effort; keep actual-diff, test/artifact, spec, and Self-audit spot-check evidence. Tests alone never become review signoff. No new router, daemon, provider call, or API credit fallback is needed.
+- Diagnosis inputs: current `AGENTS.project.md`, canonical §5.7/§13.3, the Coherence dependency map, role/state/queue consumers, `supervisor/main.py` default simple strategy and existing queue selector (`execution_lane != Codex` skips). The existing `strategy_claude.py` is opt-in compatibility, not a default dependency.
+- Implementation inputs: entry/architecture/role/prompt/queue/continuity docs, active `LINEAR-BOOTSTRAP.md` template, current roadmap and historical-watermark clarification; `tests/test_provider_independent_review.py` and the existing queue-selector test.
+- Fix: role authority is now provider-independent. Non-author native review can clear actual-diff/spec gates; the coordinator can route manual state after evidence, the deterministic supervisor retains runtime authority, and Trevor retains `Done`/human/effect approvals. Optional provider adapters and historical reports remain. Runtime `COMPLETE`/`READY` remains a retained candidate, not publication or review authorization. No runtime Python or atomic-writer bytes changed.
+- Self-audit: `/opt/homebrew/bin/python3.14 -B -m unittest tests.test_provider_independent_review tests.test_queue_intake.QueueSelectorTests -v` passed 3 tests, including empty environment, forbidden Claude construction/provider network, actual-diff/non-author/selected-settings requirements, and Reviewer/legacy-lane rejection. A temporary pre-change HEAD doc fixture failed the new governance contract as expected. AST parse and `git diff --check` passed. Initial system Python3.9 failed imports/unsupported UTC, and3.13 lacked PyYAML; neither was application evidence. Existing3.14 dependencies were reused.
+- Ripple Check: entry, canonical architecture, RULES, LOGIC, Continuity, Coherence, PROMPTS, LINEAR, QUEUE-RUNS, IMPLEMENTATION-PLAN, bootstrap template, README and current todo/watermark checked together. Coherence map history and design-history/archived evidence remain intact; appended the current role dependency. Intent/global-governor, schema/approval authority, STRUCTURE/GUIDE paths, and partner design are unchanged. Did not verify independent review, remote publication, installed/natural runtime, or live Linear because those belong to coordinator acceptance; did not rerun the full suite while the separately recorded process-containment failure awaits its owning repair.
+- by: native worker `/root/provider_independence`, coordinator `01a1be5b-51fa-74f1-add5-54c3700d52be`.
+- triggered by: Trevor's ER-975 correction in the November8 maintainability program.
+- led to: scoped commit on `codex/aca-maintainability-01a1be5b`; return immutable diff to coordinator for independent review/integration. Rollback: revert only this scoped commit, preserving predecessor `36175f8b61e6c19290a5f4637c91a3111973be62`. This source packet does not install or activate the immutable Stage0 pair.
+- linear: self-contained: directly authorized bounded provider-dependency correction; no new backlog or live queue mutation.
+
 
 ### 2026-11-08 | Maintainability: queue artifacts and runtime entry | by: Codex
 
@@ -5062,6 +5077,8 @@ If it's not here, it isn't remembered.
 - When a verification run closes or updates an audit finding, cross-reference the matching audit record entry and the chat or commit that performed the work.
 
 ## Test Evidence Log
+
+- 2026-11-08 | ER-975 provider-independent review | `/opt/homebrew/bin/python3.14 -B -m unittest tests.test_provider_independent_review tests.test_queue_intake.QueueSelectorTests -v`: PASS3; pre-change mandatory-provider fixture: correctly rejected; changed Python AST and whitespace: PASS. No provider calls or live queue effects. Full-suite/process failure remains under its existing owner; independent exact-diff review/publication/install acceptance remains coordinator-owned. | by: native `/root/provider_independence` | linear: self-contained: ER-975 bounded correction.
 
 ### 2026-11-08 | Maintainability queue artifact and entry packet | by: Codex
 

@@ -75,31 +75,32 @@ Use `PROJECT_MEMORY.md` and the owning `todo.md` record for current implementati
 
 ## Implementor Role
 
-- Codex is the primary implementor for this repository.
-- Codex writes code, modifies doc content, lands commits, and performs a self-audit.
-- Claude Code may also write code when doing so is the cleanest way to land an audit-surfaced fix, unblock Codex on a narrow targeted change, or close a small mechanical gap uncovered during line-by-line review. When Code writes code, it is still subject to independent audit — Code never ships its own code as the sole reviewer of record.
-- Self-audit is never the ship gate. Claude Code is the primary auditor and performs the line-by-line review; Claude Cowork performs a lightweight spec-alignment pass; Trevor verifies last.
-- Codex's Self-audit attestations are subject to spot-check by Claude Code; false attestation is a ship-blocking failure and is recorded with signature in `todo.md` `Audit Record Log`.
+- Codex is the primary builder and sole writer inside an ACA run worktree.
+- The builder writes scoped code/docs and performs an evidence-backed self-audit.
+- An independent reviewer inspects the actual diff, tests, artifacts, invariants, spec fit, and affected companion docs; self-audit and passing tests alone do not satisfy this gate.
+- Use a separate native Codex reviewer session or worker that did not author the patch, preserving Trevor's selected model and reasoning effort. Same-model fresh-context review is acceptable. No Claude Code or Cowork account, authentication, API credits, or subscription is required.
+- Optional provider adapters are compatibility paths only. Use them only when available and explicitly authorized; never switch to paid APIs to bypass unavailable access.
+- A reviewer who writes a fix becomes an author for that fix and needs a different independent reviewer. Keep one integrator and preserve the run's single-writer boundary.
 
 ## Completion Authority
 
-- **Codex may:** create a Linear issue if none exists, create or reuse a task branch for file-edit work, append `todo.md` `Work Record Log` and `Completed` with the landing reference, update `todo.md` `Linear Issue Ledger` and `Active Branch Ledger` when a live issue or branch state changes, post completion or branch-lifecycle comments on the Linear issue, and commit and push on the task branch. Completion evidence must stay issue-scoped: `Completed`, `led to:`, and the Linear completion comment cite only the commit(s) or artifacts whose primary outcome belongs to that issue. Later audit-only or correction commits for a different issue are logged on the correcting issue instead of being appended to the earlier issue's closeout. Prompts, findings, and fix instructions from Cowork, Claude Code, or any other AI are advisory until Codex checks them against repo truth, current artifacts, and task scope. Before acting on a material outside-AI instruction, Codex classifies it as `accepted`, `narrowed`, `rejected`, or `needs more evidence`; unsupported claims are not executed by default, and material disagreement is recorded in the durable task trail instead of being silently ignored. `Pre-commit gates:` `Continuity Check` (Work Record entry exists and Self-audit is non-hollow), `Ripple Check` (every affected live doc was checked and any drift was updated in the same commit, then attested in Self-audit), and `Linear-coverage` (every surfaced follow-up is filed as a `GIL-N` issue or dispositioned in the log entry, and every live issue has a ledger entry with provenance).
-- **Codex may not:** move Linear state, check off any checklist item in the Linear issue body, mark a task `Done`, or edit other agents' audit writeups.
-- **Claude Code may:** perform the primary line-by-line audit, check off audit checklist items in the Linear issue body once its review is clean, write targeted fix code when appropriate, post audit findings as Linear comments, and append audit entries to `todo.md` `Audit Record Log` and `Test Evidence Log`. `Pre-audit-clean gates:` `Continuity Check` (an audit-variant Work Record exists and at least one Codex Self-audit claim was spot-checked), `Ripple Check` (Codex's diff was checked for missing dependent updates), and `Linear-coverage` (any finding Code surfaces is filed as a `GIL-N` issue or dispositioned in the durable record, and every live issue referenced in the audit has a current ledger entry).
-- **Claude Code may not:** move Linear state, mark a task `Done`, or sign off on code it authored itself — an independent auditor (second Code session, Cowork, or Trevor) must clear Code-authored changes.
-- **Cowork may:** move Linear state through `Building -> AI Audit -> Human Verify`, draft sub-issues for repair loops, manage `todo.md` `Active Next Steps` state and `Linear Issue Ledger`, perform the lightweight spec-alignment pass after Code's audit is clean, and check off the spec-alignment checklist item. `Pre-state-move gates:` `Continuity Check` (required Work Record exists on disk), `Ripple Check` (attestation exists and no dependent doc was missed), and `Linear-coverage` (the task has no un-Linearized actionable follow-up and every live issue involved still has a current ledger entry with provenance). For Cowork's own direct edits, the minimum is a light Work Record (`Problem`, `Reasoning`, `Change`, `Self-audit`) plus Ripple Check plus Linear-coverage. Cowork does not perform the line-by-line review that is Code's role.
-- **Trevor may:** move an issue to `Done`, override any of the above, and resolve disagreements.
+Roles describe responsibility, not a required vendor. The native coordinator may draft prompts, route manual work, and record evidence; it cannot grant itself human approval or runtime authority.
+
+- **Builder may:** implement and self-audit scoped changes, maintain its Work Record/Completed and branch/issue provenance, and commit/push authorized source work. It may not be its own reviewer of record, edit another reviewer's audit, move manual review state as the builder, or mark a task `Done`.
+- **Independent reviewer may:** perform the primary line-by-line actual-diff review and spec-alignment pass, spot-check at least one Self-audit claim, and record checked surfaces, findings, test evidence, and residual risk. Before review-clean, check Continuity, Ripple Check, and Linear-coverage. It may check off review items only after a clean review; it may not approve its own changes or grant completion authority.
+- **Coordinator may:** draft/revise prompts, route scoped repair issues, maintain the task/issue ledger, and move manual routing state through `Building -> AI Audit -> Human Verify` only after the corresponding evidence gates pass. Before each move, verify the Work Record exists, Ripple Check is complete, and Linear-coverage is current. This role can be a separate native Codex session; Cowork is not required.
+- **Supervisor owns:** deterministic runtime phase transitions, legality, approval checks, budgets, and retained-run readiness. Runtime `COMPLETE`/`READY` is evidence for a retained candidate, not independent review or permission to merge/deploy/publish.
+- **Trevor owns:** `Done`, final human verification when required, exceptions, disagreements, and all existing effect/approval gates. Repository publication follows current explicit authorization; production activation remains separately gated.
+
+Pre-commit gates remain Continuity (non-hollow Work Record and Self-audit), Ripple Check (affected live docs checked/updated together), and Linear-coverage (follow-ups tracked or explicitly dispositioned). Completion references remain issue-scoped. AI prompts/findings are advisory until checked against repo truth and classified `accepted`, `narrowed`, `rejected`, or `needs more evidence`.
 
 ## Linear Workflow
 
-- Every bounded task must have a Linear issue in team `GIL` before Codex begins work.
-- If Cowork provides an existing `GIL-N` issue for the task, reference that issue before starting work.
-- If no issue exists yet, Codex creates one before starting work using the `Standard issue` template defined in `LINEAR.md`, with the task title and initial state `Building`.
-- Every live Linear issue must also have a matching `todo.md` `Linear Issue Ledger` entry recording `todo home:`, `why this exists:`, and `origin source:`. GitHub- or integration-created issues are not exceptions.
-- Codex never moves Linear state, never checks off checklist items in the issue body, and never marks a task `Done`. See `## Completion Authority`.
-- When a bounded task is complete, Codex may append the `todo.md` `Work Record Log` entry, append the `todo.md` `Completed` landing index entry, refresh the issue's `todo home:` in `Linear Issue Ledger`, and post the completion comment, then Cowork moves the issue to `AI Audit`. If the exact landing SHA is not known until after commit, backfill the SHA in the same closeout thread or the next correction pass on the correct issue rather than leaving the durable record ambiguous.
-- Never store acceptance criteria, decisions, or audit conclusions in Linear. Keep them in repository docs.
-- When referencing pull requests, use `ref GIL-N`. Do not use `Fixes`, `Fixed`, `Closes`, or `Closed`.
+- Use the current task's issue or an explicit `self-contained:` / `no-action:` disposition for a directly authorized bounded packet. Preserve every live issue's `todo.md` home, purpose, and provenance.
+- Manual routing is coordinator-owned; runtime queue claim/exit state is supervisor-owned. The builder does not move manual review state or mark `Done`.
+- A completed builder packet enters `AI Audit` only with its Work Record, Self-audit, Ripple Check, and Linear-coverage evidence. `Human Verify` requires independent actual-diff and spec review; `Done` remains Trevor's.
+- Keep acceptance criteria, decisions, and audit conclusions in repository docs. Use `ref GIL-N` for PR references; never automatic closing keywords.
+- Queue builders consume only `Execution lane: Codex` with `Execution mode: Queue`. Independent audit/test follow-ups use `Execution lane: Reviewer` and `Execution mode: Manual`; the queue skips them. Legacy provider lane labels remain compatibility metadata, never required access.
 
 ## Reading Scope
 
@@ -136,7 +137,7 @@ Use `PROJECT_MEMORY.md` and the owning `todo.md` record for current implementati
 
 ## Scope Conflicts
 
-- If a verification check or task instruction conflicts with another repository rule, stop and report the conflict to Cowork before proceeding.
+- If a verification check or task instruction conflicts with another repository rule, stop only dependent work and report the conflict to the coordinator before proceeding.
 - Do not silently widen scope to satisfy a conflicting check.
 - Do not edit archive content to satisfy current-state verification.
 
@@ -151,7 +152,7 @@ Use `PROJECT_MEMORY.md` and the owning `todo.md` record for current implementati
 - Never let one conversation silently span two prompts that should be separate bounded tasks.
 
 ## Repo Principles
-[MANDATORY_CONTINUITY] load and enforce local `CONTINUITY.md`; bounded tasks must leave a durable Work Record, honest Self-audit, and explicit `did not verify X because Y` note, and the audit path must permit Claude Code to spot-check at least one claim
+[MANDATORY_CONTINUITY] load and enforce local `CONTINUITY.md`; bounded tasks must leave a durable Work Record, honest Self-audit, and explicit `did not verify X because Y` note, and the audit path must permit an independent reviewer to spot-check at least one claim
 [MANDATORY_COHERENCE] load and enforce local `COHERENCE.md`; governed changes require a Ripple Check, same-commit companion-doc updates, and an append-only Dependency Map
 [MANDATORY_LINEAR_CORE] load and enforce the local Linear-Core contract; actionable work must have a live Linear issue or an explicit `no-action:` / `self-contained:` disposition, and every live issue must keep a repo-side `Linear Issue Ledger` entry with `todo home:`, `why this exists:`, and `origin source:`
 [MANDATORY_CLAUDE_PRINCIPLES] repo-local `CLAUDE.md` must load the same three principles before planning, audit, or state moves, and Claude handoffs must name the durable-record expectations for Codex
@@ -161,42 +162,11 @@ Use `PROJECT_MEMORY.md` and the owning `todo.md` record for current implementati
 - Coherence gate: Ripple Check runs before commit or state move, and dependent docs drift together or not at all.
 - Linear-Core gate: actionable work is issue-backed or explicitly dispositioned, and the repo-side ledger stays current.
 
-## Claude Cowork Purpose (merged from CLAUDE.md)
+## Role And Handoff Details
 
-`CLAUDE.md` in this repo is project-level operating guidance for Claude (Cowork orchestrator), loaded into every conversation so the operating model stays in the loop without Trevor restating it. `canonical-architecture.md` remains the repo's source of truth; `CLAUDE.md` is operating guidance, not spec.
+Default chain: coordinator scopes the packet under current authorization -> builder implements and self-audits -> independent reviewer checks every changed line, tests, invariants, spec fit, and Ripple Check -> Trevor verifies where required. A separate spec reviewer is useful only when scope/risk needs one; no extra vendor or account is a prerequisite.
 
-## Roles (extended — merged from CLAUDE.md)
-
-- **Claude Cowork (Orchestrator)** — primary orchestrator. Plan, decompose, draft Codex prompts, manage Linear state, edit governance/organization docs directly, route work, and resolve sequencing. Auditing is not Cowork's primary job; Cowork may perform a lightweight spec-alignment pass but is not the primary auditor and does not sit on the default audit gate. Cowork enforces all three repo principles before state moves — Continuity Check (Work Record exists), Ripple Check (no drift), and Linear-coverage (no un-Linearized follow-ups, no live issue missing from `todo.md` `Linear Issue Ledger`, and no missing provenance).
-- **Claude Code** — **primary auditor** for this repo. Thoroughly reviews every line of code and every fix Codex (or anyone else) produces: diffs, schemas, tests, invariants, cross-doc consistency, and architectural adherence. Runs per task, per fix, and at phase exits. Claude Code may also write code when doing so is the cleanest way to land an audit-surfaced fix, to unblock Codex on a narrow targeted change, or to close a small mechanical gap uncovered during review. Self-audit is never the sole gate, so any code Claude Code authors still passes through either a Cowork spec check plus Trevor verify, or a second independent Code session.
-- **ChatGPT Pro** — strategic/governance auditor. Gates phase exits and quarterly reviews per ADR-0004. Scope is phase-intent alignment, scope creep, and governance drift; Pro does not replace Code's line-level review.
-- **Codex** — primary implementor. Self-audits, but self-audit is never the gate.
-
-### Default Audit Chain
-
-Cowork drafts prompt → Trevor approves → Codex implements (Claude Code may co-implement narrow fixes) → **Code audits line-by-line** (diff, tests, invariants, cross-doc) → Cowork performs a lightweight spec-alignment check → Trevor verifies. Phase exits add Pro between Code and Trevor. Repair loops cap at 3 rounds per Codex conversation. Disagreements go to Trevor. When Claude Code authors code as part of a fix, that change still passes through an independent audit — a second Code session or Cowork's spec check plus Trevor's verify.
-
-## Linear — Additional Detail (merged from CLAUDE.md)
-
-- State flow ownership: manual transitions are Cowork-owned, queue claim/exit transitions are supervisor-owned, and Codex never moves state: `Inbox → Ready for Build → Building` (prompt handed to Trevor) `→ AI Audit` (Codex reports done; Claude Code audits line-by-line) `→ Human Verify` (Code audit clean + Cowork spec-alignment check) `→ Done` (Trevor only).
-- Every `todo.md` `Active Next Steps` item also has a matching Linear issue, annotated inline as `(GIL-N)`. Adding an item without its Linear issue ID or leaving a live issue without a ledger entry violates the coverage invariant (see `LINEAR.md` § Coverage Invariant).
-- <!-- merged from CLAUDE.md --> Other `todo.md` sections are records, not task queues, but any entry that implies future work must still carry a resolved `linear:` disposition per `LINEAR.md` `## Linear-at-the-core` (this repo's Repo Principles section above states the disposition as `no-action:` / `self-contained:` — both phrasings describe the same coverage requirement; treat them as equivalent).
-- Queue mode is supervisor-owned. The Codex queue only consumes issues with `Execution lane: Codex` and `Execution mode: Queue` per `QUEUE-RUNS.md`. Claude-owned audit or deeper test issues must be filed separately with `Execution lane: Claude Code` and `Execution mode: Manual`; Codex and the queue runner skip them and continue.
-- For adding Linear to a new project, use `LINEAR-BOOTSTRAP.md`.
-
-## Codex Handoff — Additional Detail (merged from CLAUDE.md)
-
-- Prompts follow `PROMPTS.md`'s five-part header: `Goal`, `Discipline`, `Read-scope`, `Body`, `Durable record`.
-- The `Durable record` section names every log entry expected, every Linear issue created or refreshed, every `Linear Issue Ledger` or `Active Branch Ledger` update required, and the Ripple Check attestation the Self-audit must contain.
-- Fresh Codex conversation per bounded task per `ADR-0005`; if repair loops reach round 3, restart with the latest auditor findings as the new brief, and never reuse the same Codex conversation across a phase boundary.
-- Manual prompts are drafted in the scoping Linear issue's description under the `prompt-review` label, reviewed by Codex and Claude Code via Linear comments, and revised by Cowork before handoff.
-- Queue-mode prompts are rendered from the versioned template in `QUEUE-RUNS.md`.
-- See `LINEAR.md` `## Prompt Drafting Surface`.
-
-## Orchestrator Scope (merged from CLAUDE.md)
-
-- Claude Cowork may edit directly: `todo.md`, Linear state, `CLAUDE.md`, and light organization moves.
-- Substantive edits go to Codex via a prompt: `canonical-architecture.md`, schemas, `LOGIC.md`, `RULES.md`, `STRUCTURE.md`, `PROJECT_INTENT.md`, `PROMPTS.md`, `LINEAR.md`, `AGENTS.project.md`, ADRs, `IMPLEMENTATION-PLAN.md`.
+`PROMPTS.md` owns prompt framing. `LINEAR.md` owns manual routing and `QUEUE-RUNS.md` owns runtime queue eligibility. Manual prompt review uses the independent reviewer, with material imported instructions classified against repository evidence. The coordinator revises prompts; the builder never treats review prose as new authority. Phase transitions and completion remain with the deterministic supervisor at runtime and Trevor at the governance layer.
 
 ## Authoritative Docs — Addendum (merged from CLAUDE.md)
 

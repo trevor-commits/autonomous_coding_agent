@@ -44,7 +44,7 @@ Authoritative and never duplicated in Linear:
 - `LOGIC.md`, `RULES.md`, `PROJECT_INTENT.md`, `canonical-architecture.md`, and `STRUCTURE.md`
 - `todo.md` specs
 - Codex completion logs
-- Claude audit writeups
+- Independent audit writeups
 - ChatGPT audit findings
 - recurring-audit cadence schedule
 
@@ -93,7 +93,7 @@ For file-edit work, Linear should be involved before the first substantive edit 
 | Inbox | Backlog | First Backlog status; explicit default for newly created issues |
 | Ready for Build | Unstarted | Build-ready queue |
 | Building | Started | Active implementation, including doc work and ADR drafting |
-| AI Audit | Started | Claude reviewing Codex output |
+| AI Audit | Started | Independent reviewer inspecting the actual Codex diff and evidence |
 | Human Verify | Started | Trevor's final signoff |
 | Blocked | Started | Kept visible as active work |
 | Done | Completed | Manual-only; see `Automation` |
@@ -105,7 +105,7 @@ The happy path is:
 
 `Building -> AI Audit -> Human Verify -> Done`
 
-The naming is deliberate. `AI Audit` means Claude Code performing the primary line-by-line review of Codex output (with Cowork running a lightweight spec-alignment pass afterward). `Human Verify` means Trevor's final signoff. This avoids overloading Linear's product-level review semantics and the dedicated Reviews surface for PR notifications.
+The naming is deliberate. `AI Audit` means Independent reviewer performing the primary line-by-line review of Codex output (with Coordinator running a lightweight spec-alignment pass afterward). `Human Verify` means Trevor's final signoff. This avoids overloading Linear's product-level review semantics and the dedicated Reviews surface for PR notifications.
 
 Before an issue enters `AI Audit`, these preconditions must already be true:
 
@@ -115,13 +115,13 @@ Before an issue enters `AI Audit`, these preconditions must already be true:
 
 Before the default-path transition from `AI Audit` to `Human Verify`, these preconditions must already be true:
 
-- Claude Code has spot-checked at least one Self-audit claim and recorded the outcome in `todo.md` `Audit Record Log`
+- Independent reviewer has spot-checked at least one Self-audit claim and recorded the outcome in `todo.md` `Audit Record Log`
 - the coherence sweep for the task's scope is clean
 - the `Linear-coverage` check is clean
 
 ## Failure Routing
 
-- AI Audit failure (Claude Code's line-by-line review surfaces a P0/P1, or Cowork's spec-alignment pass disagrees) returns the issue to `Building` with findings linked from the repo.
+- AI Audit failure (Independent reviewer's line-by-line review surfaces a P0/P1, or Coordinator's spec-alignment pass disagrees) returns the issue to `Building` with findings linked from the repo.
 - Human Verify failure returns the issue to `Building` for a code or logic regression, or to `AI Audit` for a missed audit criterion.
 - Recurring failure signatures escalate into a new issue or the defect-packet workflow. No silent loops.
 
@@ -168,14 +168,14 @@ Every issue body contains:
 - `Merge target:`
 - `Why this exists:`
 - `Origin source:`
-- `Execution lane:` `Codex`, `Claude Code`, `Cowork`, or `Trevor`
+- `Execution lane:` `Codex`, `Reviewer`, `Coordinator`, or `Trevor` (legacy provider labels remain compatible)
 - `Execution mode:` `Queue` or `Manual`
 - `Risk level:` `Low`, `Medium`, or `High`
 - `Approval required:` `No` or `Yes`
 - `PR:` once opened
 - `Completion artifact:` once filed
 - `Blocked reason artifact:` only when status is `Blocked`
-- `Checklist:` `Cowork drafts Codex prompt` -> `Codex creates or reuses the task branch` -> `Codex builds` -> `Work Record Log entry written (Codex)` -> `Ripple Check complete and attested (Codex)` -> `Claude Code audits line-by-line (or N/A with one-line reason)` -> `Cowork spec-alignment check` -> `Linear-coverage confirmed for surfaced findings (Cowork)` -> `Trevor verifies` -> `completion artifact filed in repo`
+- `Checklist:` `Coordinator drafts Codex prompt` -> `Codex creates or reuses the task branch` -> `Codex builds` -> `Work Record Log entry written (Codex)` -> `Ripple Check complete and attested (Codex)` -> `Independent reviewer audits line-by-line (or N/A with one-line reason)` -> `Coordinator spec-alignment check` -> `Linear-coverage confirmed for surfaced findings (Coordinator)` -> `Trevor verifies` -> `completion artifact filed in repo`
 - `Enforcement checkbox: ☐ No acceptance criteria, decisions, or audit conclusions in this issue body — linked to repo doc instead`
 - fixed footer: `Repo docs are authoritative; this issue tracks state and links only.`
 
@@ -217,7 +217,7 @@ Labels are scoped to two groups and applied at issue creation. The taxonomy is s
 - `Blocked-external` — work is paused pending an external dependency (vendor response, waiting on a human outside the repo). Pair with status `Blocked`.
 - `Cadence` — recurring issue mirroring a scheduled audit or review defined in the repo cadence doc.
 - `Audit-finding` — issue was created by an audit (Code, Pro, or Claude) documenting a finding that needs its own tracked resolution.
-- `prompt-review` — applied by Cowork while a draft prompt in the issue description is open for Codex and Claude Code audit comments. Removed by Cowork once the prompt is final. See `## Prompt Drafting Surface`.
+- `prompt-review` — applied by Coordinator while a draft prompt in the issue description is open for Codex and Independent reviewer audit comments. Removed by Coordinator once the prompt is final. See `## Prompt Drafting Surface`.
 
 If the Linear workspace label set ever drifts from this block, the repo wins and Linear is corrected.
 
@@ -262,14 +262,14 @@ The template body is:
 
 **Checklist**
 
-- [ ] Cowork drafts Codex prompt
+- [ ] Coordinator drafts Codex prompt
 - [ ] Codex creates or reuses the task branch
 - [ ] Codex builds
 - [ ] Work Record Log entry written (Codex)
 - [ ] Ripple Check complete and attested (Codex)
-- [ ] Claude Code audits line-by-line (or N/A with one-line reason: ____)
-- [ ] Cowork spec-alignment check
-- [ ] Linear-coverage confirmed for surfaced findings (Cowork)
+- [ ] Independent reviewer audits line-by-line (or N/A with one-line reason: ____)
+- [ ] Coordinator spec-alignment check
+- [ ] Linear-coverage confirmed for surfaced findings (Coordinator)
 - [ ] Trevor verifies
 - [ ] Completion artifact filed in repo
 
@@ -315,18 +315,18 @@ Queue runs also enforce these guardrails:
 - discovered high-risk actions or approval-bound operations block the issue instead of being improvised in-run
 - everything else becomes a separate issue or an explicit `no-action:` / `self-contained:` disposition
 
-Issues for later Claude Code audit or deeper test work must explicitly set:
+Issues for later independent review audit or deeper test work must explicitly set:
 
-- `Execution lane: Claude Code`
+- `Execution lane: Reviewer`
 - `Execution mode: Manual`
 
 Codex and the queue supervisor skip those issues and continue. They do not absorb them into the current Codex pass.
 
 ## AI-Strategy Role Boundary
 
-Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Cowork drafts Codex prompts and may propose when review should happen. Claude Code is the primary auditor of implementation output — it performs the line-by-line review and may author targeted fix code during audit per `CLAUDE.md § Roles` and `AGENTS.project.md § Completion Authority`.
+Per `RULES.md`, the AI strategy layer may decompose work, compose builder prompts, propose review timing, diagnose stalls, and restate audit findings. Coordinator drafts Codex prompts and may propose when review should happen. Independent reviewer is the primary auditor of implementation output — it performs the line-by-line review and may author targeted fix code during audit per `AGENTS.project.md § Implementor Role` and `AGENTS.project.md § Completion Authority`.
 
-Neither Cowork nor Claude Code owns phase-transition or completion authority. Those stay with the supervisor at runtime and with Trevor at the governance layer.
+Neither Coordinator nor Independent reviewer owns phase-transition or completion authority. Those stay with the supervisor at runtime and with Trevor at the governance layer.
 
 ## Prompt Drafting Surface
 
@@ -334,18 +334,18 @@ Codex prompts are drafted inside the Linear issue that scopes the work, not only
 
 Workflow:
 
-1. Cowork creates or opens the issue, moves it to `Ready for Build`, writes the first-draft prompt into the issue description, and applies the `prompt-review` label.
-2. Claude Code (primary prompt auditor) and Codex read the description and post their audits as Linear comments, prefixed `[Code Audit]` or `[Codex Audit]` for scanability. Code's pass is the load-bearing one. Codex's pass must challenge material prompt instructions and imported AI findings against repo truth, current evidence, and scope, classifying them as `accepted`, `narrowed`, `rejected`, or `needs more evidence` instead of merely flagging implementability concerns.
-3. Cowork revises the description in place, then posts a summary comment noting which audit points were accepted, narrowed, rejected, or left needing more evidence and why.
-4. When the prompt is final, Cowork removes the `prompt-review` label. The prompt is now ready to hand to Codex for implementation under the normal `Building → AI Audit → Human Verify → Done` flow.
+1. Coordinator creates or opens the issue, moves it to `Ready for Build`, writes the first-draft prompt into the issue description, and applies the `prompt-review` label.
+2. Independent reviewer (primary prompt auditor) and Codex read the description and post their audits as Linear comments, prefixed `[Independent Audit]` or `[Codex Audit]` for scanability. The non-author reviewer's pass is the independent gate. Codex's pass must challenge material prompt instructions and imported AI findings against repo truth, current evidence, and scope, classifying them as `accepted`, `narrowed`, `rejected`, or `needs more evidence` instead of merely flagging implementability concerns.
+3. Coordinator revises the description in place, then posts a summary comment noting which audit points were accepted, narrowed, rejected, or left needing more evidence and why.
+4. When the prompt is final, Coordinator removes the `prompt-review` label. The prompt is now ready to hand to Codex for implementation under the normal `Building → AI Audit → Human Verify → Done` flow.
 
 Guardrails:
 
 - Prompts in Linear descriptions are a drafting surface, not authority. The authoritative spec the prompt points to remains in the repo.
-- Another AI's prompt or review comment is advisory until the final prompt is revised by Cowork and the implementing Codex pass confirms the instruction still matches repo truth, evidence, and scope.
+- Another AI's prompt or review comment is advisory until the final prompt is revised by Coordinator and the implementing Codex pass confirms the instruction still matches repo truth, evidence, and scope.
 - Audit comments are transient. Any decision durable enough to matter later is distilled into an ADR or the repo doc it touches — never left to live only as a Linear comment.
 - The prompt of record is the final version Codex logs in `todo.md` under `## Completed` after its run. Linear's description-edit history is convenient but not load-bearing.
-- Code and Codex write comments only. Neither moves issue state directly. Manual-workflow state changes remain Cowork's responsibility; queue-mode state changes remain supervisor-owned under `QUEUE-RUNS.md`. Code does, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.project.md § Completion Authority`).
+- The reviewer and builder write comments only. Neither moves issue state in those roles. Manual-workflow state changes remain Coordinator's responsibility; queue-mode state changes remain supervisor-owned under `QUEUE-RUNS.md`. The reviewer may, however, check off audit checklist items in the issue body after its line-by-line review is clean (see `AGENTS.project.md § Completion Authority`).
 - Queue-mode issues do not require a handcrafted issue-description prompt. When `Execution mode: Queue`, the supervisor renders the versioned Codex template from `QUEUE-RUNS.md` and `PROMPTS.md`.
 
 ## Integrations
@@ -354,7 +354,7 @@ These are separate mechanisms and must not be conflated.
 
 ### Linear MCP Server
 
-Enabled. This provides compatible clients such as Claude Code and Cowork with programmatic read and write access to Linear data. It is a data protocol, not a custom prompt surface.
+Enabled. This provides compatible clients such as optional compatible clients with programmatic read and write access to Linear data. It is a data protocol, not a custom prompt surface.
 
 ### Verified Webhooks
 
@@ -362,7 +362,7 @@ Preferred for unattended queue intake. Webhooks wake the supervisor when issue s
 
 ### Open Issues In Coding Tools
 
-Enabled. This is a separate Linear launch workflow that opens Codex or Claude Code with issue metadata and a custom prompt telling the tool to read the authoritative repo spec first and treat the Linear issue as routing metadata only. The custom prompt belongs to this launch flow, not to MCP.
+Enabled. This is a separate Linear launch workflow that opens an optional compatible client or native Codex with issue metadata and a custom prompt telling the tool to read the authoritative repo spec first and treat the Linear issue as routing metadata only. The custom prompt belongs to this launch flow, not to MCP.
 
 ### Codex-In-Linear Delegation
 
@@ -438,7 +438,7 @@ When runtime implementation exists and branch protections are real, the allowed 
 - review request or review activity -> `AI Audit`
 - PR merge -> `No action`
 
-`Human Verify` is always manual after Claude signoff in `AI Audit`.
+`Human Verify` is always manual after independent signoff in `AI Audit`.
 
 Tasks that skip `AI Audit` also stay manual for the handoff into `Human Verify`.
 
@@ -510,8 +510,8 @@ Deferred capabilities are adopted reactively when their stated trigger fires. Th
 
 ### Coding-tool surface
 
-- **Coding tools not enabled** — Amp, Conductor, Cursor, Devin, Factory, GitHub Copilot, Lovable, Netlify Agent Runners, OpenCode, Replit, v0, Warp, Windsurf, Zed. Only Claude Code, Codex CLI, and Codex desktop are part of the flow per the Integrations section above. Adding any other tool requires updating this document first.
-- **Custom script** coding-tool entry — runs a script defined in `~/.linear/coding-tools.json` when launching an issue. Skipped because the existing Codex CLI and Claude Code launchers cover the flow. Revisit only if a per-issue launch behavior cannot be expressed by those tools.
+- **Coding tools not enabled** — Amp, Conductor, Cursor, Devin, Factory, GitHub Copilot, Lovable, Netlify Agent Runners, OpenCode, Replit, v0, Warp, Windsurf, Zed. Native Codex CLI/desktop are sufficient; other existing clients are optional compatibility per the Integrations section above. Adding any other tool requires updating this document first.
+- **Custom script** coding-tool entry — runs a script defined in `~/.linear/coding-tools.json` when launching an issue. Skipped because the existing native Codex launchers cover the flow. Revisit only if a per-issue launch behavior cannot be expressed by those tools.
 - **Custom link** coding-tool entry — opens a web-based tool with `{{prompt}}` injected. Skipped for the same reason.
 
 ### Personal account security

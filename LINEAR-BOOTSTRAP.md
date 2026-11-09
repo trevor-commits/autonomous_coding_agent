@@ -1,6 +1,6 @@
 # LINEAR-BOOTSTRAP.md
 
-## §1 Convention and pre-flight intake <!-- For Trevor and Claude Cowork -->
+## §1 Convention and pre-flight intake <!-- For Trevor and the coordinator -->
 
 Every new project gets a Linear team before its first Codex prompt is drafted. The team name matches the repo name, the prefix is a Trevor-chosen 3-4 letter code, the repo's `LINEAR.md` is ported per §2, and the Linear workspace is configured per §3.
 
@@ -12,14 +12,14 @@ Intake checklist:
 4. Which authoritative repo docs should be preserved in the ported `LINEAR.md`? Enumerate them by inspecting the target repo root.
 5. Is the target repo's root `AGENTS.md` a thin stub with a `*.project.md` or similar overlay? If yes, the Linear pointer goes in the overlay, not the root.
 
-Usage flow: Claude Cowork runs the intake, fills the §2 template braces, hands the filled prompt to Trevor, and Trevor hands it to a fresh Codex session in the target repo.
+Usage flow: the coordinator runs the intake, fills the §2 template braces, hands the filled prompt to Trevor, and Trevor hands it to a fresh Codex session in the target repo.
 
 ## §2 Codex prompt template — Linear governance port <!-- For Codex, to be run in the target repo after intake -->
 
 Inputs: `{REPO_PATH}`, `{TEAM_NAME}`, `{TEAM_PREFIX}`, `{AUTHORITATIVE_DOCS}`, `{AGENTS_POINTER_TARGET}`
 
 ```text
-Usage note: this template is filled in by Claude Cowork after running the §1 intake, then handed to Codex in the target repo.
+Usage note: this template is filled in by the coordinator after running the §1 intake, then handed to Codex in the target repo.
 
 Goal: Port Linear governance into `{REPO_PATH}` by creating a tailored `LINEAR.md`, adding a `## Linear` pointer section in `CLAUDE.md`, adding a Linear pointer in `{AGENTS_POINTER_TARGET}`, and updating `todo.md` so it can mirror every live Linear issue with provenance before appending a `Completed` entry. One new file, three edited files.
 

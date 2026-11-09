@@ -207,7 +207,7 @@ Execution Lanes
   - Deterministic Verifier
   - App Supervisor
   - UI Verifier (Playwright)
-  - Claude Reviewer / Auditor
+  - Independent Reviewer / Auditor
   ->
 Artifacts + Reports
   ->
@@ -367,9 +367,11 @@ This lane owns:
 
 It has read-only repo access and may not edit code.
 
-## 5.7 Claude Reviewer / Auditor
+## 5.7 Independent Reviewer / Auditor
 
-Claude is used selectively for:
+Use a non-author native Codex session or worker, preserving Trevor's selected model and reasoning effort. Same-model fresh-context review is acceptable. Inspect the actual diff, tests, artifacts, and spec fit; passing tests alone are not independent review. No Claude Code/Cowork access or paid API fallback is required. Optional adapters remain compatibility paths only.
+
+The bounded strategy/reviewer role may advise on:
 
 - initial planning on ambiguous work
 - stall diagnosis after repeated failures
@@ -775,7 +777,7 @@ Checkpointing, rollback, and cross-run failure-memory promotion may still exist 
 
 Backing model:
 
-- Claude
+- optional strategy/reviewer adapters
 
 Purpose:
 
@@ -856,7 +858,7 @@ Persistence:
 
 Backing model:
 
-- Claude
+- optional strategy/reviewer adapters
 
 Purpose:
 
@@ -1020,10 +1022,11 @@ The strategy layer never receives direct authority to invoke shell, git, or file
 - dedicated auth context
 - isolated runtime or profile where feasible
 
-### Claude reviewer/planner
+### Independent reviewer/planner
 
-- API-key or enterprise-compatible auth path
-- not consumer web login assumptions embedded into orchestration
+- existing subscription-native Codex access; preserve selected model and reasoning effort
+- separate non-author reviewer context with read-only diff/artifact scope
+- optional provider adapters require their own explicit authorization; unavailable Claude access never blocks the native review path
 
 ### Browser verifier
 
@@ -1364,7 +1367,7 @@ Deliverables:
 
 Goal:
 
-- add bounded Claude strategy and review
+- retain bounded strategy and provider-independent actual-diff review
 
 Deliverables:
 
@@ -1396,7 +1399,7 @@ The source-of-truth architecture for this repository is:
 **A deterministic supervisor-centered autonomous delivery harness with:**
 
 - **Codex as the sole writer**
-- **Claude as bounded strategy, diagnosis, and review**
+- **provider-independent bounded strategy, diagnosis, and independent review**
 - **Playwright as the sole browser verifier**
 - **repo contract + run contract as the required automation interface**
 - **structured artifacts and defect packets as the evidence model**

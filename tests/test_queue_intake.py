@@ -207,6 +207,7 @@ class QueueSelectorTests(unittest.TestCase):
             replace(eligible, id="GIL-101", identifier="GIL-101", updated_at=_updated_at(hours_ago=1)),
             replace(eligible, id="GIL-102", identifier="GIL-102", description=_description(execution_mode="Manual")),
             replace(eligible, id="GIL-103", identifier="GIL-103", description=_description(execution_lane="Claude Code")),
+            replace(eligible, id="GIL-review", identifier="GIL-review", description=_description(execution_lane="Reviewer")),
             replace(eligible, id="GIL-104", identifier="GIL-104", description=_description(risk_level="High")),
             replace(eligible, id="GIL-105", identifier="GIL-105", description=_description(approval_required="Yes")),
             replace(eligible, id="GIL-106", identifier="GIL-106", labels=(BLOCKING_LABELS[0],)),

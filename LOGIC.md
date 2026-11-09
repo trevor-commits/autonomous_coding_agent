@@ -73,7 +73,7 @@ UI_VERIFY
   → if defects exist: route to builder, re-verify (within repair limit)
 
 AUDIT_READY
-  → optional: Claude reviews the diff + artifacts
+  → independent native reviewer inspects the actual diff + artifacts where required
   → structured findings with severity codes
 
 FINAL_GATE

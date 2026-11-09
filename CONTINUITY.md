@@ -55,7 +55,7 @@ The six required narrative fields are `Problem`, `Reasoning`, `Diagnosis inputs`
 
 ## Self-audit honesty
 
-Self-audit is method, not claim. Each check named in the record must say how it was verified, what was actually observed, and what remains unverified. Every Self-audit includes an explicit line in the form `did not verify X because Y` for anything skipped, blocked, or intentionally left out. Claude Code spot-checks at least one claim per audit. A hollow attestation is harder to clear than an admitted gap because it corrupts the record future work depends on.
+Self-audit is method, not claim. Each check named in the record must say how it was verified, what was actually observed, and what remains unverified. Every Self-audit includes an explicit line in the form `did not verify X because Y` for anything skipped, blocked, or intentionally left out. Independent reviewer spot-checks at least one claim per audit. A hollow attestation is harder to clear than an admitted gap because it corrupts the record future work depends on.
 
 ## Motive
 
@@ -66,8 +66,8 @@ This is legacy-over-compliance. The goal is not to satisfy a checklist; it is to
 | Actor | Required form | What it must capture |
 |---|---|---|
 | Codex | Full six-field Work Record | Problem, reasoning, diagnosis inputs, implementation inputs, fix, Self-audit, plus `by:`, `triggered by:`, `led to:`, and `linear:` |
-| Claude Code | Full form with audit variant | Same structure, but `Audit method` may replace `Self-audit` when the record is strictly an audit artifact |
-| Cowork | Light form | `Problem`, `Reasoning`, `Change`, `Self-audit`, plus the same attribution and `linear:` fields |
+| Independent reviewer | Full form with audit variant | Same structure, but `Audit method` may replace `Self-audit` when the record is strictly an audit artifact |
+| Coordinator | Light form | `Problem`, `Reasoning`, `Change`, `Self-audit`, plus the same attribution and `linear:` fields |
 
 ## Where the rules live
 

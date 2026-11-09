@@ -39,6 +39,7 @@ This map is append-only. Every future commit that adds a new inter-doc reference
 | Role boundaries | `CLAUDE.md`; `AGENTS.project.md`; `LINEAR.md`; `IMPLEMENTATION-PLAN.md`; `todo.md` `## Audit Watermarks` | Ownership drift creates audit ambiguity and false completion signals across the repo. |
 | Autonomous partner contracts or architecture | `canonical-architecture.md`; `PROJECT_INTENT.md`; `LOGIC.md`; `RULES.md`; `STRUCTURE.md`; `README.md`; `GUIDE.md`; `schemas/README.md`; `docs/designs/autonomous-partner.md`; `openspec/specs/partner-identity-initiative/spec.md`; `openspec/changes/archive/2026-07-14-autonomous-partner-reposition/`; global `scripts/autonomous-partner-bridge`; global `docs/runbooks/autonomous-partner.md`; global `records/requested-enforcements/2026-07-13-agent-identity-initiative-layer.md` | The global-governor/ACA split, authority fields, and live adapter must change as one cross-repo contract. |
 | `AGENTS.project.md` repository description and current-state pointers | `PROJECT_INTENT.md`; `canonical-architecture.md`; `PROJECT_MEMORY.md`; `README.md`; `STRUCTURE.md`; `GUIDE.md` | Entry guidance must describe the implemented bounded runtime and route release state to its current owner without reviving a completed implementation phase. |
+| `AGENTS.project.md` provider-independent roles | `canonical-architecture.md` §5.7/§13.3; `CONTINUITY.md`; `LINEAR.md`; `QUEUE-RUNS.md`; `RULES.md`; `PROMPTS.md`; `IMPLEMENTATION-PLAN.md`; `README.md`; `todo.md` Audit Watermarks | Non-author native review, queue lane separation, and human/runtime authority must remain coherent without mandatory vendor access. |
 
 ## Staleness and Orphans
 
@@ -53,8 +54,8 @@ A repo that drifts is a repo that dies. Once two live docs disagree, every later
 | Actor | Coherence duty |
 |---|---|
 | Codex | Runs the Ripple Check before every commit and attests it in the Work Record Self-audit |
-| Claude Code | Verifies Ripple Check attestations during audit and runs periodic coherence sweeps at phase boundaries |
-| Cowork | Confirms Ripple Check completion before any Linear state move |
+| Independent reviewer | Verifies Ripple Check attestations during audit and runs periodic coherence sweeps at phase boundaries |
+| Coordinator | Confirms Ripple Check completion before any Linear state move |
 
 ## Where the rules live
 
